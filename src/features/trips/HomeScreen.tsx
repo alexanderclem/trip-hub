@@ -1,56 +1,91 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
-import { ClipboardPaste, Plus } from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { ChevronRight, ClipboardPaste, Plus } from 'lucide-react'
+import { db } from '@/data/db'
+import { useDevice } from '@/data/device'
+import { Button, Card, ErrorNote, Input } from '@/ui'
+import { parseShareToken } from './actions'
 
 export function HomeScreen() {
   const navigate = useNavigate()
+  const joined = useDevice((s) => s.trips)
+  const trips = useLiveQuery(() => db.trips.bulkGet(Object.keys(joined)), [joined]) ?? []
   const [link, setLink] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   async function pasteFromClipboard() {
     try {
       setLink(await navigator.clipboard.readText())
     } catch {
-      // Clipboard permission denied; the user can paste manually.
+      setError('Could not read the clipboard. Long-press the box and choose Paste.')
     }
   }
 
+  function join() {
+    const token = parseShareToken(link)
+    if (!token) return setError("That doesn't look like a trip link.")
+    navigate(`/join#t=${token}`)
+  }
+
   return (
-    <div className="pt-safe mx-auto max-w-md p-6">
-      <h1 className="text-3xl font-bold text-brand-700">Trip Hub</h1>
+    <div className="pt-safe mx-auto max-w-md p-5">
+      <h1 className="mt-4 text-3xl font-bold text-brand-700">Trip Hub</h1>
       <p className="mt-1 text-stone-600">Your group's trips, all in one place.</p>
 
-      <section className="mt-8 rounded-2xl bg-white p-5 shadow-sm">
+      {trips.some(Boolean) && (
+        <section className="mt-6 space-y-2">
+          {trips.filter((t) => t && !t.deleted_at).map((t) => (
+            <Link
+              key={t!.id}
+              to={`/t/${t!.id}`}
+              className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm active:bg-stone-50"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-semibold">{t!.name}</div>
+                {t!.start_date && (
+                  <div className="text-sm text-stone-500">
+                    {t!.start_date} → {t!.end_date}
+                  </div>
+                )}
+              </div>
+              <ChevronRight className="size-5 text-stone-400" />
+            </Link>
+          ))}
+        </section>
+      )}
+
+      <Card className="mt-6">
         <h2 className="font-semibold">Join a trip</h2>
         <p className="mt-1 text-sm text-stone-500">Paste the trip link someone shared with you.</p>
         <div className="mt-3 flex gap-2">
-          <input
+          <Input
             value={link}
-            onChange={(e) => setLink(e.target.value)}
+            onChange={(e) => {
+              setLink(e.target.value)
+              setError(null)
+            }}
             placeholder="https://…/join#t=…"
-            className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-base"
+            className="min-w-0 flex-1"
           />
-          <button
-            onClick={pasteFromClipboard}
-            className="rounded-lg border border-stone-300 px-3"
-            aria-label="Paste from clipboard"
-          >
+          <Button variant="secondary" onClick={pasteFromClipboard} aria-label="Paste from clipboard" className="px-3">
             <ClipboardPaste className="size-5" />
-          </button>
+          </Button>
         </div>
-        <button
-          disabled={!link.includes('#t=')}
-          className="mt-3 w-full rounded-lg bg-brand-600 py-2.5 font-medium text-white disabled:opacity-40"
-        >
-          Join
-        </button>
-      </section>
+        <div className="mt-3 space-y-3">
+          <ErrorNote error={error} />
+          <Button className="w-full" disabled={!link.trim()} onClick={join}>
+            Join
+          </Button>
+        </div>
+      </Card>
 
-      <button
-        onClick={() => navigate('/t/demo/map')}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-stone-300 py-4 text-stone-600"
+      <Link
+        to="/new"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-stone-300 py-4 text-stone-600 active:bg-stone-100"
       >
         <Plus className="size-5" /> Create a trip
-      </button>
+      </Link>
     </div>
   )
 }

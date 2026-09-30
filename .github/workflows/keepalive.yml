@@ -1,0 +1,21 @@
+# Supabase pauses free-tier projects after 7 days without activity. A trip app can easily
+# go quiet for a week between planning sessions, so ping the database every 3 days.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: '17 9 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping database
+        env:
+          # Public values (they already ship in the app bundle); not secrets.
+          SUPABASE_URL: https://croqjdvzbpcscdcshnet.supabase.co
+          SUPABASE_KEY: sb_publishable_FpJvcMvfUFtCO49tcx0tGA_fZUqNroP
+        run: |
+          curl -fsS -X POST "$SUPABASE_URL/rest/v1/rpc/ping" \
+            -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json" -d '{}'

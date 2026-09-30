@@ -1,0 +1,11 @@
+{
+  "comment": "Bounding boxes are [south, west, north, east]. Add areas here and re-run: npm run seed:places -- seed/guatemala-2027",
+  "areas": [
+    { "name": "Antigua", "bbox": [14.540, -90.750, 14.575, -90.715] },
+    { "name": "Panajachel", "bbox": [14.730, -91.170, 14.750, -91.145] },
+    { "name": "San Pedro La Laguna", "bbox": [14.683, -91.280, 14.700, -91.262] },
+    { "name": "San Marcos La Laguna", "bbox": [14.718, -91.265, 14.730, -91.252] },
+    { "name": "San Juan La Laguna", "bbox": [14.690, -91.290, 14.700, -91.278] },
+    { "name": "Santa Cruz La Laguna", "bbox": [14.740, -91.210, 14.750, -91.195] }
+  ]
+}

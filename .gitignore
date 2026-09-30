@@ -11,3 +11,7 @@ coverage
 test-results
 playwright-report
 .DS_Store
+
+# Local tool config (can contain credentials) and build caches
+.mcp.json
+*.tsbuildinfo
