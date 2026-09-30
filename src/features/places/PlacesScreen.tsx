@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { MapPin, Plus, Search } from 'lucide-react'
+import { ArrowUpRight, MapPin, Navigation, Plus, Search } from 'lucide-react'
 import { usePlaces } from '@/data/hooks'
 import { PLACE_CATEGORIES, type PlaceCategory } from '@/data/types'
 import { Input, PageHeader } from '@/ui'
-import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
+import { CATEGORY_STYLE } from './categories'
+import { googleMapsUrl } from '@/lib/geo'
+import { PlaceCategoryIcon, PlaceStatusBadge, placeActionClass } from './PlaceSummary'
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, Skeleton } from '@/ui/collection'
 
 export function PlacesScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -35,15 +38,15 @@ export function PlacesScreen() {
           </Link>
         }
       />
-      <div className="space-y-3 p-4">
+      <div className="mx-auto max-w-4xl space-y-4 p-4 sm:p-6">
         <div className="relative">
-          <Search className="absolute top-3 left-3 size-5 text-stone-400" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search places" className="pl-10" />
+          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-400" />
+          <Input aria-label="Search places" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search places" className="pl-10" />
         </div>
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <div aria-label="Filter places by category" className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1">
           <Chip active={!cat} onClick={() => setCat(null)}>All</Chip>
           {PLACE_CATEGORIES.map((c) => (
-            <Chip key={c} active={cat === c} onClick={() => setCat(cat === c ? null : c)} color={CATEGORY_STYLE[c].color}>
+            <Chip key={c} active={cat === c} onClick={() => setCat(cat === c ? null : c)}>
               {CATEGORY_STYLE[c].label}
             </Chip>
           ))}
@@ -55,30 +58,39 @@ export function PlacesScreen() {
           </label>
         )}
 
+        <div className="flex items-center justify-between gap-3 border-t border-stone-200 pt-4">
+          <h2 className="text-sm font-semibold text-stone-700">{q.trim() ? 'Search results' : showPool ? 'All places' : 'Your places'}</h2>
+          <p role="status" className="text-xs text-stone-500">{places ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}` : 'Loading places…'}</p>
+        </div>
+        {!places && <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl border border-stone-200 bg-white p-4"><Skeleton className="h-10 w-10" /><Skeleton className="mt-4 h-5 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></div>)}</div>}
         {places && filtered.length === 0 && (
-          <div className="py-12 text-center text-stone-500">
-            <MapPin className="mx-auto size-10 text-stone-300" />
-            <p className="mt-2">{places.length ? 'No places match.' : 'No places yet. Add the first one!'}</p>
-          </div>
+          <Empty>
+            <MapPin aria-hidden="true" className="size-8 text-brand-700" />
+            <EmptyHeader>
+              <EmptyTitle>{places.length ? 'No places in this view' : 'Where should we go?'}</EmptyTitle>
+              <EmptyDescription>{places.length ? 'Try another search or category, or include the idea pool.' : 'Save a place to eat, stay, or explore. Everyone on the trip can help plan.'}</EmptyDescription>
+            </EmptyHeader>
+            {places.length ? <button className={placeActionClass} onClick={() => { setQ(''); setCat(null); setShowPool(true) }}>Show all places</button> : <Link to="new" className={placeActionClass}><Plus aria-hidden="true" className="size-4" />Add a place</Link>}
+          </Empty>
         )}
 
-        <ul className="space-y-2">
+        <ul className="grid gap-3 sm:grid-cols-2">
           {filtered.map((p) => {
-            const { Icon, color, label } = CATEGORY_STYLE[p.category]
+            const at = p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : null
             return (
-              <li key={p.id}>
-                <Link to={p.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm active:bg-stone-50">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full text-white" style={{ background: color }}>
-                    <Icon className="size-5" aria-label={label} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium">{p.name}</div>
-                    <div className="truncate text-sm text-stone-500">
-                      {[p.area, STATUS_LABEL[p.status]].filter(Boolean).join(' · ')}
-                    </div>
-                  </div>
-                  {p.lat == null && <span className="text-xs text-amber-700">no pin</span>}
+              <li key={p.id} className="flex min-w-0 flex-col rounded-2xl border border-stone-200 bg-white shadow-sm">
+                <Link to={p.id} className="group flex-1 rounded-t-2xl p-4 transition-colors hover:bg-stone-50">
+                  <div className="mb-4 flex items-center justify-between gap-2"><PlaceCategoryIcon category={p.category} /><PlaceStatusBadge status={p.status} /></div>
+                  <p className="mb-1 text-xs font-medium text-stone-500">{CATEGORY_STYLE[p.category].label}</p>
+                  <h3 className="flex items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight group-hover:text-brand-700"><span className="min-w-0 break-words">{p.name}</span><ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-stone-400" /></h3>
+                  {(p.area || p.address) && <p className="mt-2 flex items-start gap-1.5 text-sm text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{p.address || p.area}</span></p>}
+                  {p.notes && <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-stone-600">{p.notes}</p>}
+                  {!at && <p className="mt-3 text-xs text-amber-800">No map pin yet</p>}
                 </Link>
+                <div className="mx-4 flex flex-wrap gap-2 border-t border-stone-100 py-3">
+                  {at && <Link to={`/t/${tripId}/map?place=${encodeURIComponent(p.id)}`} className={placeActionClass}><MapPin aria-hidden="true" className="size-4" />On map</Link>}
+                  <a href={googleMapsUrl(p.name, p.area, at)} target="_blank" rel="noreferrer" className={placeActionClass}><Navigation aria-hidden="true" className="size-4" />Google Maps<span className="sr-only"> (opens in a new tab)</span></a>
+                </div>
               </li>
             )
           })}
@@ -88,14 +100,14 @@ export function PlacesScreen() {
   )
 }
 
-function Chip({ active, onClick, color, children }: { active: boolean; onClick: () => void; color?: string; children: string }) {
+function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 rounded-full border px-3 py-1.5 text-sm ${
-        active ? 'border-transparent text-white' : 'border-stone-300 bg-white text-stone-700'
+      aria-pressed={active}
+      className={`min-h-11 shrink-0 rounded-full border px-3 py-2 text-sm ${
+        active ? 'border-brand-700 bg-brand-50 text-brand-900' : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-50'
       }`}
-      style={active ? { background: color ?? 'var(--color-brand-600)' } : undefined}
     >
       {children}
     </button>

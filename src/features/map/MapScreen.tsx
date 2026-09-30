@@ -428,6 +428,7 @@ export default function MapScreen() {
 
       {selected && !measuring && (
         <PlaceSheet
+          key={selected.id}
           place={selected}
           origins={origins}
           origin={origin}

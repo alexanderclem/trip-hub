@@ -70,7 +70,8 @@ test('create a trip, load starter places, see them on the map, and sync a shortl
   await pageB.goto(`${new URL(pageB.url()).pathname}?place=${placeId}`)
   await expect(pageB.getByRole('heading', { name: '12 Onzas' })).toBeVisible({ timeout: 30_000 })
   // A's edit must actually arrive on B (it queues behind A's 1,301-place import upload).
-  await expect(pageB.getByText('Food · Antigua · Shortlist')).toBeVisible({ timeout: 60_000 })
+  await expect(pageB.getByRole('dialog').getByText('Shortlist', { exact: true })).toBeVisible({ timeout: 60_000 })
+  await expect(pageB.getByText('Food · Antigua', { exact: true })).toBeVisible()
   await expect(pageB.getByRole('button', { name: /Shortlist/ })).toHaveCount(0)
   // Travel options from the phone's location (a straight-line walking estimate, ~190 m away).
   await expect(pageB.getByRole('button', { name: 'From you' })).toBeVisible()
