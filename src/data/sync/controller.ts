@@ -104,7 +104,8 @@ export function startSync(tripId: string): () => void {
       poke,
     )
   }
-  channel.subscribe()
+  // The socket must carry this device's JWT before joining, or RLS silently filters every event.
+  void supabase.realtime.setAuth().then(() => channel.subscribe())
 
   void syncNow(tripId)
 

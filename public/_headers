@@ -1,0 +1,11 @@
+# The service worker and manifest must always be revalidated, or phones keep old app versions.
+/sw.js
+  Cache-Control: no-cache
+/registerSW.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+# Hashed build assets never change.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

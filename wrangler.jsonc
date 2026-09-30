@@ -1,0 +1,10 @@
+// Cloudflare Workers static-assets config (used if the project was created as a Worker;
+// Cloudflare Pages ignores this file). Serves the built PWA from dist/ with SPA routing.
+{
+  "name": "trip-hub",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

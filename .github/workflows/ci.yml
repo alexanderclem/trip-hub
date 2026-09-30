@@ -18,6 +18,3 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-        env:
-          VITE_SUPABASE_URL: https://croqjdvzbpcscdcshnet.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_FpJvcMvfUFtCO49tcx0tGA_fZUqNroP

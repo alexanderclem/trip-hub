@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed:places": "node scripts/overpass-seed.ts"
+    "seed:places": "node scripts/overpass-seed.ts",
+    "smoke": "node scripts/smoke-test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
