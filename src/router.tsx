@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router'
+import { RouteError } from './app/RouteError'
 import { RootLayout } from './app/layouts/RootLayout'
 import { TripLayout } from './app/layouts/TripLayout'
 import { Placeholder } from './app/Placeholder'
@@ -15,6 +16,7 @@ import { WhoScreen } from './features/trips/WhoScreen'
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    errorElement: <RouteError />,
     children: [
       { path: '/', element: <HomeScreen /> },
       { path: '/new', element: <CreateTripScreen /> },
