@@ -1,0 +1,13 @@
+node_modules
+dist
+dev-dist
+.env
+.env.local
+.env.*.local
+tools/
+packs/
+*.pmtiles
+coverage
+test-results
+playwright-report
+.DS_Store
