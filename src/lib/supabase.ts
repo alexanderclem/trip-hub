@@ -25,10 +25,13 @@ export async function ensureSession(): Promise<string> {
   }
   const { data: signIn, error } = await supabase.auth.signInAnonymously()
   if (error || !signIn.user) {
+    const msg = error?.message ?? 'unknown error'
     throw new Error(
-      error?.message.includes('Anonymous sign-ins are disabled')
+      msg.includes('Anonymous sign-ins are disabled')
         ? 'Trip Hub is not set up yet: anonymous sign-ins are disabled in Supabase.'
-        : `Could not sign in: ${error?.message ?? 'unknown error'}`,
+        : /rate limit/i.test(msg)
+          ? 'Too many new phones joined from this network in the last hour. Try again in a little while, or switch between Wi-Fi and mobile data.'
+          : `Could not sign in: ${msg}`,
     )
   }
   return signIn.user.id
