@@ -44,7 +44,8 @@ test('offline: download the map pack, cut the network, reload — app, data and 
   await expect(page.getByText("Offline: changes will sync when you're back online")).toBeVisible()
   await expect(page.getByText('Offline map', { exact: true })).toBeVisible({ timeout: 20_000 })
   await expect(page.getByRole('heading', { name: '12 Onzas' })).toBeVisible()
-  await expect(page.getByText('Food · Antigua · Shortlist')).toBeVisible() // local edit survives the offline reload
+  // The local edit survives the offline reload (status badge on the place card).
+  await expect(page.getByRole('dialog', { name: '12 Onzas' }).getByText('Shortlist', { exact: true })).toBeVisible()
   await page.waitForTimeout(4000) // tiles decode + glyphs
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/20-offline-map.png` })
 
