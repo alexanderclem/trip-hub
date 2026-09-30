@@ -1,4 +1,4 @@
-// Small shared UI primitives. Deliberately plain: Tailwind classes, no component library yet.
+// Shared UI primitives, styled to match the adapted shadcn collection.
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
@@ -14,11 +14,11 @@ export function Button({
     <button
       {...props}
       className={cx(
-        'rounded-xl px-4 py-2.5 font-medium transition-colors disabled:opacity-40',
-        variant === 'primary' && 'bg-brand-600 text-white active:bg-brand-700',
-        variant === 'secondary' && 'border border-stone-300 bg-white text-stone-800 active:bg-stone-100',
-        variant === 'danger' && 'border border-red-200 bg-white text-red-700 active:bg-red-50',
-        variant === 'ghost' && 'text-brand-700 active:bg-brand-50',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40',
+        variant === 'primary' && 'bg-brand-700 text-white shadow-sm hover:bg-brand-900 active:bg-brand-900',
+        variant === 'secondary' && 'border border-stone-300 bg-white text-stone-800 hover:bg-stone-50 active:bg-stone-100',
+        variant === 'danger' && 'border border-red-200 bg-white text-red-700 hover:bg-red-50 active:bg-red-100',
+        variant === 'ghost' && 'text-brand-700 hover:bg-brand-50 active:bg-brand-100',
         className,
       )}
     />
@@ -36,7 +36,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 }
 
 const inputCls =
-  'w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100'
+  'w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-60 aria-invalid:border-red-500'
 
 export const Input = (props: InputHTMLAttributes<HTMLInputElement>) => (
   <input {...props} className={cx(inputCls, props.className)} />
@@ -49,7 +49,7 @@ export const Textarea = (props: TextareaHTMLAttributes<HTMLTextAreaElement>) => 
 )
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx('rounded-2xl bg-white p-4 shadow-sm', className)}>{children}</section>
+  return <section className={cx('rounded-2xl border border-stone-200 bg-white p-4 shadow-sm', className)}>{children}</section>
 }
 
 export function PageHeader({ title, back, action }: { title: string; back?: string; action?: ReactNode }) {
@@ -72,7 +72,7 @@ export function PageHeader({ title, back, action }: { title: string; back?: stri
 
 export function ErrorNote({ error }: { error: string | null }) {
   if (!error) return null
-  return <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
+  return <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
 }
 
 export function Avatar({ name, color, size = 'md' }: { name: string; color: string | null; size?: 'sm' | 'md' }) {
