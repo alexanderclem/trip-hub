@@ -30,7 +30,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Includes the offline map's fonts and sprites, so labels render with no network.
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'map-assets/**/*.{pbf,json}'],
         navigateFallback: '/index.html',
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [

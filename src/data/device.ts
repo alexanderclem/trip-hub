@@ -10,6 +10,9 @@ export interface JoinedTrip {
 interface DeviceState {
   trips: Record<string, JoinedTrip>
   timeView: 'trip' | 'device'
+  /** auto: offline map when there's no signal and it's downloaded; otherwise the online map. */
+  basemap: 'auto' | 'online' | 'offline'
+  setBasemap: (b: 'auto' | 'online' | 'offline') => void
   rememberTrip: (tripId: string, memberId?: string | null) => void
   setMember: (tripId: string, memberId: string) => void
   forgetTrip: (tripId: string) => void
@@ -22,6 +25,8 @@ export const useDevice = create<DeviceState>()(
     (set) => ({
       trips: {},
       timeView: 'trip',
+      basemap: 'auto',
+      setBasemap: (basemap) => set({ basemap }),
       rememberTrip: (tripId, memberId = null) =>
         set((s) => ({
           trips: {

@@ -21,6 +21,12 @@ export interface DeadLetter {
   at: number
 }
 
+/** Offline map files, when the browser can't write them to OPFS. */
+export interface StoredFile {
+  name: string
+  blob: Blob
+}
+
 export interface Meta {
   key: string
   value: string
@@ -36,6 +42,7 @@ export class TripDb extends Dexie {
   _outbox!: EntityTable<OutboxEntry, 'seq'>
   _deadletter!: EntityTable<DeadLetter, 'id'>
   _meta!: EntityTable<Meta, 'key'>
+  files!: EntityTable<StoredFile, 'name'>
 
   constructor(name = 'trip-hub') {
     super(name)
@@ -52,6 +59,7 @@ export class TripDb extends Dexie {
       route_legs: 'id, trip_id, from_place_id, to_place_id',
       leg_overrides: 'id, trip_id, place_a_id, place_b_id',
     })
+    this.version(3).stores({ files: 'name' })
   }
 }
 

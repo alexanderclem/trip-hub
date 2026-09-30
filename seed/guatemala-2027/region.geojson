@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Antigua and surroundings" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-90.80, 14.50], [-90.66, 14.50], [-90.66, 14.62], [-90.80, 14.62], [-90.80, 14.50]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "La Aurora airport (GUA) to Antigua" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-90.66, 14.52], [-90.48, 14.52], [-90.48, 14.66], [-90.66, 14.66], [-90.66, 14.52]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Lake Atitlán basin" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-91.34, 14.58], [-91.06, 14.58], [-91.06, 14.82], [-91.34, 14.82], [-91.34, 14.58]]] }
+    }
+  ]
+}

@@ -4,8 +4,8 @@ dev-dist
 .env
 .env.local
 .env.*.local
-tools/
-packs/
+/tools/
+/packs/
 *.pmtiles
 coverage
 test-results
@@ -15,3 +15,4 @@ playwright-report
 # Local tool config (can contain credentials) and build caches
 .mcp.json
 *.tsbuildinfo
+!public/packs/*.pmtiles

@@ -2,6 +2,10 @@
 -- that no longer belong to any trip. Run in the Supabase SQL editor after test runs.
 with test_trips as (
   select id from public.trips where name like 'E2E TEST %' or name like 'SMOKE TEST %'
+), d0 as (
+  delete from public.route_legs where trip_id in (select id from test_trips) returning 1
+), d0b as (
+  delete from public.leg_overrides where trip_id in (select id from test_trips) returning 1
 ), d1 as (
   delete from public.trip_devices where trip_id in (select id from test_trips) returning 1
 ), d2 as (

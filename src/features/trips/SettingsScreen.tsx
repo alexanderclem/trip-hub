@@ -8,6 +8,7 @@ import { syncNow, useSyncStatus } from '@/data/sync/controller'
 import { importPlaces } from '@/features/places/importPlaces'
 import { fetchStarterPack, STARTER_PACKS } from '@/features/places/starterPacks'
 import { requestLegs } from '@/features/routing/requestLegs'
+import { OfflineMapCard } from '@/features/map/offline/OfflineMapCard'
 import { save } from '@/data/repo'
 import { Avatar, Button, Card, ErrorNote, PageHeader } from '@/ui'
 import { rotateShareToken, shareLink } from './actions'
@@ -126,6 +127,10 @@ export function SettingsScreen() {
               onClick={() =>
                 run(async () => {
                   const r = await importPlaces(tripId, await fetchStarterPack(pack), me)
+                  const current = await db.trips.get(tripId)
+                  if (pack.map && current && JSON.stringify(current.offline_pack) !== JSON.stringify(pack.map)) {
+                    await save('trips', { ...current, offline_pack: pack.map }, me)
+                  }
                   return `Added ${r.added} places${r.skipped ? `, ${r.skipped} were already there` : ''}${r.routesAdded ? `, and ${r.routesAdded} typical lancha/shuttle times` : ''}.`
                 })
               }
@@ -153,6 +158,8 @@ export function SettingsScreen() {
             <Upload className="size-4" /> Import a places file
           </Button>
         </Card>
+
+        <OfflineMapCard trip={trip} />
 
         <Card>
           <h2 className="font-semibold">Travel times</h2>

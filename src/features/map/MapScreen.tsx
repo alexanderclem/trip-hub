@@ -5,7 +5,10 @@ import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import type { FeatureCollection, LineString, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { List, MapPinPlus, Ruler, X } from 'lucide-react'
-import { useLegContext, usePlaces } from '@/data/hooks'
+import { useDevice } from '@/data/device'
+import { useLegContext, usePlaces, useTrip } from '@/data/hooks'
+import { useOnline } from '@/lib/useOnline'
+import { offlineStyle, useOfflinePack } from './offline/packs'
 import { PLACE_CATEGORIES, type Place, type PlaceCategory } from '@/data/types'
 import type { LatLng } from '@/lib/geo'
 import { Button } from '@/ui'
@@ -53,10 +56,16 @@ export default function MapScreen() {
   const [originId, setOriginId] = useState<string | null>(null) // null = pick a sensible default
   const [measuring, setMeasuring] = useState<Place | null>(null)
   const legCtx = useLegContext(tripId)
+  const trip = useTrip(tripId)
+  const [pack] = useOfflinePack(trip)
+  const basemap = useDevice((s) => s.basemap)
+  const online = useOnline()
+  const wantOffline = pack.status === 'ready' && (basemap === 'offline' || (basemap === 'auto' && !online))
 
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
-  const [ready, setReady] = useState(false)
+  const [ready, setReady] = useState(0) // bumps each time pins are (re)added after a style load
+  const styleMode = useRef<'online' | 'offline'>('online')
   const fitted = useRef(false)
 
   // Handlers registered once on the map read the latest values through this ref.
@@ -135,18 +144,27 @@ export default function MapScreen() {
     geolocate.on('geolocate', (e) => setMe({ lat: e.coords.latitude, lng: e.coords.longitude }))
 
     map.on('error', (e) => {
-      if (!navigator.onLine) setMapError("You're offline, so only map areas you've already viewed will show.")
+      if (!navigator.onLine && styleMode.current === 'online') {
+        setMapError("You're offline, so only map areas you've already viewed will show. Download the offline map in Trip settings.")
+      }
       else console.warn('map error', e.error)
     })
 
-    map.on('load', async () => {
+    map.on('load', () => {
       // If location was allowed before, show "you are here" (and distances) without a tap.
       navigator.permissions
         ?.query({ name: 'geolocation' })
         .then((p) => p.state === 'granted' && geolocate.trigger())
         .catch(() => {})
+    })
 
+    // Pins, clusters and the measure line sit on top of whichever basemap is showing, so they're
+    // re-added whenever the style changes (online ↔ offline map).
+    map.on('style.load', async () => {
+      // The offline font set has Medium rather than Bold.
+      const bold = styleMode.current === 'offline' ? 'Noto Sans Medium' : 'Noto Sans Bold'
       await addPinImages(map)
+      if (map.getSource('picks')) return
 
       // Idea pool: small, clustered, underneath.
       map.addSource('pool', { type: 'geojson', data: EMPTY, cluster: true, clusterMaxZoom: 16, clusterRadius: 40 })
@@ -168,7 +186,7 @@ export default function MapScreen() {
         type: 'symbol',
         source: 'pool',
         filter: ['has', 'point_count'],
-        layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-font': ['Noto Sans Bold'], 'text-size': 12 },
+        layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-font': [bold], 'text-size': 12 },
         paint: { 'text-color': '#fff' },
       })
       map.addLayer({
@@ -217,7 +235,7 @@ export default function MapScreen() {
           'icon-image': ['concat', 'pin-', ['get', 'category']],
           'icon-allow-overlap': true,
           'text-field': ['step', ['zoom'], '', 13, ['get', 'name']],
-          'text-font': ['Noto Sans Bold'],
+          'text-font': [bold],
           'text-size': 12,
           'text-offset': [0, 1.5],
           'text-anchor': 'top',
@@ -225,7 +243,7 @@ export default function MapScreen() {
         },
         paint: { 'text-color': '#1c1917', 'text-halo-color': '#fff', 'text-halo-width': 1.5 },
       })
-      setReady(true)
+      setReady((n) => n + 1)
     })
 
     // One click handler: pins first, then clusters, else clear the selection.
@@ -270,9 +288,21 @@ export default function MapScreen() {
       cancel()
       map.remove()
       mapRef.current = null
-      setReady(false)
+      styleMode.current = 'online'
+      setReady(0)
     }
   }, [tripId])
+
+  // ── Online map ↔ offline map (files on this device) ─────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const mode = wantOffline ? 'offline' : 'online'
+    if (mode === styleMode.current) return
+    styleMode.current = mode
+    setMapError(null)
+    map.setStyle(mode === 'offline' && pack.status === 'ready' ? offlineStyle(pack.overview, pack.detail) : STYLE_URL, { diff: false })
+  }, [wantOffline, pack])
 
   // ── Keep map data in sync with IndexedDB + filters ──────────────────────────
   useEffect(() => {
@@ -369,6 +399,7 @@ export default function MapScreen() {
           <Link to="../more/places" className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-sm text-stone-700 shadow-sm">
             <List className="size-4" /> List
           </Link>
+          {wantOffline && <span className="rounded-full bg-stone-900/80 px-3 py-1.5 text-sm text-white">Offline map</span>}
         </div>
         {mapError && <p className="mx-3 mt-2 rounded-xl bg-amber-100 px-3 py-2 text-sm text-amber-900">{mapError}</p>}
       </div>
