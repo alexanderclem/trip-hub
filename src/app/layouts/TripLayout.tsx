@@ -63,7 +63,7 @@ function SyncPill() {
           ? 'Syncing…'
           : `${pending} to sync`
   return (
-    <div className="pointer-events-none fixed top-[calc(env(safe-area-inset-top)+0.5rem)] right-3 z-30 rounded-full bg-stone-900/80 px-3 py-1 text-xs text-white">
+    <div className="pointer-events-none fixed top-[calc(env(safe-area-inset-top)+6.75rem)] left-3 z-30 rounded-full bg-stone-900/80 px-3 py-1 text-xs text-white">
       {text}
     </div>
   )

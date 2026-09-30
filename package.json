@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed:places": "node scripts/overpass-seed.ts",
-    "smoke": "node scripts/smoke-test.ts"
+    "smoke": "node scripts/smoke-test.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
@@ -19,6 +20,7 @@
     "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.49.0",
     "luxon": "^3.7.2",
+    "maplibre-gl": "^6.11.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router": "^8.4.0",
@@ -27,6 +29,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/luxon": "^3.7.6",
     "@types/node": "^26.6.3",

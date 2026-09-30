@@ -6,6 +6,7 @@ import { useDevice, useMyMemberId } from '@/data/device'
 import { useDeadLetters, useMembers, usePendingCount, useTrip } from '@/data/hooks'
 import { syncNow, useSyncStatus } from '@/data/sync/controller'
 import { importPlaces } from '@/features/places/importPlaces'
+import { fetchStarterPack, STARTER_PACKS } from '@/features/places/starterPacks'
 import { Avatar, Button, Card, ErrorNote, PageHeader } from '@/ui'
 import { rotateShareToken, shareLink } from './actions'
 
@@ -113,8 +114,24 @@ export function SettingsScreen() {
         <Card>
           <h2 className="font-semibold">Import places</h2>
           <p className="mt-1 text-sm text-stone-500">
-            Load a places file (from OpenStreetMap) into the idea pool. Safe to repeat: nothing is duplicated.
+            Adds places to the idea pool (hidden on the map until you switch it on). Safe to repeat: nothing is
+            duplicated.
           </p>
+          {STARTER_PACKS.map((pack) => (
+            <Button
+              key={pack.id}
+              className="mt-3 w-full text-left"
+              onClick={() =>
+                run(async () => {
+                  const r = await importPlaces(tripId, await fetchStarterPack(pack), me)
+                  return `Added ${r.added} places${r.skipped ? `, ${r.skipped} were already there` : ''}.`
+                })
+              }
+            >
+              <span className="block">Load {pack.label}</span>
+              <span className="block text-xs font-normal opacity-80">{pack.description}</span>
+            </Button>
+          ))}
           <input
             ref={fileRef}
             type="file"
@@ -131,7 +148,7 @@ export function SettingsScreen() {
             }}
           />
           <Button variant="secondary" className="mt-3 flex w-full items-center justify-center gap-2" onClick={() => fileRef.current?.click()}>
-            <Upload className="size-4" /> Choose file
+            <Upload className="size-4" /> Import a places file
           </Button>
         </Card>
 

@@ -28,3 +28,8 @@ body {
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
+
+/* Map controls sit below the category chips and idea-pool buttons. */
+.maplibregl-map .maplibregl-ctrl-top-right {
+  top: calc(env(safe-area-inset-top) + 7.5rem);
+}

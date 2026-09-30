@@ -1,0 +1,20 @@
+-- Removes trips created by the end-to-end tests and smoke test, plus anonymous test users
+-- that no longer belong to any trip. Run in the Supabase SQL editor after test runs.
+with test_trips as (
+  select id from public.trips where name like 'E2E TEST %' or name like 'SMOKE TEST %'
+), d1 as (
+  delete from public.trip_devices where trip_id in (select id from test_trips) returning 1
+), d2 as (
+  delete from public.links where trip_id in (select id from test_trips) returning 1
+), d3 as (
+  delete from public.places where trip_id in (select id from test_trips) returning 1
+), d4 as (
+  delete from public.members where trip_id in (select id from test_trips) returning 1
+)
+select (select count(*) from test_trips) as trips, (select count(*) from d3) as places;
+
+delete from public.trips where name like 'E2E TEST %' or name like 'SMOKE TEST %';
+
+delete from auth.users u
+where u.is_anonymous
+  and not exists (select 1 from public.trip_devices d where d.user_id = u.id);

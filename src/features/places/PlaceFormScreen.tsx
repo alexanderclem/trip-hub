@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { MapPinned } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { usePlace } from '@/data/hooks'
@@ -32,10 +32,13 @@ const blank = (tripId: string): Place => ({
 export function PlaceFormScreen() {
   const { tripId, placeId } = useParams() as { tripId: string; placeId?: string }
   const navigate = useNavigate()
+  const [search] = useSearchParams()
   const me = useMyMemberId(tripId)
+  // Arriving from a long-press on the map: prefill the spot and go back to the map after.
+  const fromMap = search.has('lat') && search.has('lng')
   const existing = usePlace(placeId)
   const [p, setP] = useState<Place>(() => blank(tripId))
-  const [coordsText, setCoordsText] = useState('')
+  const [coordsText, setCoordsText] = useState(() => (fromMap ? `${search.get('lat')}, ${search.get('lng')}` : ''))
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -63,12 +66,12 @@ export function PlaceFormScreen() {
       lng: parsed?.lng ?? null,
     }
     await save('places', row, me)
-    navigate(`/t/${tripId}/more/places/${row.id}`, { replace: true })
+    navigate(fromMap ? `/t/${tripId}/map?place=${row.id}` : `/t/${tripId}/more/places/${row.id}`, { replace: true })
   }
 
   return (
     <div className="min-h-full">
-      <PageHeader title={placeId ? 'Edit place' : 'Add place'} back={placeId ? `/t/${tripId}/more/places/${placeId}` : `/t/${tripId}/more/places`} />
+      <PageHeader title={placeId ? 'Edit place' : 'Add place'} back={placeId ? `/t/${tripId}/more/places/${placeId}` : fromMap ? `/t/${tripId}/map` : `/t/${tripId}/more/places`} />
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-5">
         <Field label="Name">
           <Input required maxLength={200} {...text('name')} placeholder="Café Sky" />

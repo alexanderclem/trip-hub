@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
         element: <TripLayout />,
         children: [
           { index: true, element: <Navigate to="map" replace /> },
-          { path: 'map', element: <Placeholder title="Map" phase={2} /> },
+          { path: 'map', lazy: () => import('./features/map/MapScreen').then((m) => ({ Component: m.default })) },
           { path: 'plan', element: <Placeholder title="Plan" phase={5} /> },
           { path: 'tickets', element: <Placeholder title="Tickets" phase={7} /> },
           { path: 'money', element: <Placeholder title="Money" phase={6} /> },
