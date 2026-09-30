@@ -93,10 +93,52 @@ export interface Link extends SyncColumns {
   kind: LinkKind
 }
 
+export const TRAVEL_MODES = ['walk', 'drive', 'tuktuk', 'shuttle', 'bus', 'boat', 'flight'] as const
+export type TravelMode = (typeof TRAVEL_MODES)[number]
+
+/** Computed by the route-legs Edge Function. Directional. */
+export interface RouteLeg extends SyncColumns {
+  trip_id: string
+  from_place_id: string
+  to_place_id: string
+  mode: 'drive' | 'walk'
+  distance_m: number | null
+  duration_s: number | null
+  source: 'ors' | 'osrm'
+  from_lat: number | null
+  from_lng: number | null
+  to_lat: number | null
+  to_lng: number | null
+  computed_at: string
+}
+
+/** A time someone reported for a pair of places. Undirected: place_a_id < place_b_id. */
+export interface LegOverride extends SyncColumns {
+  trip_id: string
+  place_a_id: string
+  place_b_id: string
+  mode: TravelMode
+  min_s: number
+  max_s: number
+  note: string | null
+}
+
+/** Typical town-to-town options (lanchas, tourist shuttles), kept in trips.settings.area_routes. */
+export interface AreaRoute {
+  a: string
+  b: string
+  mode: TravelMode
+  min_min: number
+  max_min: number
+  note?: string
+}
+
 export interface Tables {
   trips: Trip
   members: Member
   places: Place
   links: Link
+  route_legs: RouteLeg
+  leg_overrides: LegOverride
 }
 export type TableName = keyof Tables

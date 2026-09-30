@@ -7,6 +7,8 @@ import { useDeadLetters, useMembers, usePendingCount, useTrip } from '@/data/hoo
 import { syncNow, useSyncStatus } from '@/data/sync/controller'
 import { importPlaces } from '@/features/places/importPlaces'
 import { fetchStarterPack, STARTER_PACKS } from '@/features/places/starterPacks'
+import { requestLegs } from '@/features/routing/requestLegs'
+import { save } from '@/data/repo'
 import { Avatar, Button, Card, ErrorNote, PageHeader } from '@/ui'
 import { rotateShareToken, shareLink } from './actions'
 
@@ -124,7 +126,7 @@ export function SettingsScreen() {
               onClick={() =>
                 run(async () => {
                   const r = await importPlaces(tripId, await fetchStarterPack(pack), me)
-                  return `Added ${r.added} places${r.skipped ? `, ${r.skipped} were already there` : ''}.`
+                  return `Added ${r.added} places${r.skipped ? `, ${r.skipped} were already there` : ''}${r.routesAdded ? `, and ${r.routesAdded} typical lancha/shuttle times` : ''}.`
                 })
               }
             >
@@ -149,6 +151,33 @@ export function SettingsScreen() {
           />
           <Button variant="secondary" className="mt-3 flex w-full items-center justify-center gap-2" onClick={() => fileRef.current?.click()}>
             <Upload className="size-4" /> Import a places file
+          </Button>
+        </Card>
+
+        <Card>
+          <h2 className="font-semibold">Travel times</h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Calculated automatically for shortlisted, planned and booked places. Road times are multiplied by this range
+            because routing apps underestimate Guatemala's mountain roads.
+          </p>
+          <div className="mt-3 flex items-center gap-2 text-sm">
+            <span>Road time ×</span>
+            <FactorInput value={trip.route_factor_low} onSave={(v) => save('trips', { ...trip, route_factor_low: v, route_factor_high: Math.max(v, trip.route_factor_high) }, me)} />
+            <span>to</span>
+            <FactorInput value={trip.route_factor_high} onSave={(v) => save('trips', { ...trip, route_factor_high: Math.max(v, trip.route_factor_low) }, me)} />
+          </div>
+          <Button
+            variant="secondary"
+            className="mt-3 flex w-full items-center justify-center gap-2"
+            onClick={() =>
+              run(async () => {
+                const r = await requestLegs(tripId)
+                const via = r.providers.includes('ors') ? 'OpenRouteService' : r.providers.includes('osrm') ? 'the public OSRM server' : 'no routing service'
+                return `Calculated ${r.legs} travel times between ${r.places ?? 0} places via ${via}.${r.warnings.length ? ' ' + r.warnings.join(' ') : ''}`
+              })
+            }
+          >
+            <RefreshCw className="size-4" /> Recalculate now
           </Button>
         </Card>
 
@@ -201,6 +230,24 @@ export function SettingsScreen() {
         </Button>
       </div>
     </div>
+  )
+}
+
+function FactorInput({ value, onSave }: { value: number; onSave: (v: number) => void }) {
+  const [text, setText] = useState(String(value))
+  return (
+    <input
+      inputMode="decimal"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={() => {
+        const v = Number(text)
+        if (v >= 1 && v <= 4) onSave(Math.round(v * 10) / 10)
+        else setText(String(value))
+      }}
+      className="w-14 rounded-lg border border-stone-300 px-2 py-1 text-center"
+      aria-label="Road time multiplier"
+    />
   )
 }
 

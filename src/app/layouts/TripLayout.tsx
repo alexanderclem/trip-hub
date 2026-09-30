@@ -4,6 +4,7 @@ import { CalendarDays, Map, MoreHorizontal, Ticket, Wallet } from 'lucide-react'
 import { useDevice } from '@/data/device'
 import { usePendingCount } from '@/data/hooks'
 import { startSync, useSyncStatus } from '@/data/sync/controller'
+import { useAutoLegs } from '@/features/routing/requestLegs'
 
 const tabs = [
   { to: 'map', label: 'Map', Icon: Map },
@@ -21,6 +22,7 @@ export function TripLayout() {
     if (!joined) return
     return startSync(tripId)
   }, [tripId, joined])
+  useAutoLegs(tripId)
 
   if (!joined) return <Navigate to="/" replace />
   if (!joined.memberId) return <Navigate to={`/t/${tripId}/who`} replace />

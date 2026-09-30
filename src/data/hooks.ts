@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from './db'
-import type { Member, Place, Trip } from './types'
+import type { AreaRoute, Member, Place, Trip } from './types'
 
 const alive = <T extends { deleted_at?: string | null }>(r: T) => !r.deleted_at
 
@@ -36,6 +36,25 @@ export function useLinks(placeId: string | undefined) {
     async () => (placeId ? db.links.where('place_id').equals(placeId).filter(alive).toArray() : []),
     [placeId],
   )
+}
+
+/** Everything needed to show travel times for a trip, kept live from IndexedDB. */
+export function useLegContext(tripId: string | undefined) {
+  return useLiveQuery(async () => {
+    if (!tripId) return undefined
+    const [trip, legs, overrides] = await Promise.all([
+      db.trips.get(tripId),
+      db.route_legs.where('trip_id').equals(tripId).filter(alive).toArray(),
+      db.leg_overrides.where('trip_id').equals(tripId).filter(alive).toArray(),
+    ])
+    return {
+      legs,
+      overrides,
+      areaRoutes: ((trip?.settings?.area_routes as AreaRoute[] | undefined) ?? []),
+      factorLow: Number(trip?.route_factor_low ?? 1.4),
+      factorHigh: Number(trip?.route_factor_high ?? 2.0),
+    }
+  }, [tripId])
 }
 
 export function usePendingCount(): number {

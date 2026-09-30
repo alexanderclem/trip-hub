@@ -2,13 +2,14 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ExternalLink, Globe, Pencil, Phone, Plus, Trash2 } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
-import { useLinks, useMembers, usePlace } from '@/data/hooks'
+import { useLegContext, useLinks, useMembers, usePlace, usePlaces } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
 import { LINK_KINDS, type Link as TripLink, type LinkKind } from '@/data/types'
 import { googleMapsUrl, tripadvisorUrl } from '@/lib/geo'
 import { newId } from '@/lib/ids'
 import { Button, Card, ErrorNote, Input, PageHeader, Select } from '@/ui'
 import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
+import { TravelTimesCard } from '@/features/routing/TravelTimesCard'
 
 export function PlaceDetailScreen() {
   const { tripId, placeId } = useParams() as { tripId: string; placeId: string }
@@ -17,6 +18,8 @@ export function PlaceDetailScreen() {
   const place = usePlace(placeId)
   const links = useLinks(placeId) ?? []
   const members = useMembers(tripId) ?? []
+  const allPlaces = usePlaces(tripId)
+  const legCtx = useLegContext(tripId)
 
   if (!place) return <PageHeader title="Place" back={`/t/${tripId}/more/places`} />
   if (place.deleted_at) {
@@ -64,6 +67,8 @@ export function PlaceDetailScreen() {
           {place.phone && <ExtLink href={`tel:${place.phone}`} label={place.phone} Icon={Phone} />}
           {!at && <p className="pt-1 text-sm text-amber-700">No map pin yet. Edit to add a location.</p>}
         </Card>
+
+        {at && allPlaces && legCtx && <TravelTimesCard place={place} places={allPlaces} ctx={legCtx} />}
 
         <Card>
           <h2 className="mb-2 font-semibold">Links</h2>

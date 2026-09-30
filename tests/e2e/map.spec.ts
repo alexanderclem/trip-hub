@@ -72,7 +72,9 @@ test('create a trip, load starter places, see them on the map, and sync a shortl
   // A's edit must actually arrive on B (it queues behind A's 1,301-place import upload).
   await expect(pageB.getByText('Food · Antigua · Shortlist')).toBeVisible({ timeout: 60_000 })
   await expect(pageB.getByRole('button', { name: /Shortlist/ })).toHaveCount(0)
-  await expect(pageB.getByText(/away \(straight line\)/)).toBeVisible()
+  // Travel options from the phone's location (a straight-line walking estimate, ~190 m away).
+  await expect(pageB.getByRole('button', { name: 'From you' })).toBeVisible()
+  await expect(pageB.getByText('Walk')).toBeVisible()
   await pageB.waitForTimeout(2500)
   await shot(pageB, '06-map-shortlisted-sheet')
 

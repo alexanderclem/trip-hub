@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { db } from '@/data/db'
-import { saveMany } from '@/data/repo'
-import { PLACE_CATEGORIES, type Place } from '@/data/types'
+import { save, saveMany } from '@/data/repo'
+import { PLACE_CATEGORIES, TRAVEL_MODES, type AreaRoute, type Place } from '@/data/types'
 import { stableId } from '@/lib/ids'
 
 /** Shape written by scripts/overpass-seed.ts. */
@@ -18,11 +18,35 @@ const SeedPlace = z.object({
   opening_hours: z.string().nullable().optional(),
   tags: z.array(z.string()).optional(),
 })
-const SeedFile = z.object({ places: z.array(SeedPlace) })
+const SeedRoute = z.object({
+  a: z.string().min(1),
+  b: z.string().min(1),
+  mode: z.enum(TRAVEL_MODES),
+  min_min: z.number().positive(),
+  max_min: z.number().positive(),
+  note: z.string().optional(),
+})
+const SeedFile = z.object({ places: z.array(SeedPlace), area_routes: z.array(SeedRoute).optional() })
 
 export interface ImportResult {
   added: number
   skipped: number
+  routesAdded: number
+}
+
+const routeKey = (r: AreaRoute) => [r.a, r.b].sort().join('|') + '|' + r.mode
+
+/** Adds typical town-to-town routes the trip doesn't have yet; never changes existing ones. */
+async function mergeAreaRoutes(tripId: string, routes: AreaRoute[], memberId: string | null): Promise<number> {
+  if (!routes.length) return 0
+  const trip = await db.trips.get(tripId)
+  if (!trip) return 0
+  const existing = (trip.settings?.area_routes as AreaRoute[] | undefined) ?? []
+  const have = new Set(existing.map(routeKey))
+  const fresh = routes.filter((r) => !have.has(routeKey(r)))
+  if (!fresh.length) return 0
+  await save('trips', { ...trip, settings: { ...trip.settings, area_routes: [...existing, ...fresh] } }, memberId)
+  return fresh.length
 }
 
 /**
@@ -56,5 +80,6 @@ export async function importPlaces(tripId: string, json: unknown, memberId: stri
   const existing = new Set((await db.places.bulkGet(rows.map((r) => r.id))).filter(Boolean).map((p) => p!.id))
   const fresh = rows.filter((r) => !existing.has(r.id))
   if (fresh.length) await saveMany('places', fresh, memberId)
-  return { added: fresh.length, skipped: rows.length - fresh.length }
+  const routesAdded = await mergeAreaRoutes(tripId, parsed.data.area_routes ?? [], memberId)
+  return { added: fresh.length, skipped: rows.length - fresh.length, routesAdded }
 }

@@ -89,6 +89,28 @@ async function main() {
   const { data: dead } = await A.from('places').select('deleted_at').eq('id', placeId).single()
   check('soft delete sticks even if another device tries to undo it', !delErr && !!dead?.deleted_at)
 
+  // Travel times: three shortlisted places (two in Antigua, one across the lake region).
+  const hotel = randomUUID()
+  const dock = randomUUID()
+  const cafe2 = randomUUID()
+  const { error: legPlacesErr } = await A.from('places').upsert([
+    { id: cafe2, trip_id: tripId, name: '12 Onzas', category: 'food', status: 'shortlist', lat: 14.557255, lng: -90.73164, area: 'Antigua' },
+    { id: hotel, trip_id: tripId, name: 'Hotel test', category: 'lodging', status: 'booked', lat: 14.5581, lng: -90.7352, area: 'Antigua' },
+    { id: dock, trip_id: tripId, name: 'Muelle Tzanjuyu', category: 'transport', status: 'shortlist', lat: 14.7404, lng: -91.159, area: 'Panajachel' },
+  ], { onConflict: 'id' })
+  check('A adds three shortlisted places for travel times', !legPlacesErr, legPlacesErr?.message)
+  const { data: legRes, error: legErr } = await B.functions.invoke('route-legs', { body: { trip_id: tripId } })
+  check('route-legs function computes legs', !legErr && legRes?.legs >= 6, legErr?.message ?? JSON.stringify(legRes))
+  console.log('      providers:', legRes?.providers, 'warnings:', legRes?.warnings)
+  const { data: legs } = await A.from('route_legs').select('from_place_id, to_place_id, mode, duration_s, distance_m, source').eq('trip_id', tripId)
+  const drive = legs?.find((l) => l.from_place_id === hotel && l.to_place_id === dock && l.mode === 'drive')
+  const walk = legs?.find((l) => l.from_place_id === hotel && l.to_place_id === cafe2 && l.mode === 'walk')
+  check('Antigua → Panajachel drive leg is plausible (60–240 min raw)', !!drive && drive.duration_s > 3600 && drive.duration_s < 14400, drive ? `${Math.round(drive.duration_s / 60)} min, ${Math.round(drive.distance_m / 1000)} km via ${drive.source}` : 'missing')
+  check('hotel → café walk leg exists and is short', !!walk && walk.duration_s < 1200, walk ? `${Math.round(walk.duration_s / 60)} min walk` : 'missing')
+  check('no walking leg across the region', !legs?.some((l) => l.mode === 'walk' && (l.to_place_id === dock || l.from_place_id === dock)))
+  const { error: outsiderErr, data: outsider } = await C.functions.invoke('route-legs', { body: { trip_id: tripId } })
+  check('a device that has not joined gets no legs computed', !!outsiderErr || outsider?.legs === 0, JSON.stringify(outsider ?? outsiderErr?.message))
+
   const { data: newToken } = await A.rpc('rotate_share_token', { p_trip_id: tripId })
   const { error: oldLinkErr } = await C.rpc('join_trip', { p_token: token })
   check('after replacing the link, the old link is refused', !!oldLinkErr, oldLinkErr?.message)

@@ -1,6 +1,112 @@
 {
  "generated_at": "2026-09-30T16:46:18.170Z",
  "attribution": "Data © OpenStreetMap contributors, ODbL. https://www.openstreetmap.org/copyright",
+ "area_routes": [
+  {
+   "a": "Panajachel",
+   "b": "Santa Cruz La Laguna",
+   "mode": "boat",
+   "min_min": 10,
+   "max_min": 20,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "Panajachel",
+   "b": "San Marcos La Laguna",
+   "mode": "boat",
+   "min_min": 20,
+   "max_min": 35,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "Panajachel",
+   "b": "San Juan La Laguna",
+   "mode": "boat",
+   "min_min": 25,
+   "max_min": 40,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "Panajachel",
+   "b": "San Pedro La Laguna",
+   "mode": "boat",
+   "min_min": 25,
+   "max_min": 45,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "Santa Cruz La Laguna",
+   "b": "San Marcos La Laguna",
+   "mode": "boat",
+   "min_min": 10,
+   "max_min": 20,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "Santa Cruz La Laguna",
+   "b": "San Juan La Laguna",
+   "mode": "boat",
+   "min_min": 20,
+   "max_min": 35,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "Santa Cruz La Laguna",
+   "b": "San Pedro La Laguna",
+   "mode": "boat",
+   "min_min": 20,
+   "max_min": 35,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "San Marcos La Laguna",
+   "b": "San Juan La Laguna",
+   "mode": "boat",
+   "min_min": 10,
+   "max_min": 20,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "San Marcos La Laguna",
+   "b": "San Pedro La Laguna",
+   "mode": "boat",
+   "min_min": 10,
+   "max_min": 20,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "San Juan La Laguna",
+   "b": "San Pedro La Laguna",
+   "mode": "boat",
+   "min_min": 5,
+   "max_min": 10,
+   "note": "Public lancha; approximate. Boats run roughly 6:30 am to 5 pm and the lake gets rougher after midday."
+  },
+  {
+   "a": "San Juan La Laguna",
+   "b": "San Pedro La Laguna",
+   "mode": "tuktuk",
+   "min_min": 5,
+   "max_min": 10,
+   "note": "Tuk-tuks wait by the docks; agree the fare first."
+  },
+  {
+   "a": "Antigua",
+   "b": "Panajachel",
+   "mode": "shuttle",
+   "min_min": 150,
+   "max_min": 210,
+   "note": "Tourist shuttle with hotel pickup; approximate."
+  },
+  {
+   "a": "Antigua",
+   "b": "San Pedro La Laguna",
+   "mode": "shuttle",
+   "min_min": 180,
+   "max_min": 240,
+   "note": "Tourist shuttle with hotel pickup; approximate."
+  }
+ ],
  "places": [
   {
    "osm_id": "way/387703300",

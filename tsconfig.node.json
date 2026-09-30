@@ -1,10 +1,22 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["node", "vite/client"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "node",
+      "vite/client"
+    ],
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.test.ts", "scripts", "vite.config.ts"],
+  "include": [
+    "src/**/*.test.ts",
+    "scripts",
+    "vite.config.ts",
+    "supabase/functions/**/routing*.ts"
+  ],
   "exclude": []
 }

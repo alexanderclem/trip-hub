@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { LocalColumns, Link, Member, Place, TableName, Trip } from './types'
+import type { LegOverride, LocalColumns, Link, Member, Place, RouteLeg, TableName, Trip } from './types'
 
 export interface OutboxEntry {
   seq?: number
@@ -31,6 +31,8 @@ export class TripDb extends Dexie {
   members!: EntityTable<Member & LocalColumns, 'id'>
   places!: EntityTable<Place & LocalColumns, 'id'>
   links!: EntityTable<Link & LocalColumns, 'id'>
+  route_legs!: EntityTable<RouteLeg & LocalColumns, 'id'>
+  leg_overrides!: EntityTable<LegOverride & LocalColumns, 'id'>
   _outbox!: EntityTable<OutboxEntry, 'seq'>
   _deadletter!: EntityTable<DeadLetter, 'id'>
   _meta!: EntityTable<Meta, 'key'>
@@ -45,6 +47,10 @@ export class TripDb extends Dexie {
       _outbox: '++seq, &[table+rowId], nextAttemptAt',
       _deadletter: '++id',
       _meta: 'key',
+    })
+    this.version(2).stores({
+      route_legs: 'id, trip_id, from_place_id, to_place_id',
+      leg_overrides: 'id, trip_id, place_a_id, place_b_id',
     })
   }
 }

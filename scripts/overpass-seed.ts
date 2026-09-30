@@ -98,7 +98,10 @@ function address(t: Record<string, string>): string | null {
 async function main() {
   const dir = process.argv[2]
   if (!dir) throw new Error('Usage: npm run seed:places -- <seed dir containing areas.json>')
-  const { areas } = JSON.parse(await readFile(join(dir, 'areas.json'), 'utf8')) as { areas: Area[] }
+  const { areas, area_routes = [] } = JSON.parse(await readFile(join(dir, 'areas.json'), 'utf8')) as {
+    areas: Area[]
+    area_routes?: unknown[] // typical town-to-town lancha/shuttle times, hand-maintained
+  }
 
   const seen = new Set<string>()
   const places = []
@@ -137,6 +140,7 @@ async function main() {
   const out = {
     generated_at: new Date().toISOString(),
     attribution: 'Data © OpenStreetMap contributors, ODbL. https://www.openstreetmap.org/copyright',
+    area_routes,
     places,
   }
   await writeFile(join(dir, 'places.json'), JSON.stringify(out, null, 1) + '\n')

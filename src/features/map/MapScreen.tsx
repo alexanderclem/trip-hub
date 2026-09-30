@@ -2,16 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { GeolocateControl, LngLatBounds, Map as MlMap, setWorkerUrl, type GeoJSONSource, type MapGeoJSONFeature } from 'maplibre-gl'
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
-import type { FeatureCollection, Point } from 'geojson'
+import type { FeatureCollection, LineString, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { List, MapPinPlus } from 'lucide-react'
-import { usePlaces } from '@/data/hooks'
+import { List, MapPinPlus, Ruler, X } from 'lucide-react'
+import { useLegContext, usePlaces } from '@/data/hooks'
 import { PLACE_CATEGORIES, type Place, type PlaceCategory } from '@/data/types'
 import type { LatLng } from '@/lib/geo'
 import { Button } from '@/ui'
 import { CATEGORY_STYLE } from '@/features/places/categories'
 import { addPinImages } from './pinImages'
-import { PlaceSheet, Sheet } from './PlaceSheet'
+import { ME_ID, PlaceSheet, Sheet, type OriginChoice } from './PlaceSheet'
 
 // MapLibre 6 renders tiles in a module worker; point it at our bundled copy.
 setWorkerUrl(mapWorkerUrl)
@@ -50,6 +50,9 @@ export default function MapScreen() {
   const [me, setMe] = useState<LatLng | null>(null)
   const [pending, setPending] = useState<LatLng | null>(null)
   const [mapError, setMapError] = useState<string | null>(null)
+  const [originId, setOriginId] = useState<string | null>(null) // null = pick a sensible default
+  const [measuring, setMeasuring] = useState<Place | null>(null)
+  const legCtx = useLegContext(tripId)
 
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
@@ -60,6 +63,10 @@ export default function MapScreen() {
   const actions = useRef({ select: (_id: string | null) => {}, longPress: (_at: LatLng) => {} })
   actions.current.select = (id) => {
     setPending(null)
+    if (measuring && id && id !== measuring.id) {
+      setOriginId(measuring.id)
+      setMeasuring(null)
+    }
     setParams(id ? { place: id } : {}, { replace: true })
   }
   actions.current.longPress = (at) => {
@@ -72,6 +79,31 @@ export default function MapScreen() {
   const pool = useMemo(() => visible.filter((p) => p.status === 'catalog'), [visible])
   const poolTotal = useMemo(() => (places ?? []).filter((p) => p.status === 'catalog').length, [places])
   const selected = places?.find((p) => p.id === selectedId)
+
+  const origins = useMemo<OriginChoice[]>(() => {
+    const out: OriginChoice[] = []
+    if (me) {
+      out.push({
+        label: 'you',
+        place: { id: ME_ID, trip_id: tripId, name: 'You', category: 'other', tags: [], lat: me.lat, lng: me.lng, address: null, area: null,
+          status: 'shortlist', notes: null, phone: null, website: null, opening_hours: null, external_ids: {}, source: 'manual' },
+      })
+    }
+    const rank = { booked: 0, planned: 1, visited: 2, shortlist: 3 } as Record<string, number>
+    const stays = (places ?? [])
+      .filter((p) => p.category === 'lodging' && p.lat != null && p.status in rank)
+      .sort((a, b) => rank[a.status]! - rank[b.status]!)
+      .slice(0, 3)
+    for (const p of stays) out.push({ label: p.name.length > 18 ? p.name.slice(0, 17) + '…' : p.name, place: p })
+    return out
+  }, [me, places, tripId])
+
+  const origin = useMemo(() => {
+    const explicit = originId === ME_ID ? origins.find((o) => o.place.id === ME_ID)?.place : places?.find((p) => p.id === originId)
+    if (explicit) return explicit
+    // Default: you if we know where you are, else the group's main lodging.
+    return origins.find((o) => o.place.id !== selectedId)?.place ?? null
+  }, [originId, origins, places, selectedId])
 
   // ── Create the map once ────────────────────────────────────────────────────
   useEffect(() => {
@@ -156,6 +188,16 @@ export default function MapScreen() {
           'text-optional': true,
         },
         paint: { 'icon-opacity': 0.75, 'text-color': '#57534e', 'text-halo-color': '#fff', 'text-halo-width': 1.5 },
+      })
+
+      // Straight dashed line from the travel origin to the selected place.
+      map.addSource('measure', { type: 'geojson', data: EMPTY })
+      map.addLayer({
+        id: 'measure-line',
+        type: 'line',
+        source: 'measure',
+        layout: { 'line-cap': 'round' },
+        paint: { 'line-color': '#0f766e', 'line-width': 3, 'line-dasharray': [1.5, 1.5], 'line-opacity': 0.8 },
       })
 
       // The group's picks: always visible, never clustered, on top.
@@ -246,6 +288,19 @@ export default function MapScreen() {
     map.setFilter('selected-halo', ['==', ['get', 'id'], selectedId ?? ''])
   }, [ready, selectedId])
 
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    const line: FeatureCollection<LineString> | FeatureCollection =
+      selected?.lat != null && selected.lng != null && origin?.lat != null && origin.lng != null && origin.id !== selected.id
+        ? {
+            type: 'FeatureCollection',
+            features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[origin.lng, origin.lat], [selected.lng, selected.lat]] } }],
+          }
+        : EMPTY
+    ;(map.getSource('measure') as GeoJSONSource).setData(line)
+  }, [ready, selected, origin])
+
   // Frame the group's places the first time we have them.
   useEffect(() => {
     const map = mapRef.current
@@ -318,7 +373,7 @@ export default function MapScreen() {
         {mapError && <p className="mx-3 mt-2 rounded-xl bg-amber-100 px-3 py-2 text-sm text-amber-900">{mapError}</p>}
       </div>
 
-      {places && picks.length === 0 && !selected && !pending && (
+      {places && picks.length === 0 && !selected && !pending && !measuring && (
         <div className="absolute inset-x-0 bottom-6 z-10 p-3">
           <div className="mx-auto max-w-md rounded-3xl bg-white/95 p-4 text-sm text-stone-600 shadow-lg">
             {poolTotal > 0
@@ -328,7 +383,32 @@ export default function MapScreen() {
         </div>
       )}
 
-      {selected && <PlaceSheet place={selected} me={me} onClose={() => actions.current.select(null)} />}
+      {measuring && (
+        <div className="absolute inset-x-0 bottom-6 z-20 p-3">
+          <div className="mx-auto flex max-w-md items-center gap-3 rounded-3xl bg-stone-900 p-4 text-white shadow-xl">
+            <Ruler className="size-5 shrink-0" />
+            <p className="flex-1 text-sm">Tap another place to see travel times from <b>{measuring.name}</b></p>
+            <button onClick={() => setMeasuring(null)} aria-label="Cancel measuring" className="rounded-full p-1 active:bg-white/10">
+              <X className="size-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {selected && !measuring && (
+        <PlaceSheet
+          place={selected}
+          origins={origins}
+          origin={origin}
+          onOrigin={setOriginId}
+          onMeasure={() => {
+            setMeasuring(selected)
+            setParams({}, { replace: true })
+          }}
+          legCtx={legCtx}
+          onClose={() => actions.current.select(null)}
+        />
+      )}
 
       {pending && (
         <Sheet onClose={() => setPending(null)}>
