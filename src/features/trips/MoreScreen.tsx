@@ -8,7 +8,7 @@ export function MoreScreen() {
   const trip = useTrip(tripId)
   const items = [
     { to: 'places', label: 'Places', Icon: MapPin, note: null },
-    { to: 'vote', label: 'Votes', Icon: Vote, note: 'Coming soon' },
+    { to: 'vote', label: 'Votes', Icon: Vote, note: null },
     { to: 'settings', label: 'Trip settings & sharing', Icon: Settings, note: null },
   ]
   return (

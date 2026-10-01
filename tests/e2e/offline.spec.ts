@@ -23,6 +23,7 @@ test('offline: download the map pack, cut the network, reload — app, data and 
   await page.goto(`${tripPath}/more/places`)
   await page.getByPlaceholder('Search places').fill('12 Onzas')
   await page.getByRole('link', { name: /12 Onzas/ }).click()
+  await page.waitForURL(/\/more\/places\/[0-9a-f-]{36}$/) // client-side navigation must finish first
   const detailUrl = page.url()
   const placeId = detailUrl.split('/').pop()
   await page.getByRole('link', { name: 'Edit' }).click()

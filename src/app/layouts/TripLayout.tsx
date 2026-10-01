@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Navigate, NavLink, Outlet, useParams } from 'react-router'
+import { Navigate, NavLink, Outlet, useMatch, useParams } from 'react-router'
 import { CalendarDays, Map, MoreHorizontal, Ticket, Wallet } from 'lucide-react'
 import { useDevice } from '@/data/device'
 import { usePendingCount } from '@/data/hooks'
@@ -53,6 +53,8 @@ export function TripLayout() {
 
 /** Small status badge: only shown when there's something worth knowing. */
 function SyncPill() {
+  // On the map it sits under the filter chips; elsewhere above the tab bar, clear of content.
+  const onMap = useMatch('/t/:tripId/map') != null
   const phase = useSyncStatus((s) => s.phase)
   const pending = usePendingCount()
   if (phase === 'idle' && pending === 0) return null
@@ -65,7 +67,7 @@ function SyncPill() {
           ? 'Syncing…'
           : `${pending} to sync`
   return (
-    <div className="pointer-events-none fixed top-[calc(env(safe-area-inset-top)+6.75rem)] left-3 z-30 rounded-full bg-stone-900/80 px-3 py-1 text-xs text-white">
+    <div role="status" className={`pointer-events-none fixed z-30 rounded-full bg-stone-900/80 px-3 py-1 text-xs text-white ${onMap ? 'top-[calc(env(safe-area-inset-top)+6.75rem)] left-3' : 'bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] left-1/2 -translate-x-1/2'}`}>
       {text}
     </div>
   )

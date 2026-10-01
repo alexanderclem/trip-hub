@@ -6,6 +6,14 @@ with test_trips as (
   delete from public.route_legs where trip_id in (select id from test_trips) returning 1
 ), d0b as (
   delete from public.leg_overrides where trip_id in (select id from test_trips) returning 1
+), dv as (
+  delete from public.poll_votes where trip_id in (select id from test_trips) returning 1
+), dr as (
+  delete from public.place_ratings where trip_id in (select id from test_trips) returning 1
+), dpo as (
+  delete from public.poll_options where trip_id in (select id from test_trips) returning 1
+), dp as (
+  delete from public.polls where trip_id in (select id from test_trips) returning 1
 ), d1 as (
   delete from public.trip_devices where trip_id in (select id from test_trips) returning 1
 ), d2 as (

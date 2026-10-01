@@ -81,8 +81,14 @@ docs/             NEW_TRIP.md (new destination runbook), UI_COMPONENTS.md
 4. **Dexie:** add a new `this.version(N).stores({...})` in `src/data/db.ts`. Never edit old versions.
 5. **Sync:** add the table to `SYNCED_TABLES` in `src/data/sync/engine.ts`, parents before children.
 6. **Cleanup:** add a delete line to `tests/e2e/cleanup.sql`.
-7. **Check:** run `get_advisors` (security) afterwards. The SECURITY DEFINER RPC warnings are
-   expected; each RPC checks access itself.
+7. **Check:** run `get_advisors` (security) afterwards. Two kinds of warning are expected:
+   - SECURITY DEFINER RPCs (each checks access itself)
+   - "Anonymous access policies" on every table. Anonymous sign-in *is* the identity model,
+     and every policy still requires `has_trip_access`.
+
+**Never soft-delete per-member rows that people toggle** (votes, ratings). Deletes are sticky,
+so that person could never vote again. Store "none" as NULL instead (`poll_votes.score`,
+`place_ratings.stars`).
 
 ## Domain rules already decided
 
@@ -149,9 +155,18 @@ name "travel app" and runs every spec.
 - **Sign-in rate limit:** Supabase allows about 30 anonymous sign-ins per hour per IP, and
   each e2e spec uses 1–3. Many runs in an hour fail with "Request rate limit reached"; space
   them out. This doesn't affect real users.
-- **Playwright and navigation:** wait for navigation after actions that save
-  (`waitForURL`). Navigating away immediately cancels the RPC or IndexedDB write. This has
-  caused false failures twice.
+- **Playwright and navigation:**
+  - After actions that save, wait for the navigation that follows (`waitForURL`). Navigating
+    away immediately cancels the RPC or IndexedDB write.
+  - After clicking a link, `waitForURL(pattern)` before reading `page.url()`; client-side
+    navigation is async.
+
+  Both have caused flaky failures.
+- **Travel-time assertions:** don't take "Walk" as a sign that legs have arrived, because
+  straight-line estimates also say "Walk". Wait for the "~" to disappear instead.
+- **Sync latency in tests:** a realtime poke usually arrives in seconds. A phone that's busy
+  uploading the 1,301-place import may only see other people's edits at the 60 s periodic
+  pull, so give cross-device assertions about 75 s.
 - **String replacement:** when editing files with JS `String.replace`, a replacement text
   containing `$'` or `` $` `` is corrupted. Use the Edit tool, or `split/join`.
 - **MapLibre 6:**
@@ -181,8 +196,8 @@ The full plan is in `C:\Users\alexa\.claude\plans\plan-out-a-travel-giggly-falco
 | 1 Foundation | ✅ | Schema/RLS, sync engine, join + who-are-you, places, OSM seed (1,301 places) |
 | 2 Live map | ✅ | MapLibre + OpenFreeMap, pins/clusters/filters, place sheet, long-press add, location |
 | 3 Travel times + offline map | ✅ | route-legs function, ranges, lancha/shuttle routes, reported times, measure mode; PMTiles offline packs (15.6 MB) with auto-switch. **Still pending: the user's real-iPhone airplane-mode check.** |
-| 4 Voting + group ratings | ⏳ next | `polls`, `poll_options`, `poll_votes` (id = stableId(option, member)), `place_ratings` (id = stableId(place, member), 1–5 stars + note); ranked results; "add winner to plan" (sets the place to *planned* until Phase 5 exists); rating average on place cards and list sorting; RatingProvider seam |
-| 5 Itinerary + time | | `itinerary_items` (start/end local + tz), `day_notes`; day timeline with overlap lanes and conflicts; time-zone toggle; day route on the map |
+| 4 Voting + group ratings | ✅ | Votes (More → Votes): score voting, ranked results showing who voted what, and closing a vote → winner → "Add to the plan" (sets the place to *planned*; in Phase 5 it should create an itinerary item). Group ratings (1–5 stars + note) on place pages, stars on the map card and in the list, a "Best rated" sort, a "Group vote" card on place pages, and an empty RatingProvider seam (`src/features/ratings/providers`). |
+| 5 Itinerary + time | ⏳ next | `itinerary_items` (start/end local + tz), `day_notes`; day timeline with overlap lanes and conflicts; time-zone toggle; day route on the map |
 | 6 Money | | `expenses` (payers/split as jsonb), `settlements`, `fx_snapshots`; 4 split methods, balances, settle-up, currency toggle |
 | 7 Tickets + master download | | `attachments` + private Storage bucket; wallet + pdf.js viewer; one-button offline download of everything; iOS hardening |
 

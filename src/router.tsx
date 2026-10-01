@@ -6,6 +6,8 @@ import { Placeholder } from './app/Placeholder'
 import { PlaceDetailScreen } from './features/places/PlaceDetailScreen'
 import { PlaceFormScreen } from './features/places/PlaceFormScreen'
 import { PlacesScreen } from './features/places/PlacesScreen'
+import { PollScreen } from './features/polls/PollScreen'
+import { PollsScreen } from './features/polls/PollsScreen'
 import { CreateTripScreen } from './features/trips/CreateTripScreen'
 import { HomeScreen } from './features/trips/HomeScreen'
 import { JoinScreen } from './features/trips/JoinScreen'
@@ -37,7 +39,8 @@ export const router = createBrowserRouter([
           { path: 'more/places/:placeId', element: <PlaceDetailScreen /> },
           { path: 'more/places/:placeId/edit', element: <PlaceFormScreen /> },
           { path: 'more/settings', element: <SettingsScreen /> },
-          { path: 'more/vote', element: <Placeholder title="Votes" phase={4} /> },
+          { path: 'more/vote', element: <PollsScreen /> },
+          { path: 'more/vote/:pollId', element: <PollScreen /> },
         ],
       },
       { path: '*', element: <Navigate to="/" replace /> },

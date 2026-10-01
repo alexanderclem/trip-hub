@@ -10,6 +10,8 @@ import { newId } from '@/lib/ids'
 import { Button, Card, ErrorNote, Input, PageHeader, Select } from '@/ui'
 import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
 import { TravelTimesCard } from '@/features/routing/TravelTimesCard'
+import { GroupRatingCard } from '@/features/ratings/GroupRatingCard'
+import { AddToPollCard } from '@/features/polls/AddToPollCard'
 
 export function PlaceDetailScreen() {
   const { tripId, placeId } = useParams() as { tripId: string; placeId: string }
@@ -59,6 +61,8 @@ export function PlaceDetailScreen() {
 
         {place.notes && <Card><p className="whitespace-pre-wrap">{place.notes}</p></Card>}
 
+        {me && <GroupRatingCard place={place} memberId={me} />}
+
         <Card className="space-y-1">
           <h2 className="mb-2 font-semibold">Reviews &amp; directions</h2>
           <ExtLink href={googleMapsUrl(place.name, place.area, at)} label="Open in Google Maps" />
@@ -69,6 +73,8 @@ export function PlaceDetailScreen() {
         </Card>
 
         {at && allPlaces && legCtx && <TravelTimesCard place={place} places={allPlaces} ctx={legCtx} />}
+
+        {me && <AddToPollCard place={place} memberId={me} />}
 
         <Card>
           <h2 className="mb-2 font-semibold">Links</h2>

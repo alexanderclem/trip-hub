@@ -11,6 +11,9 @@ import { CATEGORY_STYLE } from '@/features/places/categories'
 import { PlaceCategoryIcon, PlaceStatusBadge, placeActionClass, webLink } from '@/features/places/PlaceSummary'
 import { travelOptions, type LegContext } from '@/features/routing/legs'
 import { ReportTimeForm, TravelOptionsList } from '@/features/routing/TravelOptionsList'
+import { usePlaceRatings } from '@/features/polls/data'
+import { summarizeRatings } from '@/features/polls/rank'
+import { StarsSummary } from '@/features/ratings/Stars'
 
 export const ME_ID = 'me'
 
@@ -34,6 +37,7 @@ export function PlaceSheet({ place, origins, origin, onOrigin, onMeasure, legCtx
   const [reporting, setReporting] = useState(false)
   const { label } = CATEGORY_STYLE[place.category]
   const links = useLinks(place.id) ?? []
+  const rating = summarizeRatings(usePlaceRatings(place.id) ?? [])
   const booking = links.find((link) => link.kind === 'booking' && webLink(link.url))
   const website = webLink(place.website)
   const [saving, setSaving] = useState(false)
@@ -61,7 +65,7 @@ export function PlaceSheet({ place, origins, origin, onOrigin, onMeasure, legCtx
         <div className="min-w-0 flex-1">
           <p className="mb-1 text-xs font-medium text-stone-500">{[label, place.area].filter(Boolean).join(' · ')}</p>
           <h2 className="break-words text-xl font-semibold leading-snug tracking-tight">{place.name}</h2>
-          <div className="mt-2"><PlaceStatusBadge status={place.status} /></div>
+          <div className="mt-2 flex flex-wrap items-center gap-2"><PlaceStatusBadge status={place.status} /><StarsSummary summary={rating} /></div>
         </div>
       </div>
       {place.address && <p className="mt-4 flex items-start gap-2 text-sm leading-relaxed text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{place.address}</span></p>}

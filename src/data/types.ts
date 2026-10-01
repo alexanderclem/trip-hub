@@ -133,6 +133,45 @@ export interface AreaRoute {
   note?: string
 }
 
+/** 0 No way · 1 Fine · 2 Want · 3 Must-do. */
+export const VOTE_SCORES = [0, 1, 2, 3] as const
+export type VoteScore = (typeof VOTE_SCORES)[number]
+
+export interface Poll extends SyncColumns {
+  trip_id: string
+  title: string
+  description: string | null
+  status: 'open' | 'closed'
+  winner_option_id: string | null
+}
+
+export interface PollOption extends SyncColumns {
+  trip_id: string
+  poll_id: string
+  label: string
+  place_id: string | null
+  url: string | null
+  description: string | null
+}
+
+/** One per (option, member); id = stableId(trip, 'vote', option, member). score null = no vote. */
+export interface PollVote extends SyncColumns {
+  trip_id: string
+  poll_id: string
+  option_id: string
+  member_id: string
+  score: VoteScore | null
+}
+
+/** One per (place, member); id = stableId(trip, 'rating', place, member). stars null = withdrawn. */
+export interface PlaceRating extends SyncColumns {
+  trip_id: string
+  place_id: string
+  member_id: string
+  stars: number | null
+  note: string | null
+}
+
 export interface Tables {
   trips: Trip
   members: Member
@@ -140,5 +179,9 @@ export interface Tables {
   links: Link
   route_legs: RouteLeg
   leg_overrides: LegOverride
+  polls: Poll
+  poll_options: PollOption
+  poll_votes: PollVote
+  place_ratings: PlaceRating
 }
 export type TableName = keyof Tables

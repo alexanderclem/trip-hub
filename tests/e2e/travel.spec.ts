@@ -9,11 +9,14 @@ async function setStatus(page: Page, tripPath: string, name: string, status: str
   await page.goto(`${tripPath}/more/places`)
   await page.getByPlaceholder('Search places').fill(name)
   await page.getByRole('link', { name: new RegExp(name) }).first().click()
+  // Client-side navigation: wait for the detail page before reading its URL.
+  await page.waitForURL(/\/more\/places\/[0-9a-f-]{36}$/)
   const detailUrl = page.url()
   await page.getByRole('link', { name: 'Edit' }).click()
   await page.getByLabel('Status').selectOption(status)
   await page.getByRole('button', { name: 'Save' }).click()
   await page.waitForURL(detailUrl)
+  await expect(page.getByText(status === 'booked' ? 'Booked' : 'Shortlist', { exact: true }).first()).toBeVisible()
   return detailUrl
 }
 
@@ -45,7 +48,9 @@ test('travel times: walking in town, shuttle + padded drive between towns, lanch
   await expect(row('Amaranto Panajachel').getByText('Shuttle')).toBeVisible()
   await expect(row('Amaranto Panajachel').getByText('2 h 30 – 3 h 30')).toBeVisible()
   const drive = row('Amaranto Panajachel').locator('li', { hasText: 'Drive' })
-  await expect(drive).not.toContainText('~') // a real routed time, not the straight-line estimate
+  // Wait for the computed times to sync in; until then the card shows "~" straight-line estimates
+  // (which is also why "Walk" above can't be the signal that legs have arrived).
+  await expect(drive).not.toContainText('~', { timeout: 60_000 })
   await shot(page, '10-hotel-travel-times')
 
   // Across the lake the lancha comes first.
@@ -55,8 +60,11 @@ test('travel times: walking in town, shuttle + padded drive between towns, lanch
   await expect(firstToSanPedro).toContainText('25–45 min')
 
   // On the map: select 12 Onzas, travel from the booked hotel, dashed line drawn.
-  const onzasId = (await page.goto(`${tripPath}/more/places`), await page.getByPlaceholder('Search places').fill('12 Onzas'),
-    await page.getByRole('link', { name: /12 Onzas/ }).click(), page.url().split('/').pop())
+  await page.goto(`${tripPath}/more/places`)
+  await page.getByPlaceholder('Search places').fill('12 Onzas')
+  await page.getByRole('link', { name: /12 Onzas/ }).click()
+  await page.waitForURL(/\/more\/places\/[0-9a-f-]{36}$/)
+  const onzasId = page.url().split('/').pop()
   await page.goto(`${tripPath}/map?place=${onzasId}`)
   await page.getByRole('button', { name: /From Antigua Inn/ }).click()
   await expect(page.getByText(/Walk/).first()).toBeVisible()

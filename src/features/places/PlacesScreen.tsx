@@ -8,6 +8,8 @@ import { CATEGORY_STYLE } from './categories'
 import { googleMapsUrl } from '@/lib/geo'
 import { PlaceCategoryIcon, PlaceStatusBadge, placeActionClass } from './PlaceSummary'
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, Skeleton } from '@/ui/collection'
+import { useRatingSummaries } from '@/features/polls/data'
+import { StarsSummary } from '@/features/ratings/Stars'
 
 export function PlacesScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -15,6 +17,8 @@ export function PlacesScreen() {
   const [q, setQ] = useState('')
   const [cat, setCat] = useState<PlaceCategory | null>(null)
   const [showPool, setShowPool] = useState(false)
+  const [sort, setSort] = useState<'area' | 'rating'>('area')
+  const ratings = useRatingSummaries(tripId)
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -22,8 +26,12 @@ export function PlacesScreen() {
       .filter((p) => showPool || p.status !== 'catalog' || needle)
       .filter((p) => !cat || p.category === cat)
       .filter((p) => !needle || `${p.name} ${p.area ?? ''} ${p.tags.join(' ')}`.toLowerCase().includes(needle))
-      .sort((a, b) => (a.area ?? '').localeCompare(b.area ?? '') || a.name.localeCompare(b.name))
-  }, [places, q, cat, showPool])
+      .sort((a, b) =>
+        sort === 'rating'
+          ? (ratings?.get(b.id)?.average ?? 0) - (ratings?.get(a.id)?.average ?? 0) || (ratings?.get(b.id)?.count ?? 0) - (ratings?.get(a.id)?.count ?? 0) || a.name.localeCompare(b.name)
+          : (a.area ?? '').localeCompare(b.area ?? '') || a.name.localeCompare(b.name),
+      )
+  }, [places, q, cat, showPool, sort, ratings])
 
   const poolCount = places?.filter((p) => p.status === 'catalog').length ?? 0
 
@@ -60,6 +68,13 @@ export function PlacesScreen() {
 
         <div className="flex items-center justify-between gap-3 border-t border-stone-200 pt-4">
           <h2 className="text-sm font-semibold text-stone-700">{q.trim() ? 'Search results' : showPool ? 'All places' : 'Your places'}</h2>
+          <label className="ml-auto flex items-center gap-1.5 text-xs text-stone-600">
+            Sort
+            <select value={sort} onChange={(e) => setSort(e.target.value as 'area' | 'rating')} className="min-h-9 rounded-lg border border-stone-300 bg-white px-2 text-xs">
+              <option value="area">By town</option>
+              <option value="rating">Best rated</option>
+            </select>
+          </label>
           <p role="status" className="text-xs text-stone-500">{places ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}` : 'Loading places…'}</p>
         </div>
         {!places && <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl border border-stone-200 bg-white p-4"><Skeleton className="h-10 w-10" /><Skeleton className="mt-4 h-5 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></div>)}</div>}
@@ -80,7 +95,7 @@ export function PlacesScreen() {
             return (
               <li key={p.id} className="flex min-w-0 flex-col rounded-2xl border border-stone-200 bg-white shadow-sm">
                 <Link to={p.id} className="group flex-1 rounded-t-2xl p-4 transition-colors hover:bg-stone-50">
-                  <div className="mb-4 flex items-center justify-between gap-2"><PlaceCategoryIcon category={p.category} /><PlaceStatusBadge status={p.status} /></div>
+                  <div className="mb-4 flex items-center justify-between gap-2"><PlaceCategoryIcon category={p.category} /><span className="flex items-center gap-2"><StarsSummary summary={ratings?.get(p.id)} compact /><PlaceStatusBadge status={p.status} /></span></div>
                   <p className="mb-1 text-xs font-medium text-stone-500">{CATEGORY_STYLE[p.category].label}</p>
                   <h3 className="flex items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight group-hover:text-brand-700"><span className="min-w-0 break-words">{p.name}</span><ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-stone-400" /></h3>
                   {(p.area || p.address) && <p className="mt-2 flex items-start gap-1.5 text-sm text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{p.address || p.area}</span></p>}

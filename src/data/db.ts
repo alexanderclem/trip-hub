@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { LegOverride, LocalColumns, Link, Member, Place, RouteLeg, TableName, Trip } from './types'
+import type { LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip } from './types'
 
 export interface OutboxEntry {
   seq?: number
@@ -39,6 +39,10 @@ export class TripDb extends Dexie {
   links!: EntityTable<Link & LocalColumns, 'id'>
   route_legs!: EntityTable<RouteLeg & LocalColumns, 'id'>
   leg_overrides!: EntityTable<LegOverride & LocalColumns, 'id'>
+  polls!: EntityTable<Poll & LocalColumns, 'id'>
+  poll_options!: EntityTable<PollOption & LocalColumns, 'id'>
+  poll_votes!: EntityTable<PollVote & LocalColumns, 'id'>
+  place_ratings!: EntityTable<PlaceRating & LocalColumns, 'id'>
   _outbox!: EntityTable<OutboxEntry, 'seq'>
   _deadletter!: EntityTable<DeadLetter, 'id'>
   _meta!: EntityTable<Meta, 'key'>
@@ -60,6 +64,12 @@ export class TripDb extends Dexie {
       leg_overrides: 'id, trip_id, place_a_id, place_b_id',
     })
     this.version(3).stores({ files: 'name' })
+    this.version(4).stores({
+      polls: 'id, trip_id',
+      poll_options: 'id, trip_id, poll_id, place_id',
+      poll_votes: 'id, trip_id, poll_id, option_id, member_id',
+      place_ratings: 'id, trip_id, place_id, member_id',
+    })
   }
 }
 
