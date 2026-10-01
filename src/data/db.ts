@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip } from './types'
+import type { DayNote, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip } from './types'
 
 export interface OutboxEntry {
   seq?: number
@@ -43,6 +43,8 @@ export class TripDb extends Dexie {
   poll_options!: EntityTable<PollOption & LocalColumns, 'id'>
   poll_votes!: EntityTable<PollVote & LocalColumns, 'id'>
   place_ratings!: EntityTable<PlaceRating & LocalColumns, 'id'>
+  itinerary_items!: EntityTable<ItineraryItem & LocalColumns, 'id'>
+  day_notes!: EntityTable<DayNote & LocalColumns, 'id'>
   _outbox!: EntityTable<OutboxEntry, 'seq'>
   _deadletter!: EntityTable<DeadLetter, 'id'>
   _meta!: EntityTable<Meta, 'key'>
@@ -69,6 +71,10 @@ export class TripDb extends Dexie {
       poll_options: 'id, trip_id, poll_id, place_id',
       poll_votes: 'id, trip_id, poll_id, option_id, member_id',
       place_ratings: 'id, trip_id, place_id, member_id',
+    })
+    this.version(5).stores({
+      itinerary_items: 'id, trip_id, place_id, to_place_id, start_at',
+      day_notes: 'id, trip_id',
     })
   }
 }

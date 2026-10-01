@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { ChevronRight, Globe, MapPin, Navigation, Plus, Ruler, Ticket, X } from 'lucide-react'
+import { CalendarPlus, ChevronRight, Globe, MapPin, Navigation, Plus, Ruler, Ticket, X } from 'lucide-react'
 import { useLinks } from '@/data/hooks'
 import { useMyMemberId } from '@/data/device'
 import { save } from '@/data/repo'
@@ -113,6 +113,7 @@ export function PlaceSheet({ place, origins, origin, onOrigin, onMeasure, legCtx
         <ErrorNote error={error} />
         <div className="mt-2 flex flex-wrap gap-2">
           {place.status === 'catalog' && <Button disabled={saving} onClick={shortlist} className="flex-1"><Plus aria-hidden="true" className="size-4" />{saving ? 'Saving…' : 'Shortlist'}</Button>}
+          {place.status !== 'catalog' && <Link to={`/t/${place.trip_id}/plan/new?place=${place.id}`} className={`${placeActionClass} flex-1`}><CalendarPlus aria-hidden="true" className="size-4" />Add to plan</Link>}
           <Link to={`/t/${place.trip_id}/more/places/${place.id}`} className={`${placeActionClass} flex-1`}>Details<ChevronRight aria-hidden="true" className="size-4" /></Link>
         </div>
       </div>

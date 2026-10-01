@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { ExternalLink, Globe, Pencil, Phone, Plus, Trash2 } from 'lucide-react'
+import { CalendarPlus, ExternalLink, Globe, Pencil, Phone, Plus, Trash2 } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { useLegContext, useLinks, useMembers, usePlace, usePlaces } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
@@ -60,6 +60,10 @@ export function PlaceDetailScreen() {
         </div>
 
         {place.notes && <Card><p className="whitespace-pre-wrap">{place.notes}</p></Card>}
+
+        <Link to={`/t/${tripId}/plan/new?place=${place.id}`} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white hover:bg-brand-900">
+          <CalendarPlus aria-hidden="true" className="size-4" /> Add to the plan
+        </Link>
 
         {me && <GroupRatingCard place={place} memberId={me} />}
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { MapPinned } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
@@ -41,8 +41,12 @@ export function PlaceFormScreen() {
   const [coordsText, setCoordsText] = useState(() => (fromMap ? `${search.get('lat')}, ${search.get('lng')}` : ''))
   const [error, setError] = useState<string | null>(null)
 
+  // Fill the form once. Sync keeps refreshing `existing` in the background; re-applying it would
+  // silently undo what the person is editing.
+  const loaded = useRef(false)
   useEffect(() => {
-    if (existing) {
+    if (existing && !loaded.current) {
+      loaded.current = true
       setP(existing)
       if (existing.lat != null && existing.lng != null) setCoordsText(`${existing.lat}, ${existing.lng}`)
     }

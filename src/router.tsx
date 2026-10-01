@@ -7,6 +7,9 @@ import { PlaceDetailScreen } from './features/places/PlaceDetailScreen'
 import { PlaceFormScreen } from './features/places/PlaceFormScreen'
 import { PlacesScreen } from './features/places/PlacesScreen'
 import { PollScreen } from './features/polls/PollScreen'
+import { ItemDetailScreen } from './features/itinerary/ItemDetailScreen'
+import { ItemFormScreen } from './features/itinerary/ItemFormScreen'
+import { PlanScreen } from './features/itinerary/PlanScreen'
 import { PollsScreen } from './features/polls/PollsScreen'
 import { CreateTripScreen } from './features/trips/CreateTripScreen'
 import { HomeScreen } from './features/trips/HomeScreen'
@@ -30,7 +33,10 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="map" replace /> },
           { path: 'map', lazy: () => import('./features/map/MapScreen').then((m) => ({ Component: m.default })) },
-          { path: 'plan', element: <Placeholder title="Plan" phase={5} /> },
+          { path: 'plan', element: <PlanScreen /> },
+          { path: 'plan/new', element: <ItemFormScreen /> },
+          { path: 'plan/:itemId', element: <ItemDetailScreen /> },
+          { path: 'plan/:itemId/edit', element: <ItemFormScreen /> },
           { path: 'tickets', element: <Placeholder title="Tickets" phase={7} /> },
           { path: 'money', element: <Placeholder title="Money" phase={6} /> },
           { path: 'more', element: <MoreScreen /> },

@@ -81,7 +81,12 @@ test('voting and group ratings: two people vote, results rank, winner goes on th
   // ── Close voting → winner → on the plan ──
   await pageA.getByRole('button', { name: 'Close voting and pick the winner' }).click()
   await expect(pageA.getByText('Decided')).toBeVisible()
-  await pageA.getByRole('button', { name: 'Add to the plan' }).click()
+  // The winner opens the plan form with the place filled in; saving puts it on the plan.
+  await pageA.getByRole('link', { name: 'Add to the plan' }).click()
+  await expect(pageA.getByLabel('Name')).toHaveValue('Casa Atitlan')
+  await pageA.getByRole('button', { name: 'Save' }).click()
+  await pageA.waitForURL(/\/plan\/[0-9a-f-]{36}$/)
+  await pageA.goto(pollPath)
   await expect(pageA.getByText('On the plan:')).toBeVisible()
   await expect(pageB.getByText('Decided')).toBeVisible({ timeout: 30_000 })
 

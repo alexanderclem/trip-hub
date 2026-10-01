@@ -65,9 +65,9 @@ export function PollScreen() {
             {winnerPlace && (
               <div className="mt-3">
                 {['catalog', 'shortlist'].includes(winnerPlace.status) ? (
-                  <Button onClick={() => save('places', { ...winnerPlace, status: 'planned' }, me)} className="w-full">
+                  <Link to={`/t/${poll.trip_id}/plan/new?place=${winnerPlace.id}`} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white hover:bg-brand-900">
                     <CalendarPlus aria-hidden="true" className="size-4" />Add to the plan
-                  </Button>
+                  </Link>
                 ) : (
                   <p className="flex items-center gap-2 text-sm text-brand-900">On the plan: <PlaceStatusBadge status={winnerPlace.status} /></p>
                 )}

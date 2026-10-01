@@ -6,6 +6,10 @@ with test_trips as (
   delete from public.route_legs where trip_id in (select id from test_trips) returning 1
 ), d0b as (
   delete from public.leg_overrides where trip_id in (select id from test_trips) returning 1
+), di as (
+  delete from public.itinerary_items where trip_id in (select id from test_trips) returning 1
+), dd as (
+  delete from public.day_notes where trip_id in (select id from test_trips) returning 1
 ), dv as (
   delete from public.poll_votes where trip_id in (select id from test_trips) returning 1
 ), dr as (

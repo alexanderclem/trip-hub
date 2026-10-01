@@ -23,8 +23,11 @@ export function isValidZone(zone: string): boolean {
   return IANAZone.isValidZone(zone)
 }
 
+/** Postgres returns "2027-03-21T07:10:00"; forms produce "2027-03-21T07:10". Accept both. */
+export const normalizeLocal = (local: string): LocalDateTime => local.replace(' ', 'T').slice(0, 16)
+
 function parseLocal(local: LocalDateTime) {
-  const dt = DateTime.fromFormat(local, LOCAL_FMT, { zone: 'utc' })
+  const dt = DateTime.fromFormat(normalizeLocal(local), LOCAL_FMT, { zone: 'utc' })
   if (!dt.isValid) throw new Error(`Invalid local time "${local}"`)
   return dt
 }
@@ -32,7 +35,8 @@ function parseLocal(local: LocalDateTime) {
 /**
  * Resolves a wall-clock time in a zone to a UTC instant, reporting DST problems.
  * A gap time (e.g. 02:30 on the US spring-forward day) doesn't exist; it's moved forward.
- * An ambiguous time (e.g. 01:30 on fall-back day) happens twice; the earlier one is chosen.
+ * An ambiguous time (e.g. 01:30 on fall-back day) happens twice; the later (standard-time) one is
+ * chosen, matching Postgres's `AT TIME ZONE` so an item doesn't shift when the server's copy syncs back.
  */
 export function checkLocalTime(local: LocalDateTime, zone: string): LocalTimeCheck {
   const z = IANAZone.create(zone)
@@ -50,10 +54,10 @@ export function checkLocalTime(local: LocalDateTime, zone: string): LocalTimeChe
   const iso = (ms: number) => DateTime.fromMillis(ms, { zone: 'utc' }).toISO()!
   if (candidates.length === 1) return { kind: 'ok', instant: iso(candidates[0]!) }
   if (candidates.length >= 2) {
-    return { kind: 'ambiguous', instant: iso(candidates[0]!), alternative: iso(candidates[1]!) }
+    return { kind: 'ambiguous', instant: iso(candidates[1]!), alternative: iso(candidates[0]!) }
   }
   // Gap: Luxon shifts nonexistent times forward by the size of the gap.
-  const shifted = DateTime.fromFormat(local, LOCAL_FMT, { zone })
+  const shifted = DateTime.fromFormat(normalizeLocal(local), LOCAL_FMT, { zone })
   return { kind: 'gap', instant: shifted.toUTC().toISO()! }
 }
 

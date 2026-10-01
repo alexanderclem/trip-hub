@@ -172,6 +172,42 @@ export interface PlaceRating extends SyncColumns {
   note: string | null
 }
 
+export const ITEM_KINDS = ['activity', 'meal', 'flight', 'transport', 'lodging', 'reservation', 'free'] as const
+export type ItemKind = (typeof ITEM_KINDS)[number]
+export const ITEM_STATUSES = ['idea', 'tentative', 'confirmed', 'cancelled'] as const
+export type ItemStatus = (typeof ITEM_STATUSES)[number]
+
+/** Times are wall-clock local + IANA zone per end; start_at/end_at are derived instants. */
+export interface ItineraryItem extends SyncColumns {
+  trip_id: string
+  title: string
+  kind: ItemKind
+  place_id: string | null
+  to_place_id: string | null
+  all_day: boolean
+  start_local: string // 'yyyy-MM-ddTHH:mm' (server adds ':00')
+  start_tz: string
+  end_local: string | null
+  end_tz: string | null
+  start_at: string
+  end_at: string | null
+  status: ItemStatus
+  confirmation_code: string | null
+  attendee_ids: string[] | null // null = everyone
+  details: Record<string, string>
+  notes: string | null
+  est_cost_minor: number | null
+  est_cost_currency: string | null
+}
+
+/** One per (trip, date); id = stableId(trip, 'day', date). */
+export interface DayNote extends SyncColumns {
+  trip_id: string
+  date: string // 'yyyy-MM-dd'
+  title: string | null
+  notes: string | null
+}
+
 export interface Tables {
   trips: Trip
   members: Member
@@ -183,5 +219,7 @@ export interface Tables {
   poll_options: PollOption
   poll_votes: PollVote
   place_ratings: PlaceRating
+  itinerary_items: ItineraryItem
+  day_notes: DayNote
 }
 export type TableName = keyof Tables

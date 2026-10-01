@@ -4,11 +4,14 @@ import { GeolocateControl, LngLatBounds, Map as MlMap, setWorkerUrl, type GeoJSO
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import type { FeatureCollection, LineString, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { List, MapPinPlus, Ruler, X } from 'lucide-react'
+import { CalendarDays, List, MapPinPlus, Ruler, X } from 'lucide-react'
 import { useDevice } from '@/data/device'
 import { useLegContext, usePlaces, useTrip } from '@/data/hooks'
 import { useOnline } from '@/lib/useOnline'
 import { offlineStyle, useOfflinePack } from './offline/packs'
+import { useDisplayZone, useItems } from '@/features/itinerary/data'
+import { onDay } from '@/features/itinerary/layout'
+import { DateTime } from 'luxon'
 import { PLACE_CATEGORIES, type Place, type PlaceCategory } from '@/data/types'
 import type { LatLng } from '@/lib/geo'
 import { Button } from '@/ui'
@@ -24,9 +27,10 @@ const DEFAULT_VIEW = { center: [-90.95, 14.65] as [number, number], zoom: 8.6 } 
 const LONG_PRESS_MS = 550
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 
-type Fc = FeatureCollection<Point, { id: string; category: PlaceCategory; name: string }>
+type Fc = FeatureCollection<Point, { id: string; category: PlaceCategory; name: string; n?: string }>
 
-function toFeatures(places: Place[]): Fc {
+/** `stopNumbers`: when showing one day, each place's position(s) in that day's order ("2" or "1, 4"). */
+function toFeatures(places: Place[], stopNumbers?: Map<string, string>): Fc {
   return {
     type: 'FeatureCollection',
     features: places
@@ -34,7 +38,7 @@ function toFeatures(places: Place[]): Fc {
       .map((p) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [p.lng!, p.lat!] },
-        properties: { id: p.id, category: p.category, name: p.name },
+        properties: { id: p.id, category: p.category, name: p.name, ...(stopNumbers?.has(p.id) ? { n: stopNumbers.get(p.id)! } : {}) },
       })),
   }
 }
@@ -47,6 +51,15 @@ export default function MapScreen() {
   const places = usePlaces(tripId)
   const [params, setParams] = useSearchParams()
   const selectedId = params.get('place')
+  const day = params.get('day') // show one day of the plan: numbered stops + route
+  const setQuery = (next: { place?: string | null; day?: string | null }) => {
+    const q = new URLSearchParams()
+    const p = next.place === undefined ? selectedId : next.place
+    const d = next.day === undefined ? day : next.day
+    if (p) q.set('place', p)
+    if (d) q.set('day', d)
+    setParams(q, { replace: true })
+  }
 
   const [hidden, setHidden] = useState<Set<PlaceCategory>>(new Set())
   const [showPool, setShowPool] = useState(false)
@@ -76,15 +89,33 @@ export default function MapScreen() {
       setOriginId(measuring.id)
       setMeasuring(null)
     }
-    setParams(id ? { place: id } : {}, { replace: true })
+    setQuery({ place: id })
   }
   actions.current.longPress = (at) => {
-    setParams({}, { replace: true })
+    setQuery({ place: null })
     setPending(at)
   }
 
+  const items = useItems(tripId)
+  const { zone } = useDisplayZone(trip)
+  /** The day's places in visiting order (consecutive repeats collapsed). */
+  const dayStops = useMemo(() => {
+    if (!day || !items || !places) return null
+    const ids: string[] = []
+    for (const i of items.filter((x) => !x.all_day && x.kind !== 'lodging' && x.status !== 'cancelled' && onDay(x, day, zone))) {
+      for (const id of [i.place_id, i.to_place_id]) if (id && ids.at(-1) !== id) ids.push(id)
+    }
+    return ids.map((id) => places.find((p) => p.id === id)).filter((p): p is Place => !!p && p.lat != null && p.lng != null)
+  }, [day, items, places, zone])
+  const stopNumbers = useMemo(() => {
+    const m = new Map<string, string>()
+    dayStops?.forEach((p, i) => m.set(p.id, m.has(p.id) ? `${m.get(p.id)}, ${i + 1}` : String(i + 1)))
+    return m
+  }, [dayStops])
+
   const visible = useMemo(() => (places ?? []).filter((p) => !hidden.has(p.category)), [places, hidden])
-  const picks = useMemo(() => visible.filter((p) => p.status !== 'catalog' && p.status !== 'rejected'), [visible])
+  const allPicks = useMemo(() => visible.filter((p) => p.status !== 'catalog' && p.status !== 'rejected'), [visible])
+  const picks = useMemo(() => (dayStops ? [...new Map(dayStops.map((p) => [p.id, p])).values()] : allPicks), [dayStops, allPicks])
   const pool = useMemo(() => visible.filter((p) => p.status === 'catalog'), [visible])
   const poolTotal = useMemo(() => (places ?? []).filter((p) => p.status === 'catalog').length, [places])
   const selected = places?.find((p) => p.id === selectedId)
@@ -150,14 +181,6 @@ export default function MapScreen() {
       else console.warn('map error', e.error)
     })
 
-    map.on('load', () => {
-      // If location was allowed before, show "you are here" (and distances) without a tap.
-      navigator.permissions
-        ?.query({ name: 'geolocation' })
-        .then((p) => p.state === 'granted' && geolocate.trigger())
-        .catch(() => {})
-    })
-
     // Pins, clusters and the measure line sit on top of whichever basemap is showing, so they're
     // re-added whenever the style changes (online ↔ offline map).
     map.on('style.load', async () => {
@@ -218,6 +241,25 @@ export default function MapScreen() {
         paint: { 'line-color': '#0f766e', 'line-width': 3, 'line-dasharray': [1.5, 1.5], 'line-opacity': 0.8 },
       })
 
+      // "You are here", fed by a quiet location watch (see below), so the camera never jumps.
+      map.addSource('me', { type: 'geojson', data: EMPTY })
+      map.addLayer({
+        id: 'me-dot',
+        type: 'circle',
+        source: 'me',
+        paint: { 'circle-radius': 7, 'circle-color': '#2563eb', 'circle-stroke-color': '#fff', 'circle-stroke-width': 3 },
+      })
+
+      // One day of the plan: stops joined in visiting order.
+      map.addSource('day-route', { type: 'geojson', data: EMPTY })
+      map.addLayer({
+        id: 'day-route',
+        type: 'line',
+        source: 'day-route',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': '#0f766e', 'line-width': 4, 'line-opacity': 0.6 },
+      })
+
       // The group's picks: always visible, never clustered, on top.
       map.addSource('picks', { type: 'geojson', data: EMPTY })
       map.addLayer({
@@ -234,7 +276,13 @@ export default function MapScreen() {
         layout: {
           'icon-image': ['concat', 'pin-', ['get', 'category']],
           'icon-allow-overlap': true,
-          'text-field': ['step', ['zoom'], '', 13, ['get', 'name']],
+          // Day view: "2. Café Sky" at every zoom; otherwise names from zoom 13. (MapLibre only
+          // allows ['zoom'] as the input of a top-level step, so the case goes inside it.)
+          'text-field': [
+            'step', ['zoom'],
+            ['case', ['has', 'n'], ['concat', ['get', 'n'], '. ', ['get', 'name']], ''],
+            13, ['case', ['has', 'n'], ['concat', ['get', 'n'], '. ', ['get', 'name']], ['get', 'name']],
+          ],
           'text-font': [bold],
           'text-size': 12,
           'text-offset': [0, 1.5],
@@ -304,13 +352,62 @@ export default function MapScreen() {
     map.setStyle(mode === 'offline' && pack.status === 'ready' ? offlineStyle(pack.overview, pack.detail) : STYLE_URL, { diff: false })
   }, [wantOffline, pack])
 
+  // ── Where you are ──────────────────────────────────────────────────────────
+  // If location was allowed before, follow it without moving the map (distances and "From you"
+  // work immediately). Tapping the locate button still centres the map on you.
+  useEffect(() => {
+    let watch: number | null = null
+    let cancelled = false
+    navigator.permissions
+      ?.query({ name: 'geolocation' })
+      .then((p) => {
+        if (cancelled || p.state !== 'granted') return
+        watch = navigator.geolocation.watchPosition(
+          (pos) => setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => {},
+          { enableHighAccuracy: true, maximumAge: 30_000 },
+        )
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+      if (watch != null) navigator.geolocation.clearWatch(watch)
+    }
+  }, [])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    ;(map.getSource('me') as GeoJSONSource).setData(
+      me ? { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [me.lng, me.lat] } }] } : EMPTY,
+    )
+  }, [ready, me])
+
   // ── Keep map data in sync with IndexedDB + filters ──────────────────────────
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    ;(map.getSource('picks') as GeoJSONSource).setData(toFeatures(picks))
-    ;(map.getSource('pool') as GeoJSONSource).setData(showPool ? toFeatures(pool) : EMPTY)
-  }, [ready, picks, pool, showPool])
+    ;(map.getSource('picks') as GeoJSONSource).setData(toFeatures(picks, stopNumbers))
+    ;(map.getSource('pool') as GeoJSONSource).setData(showPool && !dayStops ? toFeatures(pool) : EMPTY)
+    ;(map.getSource('day-route') as GeoJSONSource).setData(
+      dayStops && dayStops.length > 1
+        ? { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: dayStops.map((p) => [p.lng!, p.lat!]) } }] }
+        : EMPTY,
+    )
+  }, [ready, picks, pool, showPool, dayStops, stopNumbers])
+
+  // Frame the day's stops whenever a day is opened.
+  const dayKeyFitted = useRef<string | null>(null)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map || !day || !dayStops?.length || dayKeyFitted.current === day) return
+    dayKeyFitted.current = day
+    fitted.current = true
+    if (dayStops.length === 1) return void map.jumpTo({ center: [dayStops[0]!.lng!, dayStops[0]!.lat!], zoom: 15 })
+    const b = new LngLatBounds()
+    for (const p of dayStops) b.extend([p.lng!, p.lat!])
+    map.fitBounds(b, { padding: { top: 170, bottom: 140, left: 60, right: 70 }, maxZoom: 15, duration: 0 })
+  }, [ready, day, dayStops])
 
   useEffect(() => {
     const map = mapRef.current
@@ -388,7 +485,7 @@ export default function MapScreen() {
           })}
         </div>
         <div className="pointer-events-auto flex items-center gap-2 px-3">
-          {poolTotal > 0 && (
+          {poolTotal > 0 && !day && (
             <button
               onClick={() => setShowPool((v) => !v)}
               className={`rounded-full px-3 py-1.5 text-sm shadow-sm ${showPool ? 'bg-stone-800 text-white' : 'bg-white/90 text-stone-700'}`}
@@ -399,6 +496,15 @@ export default function MapScreen() {
           <Link to="../more/places" className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-sm text-stone-700 shadow-sm">
             <List className="size-4" /> List
           </Link>
+          {day && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-700 py-1 pr-1 pl-3 text-sm whitespace-nowrap text-white shadow-sm">
+              <CalendarDays aria-hidden="true" className="size-4" />
+              {DateTime.fromISO(day).toFormat('ccc d LLL')} · {dayStops?.length ?? 0} stops
+              <button onClick={() => setQuery({ day: null })} aria-label="Show all places" className="flex size-7 items-center justify-center rounded-full hover:bg-white/20">
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            </span>
+          )}
           {wantOffline && <span className="rounded-full bg-stone-900/80 px-3 py-1.5 text-sm text-white">Offline map</span>}
         </div>
         {mapError && <p className="mx-3 mt-2 rounded-xl bg-amber-100 px-3 py-2 text-sm text-amber-900">{mapError}</p>}
@@ -435,7 +541,7 @@ export default function MapScreen() {
           onOrigin={setOriginId}
           onMeasure={() => {
             setMeasuring(selected)
-            setParams({}, { replace: true })
+            setQuery({ place: null })
           }}
           legCtx={legCtx}
           onClose={() => actions.current.select(null)}

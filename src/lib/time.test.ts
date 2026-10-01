@@ -26,12 +26,16 @@ describe('local time + zone → instant', () => {
     expect(formatInZone(r.instant, NY)).toBe('03:30')
   })
 
-  it('flags the US fall-back ambiguity and picks the earlier instant', () => {
+  it('flags the US fall-back ambiguity and, like Postgres, picks the later (standard-time) instant', () => {
     const r = checkLocalTime('2027-11-07T01:30', NY)
     expect(r.kind).toBe('ambiguous')
     if (r.kind !== 'ambiguous') return
-    expect(r.instant).toBe('2027-11-07T05:30:00.000Z') // EDT
-    expect(r.alternative).toBe('2027-11-07T06:30:00.000Z') // EST
+    expect(r.instant).toBe('2027-11-07T06:30:00.000Z') // EST, same as the server trigger
+    expect(r.alternative).toBe('2027-11-07T05:30:00.000Z') // EDT
+  })
+
+  it('accepts the server format with seconds', () => {
+    expect(toInstant('2027-03-15T09:30:00', GT)).toBe(toInstant('2027-03-15T09:30', GT))
   })
 
   it('normal times are ok', () => {

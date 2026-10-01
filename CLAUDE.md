@@ -107,7 +107,7 @@ so that person could never vote again. Store "none" as NULL instead (`poll_votes
     largest-remainder allocator spreads leftover pennies across people.
   - Settle-up uses greedy min-cash-flow.
   - FX rates come from open.er-api.com (keyless, includes GTQ, attribution required).
-- **Time** (`src/lib/time.ts`, not wired yet):
+- **Time** (`src/lib/time.ts`, used by the itinerary):
   - Store wall-clock time plus the IANA zone for each end; derive instants from them.
   - Every function takes the zone as a parameter. The US DST change on 14 Mar 2027 falls
     during spring break.
@@ -175,6 +175,15 @@ name "travel app" and runs every spec.
   - Its CSS sets the container to `position: relative`, so size the map from a wrapper.
   - Custom layers are re-added on every `style.load` (the online/offline switch).
   - The offline font set has *Medium*, not *Bold*.
+- **Forms must fill themselves only once** (a `loaded` ref). Background sync keeps refreshing
+  live-query rows, so re-applying them silently undoes what the person is typing. Notes and text
+  areas that save on blur also ignore incoming updates while focused. When a form is prefilled
+  from another table (`?place=`), wait for that table to load before initialising.
+- **MapLibre expressions:** `['zoom']` may only be the input of a *top-level* `step` or
+  `interpolate`. Nesting it inside `case` silently drops the whole layer.
+- **Map camera:** never auto-trigger `GeolocateControl`, because it flies to the user and undoes
+  framing (for example "frame this day"). Location is tracked quietly (`watchPosition` and our
+  own `me-dot` layer); the control is only for an explicit tap.
 - **Cloudflare** redirects `@` to `%40` (sprites `light@2x`). The service worker copes, and
   the offline e2e test covers it.
 - **UI conventions** (from the user's redesign):
@@ -197,8 +206,8 @@ The full plan is in `C:\Users\alexa\.claude\plans\plan-out-a-travel-giggly-falco
 | 2 Live map | ✅ | MapLibre + OpenFreeMap, pins/clusters/filters, place sheet, long-press add, location |
 | 3 Travel times + offline map | ✅ | route-legs function, ranges, lancha/shuttle routes, reported times, measure mode; PMTiles offline packs (15.6 MB) with auto-switch. **Still pending: the user's real-iPhone airplane-mode check.** |
 | 4 Voting + group ratings | ✅ | Votes (More → Votes): score voting, ranked results showing who voted what, and closing a vote → winner → "Add to the plan" (sets the place to *planned*; in Phase 5 it should create an itinerary item). Group ratings (1–5 stars + note) on place pages, stars on the map card and in the list, a "Best rated" sort, a "Group vote" card on place pages, and an empty RatingProvider seam (`src/features/ratings/providers`). |
-| 5 Itinerary + time | ⏳ next | `itinerary_items` (start/end local + tz), `day_notes`; day timeline with overlap lanes and conflicts; time-zone toggle; day route on the map |
-| 6 Money | | `expenses` (payers/split as jsonb), `settlements`, `fx_snapshots`; 4 split methods, balances, settle-up, currency toggle |
+| 5 Itinerary + time | ✅ | Plan tab: day strip, an hour-slot timeline with overlap lanes and conflict warnings, a "Staying at" banner, all-day items and day notes. Items store a local time plus a zone for each end, and the server trigger derives `start_at`/`end_at` (an ambiguous DST time resolves to the later instant, matching Postgres). A Guatemala-time / phone-time toggle. Item form (cross-zone flights, attendees, confirmation code, estimated cost) and item detail (both local ends, travel time from the previous stop). Map `?day=` shows numbered stops plus a route. "Add to plan" from places and from vote winners; saving marks the place planned or booked. |
+| 6 Money | ⏳ next | `expenses` (payers/split as jsonb), `settlements`, `fx_snapshots`; 4 split methods, balances, settle-up, currency toggle |
 | 7 Tickets + master download | | `attachments` + private Storage bucket; wallet + pdf.js viewer; one-button offline download of everything; iOS hardening |
 
 If the schedule slips, cut Money and Tickets first. Never cut the map.
