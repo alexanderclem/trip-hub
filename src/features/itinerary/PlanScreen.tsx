@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { AlertTriangle, BedDouble, CalendarDays, Map, Plus, StickyNote } from 'lucide-react'
+import { AlertTriangle, BedDouble, CalendarDays, CalendarPlus, Map, Plus, StickyNote } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatInZone } from '@/lib/time'
 import { Textarea } from '@/ui'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
+import { itemsFor, planIcs, shareCalendar } from './calendar'
 import { saveDayNote, useDayNote, useDisplayZone, useItems } from './data'
 import { KIND_STYLE } from './kinds'
 import { layoutDay, planDays, type Block } from './layout'
@@ -41,6 +42,7 @@ export function PlanScreen() {
   })), [days, items, zone])
   const placeOf = (id: string | null) => (id ? places.find((p) => p.id === id) : undefined)
   const conflicts = layout.blocks.filter((b) => b.conflict).length
+  const mine = useMemo(() => itemsFor(items ?? [], me), [items, me])
   const transfers = useMemo(() => legCtx ? planTransfers(items ?? [], places, legCtx, trip?.timezone ?? zone, members.map((m) => m.id)) : [], [items, places, legCtx, trip?.timezone, zone, members])
 
   // Keep the selected day visible in the strip.
@@ -85,7 +87,17 @@ export function PlanScreen() {
 
       <div className="mx-auto max-w-2xl space-y-3 p-4">
         {items && <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} />}
-        <Link to={`/t/${tripId}/more/tasks`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Shared tasks →</Link>
+        <div className="flex flex-wrap items-center justify-between gap-x-3">
+          <Link to={`/t/${tripId}/more/tasks`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Shared tasks →</Link>
+          {mine.length > 0 && (
+            <button
+              onClick={() => void shareCalendar(trip?.name ?? 'Trip', planIcs(mine, places, members, trip?.name ?? 'Trip', location.origin))}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50"
+            >
+              <CalendarPlus aria-hidden="true" className="size-4" /> Add my plan to calendar
+            </button>
+          )}
+        </div>
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</h2>
           {layout.blocks.some((b) => b.item.place_id) && (

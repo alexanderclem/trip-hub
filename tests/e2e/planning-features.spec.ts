@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
 
 // Local-only fixtures: no anonymous accounts, production rows, or live network writes.
@@ -58,6 +59,23 @@ test('up next and travel warnings render offline, link to tickets, and update wi
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: 'test-results/features-plan-200-percent.png' })
   await page.evaluate(() => { document.documentElement.style.zoom = '' })
+  // Calendar export is built on the phone, so it works with no network.
+  const whole = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Add my plan to calendar' }).click()
+  const plan = await whole
+  expect(plan.suggestedFilename()).toBe('e2e-test-local-planning-features.ics')
+  const ics = readFileSync(await plan.path(), 'utf8')
+  expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(2)
+  expect(ics).toContain('SUMMARY:Coffee farm tour')
+  expect(ics).toContain('DTSTART:20270315T161500Z')
+  expect(ics).toContain('DTEND:20270315T173000Z')
+  expect(ics).toContain('LOCATION:Coffee farm')
+  await page.getByRole('link', { name: 'Coffee farm tour', exact: true }).click()
+  await page.waitForURL(`${base}/plan/tour`)
+  const single = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Add to calendar' }).click()
+  expect(readFileSync(await (await single).path(), 'utf8').match(/BEGIN:VEVENT/g)).toHaveLength(1)
+  await page.goto(`${base}/plan`)
   await page.getByRole('link', { name: 'Open ticket' }).click()
   await page.waitForURL(`${base}/tickets/ticket`)
   await expect(page.getByRole('heading', { name: 'Coffee tour ticket' })).toBeVisible()

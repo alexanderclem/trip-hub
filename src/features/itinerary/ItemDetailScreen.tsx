@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { Check, Copy, FileText, MapPin, Pencil, Plus, Receipt, Trash2, Users } from 'lucide-react'
+import { CalendarPlus, Check, Copy, FileText, MapPin, Pencil, Plus, Receipt, Trash2, Users } from 'lucide-react'
 import { useAttachments } from '@/features/tickets/files'
 import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
@@ -12,6 +12,7 @@ import { Button, Card, PageHeader } from '@/ui'
 import { PlaceCategoryIcon } from '@/features/places/PlaceSummary'
 import { travelOptions } from '@/features/routing/legs'
 import { TravelOptionsList } from '@/features/routing/TravelOptionsList'
+import { planIcs, shareCalendar } from './calendar'
 import { deleteItem, useDisplayZone, useItem, useItems } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
 import { onDay } from './layout'
@@ -168,6 +169,10 @@ export function ItemDetailScreen() {
         <Link to={`/t/${tripId}/money/new?item=${item.id}`} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 font-medium text-stone-800 hover:bg-stone-50">
           <Receipt aria-hidden="true" className="size-4" /> Log what it cost
         </Link>
+
+        <Button variant="secondary" className="w-full" onClick={() => void shareCalendar(item.title, planIcs([item], places, members, item.title, location.origin))}>
+          <CalendarPlus aria-hidden="true" className="size-4" /> Add to calendar
+        </Button>
 
         <Button
           variant="danger"
