@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { RouteError } from './app/RouteError'
 import { RootLayout } from './app/layouts/RootLayout'
 import { TripLayout } from './app/layouts/TripLayout'
-import { Placeholder } from './app/Placeholder'
 import { PlaceDetailScreen } from './features/places/PlaceDetailScreen'
 import { PlaceFormScreen } from './features/places/PlaceFormScreen'
 import { PlacesScreen } from './features/places/PlacesScreen'
@@ -13,6 +12,9 @@ import { PlanScreen } from './features/itinerary/PlanScreen'
 import { PollsScreen } from './features/polls/PollsScreen'
 import { ExpenseFormScreen } from './features/money/ExpenseFormScreen'
 import { MoneyScreen } from './features/money/MoneyScreen'
+import { TicketFormScreen } from './features/tickets/TicketFormScreen'
+import { TicketsScreen } from './features/tickets/TicketsScreen'
+import { TicketViewerScreen } from './features/tickets/TicketViewerScreen'
 import { CreateTripScreen } from './features/trips/CreateTripScreen'
 import { HomeScreen } from './features/trips/HomeScreen'
 import { JoinScreen } from './features/trips/JoinScreen'
@@ -39,7 +41,9 @@ export const router = createBrowserRouter([
           { path: 'plan/new', element: <ItemFormScreen /> },
           { path: 'plan/:itemId', element: <ItemDetailScreen /> },
           { path: 'plan/:itemId/edit', element: <ItemFormScreen /> },
-          { path: 'tickets', element: <Placeholder title="Tickets" phase={7} /> },
+          { path: 'tickets', element: <TicketsScreen /> },
+          { path: 'tickets/new', element: <TicketFormScreen /> },
+          { path: 'tickets/:attachmentId', element: <TicketViewerScreen /> },
           { path: 'money', element: <MoneyScreen /> },
           { path: 'money/new', element: <ExpenseFormScreen /> },
           { path: 'money/:expenseId', element: <ExpenseFormScreen /> },

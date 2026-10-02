@@ -5,6 +5,7 @@ import { useDevice } from '@/data/device'
 import { usePendingCount } from '@/data/hooks'
 import { startSync, useSyncStatus } from '@/data/sync/controller'
 import { useAutoLegs } from '@/features/routing/requestLegs'
+import { useAttachmentSync } from '@/features/tickets/files'
 
 const tabs = [
   { to: 'map', label: 'Map', Icon: Map },
@@ -23,6 +24,7 @@ export function TripLayout() {
     return startSync(tripId)
   }, [tripId, joined])
   useAutoLegs(tripId)
+  useAttachmentSync(tripId, joined?.memberId ?? null)
 
   if (!joined) return <Navigate to="/" replace />
   if (!joined.memberId) return <Navigate to={`/t/${tripId}/who`} replace />

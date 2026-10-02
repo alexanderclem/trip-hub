@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip } from './types'
+import type { Attachment, DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip } from './types'
 
 export interface OutboxEntry {
   seq?: number
@@ -48,6 +48,7 @@ export class TripDb extends Dexie {
   expenses!: EntityTable<ExpenseRow & LocalColumns, 'id'>
   settlements!: EntityTable<SettlementRow & LocalColumns, 'id'>
   fx_snapshots!: EntityTable<FxSnapshot & LocalColumns, 'id'>
+  attachments!: EntityTable<Attachment & LocalColumns, 'id'>
   _outbox!: EntityTable<OutboxEntry, 'seq'>
   _deadletter!: EntityTable<DeadLetter, 'id'>
   _meta!: EntityTable<Meta, 'key'>
@@ -84,6 +85,7 @@ export class TripDb extends Dexie {
       settlements: 'id, trip_id',
       fx_snapshots: 'id, trip_id',
     })
+    this.version(7).stores({ attachments: 'id, trip_id, item_id' })
   }
 }
 

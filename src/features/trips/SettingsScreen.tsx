@@ -9,6 +9,7 @@ import { importPlaces } from '@/features/places/importPlaces'
 import { fetchStarterPack, STARTER_PACKS } from '@/features/places/starterPacks'
 import { requestLegs } from '@/features/routing/requestLegs'
 import { OfflineMapCard } from '@/features/map/offline/OfflineMapCard'
+import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { save } from '@/data/repo'
 import { Avatar, Button, Card, ErrorNote, PageHeader } from '@/ui'
 import { rotateShareToken, shareLink } from './actions'
@@ -158,6 +159,8 @@ export function SettingsScreen() {
             <Upload className="size-4" /> Import a places file
           </Button>
         </Card>
+
+        <OfflineReadyCard trip={trip} />
 
         <OfflineMapCard trip={trip} />
 

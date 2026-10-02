@@ -36,7 +36,7 @@ src/lib/          pure helpers: money.ts, time.ts, geo.ts, ids.ts, supabase.ts (
 src/data/         types.ts (row types), db.ts (Dexie schema), repo.ts (save/saveMany/softDelete),
                   hooks.ts (live queries), device.ts (Zustand: joined trips, my member id, prefs)
 src/data/sync/    engine.ts (push/pull), remote.ts (Supabase adapter), controller.ts (timers, realtime)
-src/features/     trips/ places/ map/ map/offline/ routing/   (one folder per feature)
+src/features/     trips/ places/ map/ map/offline/ routing/ polls/ ratings/ itinerary/ money/ tickets/ offline/
 src/ui/           index.tsx (Button, Field, Input, Card, PageHeader…), collection.tsx (adapted shadcn)
 supabase/migrations/          SQL, applied in filename order
 supabase/functions/route-legs Edge Function (routing.ts is pure and unit-tested)
@@ -219,6 +219,6 @@ The full plan is in `C:\Users\alexa\.claude\plans\plan-out-a-travel-giggly-falco
 | 4 Voting + group ratings | ✅ | Votes (More → Votes): score voting, ranked results showing who voted what, and closing a vote → winner → "Add to the plan" (sets the place to *planned*; in Phase 5 it should create an itinerary item). Group ratings (1–5 stars + note) on place pages, stars on the map card and in the list, a "Best rated" sort, a "Group vote" card on place pages, and an empty RatingProvider seam (`src/features/ratings/providers`). |
 | 5 Itinerary + time | ✅ | Plan tab: day strip, an hour-slot timeline with overlap lanes and conflict warnings, a "Staying at" banner, all-day items and day notes. Items store a local time plus a zone for each end, and the server trigger derives `start_at`/`end_at` (an ambiguous DST time resolves to the later instant, matching Postgres). A Guatemala-time / phone-time toggle. Item form (cross-zone flights, attendees, confirmation code, estimated cost) and item detail (both local ends, travel time from the previous stop). Map `?day=` shows numbered stops plus a route. "Add to plan" from places and from vote winners; saving marks the place planned or booked. |
 | 6 Money | ✅ | Money tab: your balance, settle-up with the fewest payments and one-tap "Record" (pay in USD or GTQ), balance bars, history by day. Expense form: 4 split methods with live shares and a left-to-assign counter, several payers, a rate pre-filled from the daily snapshot (editable), and "Log what it cost" from plan items. USD / ≈GTQ toggle. Narrow currency symbols (Q, $). |
-| 7 Tickets + master download | ⏳ next | `attachments` + private Storage bucket; wallet + pdf.js viewer; one-button offline download of everything; iOS hardening |
+| 7 Tickets + master download | ✅ | `attachments` table plus a private Storage bucket (`<trip>/<id>/<file>`, folder-level RLS via `private.object_trip_access`). Tickets tab: wallet grouped by plan day, with on-phone/upload status. Add from camera, photos or files (big photos downscaled to 2400 px; PDFs untouched), linked to plan items. A full-screen viewer (pdf.js draws the PDF, pinch-zoom). Every phone uploads its own files and downloads everyone else's automatically. "Ready for offline" master download (data, tickets, map pack, rates, app, persist) in Settings, with a compact version on the Tickets tab, plus iPhone Home Screen guidance. |
 
-If the schedule slips, cut Money and Tickets first. Never cut the map.
+All planned phases are done. Possible next steps: real accounts (email magic link mapped to `members.auth_user_id`), push notifications, setting the `ORS_API_KEY` secret, ticket file clean-up for removed tickets, and the auto-suggest seam.

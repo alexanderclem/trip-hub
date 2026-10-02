@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { Check, Copy, MapPin, Pencil, Receipt, Trash2, Users } from 'lucide-react'
+import { Check, Copy, FileText, MapPin, Pencil, Plus, Receipt, Trash2, Users } from 'lucide-react'
+import { useAttachments } from '@/features/tickets/files'
 import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
@@ -29,6 +30,7 @@ export function ItemDetailScreen() {
   const legCtx = useLegContext(tripId)
   const { zone, tripZone } = useDisplayZone(trip)
   const [copied, setCopied] = useState(false)
+  const tickets = (useAttachments(tripId) ?? []).filter((t) => t.att.item_id === itemId)
 
   if (!item || item.deleted_at) {
     return (
@@ -141,6 +143,26 @@ export function ItemDetailScreen() {
           <p className="flex items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-stone-500" />{going ? going.map((m) => m.display_name).join(', ') || 'Nobody yet' : 'Everyone'}</p>
           {item.est_cost_minor != null && item.est_cost_currency && <p className="mt-2 text-sm text-stone-600">Estimated cost: {formatMoney(item.est_cost_minor, item.est_cost_currency)}</p>}
           {item.notes && <p className="mt-2 text-sm whitespace-pre-wrap text-stone-700">{item.notes}</p>}
+        </Card>
+
+        <Card>
+          <h3 className="mb-2 text-sm font-semibold">Tickets</h3>
+          {tickets.length > 0 && (
+            <ul className="mb-2 space-y-1">
+              {tickets.map(({ att, onPhone }) => (
+                <li key={att.id}>
+                  <Link to={`/t/${tripId}/tickets/${att.id}`} className="flex min-h-11 items-center gap-2 rounded-xl px-1 text-sm hover:bg-stone-50">
+                    <FileText aria-hidden="true" className="size-4 text-brand-700" />
+                    <span className="min-w-0 flex-1 truncate font-medium">{att.title}</span>
+                    <span className="text-xs text-stone-500">{onPhone ? 'on this phone' : 'not downloaded'}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link to={`/t/${tripId}/tickets/new?item=${item.id}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand-700">
+            <Plus aria-hidden="true" className="size-4" /> Add a ticket or confirmation
+          </Link>
         </Card>
 
         <Link to={`/t/${tripId}/money/new?item=${item.id}`} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 font-medium text-stone-800 hover:bg-stone-50">

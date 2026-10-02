@@ -248,6 +248,26 @@ export interface FxSnapshot extends SyncColumns {
   source: string
 }
 
+export const ATTACHMENT_KINDS = ['ticket', 'reservation', 'receipt', 'document', 'photo'] as const
+export type AttachmentKind = (typeof ATTACHMENT_KINDS)[number]
+
+/** File metadata; the file is in Storage at storage_path and cached on each phone. */
+export interface Attachment extends SyncColumns {
+  trip_id: string
+  item_id: string | null
+  place_id: string | null
+  expense_id: string | null
+  kind: AttachmentKind
+  title: string
+  confirmation_code: string | null
+  storage_path: string // <trip_id>/<id>/<filename>
+  filename: string
+  mime: string
+  bytes: number
+  sha256: string
+  uploaded_at: string | null // null until the file reaches Storage
+}
+
 export interface Tables {
   trips: Trip
   members: Member
@@ -264,5 +284,6 @@ export interface Tables {
   expenses: ExpenseRow
   settlements: SettlementRow
   fx_snapshots: FxSnapshot
+  attachments: Attachment
 }
 export type TableName = keyof Tables

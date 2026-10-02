@@ -10,6 +10,8 @@ with test_trips as (
   delete from public.itinerary_items where trip_id in (select id from test_trips) returning 1
 ), dd as (
   delete from public.day_notes where trip_id in (select id from test_trips) returning 1
+), da as (
+  delete from public.attachments where trip_id in (select id from test_trips) returning 1
 ), de as (
   delete from public.expenses where trip_id in (select id from test_trips) returning 1
 ), ds as (
