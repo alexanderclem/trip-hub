@@ -56,7 +56,7 @@ async function mergeAreaRoutes(tripId: string, routes: AreaRoute[], memberId: st
  */
 export async function importPlaces(tripId: string, json: unknown, memberId: string | null): Promise<ImportResult> {
   const parsed = SeedFile.safeParse(json)
-  if (!parsed.success) throw new Error(`Not a Trip Hub places file: ${parsed.error.issues[0]?.message ?? 'invalid'}`)
+  if (!parsed.success) throw new Error(`Not a Stowaway places file: ${parsed.error.issues[0]?.message ?? 'invalid'}`)
 
   const rows: Place[] = parsed.data.places.map((s) => ({
     id: stableId(tripId, 'osm', s.osm_id),

@@ -71,7 +71,7 @@ export function MoneyScreen() {
             <Receipt aria-hidden="true" className="size-8 text-brand-700" />
             <EmptyHeader>
               <EmptyTitle>No expenses yet</EmptyTitle>
-              <EmptyDescription>Log who paid for what, in quetzales or dollars. Trip Hub works out who owes whom with the fewest payments.</EmptyDescription>
+              <EmptyDescription>Log who paid for what, in quetzales or dollars. Stowaway works out who owes whom with the fewest payments.</EmptyDescription>
             </EmptyHeader>
             <Link to="new" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white"><Plus aria-hidden="true" className="size-4" />Add an expense</Link>
           </Empty>

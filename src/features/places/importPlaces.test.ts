@@ -43,6 +43,6 @@ describe('importPlaces', () => {
   })
 
   it('rejects files that are not places files', async () => {
-    await expect(importPlaces(TRIP, { hello: 1 }, 'ana')).rejects.toThrow(/Not a Trip Hub places file/)
+    await expect(importPlaces(TRIP, { hello: 1 }, 'ana')).rejects.toThrow(/Not a Stowaway places file/)
   })
 })

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button, ErrorNote } from '@/ui'
+import { Brand } from '@/ui/Brand'
 import { joinTrip, parseShareToken } from './actions'
 
 /** Landing page for a shared trip link: /join#t=<token>. */
@@ -28,6 +29,7 @@ export function JoinScreen() {
 
   return (
     <div className="pt-safe mx-auto flex h-full max-w-md flex-col justify-center p-6 text-center">
+      <Link to="/" aria-label="Stowaway home" className="mx-auto mb-8"><Brand /></Link>
       {error ? (
         <div className="space-y-4">
           <h1 className="text-xl font-semibold">Couldn't join the trip</h1>

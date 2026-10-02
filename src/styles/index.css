@@ -1,12 +1,14 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-500: #14b8a6;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-900: #134e4a;
+  --color-brand-50: #edf3f3;
+  --color-brand-100: #d6e4e5;
+  --color-brand-500: #517f8a;
+  --color-brand-600: #396673;
+  --color-brand-700: #295361;
+  --color-brand-900: #183e4b;
+  --color-brand-accent: #ef9477;
+  --color-canvas: #f8f5ee;
 }
 
 @utility pt-safe {
@@ -23,10 +25,24 @@ body,
 }
 
 body {
-  background: var(--color-stone-50);
+  background: var(--color-canvas);
   color: var(--color-stone-900);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
+}
+
+.brand-wordmark {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.065em;
+  line-height: 1.2;
+}
+
+.travel-heading {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.045em;
 }
 
 /* Map controls sit below the category chips and idea-pool buttons. */

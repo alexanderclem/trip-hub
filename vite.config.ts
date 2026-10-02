@@ -16,11 +16,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Trip Hub',
-        short_name: 'Trip Hub',
-        description: 'Shared trip planning for the group: map, plan, tickets, money and votes.',
-        theme_color: '#0f766e',
-        background_color: '#fafaf9',
+        name: 'Stowaway',
+        short_name: 'Stowaway',
+        description: 'The whole trip, tucked away. Shared plans, places, tickets, money and votes.',
+        theme_color: '#183e4b',
+        background_color: '#f8f5ee',
         display: 'standalone',
         start_url: '/',
         icons: [

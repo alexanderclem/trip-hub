@@ -7,6 +7,7 @@ import { db } from '@/data/db'
 import { useDevice } from '@/data/device'
 import type { Trip } from '@/data/types'
 import { Button, Card, Input } from '@/ui'
+import { Brand } from '@/ui/Brand'
 import { CardDescription, CardHeader, CardTitle, Empty, EmptyDescription, EmptyHeader, EmptyTitle, Skeleton } from '@/ui/collection'
 import { parseShareToken } from './actions'
 
@@ -68,15 +69,15 @@ export function HomeScreen() {
 
   return (
     <main className="mx-auto max-w-5xl px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-8 sm:pb-16">
-      <header className="flex items-center gap-2.5 border-b border-stone-200 pb-5">
-        <span className="flex size-9 items-center justify-center rounded-xl bg-brand-900 text-white"><Compass aria-hidden="true" className="size-5" /></span>
-        <span className="text-lg font-bold tracking-tight text-brand-900">Trip Hub</span>
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-brand-900/15 pb-5">
+        <Brand />
+        <span className="text-xs tracking-wide text-brand-700">Good company. Great trips.</span>
       </header>
       <div className="mb-8 mt-8 flex flex-wrap items-end justify-between gap-5 sm:mt-12">
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">Plan together. Go together.</p>
-          <h1 className="text-4xl font-semibold tracking-tight text-stone-900">Your trips</h1>
-          <p className="mt-3 max-w-md leading-relaxed text-stone-600">A shared place for the places you’ll go.</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">A little planning. A lot of possibility.</p>
+          <h1 className="travel-heading text-5xl text-brand-900 sm:text-6xl">Your trips, all aboard.</h1>
+          <p className="mt-4 max-w-md leading-relaxed text-stone-600">The whole trip, tucked away. Keep your group’s plans, places, and tickets together, wherever you go.</p>
         </div>
         <Link to="/new" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-brand-900 active:bg-brand-900"><Plus aria-hidden="true" className="size-4" />Create a trip</Link>
       </div>
@@ -97,9 +98,9 @@ export function HomeScreen() {
           ) : visibleTrips.length ? (
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">{visibleTrips.map((trip) => <TripCard key={trip.id} trip={trip} />)}</div>
           ) : (
-            <Empty>
-              <span className="flex size-14 items-center justify-center rounded-2xl border border-brand-100 bg-brand-50 text-brand-700"><Compass aria-hidden="true" className="size-7" /></span>
-              <EmptyHeader><EmptyTitle>Your next trip starts here</EmptyTitle><EmptyDescription>Create a trip for your group, or join one with a shared link. Your trips will appear here.</EmptyDescription></EmptyHeader>
+            <Empty className="border-brand-900/20 bg-white/50">
+              <img src="/brand/packed-for-anywhere.svg" alt="" width="360" height="170" className="w-64 max-w-full" />
+              <EmptyHeader><EmptyTitle>Room for your next adventure</EmptyTitle><EmptyDescription>Create a trip for your favorite people, or hop aboard with an invite. We’ll keep the details here.</EmptyDescription></EmptyHeader>
             </Empty>
           )}
         </section>
@@ -121,6 +122,10 @@ export function HomeScreen() {
           </form>
         </Card>
       </div>
+      <footer className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-brand-900/15 pt-5 text-xs text-stone-600">
+        <span>Made for the way you go together.</span>
+        <span className="tracking-wide">joinstowaway.app</span>
+      </footer>
     </main>
   )
 }

@@ -63,7 +63,7 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
 
       {isIOS() && !isStandalone() && (
         <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
-          On iPhone, first add Trip Hub to your Home Screen (Share → Add to Home Screen) and download from there. Safari
+          On iPhone, first add Stowaway to your Home Screen (Share → Add to Home Screen) and download from there. Safari
           can wipe offline data for websites that aren't opened for a week.
         </p>
       )}

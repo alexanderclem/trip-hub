@@ -35,7 +35,7 @@ export function SettingsScreen() {
   async function share() {
     if (navigator.share) {
       try {
-        await navigator.share({ title: trip!.name, text: `Join "${trip!.name}" on Trip Hub`, url: link })
+        await navigator.share({ title: trip!.name, text: `Join "${trip!.name}" on Stowaway`, url: link })
         return
       } catch {
         // cancelled; fall through to copy

@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none"><rect width="512" height="512" fill="#f8f5ee"/><g transform="translate(76 76) scale(3.75)">
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="96" viewBox="0 0 460 96" fill="none">
   <path d="M34 10h28l16 20v44a12 12 0 0 1-12 12H30a12 12 0 0 1-12-12V30z" fill="#183e4b"/>
   <circle cx="48" cy="24" r="4" fill="#f8f5ee"/>
   <path d="M61 40H42a9 9 0 0 0 0 18h12a9 9 0 0 1 0 18H35" stroke="#f8f5ee" stroke-width="7" stroke-linecap="round"/>
   <circle cx="61" cy="40" r="5" fill="#ef9477"/>
-</g></svg>
+<text x="110" y="68" fill="#183e4b" font-family="Georgia,serif" font-size="64" font-weight="700" letter-spacing="-4">stowaway<tspan fill="#ef9477">.</tspan></text></svg>

@@ -104,11 +104,11 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
     await step('app', async () => {
       if (!('serviceWorker' in navigator)) throw new Error('This browser can’t save apps for offline use')
       await navigator.serviceWorker.ready
-      if (!navigator.serviceWorker.controller) throw new Error('Close and reopen Trip Hub once while online, then try again')
+      if (!navigator.serviceWorker.controller) throw new Error('Close and reopen Stowaway once while online, then try again')
     })
     await step('persist', async () => {
       const granted = await requestPersistence()
-      return granted ? {} : { state: 'skipped', detail: isIOS() && !isStandalone() ? 'Add Trip Hub to your Home Screen first' : 'The browser decides; usually fine once installed' }
+      return granted ? {} : { state: 'skipped', detail: isIOS() && !isStandalone() ? 'Add Stowaway to your Home Screen first' : 'The browser decides; usually fine once installed' }
     })
 
     setRunning(false)
@@ -145,7 +145,7 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
       <p className="mt-1 text-sm text-stone-500">One tap puts everything on this phone (trip data, every ticket, the offline map and exchange rates) so it all works in airplane mode.</p>
       {isIOS() && !isStandalone() && (
         <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
-          First add Trip Hub to your Home Screen (Share → Add to Home Screen) and open it from there. Safari can clear offline data for websites, and the Home Screen app keeps its own copy.
+          First add Stowaway to your Home Screen (Share → Add to Home Screen) and open it from there. Safari can clear offline data for websites, and the Home Screen app keeps its own copy.
         </p>
       )}
       {steps && (
@@ -173,7 +173,7 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
         {ready ? `✓ Ready for offline · checked ${DateTime.fromISO(lastReady!).toRelative()}` : lastReady ? `Last checked ${DateTime.fromISO(lastReady).toRelative()}` : 'Not checked yet'}
         {persisted != null && ` · storage ${persisted ? 'protected' : 'not protected yet'}`}
       </p>
-      <p className="mt-1 text-xs text-red-700">Deleting Trip Hub from your Home Screen deletes everything saved offline.</p>
+      <p className="mt-1 text-xs text-red-700">Deleting Stowaway from your Home Screen deletes everything saved offline.</p>
     </Card>
   )
 }

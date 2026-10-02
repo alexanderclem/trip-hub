@@ -28,7 +28,7 @@ export async function ensureSession(): Promise<string> {
     const msg = error?.message ?? 'unknown error'
     throw new Error(
       msg.includes('Anonymous sign-ins are disabled')
-        ? 'Trip Hub is not set up yet: anonymous sign-ins are disabled in Supabase.'
+        ? 'Stowaway is not set up yet: anonymous sign-ins are disabled in Supabase.'
         : /rate limit/i.test(msg)
           ? 'Too many new phones joined from this network in the last hour. Try again in a little while, or switch between Wi-Fi and mobile data.'
           : `Could not sign in: ${msg}`,
