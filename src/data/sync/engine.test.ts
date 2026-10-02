@@ -191,6 +191,25 @@ describe('push', () => {
 })
 
 describe('pull', () => {
+  it('syncs task creation and reversible completion between devices', async () => {
+    const second = new TripDb(`task-second-${crypto.randomUUID()}`)
+    try {
+      const task = { id: 'task-1', trip_id: TRIP, title: 'Book shuttle', assignee_id: null, due_date: '2027-03-14', notes: null, completed: false }
+      await save('trip_tasks', task, 'ana', db)
+      await push(server, db)
+      await pull(server, TRIP, second)
+      expect(await second.trip_tasks.get(task.id)).toMatchObject({ title: 'Book shuttle', completed: false })
+      await save('trip_tasks', { ...task, completed: true }, 'ben', second)
+      await push(server, second)
+      await pull(server, TRIP, db)
+      expect(await db.trip_tasks.get(task.id)).toMatchObject({ completed: true })
+      await save('trip_tasks', { ...task, completed: false }, 'ana', db)
+      await push(server, db)
+      await pull(server, TRIP, second)
+      expect(await second.trip_tasks.get(task.id)).toMatchObject({ completed: false })
+    } finally { await second.delete() }
+  })
+
   it("brings in other devices' changes", async () => {
     await server.serverEdit('places', place('p9', 'From Ben'))
     const r = await pull(server, TRIP, db, ['places'])

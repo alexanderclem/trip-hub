@@ -21,6 +21,8 @@ import { JoinScreen } from './features/trips/JoinScreen'
 import { MoreScreen } from './features/trips/MoreScreen'
 import { SettingsScreen } from './features/trips/SettingsScreen'
 import { WhoScreen } from './features/trips/WhoScreen'
+import { TasksScreen } from './features/tasks/TasksScreen'
+import { TaskFormScreen } from './features/tasks/TaskFormScreen'
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +50,9 @@ export const router = createBrowserRouter([
           { path: 'money/new', element: <ExpenseFormScreen /> },
           { path: 'money/:expenseId', element: <ExpenseFormScreen /> },
           { path: 'more', element: <MoreScreen /> },
+          { path: 'more/tasks', element: <TasksScreen /> },
+          { path: 'more/tasks/new', element: <TaskFormScreen /> },
+          { path: 'more/tasks/:taskId', element: <TaskFormScreen /> },
           { path: 'more/places', element: <PlacesScreen /> },
           { path: 'more/places/new', element: <PlaceFormScreen /> },
           { path: 'more/places/:placeId', element: <PlaceDetailScreen /> },

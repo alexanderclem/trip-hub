@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { AlertTriangle, BedDouble, CalendarDays, Map, Plus, StickyNote } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
-import { usePlaces, useTrip } from '@/data/hooks'
+import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatInZone } from '@/lib/time'
 import { Textarea } from '@/ui'
@@ -12,6 +12,10 @@ import { saveDayNote, useDayNote, useDisplayZone, useItems } from './data'
 import { KIND_STYLE } from './kinds'
 import { layoutDay, planDays, type Block } from './layout'
 import { TimeToggle } from './TimeToggle'
+import { UpNextCard } from './UpNextCard'
+import { TravelWarnings } from './TravelWarnings'
+import { planTransfers } from './travel'
+import { dayKey } from '@/lib/time'
 
 const HOUR_PX = 60
 const GUTTER = '3.25rem'
@@ -21,6 +25,9 @@ export function PlanScreen() {
   const trip = useTrip(tripId)
   const items = useItems(tripId)
   const places = usePlaces(tripId) ?? []
+  const members = useMembers(tripId) ?? []
+  const me = useMyMemberId(tripId)
+  const legCtx = useLegContext(tripId)
   const { zone } = useDisplayZone(trip)
   const [params, setParams] = useSearchParams()
 
@@ -34,6 +41,7 @@ export function PlanScreen() {
   })), [days, items, zone])
   const placeOf = (id: string | null) => (id ? places.find((p) => p.id === id) : undefined)
   const conflicts = layout.blocks.filter((b) => b.conflict).length
+  const transfers = useMemo(() => legCtx ? planTransfers(items ?? [], places, legCtx, trip?.timezone ?? zone, members.map((m) => m.id)) : [], [items, places, legCtx, trip?.timezone, zone, members])
 
   // Keep the selected day visible in the strip.
   const stripRef = useRef<HTMLDivElement>(null)
@@ -76,6 +84,8 @@ export function PlanScreen() {
       </header>
 
       <div className="mx-auto max-w-2xl space-y-3 p-4">
+        {items && <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} />}
+        <Link to={`/t/${tripId}/more/tasks`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Shared tasks →</Link>
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</h2>
           {layout.blocks.some((b) => b.item.place_id) && (
@@ -105,6 +115,7 @@ export function PlanScreen() {
             <AlertTriangle aria-hidden="true" className="size-4 shrink-0" /> {conflicts} items overlap for the same people
           </p>
         )}
+        <TravelWarnings tripId={tripId} transfers={transfers.filter((t) => dayKey(t.to.start_at, zone) === day)} />
 
         {items && layout.blocks.length === 0 && layout.allDay.length === 0 && layout.stays.length === 0 ? (
           <Empty>

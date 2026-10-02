@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router'
-import { ChevronRight, MapPin, Settings, Vote } from 'lucide-react'
+import { ChevronRight, ClipboardCheck, MapPin, Settings, Vote } from 'lucide-react'
 import { useTrip } from '@/data/hooks'
 import { PageHeader } from '@/ui'
 
@@ -7,6 +7,7 @@ export function MoreScreen() {
   const { tripId } = useParams() as { tripId: string }
   const trip = useTrip(tripId)
   const items = [
+    { to: 'tasks', label: 'Tasks', Icon: ClipboardCheck, note: null },
     { to: 'places', label: 'Places', Icon: MapPin, note: null },
     { to: 'vote', label: 'Votes', Icon: Vote, note: null },
     { to: 'settings', label: 'Trip settings & sharing', Icon: Settings, note: null },

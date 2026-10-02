@@ -210,6 +210,15 @@ export interface DayNote extends SyncColumns {
   notes: string | null
 }
 
+export interface TripTask extends SyncColumns {
+  trip_id: string
+  title: string
+  assignee_id: string | null
+  due_date: string | null
+  completed: boolean
+  notes: string | null
+}
+
 export const EXPENSE_CATEGORIES = ['food', 'drinks', 'lodging', 'transport', 'activities', 'groceries', 'shopping', 'tips', 'fees', 'other'] as const
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
 
@@ -285,5 +294,6 @@ export interface Tables {
   settlements: SettlementRow
   fx_snapshots: FxSnapshot
   attachments: Attachment
+  trip_tasks: TripTask
 }
 export type TableName = keyof Tables
