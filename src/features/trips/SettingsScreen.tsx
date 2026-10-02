@@ -5,6 +5,7 @@ import { db } from '@/data/db'
 import { useDevice, useMyMemberId } from '@/data/device'
 import { useDeadLetters, useMembers, usePendingCount, useTrip } from '@/data/hooks'
 import { syncNow, useSyncStatus } from '@/data/sync/controller'
+import { DestinationsCard } from '@/features/destinations/DestinationsCard'
 import { importPlaces } from '@/features/places/importPlaces'
 import { fetchStarterPack, STARTER_PACKS } from '@/features/places/starterPacks'
 import { requestLegs } from '@/features/routing/requestLegs'
@@ -114,6 +115,8 @@ export function SettingsScreen() {
             I'm not {members.find((m) => m.id === me)?.display_name ?? 'that person'}
           </Button>
         </Card>
+
+        <DestinationsCard trip={trip} me={me} />
 
         <Card>
           <h2 className="font-semibold">Import places</h2>

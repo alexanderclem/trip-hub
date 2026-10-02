@@ -1,6 +1,9 @@
 import { ensureSession, supabase } from '@/lib/supabase'
 import { newId } from '@/lib/ids'
+import { db } from '@/data/db'
 import { useDevice } from '@/data/device'
+import { save } from '@/data/repo'
+import type { TripArea } from '@/features/destinations/destinations'
 import { pull } from '@/data/sync/engine'
 import { supabaseRemote } from '@/data/sync/remote'
 
@@ -23,6 +26,8 @@ export interface NewTrip {
   baseCurrency: string
   localCurrency: string | null
   yourName: string
+  /** Towns chosen while creating the trip; stored in trips.settings.areas. */
+  areas?: TripArea[]
 }
 
 export async function createTrip(t: NewTrip): Promise<string> {
@@ -44,6 +49,10 @@ export async function createTrip(t: NewTrip): Promise<string> {
   if (error) throw new Error(error.message)
   useDevice.getState().rememberTrip(tripId, memberId)
   await initialPull(tripId)
+  if (t.areas?.length) {
+    const trip = await db.trips.get(tripId)
+    if (trip) await save('trips', { ...trip, settings: { ...trip.settings, areas: t.areas } }, memberId)
+  }
   return tripId
 }
 

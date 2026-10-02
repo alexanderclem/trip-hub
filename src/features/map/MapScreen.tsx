@@ -9,6 +9,8 @@ import { useDevice } from '@/data/device'
 import { useLegContext, usePlaces, useTrip } from '@/data/hooks'
 import { useOnline } from '@/lib/useOnline'
 import { offlineStyle, useOfflinePack } from './offline/packs'
+import { STYLE_URL, union, useSavedMap } from './offline/savedArea'
+import { tripAreas } from '@/features/destinations/destinations'
 import { useDisplayZone, useItems } from '@/features/itinerary/data'
 import { onDay } from '@/features/itinerary/layout'
 import { DateTime } from 'luxon'
@@ -22,7 +24,7 @@ import { ME_ID, PlaceSheet, Sheet, type OriginChoice } from './PlaceSheet'
 // MapLibre 6 renders tiles in a module worker; point it at our bundled copy.
 setWorkerUrl(mapWorkerUrl)
 
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
+// Shown only until the trip's own places or destinations are known.
 const DEFAULT_VIEW = { center: [-90.95, 14.65] as [number, number], zoom: 8.6 } // Antigua ↔ Atitlán
 const LONG_PRESS_MS = 550
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
@@ -74,11 +76,17 @@ export default function MapScreen() {
   const basemap = useDevice((s) => s.basemap)
   const online = useOnline()
   const wantOffline = pack.status === 'ready' && (basemap === 'offline' || (basemap === 'auto' && !online))
+  // Trips without a ready-made pack can have the map around their destinations saved instead.
+  const [savedMap] = useSavedMap(tripId)
+  const wantSaved = !wantOffline && !online && !!savedMap
 
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
   const [ready, setReady] = useState(0) // bumps each time pins are (re)added after a style load
-  const styleMode = useRef<'online' | 'offline'>('online')
+  // False from the moment a new style is requested until its pins and lines are back; effects
+  // that touch those layers wait for it, or they'd hit sources that no longer exist.
+  const layersLive = useRef(false)
+  const styleMode = useRef<'online' | 'offline' | 'saved'>('online')
   const fitted = useRef(false)
 
   // Handlers registered once on the map read the latest values through this ref.
@@ -291,6 +299,7 @@ export default function MapScreen() {
         },
         paint: { 'text-color': '#1c1917', 'text-halo-color': '#fff', 'text-halo-width': 1.5 },
       })
+      layersLive.current = true
       setReady((n) => n + 1)
     })
 
@@ -337,6 +346,7 @@ export default function MapScreen() {
       map.remove()
       mapRef.current = null
       styleMode.current = 'online'
+      layersLive.current = false
       setReady(0)
     }
   }, [tripId])
@@ -345,12 +355,16 @@ export default function MapScreen() {
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    const mode = wantOffline ? 'offline' : 'online'
+    const mode = wantOffline ? 'offline' : wantSaved ? 'saved' : 'online'
     if (mode === styleMode.current) return
     styleMode.current = mode
     setMapError(null)
-    map.setStyle(mode === 'offline' && pack.status === 'ready' ? offlineStyle(pack.overview, pack.detail) : STYLE_URL, { diff: false })
-  }, [wantOffline, pack])
+    layersLive.current = false
+    map.setStyle(
+      mode === 'offline' && pack.status === 'ready' ? offlineStyle(pack.overview, pack.detail) : mode === 'saved' && savedMap ? savedMap.style : STYLE_URL,
+      { diff: false },
+    )
+  }, [wantOffline, wantSaved, savedMap, pack])
 
   // ── Where you are ──────────────────────────────────────────────────────────
   // If location was allowed before, follow it without moving the map (distances and "From you"
@@ -377,7 +391,7 @@ export default function MapScreen() {
 
   useEffect(() => {
     const map = mapRef.current
-    if (!ready || !map) return
+    if (!ready || !map || !layersLive.current) return
     ;(map.getSource('me') as GeoJSONSource).setData(
       me ? { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [me.lng, me.lat] } }] } : EMPTY,
     )
@@ -386,7 +400,7 @@ export default function MapScreen() {
   // ── Keep map data in sync with IndexedDB + filters ──────────────────────────
   useEffect(() => {
     const map = mapRef.current
-    if (!ready || !map) return
+    if (!ready || !map || !layersLive.current) return
     ;(map.getSource('picks') as GeoJSONSource).setData(toFeatures(picks, stopNumbers))
     ;(map.getSource('pool') as GeoJSONSource).setData(showPool && !dayStops ? toFeatures(pool) : EMPTY)
     ;(map.getSource('day-route') as GeoJSONSource).setData(
@@ -411,13 +425,13 @@ export default function MapScreen() {
 
   useEffect(() => {
     const map = mapRef.current
-    if (!ready || !map) return
+    if (!ready || !map || !layersLive.current) return
     map.setFilter('selected-halo', ['==', ['get', 'id'], selectedId ?? ''])
   }, [ready, selectedId])
 
   useEffect(() => {
     const map = mapRef.current
-    if (!ready || !map) return
+    if (!ready || !map || !layersLive.current) return
     const line: FeatureCollection<LineString> | FeatureCollection =
       selected?.lat != null && selected.lng != null && origin?.lat != null && origin.lng != null && origin.id !== selected.id
         ? {
@@ -431,15 +445,21 @@ export default function MapScreen() {
   // Frame the group's places the first time we have them.
   useEffect(() => {
     const map = mapRef.current
-    if (!ready || !map || fitted.current || !places) return
+    if (!ready || !map || fitted.current || !places || !trip) return
     const pts = (picks.length ? picks : places).filter((p) => p.lat != null && p.lng != null)
     fitted.current = true
-    if (pts.length === 0) return
+    if (pts.length === 0) {
+      // Nothing pinned yet: show the trip's destinations.
+      const areas = tripAreas(trip)
+      if (!areas.length) return
+      const [south, west, north, east] = union(areas)
+      return void map.fitBounds([[west, south], [east, north]], { padding: { top: 110, bottom: 40, left: 40, right: 60 }, maxZoom: 13, duration: 0 })
+    }
     if (pts.length === 1) return void map.jumpTo({ center: [pts[0]!.lng!, pts[0]!.lat!], zoom: 15 })
     const b = new LngLatBounds()
     for (const p of pts) b.extend([p.lng!, p.lat!])
     map.fitBounds(b, { padding: { top: 110, bottom: 40, left: 40, right: 60 }, maxZoom: 15, duration: 0 })
-  }, [ready, places, picks])
+  }, [ready, places, picks, trip])
 
   // Opening a place from elsewhere (?place=…) centres it.
   useEffect(() => {

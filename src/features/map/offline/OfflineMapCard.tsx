@@ -4,6 +4,7 @@ import { useDevice } from '@/data/device'
 import type { Trip } from '@/data/types'
 import { Button, Card, ErrorNote } from '@/ui'
 import { useOfflinePack } from './packs'
+import { SavedAreaCard } from './SavedAreaCard'
 import { downloadFile, removeStoredFile, requestPersistence, storageStatus, type StorageStatus } from './packStore'
 
 const mb = (b: number) => `${(b / 1_000_000).toFixed(1)} MB`
@@ -29,14 +30,8 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
     void storageStatus().then(setStorage)
   }, [state.status])
 
-  if (state.status === 'none') {
-    return (
-      <Card>
-        <h2 className="font-semibold">Offline map</h2>
-        <p className="mt-1 text-sm text-stone-500">Load starter places for your destination (above) to get its offline map.</p>
-      </Card>
-    )
-  }
+  // No ready-made pack for this trip: save the map around its destinations instead.
+  if (state.status === 'none') return <SavedAreaCard trip={trip} />
 
   const { pack } = state
   const total = pack.overview.bytes + pack.detail.bytes

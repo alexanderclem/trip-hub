@@ -2,24 +2,16 @@
 // Run once while planning, not from the app:  npm run seed:places -- seed/guatemala-2027
 // Reads <dir>/areas.json and writes <dir>/places.json, which you import in
 // Trip settings → Import places. Data © OpenStreetMap contributors (ODbL).
+// The app can also do this for any destination by itself (Trip settings → Destinations); the
+// sorting rules are shared (src/features/places/osm.ts).
 
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-
-type Category = 'lodging' | 'food' | 'drink' | 'activity' | 'sight' | 'transport' | 'shopping' | 'flight'
+import { overpassQuery, toSeedPlaces, type Bbox, type OsmElement } from '../src/features/places/osm.ts'
 
 interface Area {
   name: string
-  bbox: [number, number, number, number] // south, west, north, east
-}
-
-interface OsmElement {
-  type: 'node' | 'way' | 'relation'
-  id: number
-  lat?: number
-  lon?: number
-  center?: { lat: number; lon: number }
-  tags?: Record<string, string>
+  bbox: Bbox
 }
 
 // Public Overpass instances. The main one is often overloaded (504s), so fall back in turn.
@@ -29,35 +21,6 @@ const ENDPOINTS = [
   'https://overpass.private.coffee/api/interpreter',
 ]
 const USER_AGENT = 'TripHub-seed/0.1 (small private group trip planner; one-off planning query)'
-
-/** OSM tags → our categories. Checked in order; first match wins. */
-const RULES: [(t: Record<string, string>) => boolean, Category][] = [
-  [(t) => t.aeroway === 'aerodrome', 'flight'],
-  [(t) => ['hotel', 'hostel', 'guest_house', 'apartment', 'motel', 'chalet'].includes(t.tourism ?? ''), 'lodging'],
-  [(t) => ['bar', 'pub', 'nightclub', 'biergarten'].includes(t.amenity ?? ''), 'drink'],
-  [(t) => ['restaurant', 'cafe', 'fast_food', 'ice_cream', 'food_court'].includes(t.amenity ?? ''), 'food'],
-  [(t) => t.shop === 'bakery', 'food'],
-  [(t) => ['ferry_terminal', 'bus_station'].includes(t.amenity ?? '') || (t.man_made === 'pier' && !!t.name), 'transport'],
-  [(t) => ['attraction', 'museum', 'viewpoint', 'gallery', 'artwork'].includes(t.tourism ?? '') || !!t.historic, 'sight'],
-  [(t) => t.tourism === 'information' && t.information === 'office', 'activity'],
-  [(t) => !!t.leisure && ['park', 'nature_reserve', 'beach_resort'].includes(t.leisure), 'activity'],
-  [(t) => ['marketplace'].includes(t.amenity ?? '') || ['craft', 'souvenir', 'gift', 'art', 'chocolate', 'coffee'].includes(t.shop ?? ''), 'shopping'],
-]
-
-function queryFor([s, w, n, e]: Area['bbox']): string {
-  const b = `${s},${w},${n},${e}`
-  return `[out:json][timeout:90];
-(
-  nwr["tourism"~"^(hotel|hostel|guest_house|apartment|motel|chalet|attraction|museum|viewpoint|gallery|artwork|information)$"]["name"](${b});
-  nwr["amenity"~"^(restaurant|cafe|fast_food|ice_cream|food_court|bar|pub|nightclub|biergarten|ferry_terminal|bus_station|marketplace)$"]["name"](${b});
-  nwr["historic"]["name"](${b});
-  nwr["man_made"="pier"]["name"](${b});
-  nwr["shop"~"^(bakery|craft|souvenir|gift|art|chocolate|coffee)$"]["name"](${b});
-  nwr["leisure"~"^(park|nature_reserve|beach_resort)$"]["name"](${b});
-  nwr["aeroway"="aerodrome"]["name"](${b});
-);
-out center tags;`
-}
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -70,7 +33,7 @@ async function fetchArea(area: Area): Promise<OsmElement[]> {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': USER_AGENT },
-        body: new URLSearchParams({ data: queryFor(area.bbox) }),
+        body: new URLSearchParams({ data: overpassQuery(area.bbox) }),
         signal: AbortSignal.timeout(120_000),
       })
       if (res.ok) return ((await res.json()) as { elements: OsmElement[] }).elements
@@ -88,13 +51,6 @@ async function fetchArea(area: Area): Promise<OsmElement[]> {
   throw new Error(`${area.name}: every Overpass server failed`)
 }
 
-const clean = (s: string | undefined) => (s && s.trim() ? s.trim() : null)
-
-function address(t: Record<string, string>): string | null {
-  const parts = [[t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' '), t['addr:city']].filter(Boolean)
-  return parts.length ? parts.join(', ') : null
-}
-
 async function main() {
   const dir = process.argv[2]
   if (!dir) throw new Error('Usage: npm run seed:places -- <seed dir containing areas.json>')
@@ -107,33 +63,9 @@ async function main() {
   const places = []
   for (const [i, area] of areas.entries()) {
     if (i > 0) await sleep(5_000) // be polite to the shared public server
-    const elements = await fetchArea(area)
-    let kept = 0
-    for (const el of elements) {
-      const t = el.tags ?? {}
-      const lat = el.lat ?? el.center?.lat
-      const lng = el.lon ?? el.center?.lon
-      const osm_id = `${el.type}/${el.id}`
-      if (lat == null || lng == null || !t.name || seen.has(osm_id)) continue
-      const category = RULES.find(([test]) => test(t))?.[1]
-      if (!category) continue
-      seen.add(osm_id)
-      kept++
-      places.push({
-        osm_id,
-        name: t.name,
-        category,
-        lat: Math.round(lat * 1e6) / 1e6,
-        lng: Math.round(lng * 1e6) / 1e6,
-        area: area.name,
-        address: address(t),
-        phone: clean(t.phone ?? t['contact:phone']),
-        website: clean(t.website ?? t['contact:website']),
-        opening_hours: clean(t.opening_hours),
-        tags: [t.cuisine, t.tourism, t.amenity, t.historic && 'historic'].filter((x): x is string => !!x).flatMap((x) => x.split(';')),
-      })
-    }
-    console.log(`${area.name}: ${kept} places`)
+    const found = toSeedPlaces(await fetchArea(area), area.name, seen)
+    places.push(...found)
+    console.log(`${area.name}: ${found.length} places`)
   }
 
   places.sort((a, b) => a.area.localeCompare(b.area) || a.category.localeCompare(b.category) || a.name.localeCompare(b.name))

@@ -9,7 +9,9 @@ import { useMoney } from '@/features/money/data'
 import { fetchRates } from '@/lib/fx'
 import { stableId } from '@/lib/ids'
 import { save } from '@/data/repo'
+import { tripAreas } from '@/features/destinations/destinations'
 import { useOfflinePack } from '@/features/map/offline/packs'
+import { getSavedMap, saveAreaMap } from '@/features/map/offline/savedArea'
 import { downloadFile, requestPersistence, storageStatus } from '@/features/map/offline/packStore'
 import { isIOS, isStandalone } from '@/features/map/offline/OfflineMapCard'
 import { downloadMissing, useAttachments } from '@/features/tickets/files'
@@ -86,7 +88,15 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
       return { detail: pending ? `${pending} still being uploaded by someone else's phone` : undefined }
     })
     await step('map', async () => {
-      if (pack.status === 'none') return { state: 'skipped', detail: 'No offline map for this trip' }
+      if (pack.status === 'none') {
+        // No ready-made pack: save the map around the trip's destinations instead.
+        const areas = tripAreas(trip)
+        if (!areas.length) return { state: 'skipped', detail: 'Add a destination in Trip settings to get an offline map' }
+        const have = await getSavedMap(trip.id)
+        if (have && JSON.stringify(have.areas) === JSON.stringify(areas)) return { detail: 'Already on this phone' }
+        await saveAreaMap(trip.id, areas, (d, t) => update('map', { detail: `${d} of ${t} pieces` }))
+        return { detail: undefined }
+      }
       if (pack.status === 'ready') return { detail: 'Already on this phone' }
       const total = pack.pack.overview.bytes + pack.pack.detail.bytes
       const mb = (n: number) => `${(n / 1e6).toFixed(1)} MB`
