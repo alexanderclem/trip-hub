@@ -9,6 +9,7 @@ import type { Trip } from '@/data/types'
 import { Button, Card, Input } from '@/ui'
 import { Brand } from '@/ui/Brand'
 import { CardDescription, CardHeader, CardTitle, Empty, EmptyDescription, EmptyHeader, EmptyTitle, Skeleton } from '@/ui/collection'
+import { AccountCard } from '@/features/account/AccountCard'
 import { parseShareToken } from './actions'
 
 function dateLabel(value: string) {
@@ -105,6 +106,7 @@ export function HomeScreen() {
           )}
         </section>
 
+        <div className="space-y-6">
         <Card>
           <CardHeader>
             <Link2 aria-hidden="true" className="mb-2 size-5 text-brand-700" />
@@ -121,6 +123,8 @@ export function HomeScreen() {
             <Button type="submit" className="mt-4 w-full" disabled={!link.trim()}>Join trip<ArrowRight aria-hidden="true" className="size-4" /></Button>
           </form>
         </Card>
+        <AccountCard />
+        </div>
       </div>
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-brand-900/15 pt-5 text-xs text-stone-600">
         <span>Made for the way you go together.</span>

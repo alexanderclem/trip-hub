@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { RouteError } from './app/RouteError'
+import { AuthCallbackScreen } from './features/account/AuthCallbackScreen'
 import { RootLayout } from './app/layouts/RootLayout'
 import { TripLayout } from './app/layouts/TripLayout'
 import { PlaceDetailScreen } from './features/places/PlaceDetailScreen'
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <HomeScreen /> },
       { path: '/new', element: <CreateTripScreen /> },
       { path: '/join', element: <JoinScreen /> },
+      { path: '/auth/callback', element: <AuthCallbackScreen /> },
       { path: '/t/:tripId/who', element: <WhoScreen /> },
       {
         path: '/t/:tripId',

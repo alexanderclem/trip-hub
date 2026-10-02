@@ -8,7 +8,8 @@ if (!url || !key) {
 }
 
 export const supabase = createClient(url, key, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+  // Google sign-in returns to /auth/callback with a code, which that screen exchanges itself.
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, flowType: 'pkce' },
 })
 
 /** Every device gets an anonymous account on first use; that identity is what joins trips. */
