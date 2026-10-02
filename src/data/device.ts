@@ -12,6 +12,9 @@ interface DeviceState {
   timeView: 'trip' | 'device'
   /** auto: offline map when there's no signal and it's downloaded; otherwise the online map. */
   basemap: 'auto' | 'online' | 'offline'
+  /** Show money in the trip's settle-up currency or converted to the local one. */
+  moneyView: 'base' | 'local'
+  setMoneyView: (v: 'base' | 'local') => void
   setBasemap: (b: 'auto' | 'online' | 'offline') => void
   rememberTrip: (tripId: string, memberId?: string | null) => void
   setMember: (tripId: string, memberId: string) => void
@@ -26,6 +29,8 @@ export const useDevice = create<DeviceState>()(
       trips: {},
       timeView: 'trip',
       basemap: 'auto',
+      moneyView: 'base',
+      setMoneyView: (moneyView) => set({ moneyView }),
       setBasemap: (basemap) => set({ basemap }),
       rememberTrip: (tripId, memberId = null) =>
         set((s) => ({

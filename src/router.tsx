@@ -11,6 +11,8 @@ import { ItemDetailScreen } from './features/itinerary/ItemDetailScreen'
 import { ItemFormScreen } from './features/itinerary/ItemFormScreen'
 import { PlanScreen } from './features/itinerary/PlanScreen'
 import { PollsScreen } from './features/polls/PollsScreen'
+import { ExpenseFormScreen } from './features/money/ExpenseFormScreen'
+import { MoneyScreen } from './features/money/MoneyScreen'
 import { CreateTripScreen } from './features/trips/CreateTripScreen'
 import { HomeScreen } from './features/trips/HomeScreen'
 import { JoinScreen } from './features/trips/JoinScreen'
@@ -38,7 +40,9 @@ export const router = createBrowserRouter([
           { path: 'plan/:itemId', element: <ItemDetailScreen /> },
           { path: 'plan/:itemId/edit', element: <ItemFormScreen /> },
           { path: 'tickets', element: <Placeholder title="Tickets" phase={7} /> },
-          { path: 'money', element: <Placeholder title="Money" phase={6} /> },
+          { path: 'money', element: <MoneyScreen /> },
+          { path: 'money/new', element: <ExpenseFormScreen /> },
+          { path: 'money/:expenseId', element: <ExpenseFormScreen /> },
           { path: 'more', element: <MoreScreen /> },
           { path: 'more/places', element: <PlacesScreen /> },
           { path: 'more/places/new', element: <PlaceFormScreen /> },

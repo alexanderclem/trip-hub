@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { Check, Copy, MapPin, Pencil, Trash2, Users } from 'lucide-react'
+import { Check, Copy, MapPin, Pencil, Receipt, Trash2, Users } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
@@ -142,6 +142,10 @@ export function ItemDetailScreen() {
           {item.est_cost_minor != null && item.est_cost_currency && <p className="mt-2 text-sm text-stone-600">Estimated cost: {formatMoney(item.est_cost_minor, item.est_cost_currency)}</p>}
           {item.notes && <p className="mt-2 text-sm whitespace-pre-wrap text-stone-700">{item.notes}</p>}
         </Card>
+
+        <Link to={`/t/${tripId}/money/new?item=${item.id}`} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 font-medium text-stone-800 hover:bg-stone-50">
+          <Receipt aria-hidden="true" className="size-4" /> Log what it cost
+        </Link>
 
         <Button
           variant="danger"

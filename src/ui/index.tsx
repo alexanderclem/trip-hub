@@ -35,17 +35,20 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   )
 }
 
+// Full width by default; a caller's own width (w-20, w-28, …) replaces it instead of fighting it
+// in the stylesheet, where w-full would win.
+const fieldCls = (className?: string) => cx(/(^|\s)w-/.test(className ?? '') ? '' : 'w-full', inputCls, className)
 const inputCls =
-  'w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-60 aria-invalid:border-red-500'
+  'rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-60 aria-invalid:border-red-500'
 
 export const Input = (props: InputHTMLAttributes<HTMLInputElement>) => (
-  <input {...props} className={cx(inputCls, props.className)} />
+  <input {...props} className={fieldCls(props.className)} />
 )
 export const Select = (props: SelectHTMLAttributes<HTMLSelectElement>) => (
-  <select {...props} className={cx(inputCls, props.className)} />
+  <select {...props} className={fieldCls(props.className)} />
 )
 export const Textarea = (props: TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-  <textarea rows={3} {...props} className={cx(inputCls, props.className)} />
+  <textarea rows={3} {...props} className={fieldCls(props.className)} />
 )
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {

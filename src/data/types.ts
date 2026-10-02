@@ -1,3 +1,5 @@
+import type { Expense as MoneyExpense, Settlement as MoneySettlement } from '@/lib/money'
+
 // Row shapes mirror supabase/migrations. Every synced row carries the standard columns.
 
 export interface SyncColumns {
@@ -208,6 +210,44 @@ export interface DayNote extends SyncColumns {
   notes: string | null
 }
 
+export const EXPENSE_CATEGORIES = ['food', 'drinks', 'lodging', 'transport', 'activities', 'groceries', 'shopping', 'tips', 'fees', 'other'] as const
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
+
+/** An expense row. The money fields are the shape src/lib/money.ts computes balances from. */
+export interface ExpenseRow extends SyncColumns, MoneyExpense {
+  trip_id: string
+  description: string
+  category: ExpenseCategory
+  spent_on: string // 'yyyy-MM-dd'
+  fx_source: 'same' | 'snapshot' | 'manual' | 'fallback'
+  fx_as_of: string | null
+  place_id: string | null
+  item_id: string | null
+  notes: string | null
+}
+
+export const PAYMENT_METHODS = ['cash', 'transfer', 'card', 'other'] as const
+
+export interface SettlementRow extends SyncColumns, MoneySettlement {
+  trip_id: string
+  amount_minor: number
+  currency: string
+  fx_rate: number
+  paid_on: string
+  method: (typeof PAYMENT_METHODS)[number]
+  note: string | null
+}
+
+/** One per (trip, base, day); id = stableId(trip, 'fx', base, as_of). */
+export interface FxSnapshot extends SyncColumns {
+  trip_id: string
+  base: string
+  rates: Record<string, number> // units of currency per 1 base
+  as_of: string
+  fetched_at: string
+  source: string
+}
+
 export interface Tables {
   trips: Trip
   members: Member
@@ -221,5 +261,8 @@ export interface Tables {
   place_ratings: PlaceRating
   itinerary_items: ItineraryItem
   day_notes: DayNote
+  expenses: ExpenseRow
+  settlements: SettlementRow
+  fx_snapshots: FxSnapshot
 }
 export type TableName = keyof Tables

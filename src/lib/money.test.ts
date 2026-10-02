@@ -4,6 +4,7 @@ import {
   allocate,
   balances,
   computeShares,
+  formatMoney,
   roundHalfEven,
   simplifyDebts,
   toBaseMinor,
@@ -75,6 +76,14 @@ describe('allocate', () => {
         },
       ),
     )
+  })
+})
+
+describe('formatMoney', () => {
+  it('uses local symbols', () => {
+    expect(formatMoney(5898, 'USD')).toBe('$58.98')
+    expect(formatMoney(45000, 'GTQ')).toMatch(/^Q\s?450\.00$/) // some engines put a space after "Q"
+    expect(formatMoney(1500, 'JPY')).toBe('¥1,500')
   })
 })
 

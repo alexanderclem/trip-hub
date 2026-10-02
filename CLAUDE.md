@@ -102,7 +102,13 @@ so that person could never vote again. Store "none" as NULL instead (`poll_votes
   4. a straight-line estimate
 
   A walk of 25 minutes or less hides driving. Legs are stale if a pin moves.
-- **Money** (`src/lib/money.ts`, not wired to the UI yet):
+- **Money** (`src/lib/money.ts` + `src/lib/fx.ts`; UI in `src/features/money`):
+  - A server trigger (`private.validate_expense`) rejects expenses whose payers, exact splits or
+    percentages don't add up. Client checks are in `features/money/build.ts`.
+  - Showing money in the local currency (≈ GTQ) is display-only, converted at the latest snapshot.
+    Balances are always computed in the base currency.
+  - Rates: one `fx_snapshots` row per day (`stableId(trip,'fx','USD',as_of)`), refreshed when over
+    24 h old and online, with `FALLBACK_PER_USD` used offline.
   - Amounts are integer minor units. Each expense stores the FX rate used at entry, and the
     largest-remainder allocator spreads leftover pennies across people.
   - Settle-up uses greedy min-cash-flow.
@@ -169,6 +175,11 @@ name "travel app" and runs every spec.
   pull, so give cross-device assertions about 75 s.
 - **String replacement:** when editing files with JS `String.replace`, a replacement text
   containing `$'` or `` $` `` is corrupted. Use the Edit tool, or `split/join`.
+- **Regexes:** anything containing a regex backslash (`\s`, `\d`, `\.`) must go through the Edit
+  tool, never a bash heredoc running node. The backslashes get stripped silently (`\s` becomes `s`),
+  and this has happened three times.
+- **Fixed-width inputs:** `Input`/`Select`/`Textarea` in `src/ui` are full width unless the
+  `className` has its own `w-…`. Don't wrap them to resize them; pass the width.
 - **MapLibre 6:**
   - It has named exports only (`Map as MlMap`).
   - The worker must be set via `setWorkerUrl(… ?worker&url)`.
@@ -207,7 +218,7 @@ The full plan is in `C:\Users\alexa\.claude\plans\plan-out-a-travel-giggly-falco
 | 3 Travel times + offline map | ✅ | route-legs function, ranges, lancha/shuttle routes, reported times, measure mode; PMTiles offline packs (15.6 MB) with auto-switch. **Still pending: the user's real-iPhone airplane-mode check.** |
 | 4 Voting + group ratings | ✅ | Votes (More → Votes): score voting, ranked results showing who voted what, and closing a vote → winner → "Add to the plan" (sets the place to *planned*; in Phase 5 it should create an itinerary item). Group ratings (1–5 stars + note) on place pages, stars on the map card and in the list, a "Best rated" sort, a "Group vote" card on place pages, and an empty RatingProvider seam (`src/features/ratings/providers`). |
 | 5 Itinerary + time | ✅ | Plan tab: day strip, an hour-slot timeline with overlap lanes and conflict warnings, a "Staying at" banner, all-day items and day notes. Items store a local time plus a zone for each end, and the server trigger derives `start_at`/`end_at` (an ambiguous DST time resolves to the later instant, matching Postgres). A Guatemala-time / phone-time toggle. Item form (cross-zone flights, attendees, confirmation code, estimated cost) and item detail (both local ends, travel time from the previous stop). Map `?day=` shows numbered stops plus a route. "Add to plan" from places and from vote winners; saving marks the place planned or booked. |
-| 6 Money | ⏳ next | `expenses` (payers/split as jsonb), `settlements`, `fx_snapshots`; 4 split methods, balances, settle-up, currency toggle |
-| 7 Tickets + master download | | `attachments` + private Storage bucket; wallet + pdf.js viewer; one-button offline download of everything; iOS hardening |
+| 6 Money | ✅ | Money tab: your balance, settle-up with the fewest payments and one-tap "Record" (pay in USD or GTQ), balance bars, history by day. Expense form: 4 split methods with live shares and a left-to-assign counter, several payers, a rate pre-filled from the daily snapshot (editable), and "Log what it cost" from plan items. USD / ≈GTQ toggle. Narrow currency symbols (Q, $). |
+| 7 Tickets + master download | ⏳ next | `attachments` + private Storage bucket; wallet + pdf.js viewer; one-button offline download of everything; iOS hardening |
 
 If the schedule slips, cut Money and Tickets first. Never cut the map.

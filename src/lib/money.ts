@@ -223,7 +223,8 @@ export function simplifyDebts(net: Map<MemberId, number>): Transfer[] {
   return transfers
 }
 
+/** "$58.98", "Q450.00" (the local symbol, not "GTQ 450.00"). */
 export function formatMoney(minor: number, currency: string, locale = 'en-US'): string {
   const e = minorUnits(currency)
-  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(minor / 10 ** e)
+  return new Intl.NumberFormat(locale, { style: 'currency', currency, currencyDisplay: 'narrowSymbol' }).format(minor / 10 ** e)
 }

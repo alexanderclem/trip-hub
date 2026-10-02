@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { DayNote, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip } from './types'
+import type { DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip } from './types'
 
 export interface OutboxEntry {
   seq?: number
@@ -45,6 +45,9 @@ export class TripDb extends Dexie {
   place_ratings!: EntityTable<PlaceRating & LocalColumns, 'id'>
   itinerary_items!: EntityTable<ItineraryItem & LocalColumns, 'id'>
   day_notes!: EntityTable<DayNote & LocalColumns, 'id'>
+  expenses!: EntityTable<ExpenseRow & LocalColumns, 'id'>
+  settlements!: EntityTable<SettlementRow & LocalColumns, 'id'>
+  fx_snapshots!: EntityTable<FxSnapshot & LocalColumns, 'id'>
   _outbox!: EntityTable<OutboxEntry, 'seq'>
   _deadletter!: EntityTable<DeadLetter, 'id'>
   _meta!: EntityTable<Meta, 'key'>
@@ -75,6 +78,11 @@ export class TripDb extends Dexie {
     this.version(5).stores({
       itinerary_items: 'id, trip_id, place_id, to_place_id, start_at',
       day_notes: 'id, trip_id',
+    })
+    this.version(6).stores({
+      expenses: 'id, trip_id, item_id, place_id',
+      settlements: 'id, trip_id',
+      fx_snapshots: 'id, trip_id',
     })
   }
 }
