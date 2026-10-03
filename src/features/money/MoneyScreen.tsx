@@ -13,6 +13,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collectio
 import { parseMinor } from './build'
 import { deleteSettlement, saveSettlement, useFxRefresh, useMoney } from './data'
 import { useMoneyFormat } from './format'
+import { TripCostCard } from './TripCostCard'
 
 export function MoneyScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -66,6 +67,9 @@ export function MoneyScreen() {
       </header>
 
       <div className="mx-auto max-w-lg space-y-4 p-4">
+        {trip && me && money && (
+          <TripCostCard trip={trip} me={me} memberIds={members.map((m) => m.id)} expenses={money.expenses} snapshot={money.snapshot} fmt={(v) => fmt(v)} />
+        )}
         {money && money.expenses.length === 0 && money.settlements.length === 0 ? (
           <Empty>
             <Receipt aria-hidden="true" className="size-8 text-brand-700" />
