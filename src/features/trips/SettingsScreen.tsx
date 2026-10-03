@@ -26,6 +26,7 @@ export function SettingsScreen() {
   const dead = useDeadLetters()
   const sync = useSyncStatus()
   const forgetTrip = useDevice((s) => s.forgetTrip)
+  const [legs, setLegs] = useState<{ busy: boolean; msg: string | null; error: string | null }>({ busy: false, msg: null, error: null })
   const tempUnit = useDevice((s) => s.tempUnit)
   const setTempUnit = useDevice((s) => s.setTempUnit)
   const [copied, setCopied] = useState(false)
@@ -185,16 +186,23 @@ export function SettingsScreen() {
           <Button
             variant="secondary"
             className="mt-3 flex w-full items-center justify-center gap-2"
-            onClick={() =>
-              run(async () => {
+            disabled={legs.busy}
+            onClick={async () => {
+              setLegs({ busy: true, msg: null, error: null })
+              try {
+                if (!navigator.onLine) throw new Error('Connect to the internet to recalculate travel times.')
                 const r = await requestLegs(tripId)
                 const via = r.providers.includes('ors') ? 'OpenRouteService' : r.providers.includes('osrm') ? 'the public OSRM server' : 'no routing service'
-                return `Calculated ${r.legs} travel times between ${r.places ?? 0} places via ${via}.${r.warnings.length ? ' ' + r.warnings.join(' ') : ''}`
-              })
-            }
+                setLegs({ busy: false, error: null, msg: `Calculated ${r.legs} travel times between ${r.places ?? 0} places via ${via}.${r.warnings.length ? ' ' + r.warnings.join(' ') : ''}` })
+              } catch (e) {
+                setLegs({ busy: false, msg: null, error: e instanceof Error ? e.message : String(e) })
+              }
+            }}
           >
-            <RefreshCw className="size-4" /> Recalculate now
+            <RefreshCw aria-hidden="true" className={`size-4 ${legs.busy ? 'animate-spin' : ''}`} /> {legs.busy ? 'Calculating…' : 'Recalculate now'}
           </Button>
+          {legs.msg && <p role="status" className="mt-3 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{legs.msg}</p>}
+          <div className="mt-3 empty:hidden"><ErrorNote error={legs.error} /></div>
         </Card>
 
         <NotificationsCard tripId={tripId} />
