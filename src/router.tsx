@@ -27,6 +27,8 @@ import { SettingsScreen } from './features/trips/SettingsScreen'
 import { WhoScreen } from './features/trips/WhoScreen'
 import { TasksScreen } from './features/tasks/TasksScreen'
 import { TaskFormScreen } from './features/tasks/TaskFormScreen'
+import { PackingScreen } from './features/packing/PackingScreen'
+import { PackingFormScreen } from './features/packing/PackingFormScreen'
 import { DiscoveryScreen } from './features/discovery/DiscoveryScreen'
 
 export const router = createBrowserRouter([
@@ -64,6 +66,9 @@ export const router = createBrowserRouter([
           { path: 'more/tasks', element: <TasksScreen /> },
           { path: 'more/tasks/new', element: <TaskFormScreen /> },
           { path: 'more/tasks/:taskId', element: <TaskFormScreen /> },
+          { path: 'more/packing', element: <PackingScreen /> },
+          { path: 'more/packing/new', element: <PackingFormScreen /> },
+          { path: 'more/packing/:itemId', element: <PackingFormScreen /> },
           { path: 'more/places', element: <PlacesScreen /> },
           { path: 'more/places/new', element: <PlaceFormScreen /> },
           { path: 'more/places/:placeId', element: <PlaceDetailScreen /> },

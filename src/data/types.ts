@@ -225,7 +225,30 @@ export interface TripTask extends SyncColumns {
   notes: string | null
 }
 
-export const EXPENSE_CATEGORIES = ['food', 'drinks', 'lodging', 'transport', 'activities', 'groceries', 'shopping', 'tips', 'fees', 'other'] as const
+export const PACKING_KINDS = ['everyone', 'group', 'personal'] as const
+export type PackingKind = (typeof PACKING_KINDS)[number]
+
+/** everyone: each person ticks their own (packing_checks) · group: owner_id claimed it · personal: owner_id's own list. */
+export interface PackingItem extends SyncColumns {
+  trip_id: string
+  title: string
+  kind: PackingKind
+  category: string | null
+  owner_id: string | null
+  packed: boolean
+  quantity: number | null
+  notes: string | null
+}
+
+/** One per (everyone item, member); id = stableId(trip, 'pack', item, member). state null = not yet. */
+export interface PackingCheck extends SyncColumns {
+  trip_id: string
+  item_id: string
+  member_id: string
+  state: 'packed' | 'skip' | null
+}
+
+export const EXPENSE_CATEGORIES =['food', 'drinks', 'lodging', 'transport', 'activities', 'groceries', 'shopping', 'tips', 'fees', 'other'] as const
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
 
 /** An expense row. The money fields are the shape src/lib/money.ts computes balances from. */
@@ -302,5 +325,7 @@ export interface Tables {
   fx_snapshots: FxSnapshot
   attachments: Attachment
   trip_tasks: TripTask
+  packing_items: PackingItem
+  packing_checks: PackingCheck
 }
 export type TableName = keyof Tables

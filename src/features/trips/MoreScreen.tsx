@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router'
-import { ChevronRight, ClipboardCheck, Compass, MapPin, Settings, Vote } from 'lucide-react'
+import { Backpack, ChevronRight, ClipboardCheck, Compass, MapPin, Settings, Vote } from 'lucide-react'
 import { useTrip } from '@/data/hooks'
 import { PageHeader } from '@/ui'
 import { Brand } from '@/ui/Brand'
@@ -10,6 +10,7 @@ export function MoreScreen() {
   const items = [
     { to: 'ideas', label: 'Trip ideas & travel preferences', Icon: Compass, note: null },
     { to: 'tasks', label: 'Tasks', Icon: ClipboardCheck, note: null },
+    { to: 'packing', label: 'Packing list', Icon: Backpack, note: null },
     { to: 'places', label: 'Places', Icon: MapPin, note: null },
     { to: 'vote', label: 'Votes', Icon: Vote, note: null },
     { to: 'settings', label: 'Trip settings & sharing', Icon: Settings, note: null },

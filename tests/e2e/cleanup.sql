@@ -6,6 +6,10 @@ with test_trips as (
   delete from public.member_preferences where trip_id in (select id from test_trips) returning 1
 ), dt as (
   delete from public.trip_tasks where trip_id in (select id from test_trips) returning 1
+), dpc as (
+  delete from public.packing_checks where trip_id in (select id from test_trips) returning 1
+), dpi as (
+  delete from public.packing_items where trip_id in (select id from test_trips) returning 1
 ), d0 as (
   delete from public.route_legs where trip_id in (select id from test_trips) returning 1
 ), d0b as (

@@ -13,7 +13,7 @@ import type { TableName } from '../types'
 import type { Remote, RemoteError } from './remote'
 
 /** Pull order: parents before children. */
-export const SYNCED_TABLES: TableName[] = ['trips', 'members', 'places', 'links', 'route_legs', 'leg_overrides', 'polls', 'poll_options', 'poll_votes', 'place_ratings', 'itinerary_items', 'day_notes', 'expenses', 'settlements', 'fx_snapshots', 'attachments', 'trip_tasks', 'member_preferences']
+export const SYNCED_TABLES: TableName[] = ['trips', 'members', 'places', 'links', 'route_legs', 'leg_overrides', 'polls', 'poll_options', 'poll_votes', 'place_ratings', 'itinerary_items', 'day_notes', 'expenses', 'settlements', 'fx_snapshots', 'attachments', 'trip_tasks', 'member_preferences', 'packing_items', 'packing_checks']
 
 const BATCH = 200
 const PAGE = 1000
