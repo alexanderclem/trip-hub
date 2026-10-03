@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
-import { Navigate, NavLink, Outlet, useMatch, useParams } from 'react-router'
+import { Navigate, NavLink, Outlet, useLocation, useMatch, useParams } from 'react-router'
 import { CalendarDays, Map, MoreHorizontal, Ticket, Wallet } from 'lucide-react'
-import { useDevice } from '@/data/device'
+import { useDevice, useQuizPending } from '@/data/device'
+import { useOnline } from '@/lib/useOnline'
+import { adoptProfile, useMyTripProfile, useSeedMyProfile } from '@/features/onboarding/profile'
 import { usePendingCount } from '@/data/hooks'
 import { startSync, useSyncStatus } from '@/data/sync/controller'
 import { useAutoLegs } from '@/features/routing/requestLegs'
@@ -17,17 +19,29 @@ const tabs = [
 
 export function TripLayout() {
   const { tripId } = useParams() as { tripId: string }
+  const { pathname, search } = useLocation()
   const joined = useDevice((s) => s.trips[tripId])
+  const memberId = joined?.memberId ?? null
+  const online = useOnline()
+  // The opening quiz waits for signal: someone offline is probably reaching for a ticket.
+  const askQuiz = useQuizPending() && online
+  const savedProfile = useMyTripProfile(tripId, memberId, askQuiz)
 
   useEffect(() => {
     if (!joined) return
     return startSync(tripId)
   }, [tripId, joined])
+  useEffect(() => {
+    if (askQuiz && savedProfile) adoptProfile(savedProfile) // answered on another phone
+  }, [askQuiz, savedProfile])
+  useSeedMyProfile(tripId, memberId)
   useAutoLegs(tripId)
-  useAttachmentSync(tripId, joined?.memberId ?? null)
+  useAttachmentSync(tripId, memberId)
 
   if (!joined) return <Navigate to="/" replace />
-  if (!joined.memberId) return <Navigate to={`/t/${tripId}/who`} replace />
+  if (!memberId) return <Navigate to={`/t/${tripId}/who`} replace />
+  if (askQuiz && savedProfile === undefined) return null
+  if (askQuiz && savedProfile === null) return <Navigate to={`/quiz?next=${encodeURIComponent(pathname + search)}`} replace />
 
   return (
     <div className="flex h-full flex-col">

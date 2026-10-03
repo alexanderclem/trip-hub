@@ -1,4 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
+import type { Draft } from '@/features/discovery/model'
+import type { MemberPreference } from './types'
 import type { Attachment, DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip, TripTask } from './types'
 
 export interface OutboxEntry {
@@ -35,6 +37,8 @@ export interface Meta {
 export class TripDb extends Dexie {
   trips!: EntityTable<Trip & LocalColumns, 'id'>
   members!: EntityTable<Member & LocalColumns, 'id'>
+  member_preferences!: EntityTable<MemberPreference & LocalColumns, 'id'>
+  ai_drafts!: EntityTable<Draft, 'id'>
   places!: EntityTable<Place & LocalColumns, 'id'>
   links!: EntityTable<Link & LocalColumns, 'id'>
   route_legs!: EntityTable<RouteLeg & LocalColumns, 'id'>
@@ -88,6 +92,7 @@ export class TripDb extends Dexie {
     })
     this.version(7).stores({ attachments: 'id, trip_id, item_id' })
     this.version(8).stores({ trip_tasks: 'id, trip_id, assignee_id, due_date' })
+    this.version(9).stores({ member_preferences: 'id, trip_id, member_id', ai_drafts: 'id, scope, createdAt' })
   }
 }
 

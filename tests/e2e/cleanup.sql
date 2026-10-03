@@ -2,6 +2,8 @@
 -- that no longer belong to any trip. Run in the Supabase SQL editor after test runs.
 with test_trips as (
   select id from public.trips where name like 'E2E TEST %' or name like 'SMOKE TEST %'
+), dpreferences as (
+  delete from public.member_preferences where trip_id in (select id from test_trips) returning 1
 ), dt as (
   delete from public.trip_tasks where trip_id in (select id from test_trips) returning 1
 ), d0 as (

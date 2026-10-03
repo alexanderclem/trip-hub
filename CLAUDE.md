@@ -36,7 +36,7 @@ src/lib/          pure helpers: money.ts, time.ts, geo.ts, ids.ts, supabase.ts (
 src/data/         types.ts (row types), db.ts (Dexie schema), repo.ts (save/saveMany/softDelete),
                   hooks.ts (live queries), device.ts (Zustand: joined trips, my member id, prefs)
 src/data/sync/    engine.ts (push/pull), remote.ts (Supabase adapter), controller.ts (timers, realtime)
-src/features/     trips/ places/ map/ map/offline/ routing/ polls/ ratings/ itinerary/ money/ tickets/ offline/
+src/features/     onboarding/ (welcome, travel quiz) trips/ places/ map/ map/offline/ routing/ polls/ ratings/ itinerary/ money/ tickets/ offline/
 src/ui/           index.tsx (Button, Field, Input, Card, PageHeader…), collection.tsx (adapted shadcn)
 supabase/migrations/          SQL, applied in filename order
 supabase/functions/route-legs Edge Function (routing.ts is pure and unit-tested)
@@ -222,6 +222,8 @@ The full plan is in `C:\Users\alexa\.claude\plans\plan-out-a-travel-giggly-falco
 | 7 Tickets + master download | ✅ | `attachments` table plus a private Storage bucket (`<trip>/<id>/<file>`, folder-level RLS via `private.object_trip_access`). Tickets tab: wallet grouped by plan day, with on-phone/upload status. Add from camera, photos or files (big photos downscaled to 2400 px; PDFs untouched), linked to plan items. A full-screen viewer (pdf.js draws the PDF, pinch-zoom). Every phone uploads its own files and downloads everyone else's automatically. "Ready for offline" master download (data, tickets, map pack, rates, app, persist) in Settings, with a compact version on the Tickets tab, plus iPhone Home Screen guidance. |
 | 8 Up next, tasks, travel buffers | ✅ | Plan: an "Up next" card (leave-by time, attendees, map and ticket shortcuts) and travel buffer warnings per person (`src/features/itinerary/travel.ts`). More → Tasks: shared tasks with an owner, due date, notes, complete/reopen (`trip_tasks`; completion is a boolean, not a tombstone). Details and verification in `docs/PLANNING_FEATURES.md`. |
 | 9 Calendar, sign-in, self-serve setup | ✅ code, ⏳ setup | **Calendar export:** `.ics` built on the phone (`src/lib/ics.ts`, `features/itinerary/calendar.ts`). **Google sign-in** (`src/features/account`): optional; a one-time code moves a guest's trip memberships to the account (`create_link_code` / `redeem_link_code`). Dormant until `20261006000001_account_link.sql` is applied and the Google provider is enabled in Supabase; the card hides itself while the provider is off. **Self-serve setup** (`src/features/destinations`, `map/offline/savedArea.ts`): town search, places from Overpass, and an offline map saved from the online tiles; see `docs/NEW_TRIP.md`. |
+
+| Opening sequence | ✅ code | `/` shows a welcome screen until the phone has a trip (create, join by link, Google). After joining or creating, `TripLayout` sends people to a 10-question this-or-that travel quiz (`/quiz?next=`, skippable, online only) that fills their radar; it's taken once per person and copied into every trip. Details in `docs/AI_PLANNING.md`. e2e contexts start with the quiz skipped (`playwright.config.ts` storageState); `onboarding.spec.ts` opts back in. |
 
 All planned phases are done. Possible next steps: push notifications, setting the `ORS_API_KEY` secret, ticket file clean-up for removed tickets, and the auto-suggest seam.
 

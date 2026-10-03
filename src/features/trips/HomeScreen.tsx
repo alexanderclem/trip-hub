@@ -1,16 +1,15 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowRight, CalendarDays, ClipboardPaste, Compass, Link2, Plus } from 'lucide-react'
+import { ArrowRight, CalendarDays, Compass, Plus } from 'lucide-react'
 import { DateTime } from 'luxon'
 import { db } from '@/data/db'
 import { useDevice } from '@/data/device'
 import type { Trip } from '@/data/types'
-import { Button, Card, Input } from '@/ui'
+import { Card } from '@/ui'
 import { Brand } from '@/ui/Brand'
-import { CardDescription, CardHeader, CardTitle, Empty, EmptyDescription, EmptyHeader, EmptyTitle, Skeleton } from '@/ui/collection'
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle, Skeleton } from '@/ui/collection'
 import { AccountCard } from '@/features/account/AccountCard'
-import { parseShareToken } from './actions'
+import { JoinByLink } from './JoinByLink'
 
 function dateLabel(value: string) {
   const date = DateTime.fromISO(value)
@@ -35,38 +34,9 @@ function TripCard({ trip }: { trip: Trip }) {
 }
 
 export function HomeScreen() {
-  const navigate = useNavigate()
   const joined = useDevice((s) => s.trips)
   const trips = useLiveQuery(() => db.trips.bulkGet(Object.keys(joined)), [joined])
   const visibleTrips = trips?.filter((t): t is NonNullable<typeof t> => !!t && !t.deleted_at) ?? []
-  const [link, setLink] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [invalid, setInvalid] = useState(false)
-  const [pasting, setPasting] = useState(false)
-
-  async function pasteFromClipboard() {
-    setPasting(true)
-    try {
-      setLink(await navigator.clipboard.readText())
-      setError(null)
-      setInvalid(false)
-    } catch {
-      setError('Could not read the clipboard. Paste the trip link into the box below.')
-    } finally {
-      setPasting(false)
-    }
-  }
-
-  function join(event: FormEvent) {
-    event.preventDefault()
-    const token = parseShareToken(link.trim())
-    if (!token) {
-      setInvalid(true)
-      setError("That doesn't look like a trip link. Copy the full link and try again.")
-      return
-    }
-    navigate(`/join#t=${token}`)
-  }
 
   return (
     <main className="mx-auto max-w-5xl px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-8 sm:pb-16">
@@ -108,27 +78,18 @@ export function HomeScreen() {
 
         <div className="space-y-6">
         <Card>
-          <CardHeader>
-            <Link2 aria-hidden="true" className="mb-2 size-5 text-brand-700" />
-            <CardTitle>Have an invite?</CardTitle>
-            <CardDescription>Paste the link your group shared to join their trip.</CardDescription>
-          </CardHeader>
-          <form onSubmit={join} className="mt-5">
-            <label htmlFor="trip-link" className="text-sm font-medium text-stone-700">Trip link</label>
-            <div className="mt-2 flex gap-2">
-              <Input id="trip-link" value={link} onChange={(e) => { setLink(e.target.value); setError(null); setInvalid(false) }} placeholder="https://…/join#t=…" className="min-w-0 flex-1" autoCapitalize="none" autoCorrect="off" spellCheck={false} aria-invalid={invalid} aria-describedby={error ? 'trip-link-error' : undefined} />
-              <Button type="button" variant="secondary" onClick={pasteFromClipboard} disabled={pasting} aria-label="Paste from clipboard" className="px-3"><ClipboardPaste aria-hidden="true" className="size-5" /></Button>
-            </div>
-            {error && <p id="trip-link-error" role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
-            <Button type="submit" className="mt-4 w-full" disabled={!link.trim()}>Join trip<ArrowRight aria-hidden="true" className="size-4" /></Button>
-          </form>
+          <Compass aria-hidden="true" className="size-5 text-brand-700" />
+          <h2 className="travel-heading mt-3 text-2xl">Find your kind of trip.</h2>
+          <p className="mt-2 text-sm leading-relaxed text-stone-600">Discover your travel style, explore ideas, and turn a favorite into your first itinerary.</p>
+          <Link to="/inspire" className="mt-4 inline-flex min-h-11 items-center gap-2 font-medium text-brand-700">Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link>
         </Card>
+        <JoinByLink />
         <AccountCard />
         </div>
       </div>
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-brand-900/15 pt-5 text-xs text-stone-600">
         <span>Made for the way you go together.</span>
-        <span className="tracking-wide">joinstowaway.app</span>
+        <Link to="/connections" className="inline-flex min-h-11 items-center font-medium text-brand-700">Connected apps</Link>
       </footer>
     </main>
   )

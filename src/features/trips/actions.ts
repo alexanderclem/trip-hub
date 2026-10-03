@@ -90,12 +90,14 @@ export async function joinTrip(token: string): Promise<{ tripId: string; memberI
 }
 
 export async function claimMember(tripId: string, memberId: string) {
+  await ensureSession()
   const { error } = await supabase.rpc('claim_member', { p_trip_id: tripId, p_member_id: memberId })
   if (error) throw new Error(error.message)
   useDevice.getState().setMember(tripId, memberId)
 }
 
 export async function createMemberAndClaim(tripId: string, name: string, color: string) {
+  await ensureSession()
   const memberId = newId()
   const { error } = await supabase.rpc('create_member_and_claim', {
     p_trip_id: tripId,

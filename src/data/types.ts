@@ -1,4 +1,5 @@
 import type { Expense as MoneyExpense, Settlement as MoneySettlement } from '@/lib/money'
+import type { Profile } from '@/features/discovery/model'
 
 // Row shapes mirror supabase/migrations. Every synced row carries the standard columns.
 
@@ -38,6 +39,11 @@ export interface Member extends SyncColumns {
   color: string | null
   avatar_emoji: string | null
   home_timezone: string | null
+}
+
+export interface MemberPreference extends SyncColumns, Profile {
+  trip_id: string
+  member_id: string
 }
 
 export const PLACE_CATEGORIES = [
@@ -280,6 +286,7 @@ export interface Attachment extends SyncColumns {
 export interface Tables {
   trips: Trip
   members: Member
+  member_preferences: MemberPreference
   places: Place
   links: Link
   route_legs: RouteLeg

@@ -13,8 +13,8 @@ async function seed(page: Page) {
   await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false, configurable: true }))
   await page.route('https://**/*', (route) => route.abort())
   await page.clock.install({ time: new Date('2027-03-15T15:30:00Z') })
-  await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Your trips' })).toBeVisible()
+  await page.goto('/inspire') // opens the local database, so the stores below exist
+  await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ trip, alex, sam, cafe, tour }) => {
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
@@ -32,7 +32,7 @@ async function seed(page: Page) {
     tx.objectStore('files').put({ name: 'att:ticket', blob: new Blob(['<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="320" height="200" fill="#ccfbf1"/><text x="30" y="100">Coffee tour · TEST123</text></svg>'], { type: 'image/svg+xml' }) })
     await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error) })
     db.close()
-    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { trips: { [trip]: { tripId: trip, memberId: alex, joinedAt: '2027-03-14T12:00:00Z' } }, timeView: 'trip', basemap: 'offline', moneyView: 'base' }, version: 1 }))
+    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { trips: { [trip]: { tripId: trip, memberId: alex, joinedAt: '2027-03-14T12:00:00Z' } }, quizSeen: true, timeView: 'trip', basemap: 'offline', moneyView: 'base' }, version: 1 }))
   }, { trip, alex, sam, cafe, tour })
 }
 

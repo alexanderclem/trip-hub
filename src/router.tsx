@@ -1,6 +1,8 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { RouteError } from './app/RouteError'
 import { AuthCallbackScreen } from './features/account/AuthCallbackScreen'
+import { ConnectorConsentScreen } from './features/account/ConnectorConsentScreen'
+import { ConnectedAppsScreen } from './features/account/ConnectedAppsScreen'
 import { RootLayout } from './app/layouts/RootLayout'
 import { TripLayout } from './app/layouts/TripLayout'
 import { PlaceDetailScreen } from './features/places/PlaceDetailScreen'
@@ -17,23 +19,29 @@ import { TicketFormScreen } from './features/tickets/TicketFormScreen'
 import { TicketsScreen } from './features/tickets/TicketsScreen'
 import { TicketViewerScreen } from './features/tickets/TicketViewerScreen'
 import { CreateTripScreen } from './features/trips/CreateTripScreen'
-import { HomeScreen } from './features/trips/HomeScreen'
+import { QuizScreen } from './features/onboarding/QuizScreen'
+import { StartScreen } from './features/onboarding/WelcomeScreen'
 import { JoinScreen } from './features/trips/JoinScreen'
 import { MoreScreen } from './features/trips/MoreScreen'
 import { SettingsScreen } from './features/trips/SettingsScreen'
 import { WhoScreen } from './features/trips/WhoScreen'
 import { TasksScreen } from './features/tasks/TasksScreen'
 import { TaskFormScreen } from './features/tasks/TaskFormScreen'
+import { DiscoveryScreen } from './features/discovery/DiscoveryScreen'
 
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     errorElement: <RouteError />,
     children: [
-      { path: '/', element: <HomeScreen /> },
+      { path: '/', element: <StartScreen /> },
+      { path: '/quiz', element: <QuizScreen /> },
       { path: '/new', element: <CreateTripScreen /> },
+      { path: '/inspire', element: <DiscoveryScreen /> },
       { path: '/join', element: <JoinScreen /> },
       { path: '/auth/callback', element: <AuthCallbackScreen /> },
+      { path: '/oauth/consent', element: <ConnectorConsentScreen /> },
+      { path: '/connections', element: <ConnectedAppsScreen /> },
       { path: '/t/:tripId/who', element: <WhoScreen /> },
       {
         path: '/t/:tripId',
@@ -52,6 +60,7 @@ export const router = createBrowserRouter([
           { path: 'money/new', element: <ExpenseFormScreen /> },
           { path: 'money/:expenseId', element: <ExpenseFormScreen /> },
           { path: 'more', element: <MoreScreen /> },
+          { path: 'more/ideas', element: <DiscoveryScreen /> },
           { path: 'more/tasks', element: <TasksScreen /> },
           { path: 'more/tasks/new', element: <TaskFormScreen /> },
           { path: 'more/tasks/:taskId', element: <TaskFormScreen /> },

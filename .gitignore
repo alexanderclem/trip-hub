@@ -15,4 +15,5 @@ playwright-report
 # Local tool config (can contain credentials) and build caches
 .mcp.json
 *.tsbuildinfo
+.wrangler/
 !public/packs/*.pmtiles

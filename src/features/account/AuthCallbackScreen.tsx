@@ -3,20 +3,27 @@ import { Link, useNavigate } from 'react-router'
 import { Brand } from '@/ui/Brand'
 import { ErrorNote } from '@/ui'
 import { finishSignIn, type SignInResult } from './account'
+import { takeConnectorReturn } from './connector'
+import { quizStillNeeded } from '@/features/onboarding/profile'
 
 /** Where Google sends the phone back to. Finishes sign-in, restores trips, then goes home. */
 export function AuthCallbackScreen() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<SignInResult | null>(null)
+  const [returnPath, setReturnPath] = useState('/')
 
   useEffect(() => {
     let cancelled = false
     finishSignIn(location.search)
-      .then((r) => {
+      .then(async (r) => {
         if (cancelled) return
+        const connector = takeConnectorReturn()
+        // A first sign-in continues to the travel quiz, unless a restored trip already has this person's answers.
+        const destination = connector ?? ((await quizStillNeeded()) ? '/quiz?next=%2F' : '/')
+        setReturnPath(destination)
         if (r.notCarried > 0) setResult(r)
-        else navigate('/', { replace: true })
+        else navigate(destination, { replace: true })
       })
       .catch((e: unknown) => {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Could not sign in. Try again.')
@@ -45,7 +52,7 @@ export function AuthCallbackScreen() {
       ) : (
         <p role="status" className="text-stone-600">Signing you in and fetching your trips…</p>
       )}
-      {(error || result) && <Link to="/" replace className="inline-flex min-h-11 items-center rounded-xl bg-brand-700 px-4 font-medium text-white">Back to your trips</Link>}
+      {(error || result) && <Link to={returnPath} replace className="inline-flex min-h-11 items-center rounded-xl bg-brand-700 px-4 font-medium text-white">{returnPath === '/' ? 'Back to your trips' : 'Continue connecting'}</Link>}
     </main>
   )
 }

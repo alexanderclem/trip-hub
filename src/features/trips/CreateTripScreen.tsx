@@ -1,5 +1,10 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router'
+import { DateTime } from 'luxon'
+import { db } from '@/data/db'
+import { useDevice } from '@/data/device'
+import { applyIdea, saveProfile } from '@/features/discovery/data'
+import { ideasSchema, type Draft } from '@/features/discovery/model'
 import { X } from 'lucide-react'
 import { DestinationSearch } from '@/features/destinations/DestinationSearch'
 import { currencyFor, lookupZone, MAX_AREAS, type Destination } from '@/features/destinations/destinations'
@@ -24,6 +29,13 @@ const COMMON_ZONES = [
 
 export function CreateTripScreen() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const draftId = params.get('draft')
+  const ideaIndex = Number(params.get('idea') ?? 0)
+  const [draft, setDraft] = useState<Draft | null>(null)
+  const [loadingDraft, setLoadingDraft] = useState(!!draftId)
+  const [createdTripId, setCreatedTripId] = useState<string | null>(null)
+  const loaded = useRef(false)
   const [form, setForm] = useState({
     name: '',
     yourName: '',
@@ -36,6 +48,17 @@ export function CreateTripScreen() {
   const [areas, setAreas] = useState<Destination[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    if (!draftId || loaded.current) return
+    loaded.current = true
+    void db.ai_drafts.get(draftId).then((d) => {
+      const idea = d && ideasSchema.parse(d.result).ideas[ideaIndex]
+      if (!d || !idea || d.application) throw new Error('This idea is no longer available. Return to trip ideas and generate a new draft.')
+      setDraft(d)
+      setForm((f) => ({ ...f, name: idea.title, timezone: idea.timezone, baseCurrency: d.brief.currency, localCurrency: idea.currency,
+        startDate: d.brief.startDate ?? '', endDate: d.brief.startDate ? DateTime.fromISO(d.brief.startDate).plus({ days: idea.days.length - 1 }).toISODate()! : '' }))
+    }).catch((err: unknown) => setError(err instanceof Error ? err.message : 'Could not load this draft.')).finally(() => setLoadingDraft(false))
+  }, [draftId, ideaIndex])
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
 
@@ -61,7 +84,7 @@ export function CreateTripScreen() {
     setBusy(true)
     setError(null)
     try {
-      const tripId = await createTrip({
+      const tripId = createdTripId ?? await createTrip({
         name: form.name,
         yourName: form.yourName,
         startDate: form.startDate || null,
@@ -71,6 +94,17 @@ export function CreateTripScreen() {
         localCurrency: form.localCurrency.toUpperCase() || null,
         areas: areas.map((a) => ({ name: a.name, bbox: a.bbox, lat: a.lat, lng: a.lng })),
       })
+      setCreatedTripId(tripId)
+      if (draft) {
+        const trip = await db.trips.get(tripId)
+        const memberId = useDevice.getState().trips[tripId]?.memberId
+        if (!trip || !memberId) throw new Error('Trip created. Open it to finish adding your draft.')
+        const personal = useDevice.getState().travelProfile
+        if (personal) await saveProfile(tripId, memberId, personal)
+        await applyIdea(draft.id, ideaIndex, trip, memberId, form.startDate)
+        navigate(`/t/${tripId}/plan`, { replace: true })
+        return
+      }
       navigate(`/t/${tripId}/more/settings`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -82,6 +116,8 @@ export function CreateTripScreen() {
     <div className="min-h-full">
       <PageHeader title="New trip" back="/" />
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-5">
+        {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name; we’ll add the itinerary as tentative items, ready to edit.</p>}
+        {!draftId && <Link to="/inspire" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Need a starting point? Help me plan →</Link>}
         <Field label="Trip name">
           <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="Guatemala spring break 2027" />
         </Field>
@@ -90,7 +126,7 @@ export function CreateTripScreen() {
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Starts">
-            <Input type="date" value={form.startDate} onChange={set('startDate')} />
+            <Input type="date" required={!!draft} value={form.startDate} onChange={(e) => { const date = e.target.value; setForm((f) => ({ ...f, startDate: date, ...(draft && date ? { endDate: DateTime.fromISO(date).plus({ days: draft.result.ideas[ideaIndex]!.days.length - 1 }).toISODate()! } : {}) })) }} />
           </Field>
           <Field label="Ends">
             <Input type="date" value={form.endDate} onChange={set('endDate')} />
@@ -131,7 +167,8 @@ export function CreateTripScreen() {
           </Field>
         </div>
         <ErrorNote error={error} />
-        <Button type="submit" className="w-full" disabled={busy}>
+        {createdTripId && error && <Link className="inline-flex min-h-11 items-center text-brand-700" to={`/t/${createdTripId}/more/settings`}>Open the created trip →</Link>}
+        <Button type="submit" className="w-full" disabled={busy || loadingDraft || (!!draftId && !draft)}>
           {busy ? 'Creating…' : 'Create trip'}
         </Button>
       </form>

@@ -128,7 +128,7 @@ export const unsyncedCount = () => db._outbox.count()
 /** Signs out and removes every trip from this phone, so the next person starts clean. */
 export async function signOutAndClear(): Promise<void> {
   await supabase.auth.signOut({ scope: 'local' })
-  useDevice.setState({ trips: {} })
+  useDevice.setState({ trips: {}, travelProfile: null, quizSeen: false })
   await db.delete()
   location.assign('/')
 }

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { Profile } from '@/features/discovery/model'
 
 export interface JoinedTrip {
   tripId: string
@@ -8,6 +9,11 @@ export interface JoinedTrip {
 }
 
 interface DeviceState {
+  travelProfile: Profile | null
+  setTravelProfile: (profile: Profile) => void
+  /** The opening quiz was finished or skipped on this device, so it isn't offered again. */
+  quizSeen: boolean
+  setQuizSeen: () => void
   trips: Record<string, JoinedTrip>
   timeView: 'trip' | 'device'
   /** auto: offline map when there's no signal and it's downloaded; otherwise the online map. */
@@ -26,6 +32,10 @@ interface DeviceState {
 export const useDevice = create<DeviceState>()(
   persist(
     (set) => ({
+      travelProfile: null,
+      setTravelProfile: (travelProfile) => set({ travelProfile }),
+      quizSeen: false,
+      setQuizSeen: () => set({ quizSeen: true }),
       trips: {},
       timeView: 'trip',
       basemap: 'auto',
@@ -61,5 +71,8 @@ export const useDevice = create<DeviceState>()(
   ),
 )
 
-export const useMyMemberId = (tripId: string | undefined) =>
+/** True until this device has a travel profile or the person has skipped the opening quiz. */
+export const useQuizPending = () => useDevice((s) => !s.quizSeen && s.travelProfile === null)
+
+export const useMyMemberId =(tripId: string | undefined) =>
   useDevice((s) => (tripId ? (s.trips[tripId]?.memberId ?? null) : null))

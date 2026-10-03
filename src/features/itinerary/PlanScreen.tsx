@@ -88,6 +88,7 @@ export function PlanScreen() {
       <div className="mx-auto max-w-2xl space-y-3 p-4">
         {items && <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} />}
         <div className="flex flex-wrap items-center justify-between gap-x-3">
+          <Link to={`/t/${tripId}/more/ideas`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Explore trip ideas →</Link>
           <Link to={`/t/${tripId}/more/tasks`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Shared tasks →</Link>
           {mine.length > 0 && (
             <button
