@@ -17,6 +17,10 @@ import { UpNextCard } from './UpNextCard'
 import { TravelWarnings } from './TravelWarnings'
 import { planTransfers } from './travel'
 import { dayKey } from '@/lib/time'
+import { describeCode, formatTemp } from '@/lib/weather'
+import { useDevice } from '@/data/device'
+import { dayLocations, useWeather, useWeatherRefresh, weatherFor } from './weather'
+import { WeatherGlyph, WeatherLine } from './WeatherLine'
 
 const HOUR_PX = 60
 const GUTTER = '3.25rem'
@@ -44,6 +48,11 @@ export function PlanScreen() {
   const conflicts = layout.blocks.filter((b) => b.conflict).length
   const mine = useMemo(() => itemsFor(items ?? [], me), [items, me])
   const transfers = useMemo(() => legCtx ? planTransfers(items ?? [], places, legCtx, trip?.timezone ?? zone, members.map((m) => m.id)) : [], [items, places, legCtx, trip?.timezone, zone, members])
+  const tempUnit = useDevice((s) => s.tempUnit)
+  const weatherRows = useWeather(tripId)
+  const locs = useMemo(() => (trip ? dayLocations(days, items ?? [], places, trip, trip.timezone) : {}), [days, items, places, trip])
+  useWeatherRefresh(items ? trip : undefined, JSON.stringify(locs))
+  const weatherOf = (d: string) => weatherFor(weatherRows, d, locs[d])
 
   // Keep the selected day visible in the strip.
   const stripRef = useRef<HTMLDivElement>(null)
@@ -65,19 +74,25 @@ export function PlanScreen() {
           {days.map((d) => {
             const dt = DateTime.fromISO(d)
             const on = d === day
+            const w = weatherOf(d)
             return (
               <button
                 key={d}
                 role="tab"
                 aria-selected={on}
                 aria-current={on ? 'date' : undefined}
-                aria-label={`${dt.toFormat('cccc d LLLL')}, ${perDay[d]?.count ?? 0} items${perDay[d]?.conflict ? ', has overlaps' : ''}`}
+                aria-label={`${dt.toFormat('cccc d LLLL')}, ${perDay[d]?.count ?? 0} items${perDay[d]?.conflict ? ', has overlaps' : ''}${w ? `, ${describeCode(w.weather.code).label}, high ${formatTemp(w.weather.hi, tempUnit)}` : ''}`}
                 onClick={() => setParams({ day: d }, { replace: true })}
                 className={`relative flex min-h-14 min-w-12 shrink-0 flex-col items-center justify-center rounded-xl px-2 ${on ? 'bg-brand-700 text-white' : 'border border-stone-200 bg-white text-stone-700'}`}
               >
                 <span className="text-[11px] uppercase">{dt.toFormat('ccc')}</span>
                 <span className="text-base font-semibold tabular-nums">{dt.toFormat('d')}</span>
-                {(perDay[d]?.count ?? 0) > 0 && <span aria-hidden="true" className={`absolute bottom-1 size-1.5 rounded-full ${perDay[d]?.conflict ? 'bg-red-500' : on ? 'bg-white' : 'bg-brand-600'}`} />}
+                {w && (
+                  <span aria-hidden="true" className={`flex items-center gap-0.5 text-[10px] tabular-nums ${on ? 'text-white' : 'text-stone-600'}`}>
+                    <WeatherGlyph code={w.weather.code} className="size-3" />{formatTemp(w.weather.hi, tempUnit)}
+                  </span>
+                )}
+                {(perDay[d]?.count ?? 0) > 0 && <span aria-hidden="true" className={`absolute top-1.5 right-1.5 size-1.5 rounded-full ${perDay[d]?.conflict ? 'bg-red-500' : on ? 'bg-white' : 'bg-brand-600'}`} />}
                 {d === today && !on && <span aria-hidden="true" className="absolute -top-1 rounded bg-brand-100 px-1 text-[9px] font-semibold text-brand-900">TODAY</span>}
               </button>
             )
@@ -108,6 +123,7 @@ export function PlanScreen() {
           )}
         </div>
 
+        <WeatherLine day={weatherOf(day)} />
         <DayNoteEditor tripId={tripId} day={day} />
 
         {layout.stays.map((s) => (

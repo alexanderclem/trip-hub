@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { Draft } from '@/features/discovery/model'
+import type { WeatherRow } from '@/features/itinerary/weather'
 import type { MemberPreference } from './types'
 import type { Attachment, DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip, TripTask } from './types'
 
@@ -58,6 +59,8 @@ export class TripDb extends Dexie {
   _deadletter!: EntityTable<DeadLetter, 'id'>
   _meta!: EntityTable<Meta, 'key'>
   files!: EntityTable<StoredFile, 'name'>
+  /** Weather for plan days; this phone only, never synced. */
+  weather!: EntityTable<WeatherRow, 'id'>
 
   constructor(name = 'trip-hub') {
     super(name)
@@ -93,6 +96,7 @@ export class TripDb extends Dexie {
     this.version(7).stores({ attachments: 'id, trip_id, item_id' })
     this.version(8).stores({ trip_tasks: 'id, trip_id, assignee_id, due_date' })
     this.version(9).stores({ member_preferences: 'id, trip_id, member_id', ai_drafts: 'id, scope, createdAt' })
+    this.version(10).stores({ weather: 'id, trip_id' })
   }
 }
 

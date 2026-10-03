@@ -25,6 +25,8 @@ export function SettingsScreen() {
   const dead = useDeadLetters()
   const sync = useSyncStatus()
   const forgetTrip = useDevice((s) => s.forgetTrip)
+  const tempUnit = useDevice((s) => s.tempUnit)
+  const setTempUnit = useDevice((s) => s.setTempUnit)
   const [copied, setCopied] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -192,6 +194,21 @@ export function SettingsScreen() {
           >
             <RefreshCw className="size-4" /> Recalculate now
           </Button>
+        </Card>
+
+        <Card>
+          <h2 className="font-semibold">On this phone</h2>
+          <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+            <span id="temp-unit">Temperatures</span>
+            <div role="group" aria-labelledby="temp-unit" className="flex gap-1">
+              {(['F', 'C'] as const).map((u) => (
+                <button key={u} aria-pressed={tempUnit === u} onClick={() => setTempUnit(u)}
+                  className={`min-h-11 min-w-12 rounded-xl border px-3 font-medium ${tempUnit === u ? 'border-brand-700 bg-brand-700 text-white' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'}`}>
+                  °{u}
+                </button>
+              ))}
+            </div>
+          </div>
         </Card>
 
         <Card>

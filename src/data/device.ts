@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Profile } from '@/features/discovery/model'
+import { defaultTempUnit, type TempUnit } from '@/lib/weather'
 
 export interface JoinedTrip {
   tripId: string
@@ -21,6 +22,8 @@ interface DeviceState {
   /** Show money in the trip's settle-up currency or converted to the local one. */
   moneyView: 'base' | 'local'
   setMoneyView: (v: 'base' | 'local') => void
+  tempUnit: TempUnit
+  setTempUnit: (u: TempUnit) => void
   setBasemap: (b: 'auto' | 'online' | 'offline') => void
   rememberTrip: (tripId: string, memberId?: string | null) => void
   setMember: (tripId: string, memberId: string) => void
@@ -41,6 +44,8 @@ export const useDevice = create<DeviceState>()(
       basemap: 'auto',
       moneyView: 'base',
       setMoneyView: (moneyView) => set({ moneyView }),
+      tempUnit: defaultTempUnit(),
+      setTempUnit: (tempUnit) => set({ tempUnit }),
       setBasemap: (basemap) => set({ basemap }),
       rememberTrip: (tripId, memberId = null) =>
         set((s) => ({

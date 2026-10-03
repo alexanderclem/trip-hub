@@ -15,6 +15,8 @@ import { getSavedMap, saveAreaMap } from '@/features/map/offline/savedArea'
 import { downloadFile, requestPersistence, storageStatus } from '@/features/map/offline/packStore'
 import { isIOS, isStandalone } from '@/features/map/offline/OfflineMapCard'
 import { downloadMissing, useAttachments } from '@/features/tickets/files'
+import { refreshWeather } from '@/features/itinerary/weather'
+import { db } from '@/data/db'
 
 type StepState = 'todo' | 'running' | 'done' | 'skipped' | 'failed'
 interface Step {
@@ -60,6 +62,7 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
       { id: 'tickets', label: 'Tickets and documents', state: 'todo' },
       { id: 'map', label: 'Offline map', state: 'todo' },
       { id: 'fx', label: 'Exchange rates', state: 'todo' },
+      { id: 'weather', label: 'Weather for each day', state: 'todo' },
       { id: 'app', label: 'The app itself', state: 'todo' },
       { id: 'persist', label: 'Protect from clean-up', state: 'todo' },
     ]
@@ -111,6 +114,10 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
       await save('fx_snapshots', { id: stableId(trip.id, 'fx', 'USD', t.as_of), trip_id: trip.id, base: 'USD', rates: t.rates, as_of: t.as_of, fetched_at: new Date().toISOString(), source: 'open.er-api.com' }, me)
       return { detail: `From ${t.as_of}` }
     })
+    await step('weather', async () => {
+      await refreshWeather(trip)
+      return (await db.weather.where('trip_id').equals(trip.id).count()) ? {} : { state: 'skipped', detail: 'Add dates and a destination to get weather' }
+    })
     await step('app', async () => {
       if (!('serviceWorker' in navigator)) throw new Error('This browser can’t save apps for offline use')
       await navigator.serviceWorker.ready
@@ -152,7 +159,7 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
   return (
     <Card>
       <h2 className="font-semibold">Ready for offline</h2>
-      <p className="mt-1 text-sm text-stone-500">One tap puts everything on this phone (trip data, every ticket, the offline map and exchange rates) so it all works in airplane mode.</p>
+      <p className="mt-1 text-sm text-stone-500">One tap puts everything on this phone (trip data, every ticket, the offline map, exchange rates and weather) so it all works in airplane mode.</p>
       {isIOS() && !isStandalone() && (
         <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
           First add Stowaway to your Home Screen (Share → Add to Home Screen) and open it from there. Safari can clear offline data for websites, and the Home Screen app keeps its own copy.
