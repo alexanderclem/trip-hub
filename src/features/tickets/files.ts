@@ -144,6 +144,15 @@ export function useAttachments(tripId: string) {
   }, [tripId])
 }
 
+/** Frees phone storage held by removed tickets (works offline; the server copy goes after 7 days). */
+export async function pruneRemoved(tripId: string): Promise<number> {
+  const gone = await db.attachments.where('trip_id').equals(tripId).filter((a) => !!a.deleted_at).toArray()
+  const keys = gone.map((a) => fileKey(a.id))
+  const present = (await db.files.bulkGet(keys)).filter(Boolean).length
+  if (present) await db.files.bulkDelete(keys)
+  return present
+}
+
 /** Keeps files moving: upload ours, fetch everyone else's, whenever there's signal. */
 export function useAttachmentSync(tripId: string, memberId: string | null) {
   const signature = useLiveQuery(
@@ -157,7 +166,9 @@ export function useAttachmentSync(tripId: string, memberId: string | null) {
     if (signature === undefined) return
     let cancelled = false
     const run = async () => {
-      if (cancelled || !navigator.onLine) return
+      if (cancelled) return
+      await pruneRemoved(tripId).catch(() => {})
+      if (!navigator.onLine) return
       await uploadPending(tripId, memberId).catch(() => {})
       if (!cancelled) await downloadMissing(tripId).catch(() => {})
     }

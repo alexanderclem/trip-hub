@@ -37,9 +37,11 @@ src/data/         types.ts (row types), db.ts (Dexie schema), repo.ts (save/save
                   hooks.ts (live queries), device.ts (Zustand: joined trips, my member id, prefs)
 src/data/sync/    engine.ts (push/pull), remote.ts (Supabase adapter), controller.ts (timers, realtime)
 src/features/     onboarding/ (welcome, travel quiz) trips/ places/ map/ map/offline/ routing/ polls/ ratings/ itinerary/ money/ tickets/ offline/
+                  packing/ notifications/ (push)
 src/ui/           index.tsx (Button, Field, Input, Card, PageHeader…), collection.tsx (adapted shadcn)
 supabase/migrations/          SQL, applied in filename order
 supabase/functions/route-legs Edge Function (routing.ts is pure and unit-tested)
+supabase/functions/push-dispatch, ticket-cleanup   called by pg_cron (docs/NOTIFICATIONS.md)
 scripts/          overpass-seed.ts, basemap-extract.ps1, fetch-map-assets.ts, smoke-test.ts
 seed/<trip>/      areas.json (hand-edited), places.json (generated), region.geojson
 public/packs/     offline map .pmtiles (shipped with the app; each must be under 25 MiB)
@@ -224,8 +226,9 @@ The full plan is in `C:\Users\alexa\.claude\plans\plan-out-a-travel-giggly-falco
 | 9 Calendar, sign-in, self-serve setup | ✅ code, ⏳ setup | **Calendar export:** `.ics` built on the phone (`src/lib/ics.ts`, `features/itinerary/calendar.ts`). **Google sign-in** (`src/features/account`): optional; a one-time code moves a guest's trip memberships to the account (`create_link_code` / `redeem_link_code`). Dormant until `20261006000001_account_link.sql` is applied and the Google provider is enabled in Supabase; the card hides itself while the provider is off. **Self-serve setup** (`src/features/destinations`, `map/offline/savedArea.ts`): town search, places from Overpass, and an offline map saved from the online tiles; see `docs/NEW_TRIP.md`. |
 
 | Opening sequence | ✅ code | `/` shows a welcome screen until the phone has a trip (create, join by link, Google). After joining or creating, `TripLayout` sends people to a 10-question this-or-that travel quiz (`/quiz?next=`, skippable, online only) that fills their radar; it's taken once per person and copied into every trip. Details in `docs/AI_PLANNING.md`. e2e contexts start with the quiz skipped (`playwright.config.ts` storageState); `onboarding.spec.ts` opts back in. |
+| Weather, packing, push | ✅ | **Weather** on the Plan tab (`src/lib/weather.ts`, `features/itinerary/weather.ts`): Open-Meteo (keyless, CC BY) forecast for 16 days, "Typical" (previous 3 years averaged) beyond; per day at where the group sleeps; a local-only Dexie table (`weather`, never synced), refreshed when online and in the master download; °F/°C per phone. **Packing** (More → Packing list, `features/packing`): `packing_items` (everyone / group / personal) + `packing_checks` (per-person ticks, null = not yet, never deleted); starter suggestions with stable ids and weather extras. **Push** (`features/notifications`, Settings card): triggers + pg_cron queue events, `push-dispatch` sends Web Push; leave-by times come from the phone (`set_my_reminders`). **Ticket clean-up:** daily `ticket-cleanup` deletes Storage files 7 days after a ticket is removed; phones drop their copy at once. See `docs/NOTIFICATIONS.md`. |
 
-All planned phases are done. Possible next steps: push notifications, setting the `ORS_API_KEY` secret, ticket file clean-up for removed tickets, and the auto-suggest seam.
+Possible next steps: setting the `ORS_API_KEY` secret, the real-iPhone airplane-mode and push check, and the auto-suggest seam.
 
 - **Map style switches:** effects that touch pin or line layers must check `layersLive` in
   `MapScreen.tsx`. Between `setStyle` and the next `style.load` those sources don't exist, and

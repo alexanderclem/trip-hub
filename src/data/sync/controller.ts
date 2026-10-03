@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { db } from '../db'
 import { pull, push, resetBackoff, SYNCED_TABLES } from './engine'
 import { supabaseRemote } from './remote'
+import { publishReminders } from '@/features/notifications/reminders'
 
 export type SyncPhase = 'idle' | 'syncing' | 'offline' | 'error'
 
@@ -61,6 +62,8 @@ async function cycle(tripId: string) {
     useSyncStatus.setState({ phase: 'error', lastError: head?.lastError ?? 'Some changes are waiting to sync' })
   } else {
     useSyncStatus.setState({ phase: 'idle', lastSyncedAt: new Date().toISOString(), lastError: null })
+    // With fresh plans and travel times, refresh this phone's leave-by reminders (push on only).
+    void publishReminders(tripId).catch((e) => console.warn('leave-by reminders failed', e))
   }
 }
 

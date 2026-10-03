@@ -3,6 +3,18 @@ import { persist } from 'zustand/middleware'
 import type { Profile } from '@/features/discovery/model'
 import { defaultTempUnit, type TempUnit } from '@/lib/weather'
 
+export interface PushPrefs {
+  leave: boolean
+  vote: boolean
+  expense: boolean
+  task: boolean
+}
+
+export interface PushSetting {
+  endpoint: string
+  prefs: PushPrefs
+}
+
 export interface JoinedTrip {
   tripId: string
   memberId: string | null // who this device is on the trip ("Who are you?")
@@ -24,6 +36,9 @@ interface DeviceState {
   setMoneyView: (v: 'base' | 'local') => void
   tempUnit: TempUnit
   setTempUnit: (u: TempUnit) => void
+  /** Push notifications this phone has turned on, per trip (the server keeps the subscription). */
+  push: Record<string, PushSetting>
+  setPush: (tripId: string, setting: PushSetting | null) => void
   setBasemap: (b: 'auto' | 'online' | 'offline') => void
   rememberTrip: (tripId: string, memberId?: string | null) => void
   setMember: (tripId: string, memberId: string) => void
@@ -46,6 +61,12 @@ export const useDevice = create<DeviceState>()(
       setMoneyView: (moneyView) => set({ moneyView }),
       tempUnit: defaultTempUnit(),
       setTempUnit: (tempUnit) => set({ tempUnit }),
+      push: {},
+      setPush: (tripId, setting) =>
+        set((s) => {
+          const { [tripId]: _old, ...rest } = s.push
+          return { push: setting ? { ...rest, [tripId]: setting } : rest }
+        }),
       setBasemap: (basemap) => set({ basemap }),
       rememberTrip: (tripId, memberId = null) =>
         set((s) => ({

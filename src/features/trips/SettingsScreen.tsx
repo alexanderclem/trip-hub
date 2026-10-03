@@ -11,6 +11,7 @@ import { fetchStarterPack, STARTER_PACKS } from '@/features/places/starterPacks'
 import { requestLegs } from '@/features/routing/requestLegs'
 import { OfflineMapCard } from '@/features/map/offline/OfflineMapCard'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
+import { NotificationsCard } from '@/features/notifications/NotificationsCard'
 import { save } from '@/data/repo'
 import { Avatar, Button, Card, ErrorNote, PageHeader } from '@/ui'
 import { rotateShareToken, shareLink } from './actions'
@@ -195,6 +196,8 @@ export function SettingsScreen() {
             <RefreshCw className="size-4" /> Recalculate now
           </Button>
         </Card>
+
+        <NotificationsCard tripId={tripId} />
 
         <Card>
           <h2 className="font-semibold">On this phone</h2>

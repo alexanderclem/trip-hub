@@ -35,6 +35,7 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/mcp$/, /^\/\.well-known\//, /^\/oauth\//, /^\/auth\//],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        importScripts: ['push-sw.js'], // push + notification taps (public/push-sw.js)
         runtimeCaching: [
           {
             // Map tiles you've looked at stay available with weak or no signal.
