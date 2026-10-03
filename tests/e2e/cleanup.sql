@@ -12,6 +12,8 @@ with test_trips as (
   delete from private.push_queue where trip_id in (select id from test_trips) returning 1
 ), dpr as (
   delete from private.push_reminders where trip_id in (select id from test_trips) returning 1
+), dsafety as (
+  delete from public.member_safety where trip_id in (select id from test_trips) returning 1
 ), dpc as (
   delete from public.packing_checks where trip_id in (select id from test_trips) returning 1
 ), dpi as (

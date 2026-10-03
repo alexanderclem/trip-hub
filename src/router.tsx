@@ -29,6 +29,8 @@ import { TasksScreen } from './features/tasks/TasksScreen'
 import { TaskFormScreen } from './features/tasks/TaskFormScreen'
 import { PackingScreen } from './features/packing/PackingScreen'
 import { PackingFormScreen } from './features/packing/PackingFormScreen'
+import { DriverScreen, EmergencyScreen, MedicalScreen } from './features/emergency/EmergencyScreen'
+import { EmergencyEditScreen, EmergencyNumbersScreen } from './features/emergency/EmergencyEditScreen'
 import { DiscoveryScreen } from './features/discovery/DiscoveryScreen'
 
 export const router = createBrowserRouter([
@@ -69,6 +71,11 @@ export const router = createBrowserRouter([
           { path: 'more/packing', element: <PackingScreen /> },
           { path: 'more/packing/new', element: <PackingFormScreen /> },
           { path: 'more/packing/:itemId', element: <PackingFormScreen /> },
+          { path: 'more/emergency', element: <EmergencyScreen /> },
+          { path: 'more/emergency/edit', element: <EmergencyEditScreen /> },
+          { path: 'more/emergency/numbers', element: <EmergencyNumbersScreen /> },
+          { path: 'more/emergency/driver', element: <DriverScreen /> },
+          { path: 'more/emergency/me', element: <MedicalScreen /> },
           { path: 'more/places', element: <PlacesScreen /> },
           { path: 'more/places/new', element: <PlaceFormScreen /> },
           { path: 'more/places/:placeId', element: <PlaceDetailScreen /> },

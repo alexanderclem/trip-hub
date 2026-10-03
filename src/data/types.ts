@@ -248,7 +248,23 @@ export interface PackingCheck extends SyncColumns {
   state: 'packed' | 'skip' | null
 }
 
-export const EXPENSE_CATEGORIES =['food', 'drinks', 'lodging', 'transport', 'activities', 'groceries', 'shopping', 'tips', 'fees', 'other'] as const
+/** One per (trip, member); id = stableId(trip, 'safety', member). Only that person may write it. */
+export interface MemberSafety extends SyncColumns {
+  trip_id: string
+  member_id: string
+  emergency_name: string | null
+  emergency_relation: string | null
+  emergency_phone: string | null
+  allergies: string | null
+  medical: string | null
+  blood_type: string | null
+  insurance_provider: string | null
+  insurance_policy: string | null
+  insurance_phone: string | null
+  notes: string | null
+}
+
+export const EXPENSE_CATEGORIES = ['food', 'drinks', 'lodging', 'transport', 'activities', 'groceries', 'shopping', 'tips', 'fees', 'other'] as const
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
 
 /** An expense row. The money fields are the shape src/lib/money.ts computes balances from. */
@@ -327,5 +343,6 @@ export interface Tables {
   trip_tasks: TripTask
   packing_items: PackingItem
   packing_checks: PackingCheck
+  member_safety: MemberSafety
 }
 export type TableName = keyof Tables

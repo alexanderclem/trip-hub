@@ -2,7 +2,7 @@ import Dexie, { type EntityTable } from 'dexie'
 import type { Draft } from '@/features/discovery/model'
 import type { WeatherRow } from '@/features/itinerary/weather'
 import type { MemberPreference } from './types'
-import type { Attachment, DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip, TripTask, PackingItem, PackingCheck } from './types'
+import type { Attachment, DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip, TripTask, PackingItem, PackingCheck, MemberSafety } from './types'
 
 export interface OutboxEntry {
   seq?: number
@@ -57,6 +57,7 @@ export class TripDb extends Dexie {
   trip_tasks!: EntityTable<TripTask & LocalColumns, 'id'>
   packing_items!: EntityTable<PackingItem & LocalColumns, 'id'>
   packing_checks!: EntityTable<PackingCheck & LocalColumns, 'id'>
+  member_safety!: EntityTable<MemberSafety & LocalColumns, 'id'>
   _outbox!: EntityTable<OutboxEntry, 'seq'>
   _deadletter!: EntityTable<DeadLetter, 'id'>
   _meta!: EntityTable<Meta, 'key'>
@@ -100,6 +101,7 @@ export class TripDb extends Dexie {
     this.version(9).stores({ member_preferences: 'id, trip_id, member_id', ai_drafts: 'id, scope, createdAt' })
     this.version(10).stores({ weather: 'id, trip_id' })
     this.version(11).stores({ packing_items: 'id, trip_id, owner_id', packing_checks: 'id, trip_id, item_id' })
+    this.version(12).stores({ member_safety: 'id, trip_id, member_id' })
   }
 }
 
