@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { archiveUrl, defaultTempUnit, describeCode, forecastUrl, formatTemp, locKey, parseDaily, pastYearsFor, typicalDays, yearsBefore, type DailyWeather } from './weather'
+import { archiveUrl, defaultTempUnit, describeCode, forecastUrl, formatTemp, locKey, parseDaily, pastYearsFor, typicalDays, yearsBefore, type DailyWeather, type WeatherDays } from './weather'
 
 const block = (dates: string[], over: Record<string, unknown[]> = {}) => ({
   daily: {
@@ -42,7 +42,7 @@ describe('Open-Meteo parsing', () => {
 
 describe('typical weather', () => {
   it('averages the same dates in past years, with rain as the share of rainy years', () => {
-    const past = [
+    const past: { years: number; days: WeatherDays }[] = [
       { years: 1, days: { '2026-03-15': day({ hi: 24, lo: 10, rainMm: 3, code: 61 }) } },
       { years: 2, days: { '2025-03-15': day({ hi: 26, lo: 12, rainMm: 0, code: 61 }) } },
       { years: 3, days: { '2024-03-15': day({ hi: 25, lo: 14, rainMm: 0.2, code: 1 }) } },
