@@ -56,7 +56,11 @@ async function vision(env: ScanEnv, kind: string, image: string, text: string): 
     max_tokens: 400,
   })
   try {
-    return parseDetails((await run()).response)
+    const { response } = await run()
+    const details = parseDetails(response)
+    // Log only the shape of an unusable reply, never the document's contents.
+    if (!details) console.warn('[scan] vision reply unusable', { type: typeof response, length: typeof response === 'string' ? response.length : JSON.stringify(response ?? null).length, hasBrace: JSON.stringify(response ?? '').includes('{') })
+    return details
   } catch (error) {
     // Meta's licence must be accepted once per account before the vision model answers.
     if (error instanceof Error && /agree|5016|licen[cs]e/i.test(error.message)) {
