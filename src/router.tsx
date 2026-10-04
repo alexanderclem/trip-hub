@@ -31,6 +31,7 @@ import { PackingScreen } from './features/packing/PackingScreen'
 import { PackingFormScreen } from './features/packing/PackingFormScreen'
 import { DriverScreen, EmergencyScreen, MedicalScreen } from './features/emergency/EmergencyScreen'
 import { EmergencyEditScreen, EmergencyNumbersScreen } from './features/emergency/EmergencyEditScreen'
+import { WrappedScreen } from './features/wrapped/WrappedScreen'
 import { DiscoveryScreen } from './features/discovery/DiscoveryScreen'
 
 export const router = createBrowserRouter([
@@ -76,6 +77,7 @@ export const router = createBrowserRouter([
           { path: 'more/emergency/numbers', element: <EmergencyNumbersScreen /> },
           { path: 'more/emergency/driver', element: <DriverScreen /> },
           { path: 'more/emergency/me', element: <MedicalScreen /> },
+          { path: 'wrapped', element: <WrappedScreen /> },
           { path: 'more/places', element: <PlacesScreen /> },
           { path: 'more/places/new', element: <PlaceFormScreen /> },
           { path: 'more/places/:placeId', element: <PlaceDetailScreen /> },

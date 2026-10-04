@@ -1,8 +1,9 @@
 import { Link, useParams } from 'react-router'
-import { Backpack, ChevronRight, ClipboardCheck, Compass, MapPin, Settings, ShieldPlus, Vote } from 'lucide-react'
+import { Backpack, ChevronRight, ClipboardCheck, Compass, MapPin, Settings, ShieldPlus, Sparkles, Vote } from 'lucide-react'
 import { useTrip } from '@/data/hooks'
 import { PageHeader } from '@/ui'
 import { Brand } from '@/ui/Brand'
+import { isRecapTime } from '@/features/wrapped/stats'
 
 export function MoreScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -15,6 +16,7 @@ export function MoreScreen() {
     { to: 'places', label: 'Places', Icon: MapPin, note: null },
     { to: 'vote', label: 'Votes', Icon: Vote, note: null },
     { to: 'settings', label: 'Trip settings & sharing', Icon: Settings, note: null },
+    { to: `/t/${tripId}/wrapped`, label: 'Trip recap', Icon: Sparkles, note: trip && isRecapTime(trip, Date.now()) ? 'Ready!' : 'Preview' },
   ]
   return (
     <div>
