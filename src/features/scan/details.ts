@@ -27,21 +27,33 @@ export const scanRequestSchema = z.object({
 })
 export type ScanRequest = z.infer<typeof scanRequestSchema>
 
+/** Currency symbols models sometimes return instead of a code. "$" is left out: too many dollars. */
+const SYMBOLS: Record<string, string> = { Q: 'GTQ', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₩': 'KRW', '₹': 'INR', '₱': 'PHP', '฿': 'THB', 'R$': 'BRL', 'MX$': 'MXN', 'C$': 'CAD', 'A$': 'AUD', 'US$': 'USD' }
+
+function parseObject(text: string): unknown {
+  const match = text.match(/\{[\s\S]*\}/)
+  if (!match) return null
+  try { return JSON.parse(match[0]) } catch { /* try again with bare keys quoted */ }
+  try { return JSON.parse(match[0].replace(/([{,]\s*)([A-Za-z_][\w]*)\s*:/g, '$1"$2":')) } catch { return null }
+}
+
 /** Lenient parse of model output: accepts a JSON object anywhere in the reply, keeps valid fields only. */
 export function parseDetails(raw: unknown): ScanDetails | null {
-  let value = raw
-  if (typeof raw === 'string') {
-    const match = raw.match(/\{[\s\S]*\}/)
-    if (!match) return null
-    try { value = JSON.parse(match[0]) } catch { return null }
-  }
+  const value = typeof raw === 'string' ? parseObject(raw) : raw
   if (!value || typeof value !== 'object') return null
   const out: Record<string, unknown> = {}
   for (const [key, field] of Object.entries(scanDetailsSchema.shape)) {
-    const v = (value as Record<string, unknown>)[key]
+    let v = (value as Record<string, unknown>)[key]
+    if (key === 'currency' && typeof v === 'string') v = SYMBOLS[v.trim()] ?? v.trim().toUpperCase()
     const parsed = field.safeParse(typeof v === 'string' && v.trim() === '' ? null : v ?? null)
     out[key] = parsed.success ? parsed.data : null
   }
   const details = out as ScanDetails
   return Object.values(details).some((v) => v !== null) ? details : null
+}
+
+/** Keeps `a`'s values and fills its gaps from `b`. */
+export function mergeDetails(a: ScanDetails | null, b: ScanDetails | null): ScanDetails | null {
+  if (!a || !b) return a ?? b
+  return Object.fromEntries(Object.keys(scanDetailsSchema.shape).map((k) => [k, a[k as keyof ScanDetails] ?? b[k as keyof ScanDetails]])) as ScanDetails
 }

@@ -3,7 +3,7 @@
 // structure. Workers AI vision model first (it sees layout the OCR loses), then the JSON-mode text
 // model on the phone's text. Never invents values: anything not visible comes back null.
 import { z } from 'zod'
-import { parseDetails, scanDetailsSchema, scanRequestSchema, type ScanDetails } from '../src/features/scan/details'
+import { mergeDetails, parseDetails, scanDetailsSchema, scanRequestSchema, type ScanDetails } from '../src/features/scan/details'
 
 export interface ScanEnv {
   AI: { run(model: string, input: Record<string, unknown>): Promise<{ response?: unknown }> }
@@ -47,12 +47,16 @@ async function readBody(request: Request): Promise<string | null> {
 
 async function vision(env: ScanEnv, kind: string, image: string, text: string): Promise<ScanDetails | null> {
   const model = env.SCAN_MODEL ?? VISION_MODEL
+  // The image and the instructions go in one user message: with a system message the model
+  // just transcribes the text instead of answering in JSON.
   const run = () => env.AI.run(model, {
-    messages: [
-      { role: 'system', content: PROMPT },
-      { role: 'user', content: `This is a ${kind}. Text the phone read from it (may contain OCR errors):\n${text.slice(0, 4000)}` },
-    ],
-    image,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'text', text: `${PROMPT}\n\nThis is a ${kind}. Text the phone read from it (may contain OCR errors):\n${text.slice(0, 4000)}` },
+        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } },
+      ],
+    }],
     max_tokens: 400,
   })
   try {
@@ -113,6 +117,10 @@ export async function handleScan(request: Request, env: ScanEnv): Promise<Respon
       }
     }
     if (!details && text.trim().length >= 5) { via = 'text'; details = await fromText(env, kind, text) }
+    else if (details && (details.amount == null || !details.currency || !details.date) && text.trim().length >= 5) {
+      // Vision got some of it: fill the gaps from the phone's text, never overriding what it saw.
+      details = mergeDetails(details, await fromText(env, kind, text).catch(() => null))
+    }
     if (!details) return json({ error: 'Couldn’t find any details. You can fill them in yourself.' }, 422)
     return json({ details, via })
   } catch (error) {
