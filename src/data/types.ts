@@ -1,5 +1,6 @@
 import type { Expense as MoneyExpense, Settlement as MoneySettlement } from '@/lib/money'
 import type { Profile } from '@/features/discovery/model'
+import type { ScanDetails } from '@/features/scan/details'
 
 // Row shapes mirror supabase/migrations. Every synced row carries the standard columns.
 
@@ -320,6 +321,11 @@ export interface Attachment extends SyncColumns {
   bytes: number
   sha256: string
   uploaded_at: string | null // null until the file reaches Storage
+  /** Text read from the file (PDF text layer or OCR on the phone), or typed/corrected by hand. */
+  text?: string | null
+  text_source?: 'pdf' | 'ocr' | 'ai' | 'edited' | null
+  /** Details pulled out by AI (merchant, amount, date, confirmation code, flight). */
+  details?: ScanDetails | null
 }
 
 export interface Tables {

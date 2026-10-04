@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { DateTime } from 'luxon'
-import { Trash2 } from 'lucide-react'
+import { Camera, Receipt, Trash2 } from 'lucide-react'
 import { db } from '@/data/db'
 import { useMyMemberId } from '@/data/device'
 import { useMembers, useTrip } from '@/data/hooks'
@@ -12,6 +13,8 @@ import { computeShares, formatMoney, minorUnits, type SplitMethod } from '@/lib/
 import { Avatar, Button, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { buildExpense, parseMinor, type ExpenseDraft } from './build'
 import { deleteExpense, saveExpense, useExpense, useMoney } from './data'
+import { detailsAmountMinor } from '@/features/scan/client'
+import { updateAttachment } from '@/features/tickets/files'
 
 const METHODS: { id: SplitMethod; label: string }[] = [
   { id: 'equal', label: 'Equally' },
@@ -44,7 +47,9 @@ export function ExpenseFormScreen() {
 
   const base = trip?.base_currency ?? 'USD'
   const local = trip?.local_currency ?? null
-  const currencies = [...new Set([local, base].filter(Boolean) as string[])]
+  const currencies = [...new Set([local, base, d?.currency].filter(Boolean) as string[])]
+  const receiptId = expenseId ? null : search.get('receipt')
+  const receipts = useLiveQuery(() => (expenseId ? db.attachments.where('trip_id').equals(tripId).filter((a) => a.expense_id === expenseId && !a.deleted_at).toArray() : []), [tripId, expenseId])
 
   // Fill the form once (sync keeps refreshing rows in the background; see CLAUDE.md).
   useEffect(() => {
@@ -86,9 +91,22 @@ export function ExpenseFormScreen() {
           })
         })
       }
+      // Logging a scanned receipt: whatever details were pulled out of it.
+      if (receiptId) {
+        void db.attachments.get(receiptId).then((att) => {
+          if (!att) return
+          const det = att.details
+          const minor = det ? detailsAmountMinor(det) : null
+          setD((c) => c && {
+            ...c, description: det?.merchant ?? att.title, category: 'food',
+            ...(det?.date ? { spentOn: det.date } : {}),
+            ...(minor != null && det?.currency ? { amount: major(minor, det.currency), currency: det.currency } : {}),
+          })
+        })
+      }
     }
     loaded.current = true
-  }, [trip, members, money, existing, expenseId, tripId, me, base, local, search])
+  }, [trip, members, money, existing, expenseId, tripId, me, base, local, search, receiptId])
 
   // Default rate from the latest snapshot (or the built-in table), unless the person typed one.
   const autoRate = d ? rateFor(d.currency, base, money?.snapshot ?? null) : null
@@ -117,6 +135,7 @@ export function ExpenseFormScreen() {
     if ('error' in result) return setError(result.error)
     setSaving(true)
     await saveExpense(result.expense, me)
+    if (receiptId) await updateAttachment(receiptId, { expense_id: result.expense.id }, me).catch(() => {})
     navigate(`/t/${tripId}/money`, { replace: true })
   }
 
@@ -227,6 +246,19 @@ export function ExpenseFormScreen() {
         <Field label="Notes">
           <Textarea value={d.notes} onChange={(e) => set('notes', e.target.value)} rows={2} placeholder="Optional" />
         </Field>
+        {receiptId && <p className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900"><Receipt aria-hidden="true" className="size-4 shrink-0" />The receipt photo will be attached to this expense.</p>}
+        {expenseId && (
+          <section aria-label="Receipts" className="space-y-2">
+            {(receipts ?? []).map((r) => (
+              <Link key={r.id} to={`/t/${tripId}/tickets/${r.id}`} className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm hover:bg-stone-50">
+                <Receipt aria-hidden="true" className="size-4 shrink-0 text-brand-700" /><span className="min-w-0 flex-1 truncate font-medium">{r.title}</span><span className="text-xs text-stone-500">View</span>
+              </Link>
+            ))}
+            <Link to={`/t/${tripId}/tickets/new?kind=receipt&for_expense=${expenseId}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">
+              <Camera aria-hidden="true" className="size-4" />{receipts?.length ? 'Add another receipt photo' : 'Add a receipt photo'}
+            </Link>
+          </section>
+        )}
         <ErrorNote error={error} />
         <Button type="submit" className="w-full" disabled={saving}>{saving ? 'Saving…' : 'Save expense'}</Button>
         {existing && (

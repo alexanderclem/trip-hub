@@ -7,6 +7,7 @@ import { useMyMemberId } from '@/data/device'
 import { Button, ErrorNote, PageHeader } from '@/ui'
 import { getBlob, removeAttachment } from './files'
 import { PdfView } from './PdfView'
+import { AttachmentText } from '@/features/scan/AttachmentText'
 
 export function TicketViewerScreen() {
   const { tripId, attachmentId } = useParams() as { tripId: string; attachmentId: string }
@@ -66,6 +67,7 @@ export function TicketViewerScreen() {
           {url && att.mime.startsWith('image/') && <img src={url} alt={att.title} className="w-full rounded-lg bg-white shadow-sm" />}
           {!blob && !error && <p className="p-6 text-center text-sm text-stone-500">Opening…</p>}
         </div>
+        <AttachmentText att={att} blob={blob} />
         <div className="grid grid-cols-2 gap-2 pt-2">
           {url && (
             <a href={url} download={att.filename} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 font-medium text-stone-800">

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { handleConnector, type ConnectorEnv } from './connector'
+import { handleScan } from './scan'
 import { AXES, combine, ideasSchema, inferredProfileSchema, requestSchema } from '../src/features/discovery/model'
 
 export interface Env extends ConnectorEnv {
@@ -23,6 +24,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname
     if (path === '/mcp' || path === '/.well-known/oauth-protected-resource' || path === '/.well-known/oauth-protected-resource/mcp') return handleConnector(request, env)
+    if (path === '/api/scan') return handleScan(request, env)
     if (new URL(request.url).pathname !== '/api/travel-ai') return env.ASSETS.fetch(request)
     if (request.method !== 'POST') return json({ error: 'Use POST for AI planning.' }, 405)
     if (!env.AI || !env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY || !env.AI_RATE_LIMITER) return json({ error: 'AI planning is not connected on this server yet. You can still set preferences manually.' }, 503)

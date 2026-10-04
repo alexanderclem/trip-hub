@@ -48,6 +48,10 @@ export interface NewAttachment {
   kind: AttachmentKind
   itemId: string | null
   confirmationCode: string | null
+  expenseId?: string | null
+  text?: string | null
+  textSource?: Attachment['text_source']
+  details?: Attachment['details']
 }
 
 /** Saves the file on this phone and queues it; uploading happens in the background. */
@@ -62,7 +66,7 @@ export async function addAttachment(a: NewAttachment, memberId: string | null): 
     trip_id: a.tripId,
     item_id: a.itemId,
     place_id: null,
-    expense_id: null,
+    expense_id: a.expenseId ?? null,
     kind: a.kind,
     title: a.title.trim() || filename,
     confirmation_code: a.confirmationCode?.trim() || null,
@@ -72,9 +76,19 @@ export async function addAttachment(a: NewAttachment, memberId: string | null): 
     bytes: blob.size,
     sha256: await sha256(blob),
     uploaded_at: null,
+    text: a.text?.trim() ? a.text.trim().slice(0, 20_000) : null,
+    text_source: a.text?.trim() ? (a.textSource ?? 'edited') : null,
+    details: a.details ?? null,
   }
   await save('attachments', row, memberId)
   return id
+}
+
+/** Updates the text, details or links of a saved ticket, document or receipt. */
+export async function updateAttachment(id: string, patch: Partial<Pick<Attachment, 'text' | 'text_source' | 'details' | 'expense_id' | 'title' | 'confirmation_code' | 'kind'>>, memberId: string | null) {
+  const att = await db.attachments.get(id)
+  if (!att || att.deleted_at) throw new Error('This file has been removed.')
+  await save('attachments', { ...att, ...patch }, memberId)
 }
 
 export const removeAttachment = (id: string, memberId: string | null) => softDelete('attachments', id, memberId)

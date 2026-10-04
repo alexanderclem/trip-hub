@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { ArrowRight, Check, HandCoins, Plus, Receipt, Undo2 } from 'lucide-react'
+import { ArrowRight, Check, HandCoins, Plus, Receipt, ScanLine, Undo2 } from 'lucide-react'
 import { useDevice, useMyMemberId } from '@/data/device'
 import { useMembers, useTrip } from '@/data/hooks'
 import { PAYMENT_METHODS, type Member, type SettlementRow } from '@/data/types'
@@ -77,7 +77,10 @@ export function MoneyScreen() {
               <EmptyTitle>No expenses yet</EmptyTitle>
               <EmptyDescription>Log who paid for what, in quetzales or dollars. Stowaway works out who owes whom with the fewest payments.</EmptyDescription>
             </EmptyHeader>
-            <Link to="new" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white"><Plus aria-hidden="true" className="size-4" />Add an expense</Link>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link to="new" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white"><Plus aria-hidden="true" className="size-4" />Add an expense</Link>
+              <Link to={`/t/${tripId}/tickets/new?kind=receipt&expense=1`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 font-medium text-brand-700"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</Link>
+            </div>
           </Empty>
         ) : (
           <>
@@ -172,6 +175,9 @@ export function MoneyScreen() {
         </p>
       </div>
 
+      <Link to={`/t/${tripId}/tickets/new?kind=receipt&expense=1`} aria-label="Scan a receipt" className="fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+9.5rem)] z-20 flex size-12 items-center justify-center rounded-2xl border border-stone-200 bg-white text-brand-700 shadow-md hover:bg-stone-50">
+        <ScanLine aria-hidden="true" className="size-6" />
+      </Link>
       <Link to="new" aria-label="Add expense" className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-20 flex size-14 items-center justify-center rounded-2xl bg-brand-700 text-white shadow-lg hover:bg-brand-900">
         <Plus aria-hidden="true" className="size-7" />
       </Link>

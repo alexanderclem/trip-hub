@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { CheckCircle2, CloudUpload, Download, FileText, Image as ImageIcon, Plus, Ticket } from 'lucide-react'
+import { CheckCircle2, CloudUpload, Download, FileText, Image as ImageIcon, Plus, Search, Ticket } from 'lucide-react'
 import { useTrip } from '@/data/hooks'
 import type { Attachment, ItineraryItem } from '@/data/types'
 import { formatInZone } from '@/lib/time'
@@ -9,6 +9,10 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collectio
 import { useDisplayZone, useItems } from '@/features/itinerary/data'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { useAttachments } from './files'
+import { Input } from '@/ui'
+
+/** Lower-case text to search: title, code, the read text and any pulled-out details. */
+const haystack = (a: Attachment) => [a.title, a.confirmation_code, a.text, a.details?.merchant, a.details?.flight, a.details?.confirmation_code].filter(Boolean).join(' ').toLowerCase()
 
 export const KIND_LABEL: Record<Attachment['kind'], string> = {
   ticket: 'Ticket', reservation: 'Reservation', receipt: 'Receipt', document: 'Document', photo: 'Photo',
@@ -20,20 +24,28 @@ export function TicketsScreen() {
   const rows = useAttachments(tripId)
   const items = useItems(tripId) ?? []
   const { zone } = useDisplayZone(trip)
+  const [q, setQ] = useState('')
+  const query = q.trim().toLowerCase()
 
   // Group by the day of the linked plan item; unlinked files last.
   const groups = useMemo(() => {
     const byItem = new Map(items.map((i) => [i.id, i]))
-    const keyed = (rows ?? []).map((r) => {
+    const keyed = (rows ?? []).filter((r) => !query || haystack(r.att).includes(query)).map((r) => {
       const item = r.att.item_id ? byItem.get(r.att.item_id) : undefined
       const day = item ? (item.all_day ? item.start_local.slice(0, 10) : DateTime.fromISO(item.start_at).setZone(zone).toISODate()!) : null
       return { ...r, item, day }
     })
     keyed.sort((a, b) => (a.day ?? '9999').localeCompare(b.day ?? '9999') || (a.item?.start_at ?? '').localeCompare(b.item?.start_at ?? '') || a.att.title.localeCompare(b.att.title))
     const out = new Map<string, typeof keyed>()
-    for (const k of keyed) out.set(k.day ?? 'other', [...(out.get(k.day ?? 'other') ?? []), k])
-    return [...out]
-  }, [rows, items, zone])
+    // Receipts get their own group at the end: they're for money, not for getting in somewhere.
+    for (const k of keyed) {
+      const key = k.att.kind === 'receipt' ? 'receipts' : (k.day ?? 'other')
+      out.set(key, [...(out.get(key) ?? []), k])
+    }
+    const receipts = out.get('receipts')
+    out.delete('receipts')
+    return receipts ? [...out, ['receipts', receipts] as const] : [...out]
+  }, [rows, items, zone, query])
 
   return (
     <div className="min-h-full pb-28">
@@ -45,6 +57,14 @@ export function TicketsScreen() {
       </header>
       <div className="mx-auto max-w-lg space-y-4 p-4">
         {trip && <OfflineReadyCard trip={trip} compact />}
+        {rows && rows.length > 0 && (
+          <label className="relative block">
+            <span className="sr-only">Search tickets, documents and receipts</span>
+            <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" />
+            <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search names, codes and text" className="w-full pl-9" />
+          </label>
+        )}
+        {query && groups.length === 0 && <p className="py-6 text-center text-sm text-stone-500">Nothing matches “{q.trim()}”.</p>}
 
         {rows && rows.length === 0 ? (
           <Empty>
@@ -57,9 +77,9 @@ export function TicketsScreen() {
           </Empty>
         ) : (
           groups.map(([day, list]) => (
-            <section key={day} aria-label={day === 'other' ? 'Not on the plan' : day}>
+            <section key={day} aria-label={day === 'other' ? 'Not on the plan' : day === 'receipts' ? 'Receipts' : day}>
               <h2 className="mb-2 text-xs font-semibold tracking-wide text-stone-500 uppercase">
-                {day === 'other' ? 'Not linked to the plan' : DateTime.fromISO(day).toFormat('cccc d LLLL')}
+                {day === 'other' ? 'Not linked to the plan' : day === 'receipts' ? 'Receipts' : DateTime.fromISO(day).toFormat('cccc d LLLL')}
               </h2>
               <ul className="space-y-2">
                 {list.map(({ att, onPhone, item }) => <TicketCard key={att.id} att={att} onPhone={onPhone} item={item} zone={zone} />)}

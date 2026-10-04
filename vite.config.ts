@@ -32,11 +32,18 @@ export default defineConfig({
       workbox: {
         // Includes the offline map's fonts and sprites, so labels render with no network.
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2}', 'map-assets/**/*.{pbf,json}'], // mjs: pdf.js worker
+        globIgnores: ['**/tesseract-core-lstm*'], // the OCR core is cached when first used, not precached
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/mcp$/, /^\/\.well-known\//, /^\/oauth\//, /^\/auth\//],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         importScripts: ['push-sw.js'], // push + notification taps (public/push-sw.js)
         runtimeCaching: [
+          {
+            // The OCR core and language data: cached the first time someone reads text, then work offline.
+            urlPattern: ({ url }) => (url.origin === self.location.origin && url.pathname.includes('/assets/tesseract-core-lstm')) || /^https:\/\/cdn\.jsdelivr\.net\/npm\/@tesseract\.js-data\//.test(url.href),
+            handler: 'CacheFirst',
+            options: { cacheName: 'ocr-assets', cacheableResponse: { statuses: [200] } },
+          },
           {
             // Map tiles you've looked at stay available with weak or no signal.
             urlPattern: /^https:\/\/tiles\.openfreemap\.org\/(planet|natural_earth)\//,
