@@ -263,7 +263,7 @@ export function SettingsScreen() {
           onClick={() => {
             if (confirm('Remove this trip from this device? You can re-join with the link.')) {
               forgetTrip(tripId)
-              navigate('/', { replace: true })
+              navigate('/app', { replace: true })
             }
           }}
         >

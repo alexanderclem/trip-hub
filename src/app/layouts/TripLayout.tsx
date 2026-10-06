@@ -38,7 +38,7 @@ export function TripLayout() {
   useAutoLegs(tripId)
   useAttachmentSync(tripId, memberId)
 
-  if (!joined) return <Navigate to="/" replace />
+  if (!joined) return <Navigate to="/app" replace />
   if (!memberId) return <Navigate to={`/t/${tripId}/who`} replace />
   if (askQuiz && savedProfile === undefined) return null
   if (askQuiz && savedProfile === null) return <Navigate to={`/quiz?next=${encodeURIComponent(pathname + search)}`} replace />

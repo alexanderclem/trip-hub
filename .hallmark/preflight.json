@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-06",
+  "skill": "Hallmark 1.1.0",
+  "system": "DESIGN.md",
+  "genre": "editorial",
+  "theme": "locked Stowaway",
+  "font": {
+    "display": "Georgia",
+    "body": "system-ui",
+    "source": "DESIGN.md:12"
+  },
+  "palette": {
+    "source": "src/styles/index.css:3",
+    "policy": "preserve exact existing brand values"
+  },
+  "motion": {
+    "stance": "motion-cut",
+    "source": "package.json:18"
+  },
+  "spacing": {
+    "base": "4px",
+    "source": "DESIGN.md:24"
+  },
+  "framework": {
+    "name": "React 19, Vite, Tailwind 4",
+    "source": "package.json:30"
+  },
+  "scope": "public homepage presentation; existing app routing retained"
+}

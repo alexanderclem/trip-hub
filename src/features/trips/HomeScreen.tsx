@@ -41,7 +41,7 @@ export function HomeScreen() {
   return (
     <main className="mx-auto max-w-5xl px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-8 sm:pb-16">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-brand-900/15 pb-5">
-        <Brand />
+        <Link to="/" aria-label="Stowaway home"><Brand /></Link>
         <span className="text-xs tracking-wide text-brand-700">Good company. Great trips.</span>
       </header>
       <div className="mb-8 mt-8 flex flex-wrap items-end justify-between gap-5 sm:mt-12">
@@ -83,7 +83,7 @@ export function HomeScreen() {
           <p className="mt-2 text-sm leading-relaxed text-stone-600">Discover your travel style, explore ideas, and turn a favorite into your first itinerary.</p>
           <Link to="/inspire" className="mt-4 inline-flex min-h-11 items-center gap-2 font-medium text-brand-700">Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link>
         </Card>
-        <JoinByLink />
+        <div id="join" className="scroll-mt-6"><JoinByLink /></div>
         <AccountCard />
         </div>
       </div>

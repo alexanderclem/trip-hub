@@ -11,7 +11,7 @@ export function AuthCallbackScreen() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<SignInResult | null>(null)
-  const [returnPath, setReturnPath] = useState('/')
+  const [returnPath, setReturnPath] = useState('/app')
 
   useEffect(() => {
     let cancelled = false
@@ -20,7 +20,7 @@ export function AuthCallbackScreen() {
         if (cancelled) return
         const connector = takeConnectorReturn()
         // A first sign-in continues to the travel quiz, unless a restored trip already has this person's answers.
-        const destination = connector ?? ((await quizStillNeeded()) ? '/quiz?next=%2F' : '/')
+        const destination = connector ?? ((await quizStillNeeded()) ? '/quiz?next=%2Fapp' : '/app')
         setReturnPath(destination)
         if (r.notCarried > 0) setResult(r)
         else navigate(destination, { replace: true })
@@ -52,7 +52,7 @@ export function AuthCallbackScreen() {
       ) : (
         <p role="status" className="text-stone-600">Signing you in and fetching your trips…</p>
       )}
-      {(error || result) && <Link to={returnPath} replace className="inline-flex min-h-11 items-center rounded-xl bg-brand-700 px-4 font-medium text-white">{returnPath === '/' ? 'Back to your trips' : 'Continue connecting'}</Link>}
+      {(error || result) && <Link to={returnPath} replace className="inline-flex min-h-11 items-center rounded-xl bg-brand-700 px-4 font-medium text-white">{returnPath.startsWith('/oauth/') ? 'Continue connecting' : 'Back to your trips'}</Link>}
     </main>
   )
 }

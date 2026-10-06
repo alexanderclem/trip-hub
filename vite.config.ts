@@ -16,13 +16,15 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
+        // Preserve the identity previously inferred from start_url: '/'.
+        id: '/',
         name: 'Stowaway',
         short_name: 'Stowaway',
         description: 'The whole trip, tucked away. Shared plans, places, tickets, money and votes.',
         theme_color: '#183e4b',
         background_color: '#f8f5ee',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/app',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },

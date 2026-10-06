@@ -20,7 +20,7 @@ export function MoreScreen() {
   ]
   return (
     <div>
-      <PageHeader title={trip?.name ?? 'More'} back="/" />
+      <PageHeader title={trip?.name ?? 'More'} back="/app" />
       <ul className="mx-auto max-w-md space-y-2 p-4">
         {items.map(({ to, label, Icon, note }) => (
           <li key={to}>
@@ -34,7 +34,7 @@ export function MoreScreen() {
         ))}
       </ul>
       <div className="mx-auto max-w-md px-4 py-6 text-center">
-        <Link to="/" aria-label="Stowaway — your trips" className="inline-flex min-h-11"><Brand /></Link>
+        <Link to="/app" aria-label="Stowaway — your trips" className="inline-flex min-h-11"><Brand /></Link>
         <p className="mt-2 text-xs text-stone-500">The whole trip, tucked away.</p>
       </div>
     </div>

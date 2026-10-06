@@ -6,7 +6,7 @@ import { AccountCard } from '@/features/account/AccountCard'
 import { HomeScreen } from '@/features/trips/HomeScreen'
 import { JoinByLink } from '@/features/trips/JoinByLink'
 
-/** `/`: the welcome screen until this phone has a trip, then the list of trips. */
+/** `/app`: enter the app, with the welcome screen until this phone has a trip. */
 export function StartScreen() {
   const firstVisit = useDevice((s) => Object.keys(s.trips).length === 0)
   return firstVisit ? <WelcomeScreen /> : <HomeScreen />
@@ -16,7 +16,7 @@ export function StartScreen() {
 export function WelcomeScreen() {
   return (
     <main className="mx-auto max-w-md px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)]">
-      <Brand />
+      <Link to="/" aria-label="Stowaway home"><Brand /></Link>
       <img src="/brand/packed-for-anywhere.svg" alt="" width="360" height="170" className="mx-auto mt-8 w-64 max-w-full" />
       <p className="mt-6 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">Good company. Great trips.</p>
       <h1 className="travel-heading mt-2 text-5xl text-brand-900">Plan it together, take it anywhere.</h1>
@@ -28,7 +28,7 @@ export function WelcomeScreen() {
         <Plus aria-hidden="true" className="size-4" />Create a trip
       </Link>
 
-      <div className="mt-6 space-y-6">
+      <div id="join" className="mt-6 scroll-mt-6 space-y-6">
         <JoinByLink />
         <AccountCard />
       </div>

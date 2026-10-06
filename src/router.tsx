@@ -1,90 +1,61 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { RouteError } from './app/RouteError'
-import { AuthCallbackScreen } from './features/account/AuthCallbackScreen'
-import { ConnectorConsentScreen } from './features/account/ConnectorConsentScreen'
-import { ConnectedAppsScreen } from './features/account/ConnectedAppsScreen'
 import { RootLayout } from './app/layouts/RootLayout'
-import { TripLayout } from './app/layouts/TripLayout'
-import { PlaceDetailScreen } from './features/places/PlaceDetailScreen'
-import { PlaceFormScreen } from './features/places/PlaceFormScreen'
-import { PlacesScreen } from './features/places/PlacesScreen'
-import { PollScreen } from './features/polls/PollScreen'
-import { ItemDetailScreen } from './features/itinerary/ItemDetailScreen'
-import { ItemFormScreen } from './features/itinerary/ItemFormScreen'
-import { PlanScreen } from './features/itinerary/PlanScreen'
-import { PollsScreen } from './features/polls/PollsScreen'
-import { ExpenseFormScreen } from './features/money/ExpenseFormScreen'
-import { MoneyScreen } from './features/money/MoneyScreen'
-import { TicketFormScreen } from './features/tickets/TicketFormScreen'
-import { TicketsScreen } from './features/tickets/TicketsScreen'
-import { TicketViewerScreen } from './features/tickets/TicketViewerScreen'
-import { CreateTripScreen } from './features/trips/CreateTripScreen'
-import { QuizScreen } from './features/onboarding/QuizScreen'
-import { StartScreen } from './features/onboarding/WelcomeScreen'
-import { JoinScreen } from './features/trips/JoinScreen'
-import { MoreScreen } from './features/trips/MoreScreen'
-import { SettingsScreen } from './features/trips/SettingsScreen'
-import { WhoScreen } from './features/trips/WhoScreen'
-import { TasksScreen } from './features/tasks/TasksScreen'
-import { TaskFormScreen } from './features/tasks/TaskFormScreen'
-import { PackingScreen } from './features/packing/PackingScreen'
-import { PackingFormScreen } from './features/packing/PackingFormScreen'
-import { DriverScreen, EmergencyScreen, MedicalScreen } from './features/emergency/EmergencyScreen'
-import { EmergencyEditScreen, EmergencyNumbersScreen } from './features/emergency/EmergencyEditScreen'
-import { WrappedScreen } from './features/wrapped/WrappedScreen'
-import { DiscoveryScreen } from './features/discovery/DiscoveryScreen'
+import { LandingScreen } from './features/website/LandingScreen'
 
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     errorElement: <RouteError />,
+    hydrateFallbackElement: <div role="status" className="flex min-h-screen items-center justify-center bg-canvas px-5 text-brand-900">Opening Stowaway…</div>,
     children: [
-      { path: '/', element: <StartScreen /> },
-      { path: '/quiz', element: <QuizScreen /> },
-      { path: '/new', element: <CreateTripScreen /> },
-      { path: '/inspire', element: <DiscoveryScreen /> },
-      { path: '/join', element: <JoinScreen /> },
-      { path: '/auth/callback', element: <AuthCallbackScreen /> },
-      { path: '/oauth/consent', element: <ConnectorConsentScreen /> },
-      { path: '/connections', element: <ConnectedAppsScreen /> },
-      { path: '/t/:tripId/who', element: <WhoScreen /> },
+      { path: '/', element: <LandingScreen /> },
+      { path: '/app', lazy: () => import('./features/onboarding/WelcomeScreen').then((m) => ({ Component: m.StartScreen })) },
+      { path: '/quiz', lazy: () => import('./features/onboarding/QuizScreen').then((m) => ({ Component: m.QuizScreen })) },
+      { path: '/new', lazy: () => import('./features/trips/CreateTripScreen').then((m) => ({ Component: m.CreateTripScreen })) },
+      { path: '/inspire', lazy: () => import('./features/discovery/DiscoveryScreen').then((m) => ({ Component: m.DiscoveryScreen })) },
+      { path: '/join', lazy: () => import('./features/trips/JoinScreen').then((m) => ({ Component: m.JoinScreen })) },
+      { path: '/auth/callback', lazy: () => import('./features/account/AuthCallbackScreen').then((m) => ({ Component: m.AuthCallbackScreen })) },
+      { path: '/oauth/consent', lazy: () => import('./features/account/ConnectorConsentScreen').then((m) => ({ Component: m.ConnectorConsentScreen })) },
+      { path: '/connections', lazy: () => import('./features/account/ConnectedAppsScreen').then((m) => ({ Component: m.ConnectedAppsScreen })) },
+      { path: '/t/:tripId/who', lazy: () => import('./features/trips/WhoScreen').then((m) => ({ Component: m.WhoScreen })) },
       {
         path: '/t/:tripId',
-        element: <TripLayout />,
+        lazy: () => import('./app/layouts/TripLayout').then((m) => ({ Component: m.TripLayout })),
         children: [
           { index: true, element: <Navigate to="map" replace /> },
           { path: 'map', lazy: () => import('./features/map/MapScreen').then((m) => ({ Component: m.default })) },
-          { path: 'plan', element: <PlanScreen /> },
-          { path: 'plan/new', element: <ItemFormScreen /> },
-          { path: 'plan/:itemId', element: <ItemDetailScreen /> },
-          { path: 'plan/:itemId/edit', element: <ItemFormScreen /> },
-          { path: 'tickets', element: <TicketsScreen /> },
-          { path: 'tickets/new', element: <TicketFormScreen /> },
-          { path: 'tickets/:attachmentId', element: <TicketViewerScreen /> },
-          { path: 'money', element: <MoneyScreen /> },
-          { path: 'money/new', element: <ExpenseFormScreen /> },
-          { path: 'money/:expenseId', element: <ExpenseFormScreen /> },
-          { path: 'more', element: <MoreScreen /> },
-          { path: 'more/ideas', element: <DiscoveryScreen /> },
-          { path: 'more/tasks', element: <TasksScreen /> },
-          { path: 'more/tasks/new', element: <TaskFormScreen /> },
-          { path: 'more/tasks/:taskId', element: <TaskFormScreen /> },
-          { path: 'more/packing', element: <PackingScreen /> },
-          { path: 'more/packing/new', element: <PackingFormScreen /> },
-          { path: 'more/packing/:itemId', element: <PackingFormScreen /> },
-          { path: 'more/emergency', element: <EmergencyScreen /> },
-          { path: 'more/emergency/edit', element: <EmergencyEditScreen /> },
-          { path: 'more/emergency/numbers', element: <EmergencyNumbersScreen /> },
-          { path: 'more/emergency/driver', element: <DriverScreen /> },
-          { path: 'more/emergency/me', element: <MedicalScreen /> },
-          { path: 'wrapped', element: <WrappedScreen /> },
-          { path: 'more/places', element: <PlacesScreen /> },
-          { path: 'more/places/new', element: <PlaceFormScreen /> },
-          { path: 'more/places/:placeId', element: <PlaceDetailScreen /> },
-          { path: 'more/places/:placeId/edit', element: <PlaceFormScreen /> },
-          { path: 'more/settings', element: <SettingsScreen /> },
-          { path: 'more/vote', element: <PollsScreen /> },
-          { path: 'more/vote/:pollId', element: <PollScreen /> },
+          { path: 'plan', lazy: () => import('./features/itinerary/PlanScreen').then((m) => ({ Component: m.PlanScreen })) },
+          { path: 'plan/new', lazy: () => import('./features/itinerary/ItemFormScreen').then((m) => ({ Component: m.ItemFormScreen })) },
+          { path: 'plan/:itemId', lazy: () => import('./features/itinerary/ItemDetailScreen').then((m) => ({ Component: m.ItemDetailScreen })) },
+          { path: 'plan/:itemId/edit', lazy: () => import('./features/itinerary/ItemFormScreen').then((m) => ({ Component: m.ItemFormScreen })) },
+          { path: 'tickets', lazy: () => import('./features/tickets/TicketsScreen').then((m) => ({ Component: m.TicketsScreen })) },
+          { path: 'tickets/new', lazy: () => import('./features/tickets/TicketFormScreen').then((m) => ({ Component: m.TicketFormScreen })) },
+          { path: 'tickets/:attachmentId', lazy: () => import('./features/tickets/TicketViewerScreen').then((m) => ({ Component: m.TicketViewerScreen })) },
+          { path: 'money', lazy: () => import('./features/money/MoneyScreen').then((m) => ({ Component: m.MoneyScreen })) },
+          { path: 'money/new', lazy: () => import('./features/money/ExpenseFormScreen').then((m) => ({ Component: m.ExpenseFormScreen })) },
+          { path: 'money/:expenseId', lazy: () => import('./features/money/ExpenseFormScreen').then((m) => ({ Component: m.ExpenseFormScreen })) },
+          { path: 'more', lazy: () => import('./features/trips/MoreScreen').then((m) => ({ Component: m.MoreScreen })) },
+          { path: 'more/ideas', lazy: () => import('./features/discovery/DiscoveryScreen').then((m) => ({ Component: m.DiscoveryScreen })) },
+          { path: 'more/tasks', lazy: () => import('./features/tasks/TasksScreen').then((m) => ({ Component: m.TasksScreen })) },
+          { path: 'more/tasks/new', lazy: () => import('./features/tasks/TaskFormScreen').then((m) => ({ Component: m.TaskFormScreen })) },
+          { path: 'more/tasks/:taskId', lazy: () => import('./features/tasks/TaskFormScreen').then((m) => ({ Component: m.TaskFormScreen })) },
+          { path: 'more/packing', lazy: () => import('./features/packing/PackingScreen').then((m) => ({ Component: m.PackingScreen })) },
+          { path: 'more/packing/new', lazy: () => import('./features/packing/PackingFormScreen').then((m) => ({ Component: m.PackingFormScreen })) },
+          { path: 'more/packing/:itemId', lazy: () => import('./features/packing/PackingFormScreen').then((m) => ({ Component: m.PackingFormScreen })) },
+          { path: 'more/emergency', lazy: () => import('./features/emergency/EmergencyScreen').then((m) => ({ Component: m.EmergencyScreen })) },
+          { path: 'more/emergency/edit', lazy: () => import('./features/emergency/EmergencyEditScreen').then((m) => ({ Component: m.EmergencyEditScreen })) },
+          { path: 'more/emergency/numbers', lazy: () => import('./features/emergency/EmergencyEditScreen').then((m) => ({ Component: m.EmergencyNumbersScreen })) },
+          { path: 'more/emergency/driver', lazy: () => import('./features/emergency/EmergencyScreen').then((m) => ({ Component: m.DriverScreen })) },
+          { path: 'more/emergency/me', lazy: () => import('./features/emergency/EmergencyScreen').then((m) => ({ Component: m.MedicalScreen })) },
+          { path: 'wrapped', lazy: () => import('./features/wrapped/WrappedScreen').then((m) => ({ Component: m.WrappedScreen })) },
+          { path: 'more/places', lazy: () => import('./features/places/PlacesScreen').then((m) => ({ Component: m.PlacesScreen })) },
+          { path: 'more/places/new', lazy: () => import('./features/places/PlaceFormScreen').then((m) => ({ Component: m.PlaceFormScreen })) },
+          { path: 'more/places/:placeId', lazy: () => import('./features/places/PlaceDetailScreen').then((m) => ({ Component: m.PlaceDetailScreen })) },
+          { path: 'more/places/:placeId/edit', lazy: () => import('./features/places/PlaceFormScreen').then((m) => ({ Component: m.PlaceFormScreen })) },
+          { path: 'more/settings', lazy: () => import('./features/trips/SettingsScreen').then((m) => ({ Component: m.SettingsScreen })) },
+          { path: 'more/vote', lazy: () => import('./features/polls/PollsScreen').then((m) => ({ Component: m.PollsScreen })) },
+          { path: 'more/vote/:pollId', lazy: () => import('./features/polls/PollScreen').then((m) => ({ Component: m.PollScreen })) },
         ],
       },
       { path: '*', element: <Navigate to="/" replace /> },

@@ -35,7 +35,7 @@ export function JoinScreen() {
           <h1 className="text-xl font-semibold">Couldn't join the trip</h1>
           <ErrorNote error={error} />
           {!navigator.onLine && <p className="text-sm text-stone-500">You're offline. Joining needs a connection once.</p>}
-          <Link to="/">
+          <Link to="/app">
             <Button variant="secondary" className="w-full">
               Back
             </Button>

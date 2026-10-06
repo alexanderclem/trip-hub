@@ -95,7 +95,7 @@ export function ConnectorConsentScreen() {
         </Card> : !error && online ? <p role="status">Loading the connection request…</p> : null}
       {!online && <p role="status" className="text-sm text-amber-900">Connect to the internet to link your account.</p>}
       {error && <div className="space-y-3"><ErrorNote error={error} />{account.kind === 'signed-in' && <Button variant="secondary" disabled={busy || !online} onClick={() => setRetry((value) => value + 1)}>Try again</Button>}</div>}
-      <Link to="/" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to your trips</Link>
+      <Link to="/app" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to your trips</Link>
     </main>
   )
 }

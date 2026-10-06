@@ -3,14 +3,22 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { chromium } from '@playwright/test'
 
-const mark = await readFile(new URL('../public/brand/stowaway-mark.svg', import.meta.url), 'utf8')
-const paths = mark.slice(mark.indexOf('>') + 1, mark.lastIndexOf('</svg>'))
+const read = (name) => readFile(new URL(`../public/brand/${name}`, import.meta.url), 'utf8')
+// Everything inside the root <svg>, minus the <title> (the outputs carry their own).
+const inner = (file) => file.slice(file.indexOf('>') + 1, file.lastIndexOf('</svg>')).replace(/<title[^>]*>[^<]*<\/title>/, '')
+const paths = inner(await read('stowaway-mark.svg'))
+// The small cut (bigger eyes, thicker handle) is for the favicon only.
+const small = inner(await read('stowaway-mark-small.svg'))
+// The drawn wordmark, 96 units tall like the mark.
+const type = inner(await read('stowaway-type.svg'))
 const svg = (width, height, content) => `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">${content}</svg>`
-const icon = svg(512, 512, `<rect width="512" height="512" fill="#f8f5ee"/><g transform="translate(76 76) scale(3.75)">${paths}</g>`)
-const wordmark = svg(460, 96, `${paths}<text x="110" y="68" fill="#183e4b" font-family="Georgia,serif" font-size="64" font-weight="700" letter-spacing="-4">stowaway<tspan fill="#ef9477">.</tspan></text>`)
-const social = svg(1200, 630, `<rect width="1200" height="630" fill="#f8f5ee"/><path d="M0 550C250 550 250 90 480 90S740 550 980 550s170-140 250-140" fill="none" stroke="#d6e4e5" stroke-width="3" stroke-dasharray="10 16"/><g transform="translate(82 70) scale(1.2)">${paths}</g><text x="215" y="151" fill="#183e4b" font-family="Georgia,serif" font-size="72" font-weight="700" letter-spacing="-4">stowaway<tspan fill="#ef9477">.</tspan></text><text x="90" y="308" fill="#183e4b" font-family="Georgia,serif" font-size="76" letter-spacing="-2">The whole trip,</text><text x="90" y="397" fill="#183e4b" font-family="Georgia,serif" font-size="76" letter-spacing="-2">tucked away.</text><text x="94" y="468" fill="#295361" font-family="Arial,sans-serif" font-size="27">Plans, places, tickets. Your people, all together.</text><text x="94" y="565" fill="#295361" font-family="Arial,sans-serif" font-size="23" letter-spacing="2">joinstowaway.app</text><g transform="translate(866 232) rotate(12 100 100) scale(2.2)">${paths}</g>`)
+const tile = (content) => svg(512, 512, `<rect width="512" height="512" fill="#f8f5ee"/><g transform="translate(76 76) scale(3.75)">${content}</g>`)
+const icon = tile(paths)
+const favicon = tile(small)
+const wordmark = svg(424, 96, `${paths}<g transform="translate(106 0)">${type}</g>`)
+const social = svg(1200, 630, `<rect width="1200" height="630" fill="#f8f5ee"/><path d="M0 550C250 550 250 90 480 90S740 550 980 550s170-140 250-140" fill="none" stroke="#d6e4e5" stroke-width="3" stroke-dasharray="10 16"/><g transform="translate(82 70) scale(1.2)">${paths}</g><g transform="translate(212 70) scale(1.2)">${type}</g><text x="90" y="308" fill="#183e4b" font-family="Georgia,serif" font-size="76" letter-spacing="-2">The whole trip,</text><text x="90" y="397" fill="#183e4b" font-family="Georgia,serif" font-size="76" letter-spacing="-2">tucked away.</text><text x="94" y="468" fill="#295361" font-family="Arial,sans-serif" font-size="27">Plans, places, tickets. Your people, all together.</text><text x="94" y="565" fill="#295361" font-family="Arial,sans-serif" font-size="23" letter-spacing="2">joinstowaway.app</text><g transform="translate(866 232) rotate(12 100 100) scale(2.2)">${paths}</g>`)
 
-await writeFile(new URL('../public/icon.svg', import.meta.url), icon)
+await writeFile(new URL('../public/icon.svg', import.meta.url), favicon)
 await writeFile(new URL('../public/brand/stowaway-wordmark.svg', import.meta.url), wordmark)
 await writeFile(new URL('../public/brand/social-preview.svg', import.meta.url), social)
 const browser = await chromium.launch({ headless: true })

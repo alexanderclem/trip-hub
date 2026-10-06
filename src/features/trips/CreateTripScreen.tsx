@@ -114,7 +114,7 @@ export function CreateTripScreen() {
 
   return (
     <div className="min-h-full">
-      <PageHeader title="New trip" back="/" />
+      <PageHeader title="New trip" back="/app" />
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-5">
         {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name; we’ll add the itinerary as tentative items, ready to edit.</p>}
         {!draftId && <Link to="/inspire" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Need a starting point? Help me plan →</Link>}

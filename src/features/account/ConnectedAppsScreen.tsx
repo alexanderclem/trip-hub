@@ -51,6 +51,6 @@ export function ConnectedAppsScreen() {
       </Card>) : <p role="status" className="text-sm text-stone-600">You have no connected apps.</p>
       : !error ? <p role="status">Loading connected apps…</p> : null}
     {error && <div className="space-y-3"><ErrorNote error={error} /><Button variant="secondary" disabled={!online} onClick={() => setRetry((value) => value + 1)}>Try again</Button></div>}
-    <Link to="/" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to your trips</Link>
+    <Link to="/app" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to your trips</Link>
   </main>
 }

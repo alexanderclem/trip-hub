@@ -142,7 +142,7 @@ export function scoreQuiz(answers: Answers, questions = QUESTIONS): Scores {
 
 /** Where to go after the quiz: a path inside the app, never another site and never the quiz itself. */
 export function safeNext(raw: string | null): string {
-  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\') || raw.startsWith('/quiz')) return '/'
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\') || raw.startsWith('/quiz')) return '/app'
   return raw
 }
 

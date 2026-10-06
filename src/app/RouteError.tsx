@@ -21,7 +21,7 @@ export function RouteError() {
       <p className="mt-3 text-sm text-stone-600">Reloading keeps your saved trips and offline changes on this device.</p>
       <div className="mt-6 flex flex-wrap items-center gap-4">
         <Button onClick={() => window.location.reload()}><RefreshCw aria-hidden="true" className="size-4" />Reload app</Button>
-        <Link className="rounded-lg px-2 py-3 font-medium text-brand-700 underline underline-offset-4" to="/">Your trips</Link>
+        <Link className="rounded-lg px-2 py-3 font-medium text-brand-700 underline underline-offset-4" to="/app">Your trips</Link>
       </div>
     </main>
   )

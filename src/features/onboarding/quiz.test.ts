@@ -55,7 +55,7 @@ describe('opening quiz', () => {
   it('only returns to paths inside the app', () => {
     expect(safeNext('/t/abc/map')).toBe('/t/abc/map')
     expect(safeNext('/t/abc/more/settings?x=1')).toBe('/t/abc/more/settings?x=1')
-    for (const bad of [null, '', 'https://evil.example', '//evil.example', '/\\evil.example', '/quiz?next=/', 'map']) expect(safeNext(bad)).toBe('/')
+    for (const bad of [null, '', 'https://evil.example', '//evil.example', '/\\evil.example', '/quiz?next=/', 'map']) expect(safeNext(bad)).toBe('/app')
     expect(tripIdOf('/t/abc/more/ideas')).toBe('abc')
     expect(tripIdOf('/inspire')).toBeUndefined()
   })
