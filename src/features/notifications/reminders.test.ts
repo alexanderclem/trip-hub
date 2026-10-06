@@ -1,7 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { ItineraryItem, Place } from '@/data/types'
 import type { Transfer } from '@/features/itinerary/travel'
 import { remindersFor } from './reminders'
+
+// Reminder formatting is independent of the backend client and its credentials.
+vi.mock('@/lib/supabase', () => ({ supabase: { rpc: vi.fn() } }))
 
 const now = Date.parse('2027-03-15T14:00:00Z')
 const item = (id: string, start: string) => ({ id, start_at: start }) as ItineraryItem
