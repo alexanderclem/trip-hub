@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { Draft } from '@/features/discovery/model'
+import type { Thread } from '@/features/stowie/script'
 import type { WeatherRow } from '@/features/itinerary/weather'
 import type { MemberPreference } from './types'
 import type { Attachment, DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip, TripTask, PackingItem, PackingCheck, MemberSafety, Comment } from './types'
@@ -40,6 +41,8 @@ export class TripDb extends Dexie {
   members!: EntityTable<Member & LocalColumns, 'id'>
   member_preferences!: EntityTable<MemberPreference & LocalColumns, 'id'>
   ai_drafts!: EntityTable<Draft, 'id'>
+  /** Conversations with Stowie; local only, like ai_drafts. */
+  stowie_threads!: EntityTable<Thread, 'scope'>
   places!: EntityTable<Place & LocalColumns, 'id'>
   links!: EntityTable<Link & LocalColumns, 'id'>
   route_legs!: EntityTable<RouteLeg & LocalColumns, 'id'>
@@ -104,6 +107,7 @@ export class TripDb extends Dexie {
     this.version(11).stores({ packing_items: 'id, trip_id, owner_id', packing_checks: 'id, trip_id, item_id' })
     this.version(12).stores({ member_safety: 'id, trip_id, member_id' })
     this.version(13).stores({ comments: 'id, trip_id, [subject_type+subject_id]' })
+    this.version(14).stores({ stowie_threads: 'scope' })
   }
 }
 

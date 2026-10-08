@@ -22,6 +22,17 @@ describe('AI request boundary', () => {
     expect(await response.json()).toEqual({ scores: NEUTRAL, explanation: 'Unknown interests stay neutral.' })
     expect(env.AI.run).toHaveBeenCalledWith('@cf/meta/llama-3.3-70b-instruct-fp8-fast', expect.objectContaining({ max_tokens: 600 }))
   })
+  it('answers a chat line in Stowie’s voice, sending no trip data and capping the reply', async () => {
+    const reply = { intent: 'plan', reply: 'Markets and slow mornings, noted.', destination: 'Oaxaca', days: 5, budget: null }
+    env.AI.run = vi.fn(async () => ({ response: JSON.stringify(reply) }))
+    const body: AIRequest = { action: 'chat', text: 'Five days of markets in Oaxaca', context: { hasProfile: true, draftTitle: null, destination: '', recent: [{ from: 'stowie', text: 'What are you imagining?' }] } }
+    const response = await worker.fetch(request(body), env)
+    expect(await response.json()).toEqual(reply)
+    expect(env.AI.run).toHaveBeenCalledWith('@cf/meta/llama-3.3-70b-instruct-fp8-fast', expect.objectContaining({ max_tokens: 300, messages: [expect.objectContaining({ content: expect.stringContaining('You are Stowie') }), expect.anything()] }))
+    env.AI.run = vi.fn(async () => ({ response: { intent: 'book', reply: '' } }))
+    expect((await worker.fetch(request(body), env)).status).toBe(502)
+    expect((await worker.fetch(request({ ...body, text: 'x'.repeat(1001) }), env)).status).toBe(400)
+  })
   it('refuses trip planning for an unjoined device', async () => {
     const body: AIRequest = { action: 'ideas', tripId: user, brief: { prompt: 'A quiet trip', destination: '', days: 1, startDate: null, budgetMinor: null, currency: 'USD' }, profiles: [{ scores: NEUTRAL, description: '', constraints: '' }], mode: 'everyone', requiredAxes: [], previous: null, places: [], existingPlan: [] }
     expect((await worker.fetch(request(body), env)).status).toBe(403)

@@ -73,6 +73,13 @@ export const briefSchema = z.object({
   budgetMinor: z.number().int().min(0).max(100000000).nullable(), currency: z.string().regex(/^[A-Z]{3}$/),
 })
 export type Brief = z.infer<typeof briefSchema>
+/** What Stowie makes of one free-text line: what the person wants, any details they stated, and a short reply. */
+export const chatReplySchema = z.object({
+  intent: z.enum(['plan', 'refine', 'preferences', 'other']), reply: z.string().min(1).max(400),
+  destination: z.string().max(160).nullable(), days: z.number().int().min(1).max(14).nullable(),
+  budget: z.number().min(0).max(1000000).nullable(),
+})
+export type ChatReply = z.infer<typeof chatReplySchema>
 export const requestSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('profile'), description: z.string().min(1).max(2000) }),
   z.object({
@@ -82,6 +89,13 @@ export const requestSchema = z.discriminatedUnion('action', [
     previous: ideaSchema.nullable(),
     places: z.array(z.object({ id: z.string().uuid(), name: z.string().max(160), category: z.string().max(40), area: z.string().max(160).nullable() })).max(100),
     existingPlan: z.array(z.object({ title: z.string().max(160), start: z.string().max(40), end: z.string().max(40).nullable(), status: z.string().max(30) })).max(100),
+  }),
+  z.object({
+    action: z.literal('chat'), text: z.string().min(1).max(1000),
+    context: z.object({
+      hasProfile: z.boolean(), draftTitle: z.string().max(120).nullable(), destination: z.string().max(160),
+      recent: z.array(z.object({ from: z.enum(['stowie', 'me']), text: z.string().max(500) })).max(6),
+    }),
   }),
 ])
 export type AIRequest = z.infer<typeof requestSchema>

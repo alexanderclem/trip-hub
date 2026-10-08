@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { ArrowLeft, ArrowRight, Check, Compass } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { useDevice } from '@/data/device'
 import { classify, type Scores } from '@/features/discovery/model'
 import { RadarChart } from '@/features/discovery/RadarChart'
+import { Bubble } from '@/features/stowie/chat'
+import type { Mood } from '@/features/stowie/script'
+import { Stowie } from '@/features/stowie/Stowie'
 import { Button, ErrorNote } from '@/ui'
-import { Brand } from '@/ui/Brand'
 import { QUESTIONS, safeNext, scoreQuiz, tripIdOf, type Answers } from './quiz'
 import { saveQuizResult } from './profile'
 
 type Step = 'intro' | number | 'reveal'
 
-/** The travel-style quiz: one this-or-that question per screen, then the radar it produced. */
+/** The travel-style quiz as a chat with Stowie: one this-or-that question at a time, then the radar it produced. */
 export function QuizScreen() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -28,11 +30,19 @@ export function QuizScreen() {
   const [scores, setScores] = useState<Scores | null>(null)
   const [error, setError] = useState<string | null>(null)
   const heading = useRef<HTMLHeadingElement>(null)
+  const [mood, setMood] = useState<Mood>('talking')
 
-  // Each step is a new screen: move focus to its heading so screen readers announce it.
+  // Each step is a new question: move focus to its heading so screen readers announce it.
   useEffect(() => {
-    heading.current?.focus()
+    heading.current?.focus({ preventScroll: true })
+    heading.current?.scrollIntoView({ block: 'nearest' })
   }, [step])
+  // Stowie reacts for a moment, then settles. The result keeps it happy.
+  useEffect(() => {
+    if (mood === 'idle' || step === 'reveal') return
+    const timer = setTimeout(() => setMood('idle'), 900)
+    return () => clearTimeout(timer)
+  }, [mood, step])
 
   const leave = () => navigate(next, { replace: true })
 
@@ -45,6 +55,7 @@ export function QuizScreen() {
     const q = QUESTIONS[index]!
     const updated = { ...answers, [q.id]: choice }
     setAnswers(updated)
+    setMood('delighted')
     if (index < QUESTIONS.length - 1) {
       setStep(index + 1)
       return
@@ -62,17 +73,18 @@ export function QuizScreen() {
 
   if (step === 'reveal' && scores) {
     return (
-      <Screen>
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">Your travel style</p>
+      <Screen mood="delighted">
+        <Bubble from="stowie">That’s all I need. Here’s how you travel.</Bubble>
+        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">Your travel style</p>
         <h1 ref={heading} tabIndex={-1} className="travel-heading mt-2 text-4xl text-brand-900 outline-none">{classify(scores)}</h1>
         <p className="mt-3 leading-relaxed text-stone-600">
-          This is your radar. The group’s trip ideas balance everyone’s, and you can fine-tune yours any time in More → Trip ideas.
+          This is your radar. The group’s trip ideas balance everyone’s, and you can fine-tune yours any time by asking me in More → Trip ideas.
         </p>
         <div className="mt-4"><RadarChart scores={scores} label="Your travel style" /></div>
         <ErrorNote error={error} />
         <div className="mt-6 space-y-2">
           <Button className="w-full" onClick={leave}>{tripId ? 'Open the trip' : 'Continue'}<ArrowRight aria-hidden="true" className="size-4" /></Button>
-          <Button variant="ghost" className="w-full" onClick={() => { setAnswers({}); setError(null); setStep(0) }}>Take it again</Button>
+          <Button variant="ghost" className="w-full" onClick={() => { setAnswers({}); setError(null); setMood('talking'); setStep(0) }}>Take it again</Button>
         </div>
       </Screen>
     )
@@ -80,12 +92,14 @@ export function QuizScreen() {
 
   if (step === 'intro' || step === 'reveal') {
     return (
-      <Screen>
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Compass aria-hidden="true" className="size-6" /></span>
-        <h1 ref={heading} tabIndex={-1} className="travel-heading mt-5 text-4xl text-brand-900 outline-none">
-          {retake ? 'Retake the travel quiz' : 'What kind of traveler are you?'}
-        </h1>
-        <p className="mt-3 leading-relaxed text-stone-600">
+      <Screen mood={mood}>
+        <Bubble from="stowie">Hi, I’m Stowie. I ride along in the suitcase and think about trips all day.</Bubble>
+        <div className="mt-3"><Bubble from="stowie">
+          <h1 ref={heading} tabIndex={-1} className="travel-heading inline text-2xl text-brand-900 outline-none">
+            {retake ? 'Retake the travel quiz' : 'What kind of traveler are you?'}
+          </h1>
+        </Bubble></div>
+        <p className="mt-5 leading-relaxed text-stone-600">
           {QUESTIONS.length} quick this-or-that questions, about a minute. Your answers draw your travel radar, so the group can plan days everyone enjoys.
         </p>
         <ul className="mt-5 space-y-2 text-sm text-stone-700">
@@ -94,7 +108,7 @@ export function QuizScreen() {
           ))}
         </ul>
         <div className="mt-8 space-y-2">
-          <Button className="w-full" onClick={() => setStep(0)}>Start the quiz<ArrowRight aria-hidden="true" className="size-4" /></Button>
+          <Button className="w-full" onClick={() => { setMood('talking'); setStep(0) }}>Start the quiz<ArrowRight aria-hidden="true" className="size-4" /></Button>
           <Button variant="ghost" className="w-full" onClick={skip}>{retake ? 'Not now' : 'Skip for now'}</Button>
         </div>
       </Screen>
@@ -104,9 +118,9 @@ export function QuizScreen() {
   const q = QUESTIONS[step]!
   const picked = answers[q.id]
   return (
-    <Screen>
+    <Screen mood={mood}>
       <div className="flex items-center justify-between gap-2">
-        <Button variant="ghost" className="-ml-4" onClick={() => setStep(step === 0 ? 'intro' : step - 1)}>
+        <Button variant="ghost" className="-ml-4" onClick={() => { setMood('talking'); setStep(step === 0 ? 'intro' : step - 1) }}>
           <ArrowLeft aria-hidden="true" className="size-4" />Back
         </Button>
         <span className="text-sm tabular-nums text-stone-500">{step + 1} of {QUESTIONS.length}</span>
@@ -115,8 +129,22 @@ export function QuizScreen() {
       <div role="progressbar" aria-label="Quiz progress" aria-valuemin={1} aria-valuemax={QUESTIONS.length} aria-valuenow={step + 1} className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200">
         <div className="h-full rounded-full bg-brand-700 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }} />
       </div>
-      <h1 ref={heading} tabIndex={-1} id={`q-${q.id}`} className="travel-heading mt-8 text-3xl text-brand-900 outline-none">{q.prompt}</h1>
-      <div role="radiogroup" aria-labelledby={`q-${q.id}`} className="mt-6 space-y-3">
+      {/* What's been said so far scrolls up above the current question, like any chat. */}
+      <div className="mt-5 space-y-3">
+        {QUESTIONS.slice(Math.max(0, step - 1), step).map((earlier) => {
+          const choice = answers[earlier.id]
+          return (
+            <div key={earlier.id} className="space-y-3 opacity-60">
+              <Bubble from="stowie">{earlier.prompt}</Bubble>
+              {choice !== undefined && <Bubble from="me">{earlier.options[choice]?.label}</Bubble>}
+            </div>
+          )
+        })}
+        <Bubble key={q.id} from="stowie">
+          <h1 ref={heading} tabIndex={-1} id={`q-${q.id}`} className="travel-heading inline text-2xl text-brand-900 outline-none">{q.prompt}</h1>
+        </Bubble>
+      </div>
+      <div role="radiogroup" aria-labelledby={`q-${q.id}`} className="mt-5 space-y-3">
         {q.options.map((o, i) => (
           <button
             key={o.label}
@@ -134,10 +162,10 @@ export function QuizScreen() {
   )
 }
 
-function Screen({ children }: { children: ReactNode }) {
+function Screen({ mood, children }: { mood: Mood; children: ReactNode }) {
   return (
     <main className="mx-auto min-h-full max-w-md px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.25rem)]">
-      <Brand className="mb-6 scale-90 origin-left" />
+      <Stowie mood={mood} size={84} className="mb-4" />
       {children}
     </main>
   )

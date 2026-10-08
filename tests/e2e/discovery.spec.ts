@@ -14,6 +14,17 @@ const result: IdeaResult = { ideas: [{ title: 'Markets and coastal mornings', de
   days: [{ title: 'Gallery morning', activities: [{ title: 'Explore the museum', kind: 'activity', time: '11:00', durationMinutes: 90, placeName: null, existingPlaceId: null, notes: 'Verify hours.', costMinor: 2500 }] }], tasks: [],
 }] }
 
+// Stowie's reading of a typed line: a change to the draft, or a one-day plan in California.
+const chatReply = (text: string) => /downtime|slower/i.test(text)
+  ? { intent: 'refine', reply: 'More room to breathe, got it.', destination: null, days: null, budget: null }
+  : { intent: 'plan', reply: 'A slow day by the sea, noted.', destination: 'California', days: 1, budget: null }
+/** The hand editor sits behind Stowie's chat; getting there by links keeps both routes loaded for offline steps. */
+async function openEditor(page: Page) {
+  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  await page.getByRole('link', { name: 'Edit by hand' }).click()
+  await page.waitForURL(/\/more\/ideas\/manual$/)
+}
+
 async function mockNetwork(page: Page, calls: AIRequest[]) {
   await page.route('**/auth/v1/**', (route) => route.fulfill({ json: { id: USER, aud: 'authenticated', role: 'authenticated', email: '', app_metadata: {}, user_metadata: {}, is_anonymous: true, created_at: '2026-10-02T00:00:00Z' } }))
   const rows = new Map<string, Record<string, unknown>[]>()
@@ -41,6 +52,7 @@ async function mockNetwork(page: Page, calls: AIRequest[]) {
     calls.push(body)
     const revision = structuredClone(result)
     if (body.action === 'ideas' && body.tripId && body.previous) revision.ideas[0]!.days[0]!.activities[0]!.title = 'A slower food market morning'
+    if (body.action === 'chat') { await route.fulfill({ json: chatReply(body.text) }); return }
     await route.fulfill({ json: body.action === 'profile' ? { scores, explanation: 'Food and nature lead; nightlife is low.' } : revision })
   })
   await page.addInitScript(({ user }) => {
@@ -75,7 +87,7 @@ async function seedTrip(page: Page, ideas: IdeaResult) {
 test('preferences become a radar profile, generate ideas, filter, refine and survive reload', async ({ page }) => {
   const calls: AIRequest[] = []
   await mockNetwork(page, calls)
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await page.getByRole('textbox', { name: 'What does your ideal trip feel like?' }).fill(profile.description)
   await page.getByRole('button', { name: 'Let AI suggest my scores' }).click()
   await expect(page.getByRole('slider', { name: 'Food', exact: true })).toHaveValue('95')
@@ -120,7 +132,7 @@ test('a failed score suggestion shows feedback beside the button and can be retr
     if (attempts === 1) await route.fulfill({ status: 503, json: { error: 'AI planning is temporarily unavailable. Try again.' } })
     else await route.fulfill({ json: { scores, explanation: 'Nature and food matter most.' } })
   })
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await page.getByRole('textbox', { name: 'What does your ideal trip feel like?' }).fill('Food and quiet nature')
   await page.getByRole('button', { name: 'Let AI suggest my scores' }).click()
   const error = page.getByRole('alert')
@@ -139,7 +151,7 @@ test('group radar excludes missing profiles, updates membership and applies and 
   await mockNetwork(page, calls)
   await page.goto('/inspire') // opens the current IndexedDB schema
   await seedTrip(page, result)
-  await page.goto(`/t/${TRIP}/more/ideas`)
+  await page.goto(`/t/${TRIP}/more/ideas/manual`)
   await expect(page.getByText('2 of 3 travelers included.', { exact: false })).toBeVisible()
   await expect(page.getByRole('checkbox', { name: 'Lee · Needs a profile' })).toBeDisabled()
   await expect(page.getByText(/Different tastes: Nature, Nightlife/)).toBeVisible()
@@ -152,15 +164,14 @@ test('group radar excludes missing profiles, updates membership and applies and 
   // Load the lazy calendar route before testing offline navigation.
   await page.goto(`/t/${TRIP}/plan`)
   await expect(page.getByText('Nothing planned yet', { exact: true })).toBeVisible()
-  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  await openEditor(page)
   await context.setOffline(true)
   await page.locator('section').filter({ has: page.getByRole('heading', { name: result.ideas[0]!.title }) }).last().getByRole('button', { name: 'Add draft to plan' }).click()
   await expect(page.getByText(/Added 1 tentative items/)).toBeVisible()
   await page.getByRole('link', { name: 'Open plan' }).click()
   await page.waitForURL(/\/plan$/)
   await expect(page.getByRole('link', { name: 'Visit the food market', exact: true })).toBeVisible()
-  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
-  await page.waitForURL(/\/more\/ideas$/)
+  await openEditor(page)
   await context.setOffline(false)
   await page.locator('section').filter({ has: page.getByRole('heading', { name: result.ideas[0]!.title }) }).last().getByRole('button', { name: 'Refine this idea' }).click()
   await page.getByRole('textbox', { name: 'What would you change?' }).fill('A slower morning at the market')
@@ -174,8 +185,7 @@ test('group radar excludes missing profiles, updates membership and applies and 
   await page.waitForURL(/\/plan$/)
   await expect(page.getByRole('link', { name: 'A slower food market morning', exact: true })).toBeVisible()
   await expect(page.getByText('Visit the food market', { exact: true })).toHaveCount(0)
-  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
-  await page.waitForURL(/\/more\/ideas$/)
+  await openEditor(page)
   await context.setOffline(true)
   await page.getByRole('button', { name: 'Undo unedited additions' }).click()
   await expect(page.getByText(/Removed 3 generated entries/)).toBeVisible()
@@ -196,7 +206,7 @@ test('an overlapping draft explains the empty plan and can be refined and added'
   activities[0]!.durationMinutes = 120
   activities.push({ ...activities[0]!, title: 'Sunset at El Arco', time: '18:00', durationMinutes: 60 })
   await seedTrip(page, overlapping)
-  await page.goto(`/t/${TRIP}/more/ideas`)
+  await page.goto(`/t/${TRIP}/more/ideas/manual`)
   await page.getByText('Preview daily itinerary', { exact: true }).click()
   await expect(page.getByText('17:00–19:00', { exact: true })).toBeVisible()
   await expect(page.getByText('18:00–19:00', { exact: true })).toBeVisible()
@@ -205,7 +215,7 @@ test('an overlapping draft explains the empty plan and can be refined and added'
   await page.goto(`/t/${TRIP}/plan`)
   await expect(page.getByText('Nothing planned yet', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: /Sunset at El Arco/ })).toHaveCount(0)
-  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  await openEditor(page)
   await page.getByRole('button', { name: 'Refine this idea' }).click()
   await page.getByRole('textbox', { name: 'What would you change?' }).fill('Give the market and sunset separate times, keeping sunset in the evening')
   await page.getByRole('spinbutton', { name: /^Days/ }).fill('1')
@@ -218,4 +228,98 @@ test('an overlapping draft explains the empty plan and can be refined and added'
   await expect(page.getByText(/Added 1 tentative items/)).toBeVisible()
   await page.getByRole('link', { name: 'Open plan' }).click()
   await expect(page.getByRole('link', { name: 'A slower food market morning', exact: true })).toBeVisible()
+})
+
+const SHOTS = process.env.SHOTS_DIR
+const say = async (page: Page, text: string) => {
+  await page.getByRole('textbox', { name: 'Message Stowie' }).fill(text)
+  await page.getByRole('button', { name: 'Send' }).click()
+}
+
+test('Stowie learns a travel style, sketches from a typed line, revises, and survives reload', async ({ page }) => {
+  const calls: AIRequest[] = []
+  await mockNetwork(page, calls)
+  await page.goto('/inspire')
+  const log = page.getByRole('log', { name: 'Conversation with Stowie' })
+  await expect(log.getByText(/I’d like to know how you travel/)).toBeVisible()
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-1-hello.png` })
+  await page.getByRole('button', { name: 'Tell you myself' }).click()
+  await say(page, profile.description)
+  await expect(page.getByRole('img', { name: 'Suggested travel style' })).toBeVisible()
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-2-style.png` })
+  await page.getByRole('button', { name: 'Yes, save it' }).click()
+  await expect(log.getByText('Now, what are you imagining?')).toBeVisible()
+
+  // One typed line carries the place and the length, so Stowie asks only about budget.
+  await say(page, 'One relaxed day on the California coast')
+  await expect(log.getByText('A slow day by the sea, noted.')).toBeVisible()
+  await page.getByRole('button', { name: 'No limit in mind' }).click()
+  await expect(page.getByRole('heading', { name: result.ideas[0]!.title })).toBeVisible()
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-3-draft.png` })
+  expect(calls.map((c) => c.action)).toEqual(['profile', 'chat', 'ideas'])
+  const first = calls[2] as Extract<AIRequest, { action: 'ideas' }>
+  expect(first.brief).toMatchObject({ prompt: 'One relaxed day on the California coast', destination: 'California', days: 1, budgetMinor: null })
+  expect(first.profiles[0]?.scores.food).toBe(95)
+
+  await say(page, 'Keep the market, add more downtime')
+  await expect(log.getByText('Here’s the revision. Tell me if it’s closer.')).toBeVisible()
+  const revision = calls.at(-1) as Extract<AIRequest, { action: 'ideas' }>
+  expect(revision.previous?.title).toBe(result.ideas[0]!.title)
+  expect(revision.brief.days).toBe(1)
+
+  await page.reload()
+  await expect(log.getByText('Here’s the revision. Tell me if it’s closer.')).toBeVisible()
+  await page.getByRole('button', { name: 'Build this trip' }).click()
+  await page.waitForURL(/\/new\?draft=/)
+  await expect(page.getByLabel('Trip name', { exact: true })).toHaveValue(result.ideas[0]!.title)
+})
+
+test('Stowie adds a saved draft to the trip offline, and says so when it cannot reach the planner', async ({ page, context }) => {
+  const calls: AIRequest[] = []
+  await mockNetwork(page, calls)
+  await page.goto('/inspire') // opens the current IndexedDB schema
+  await seedTrip(page, result)
+  // Load the plan and chat routes before going offline.
+  await page.goto(`/t/${TRIP}/plan`)
+  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  const log = page.getByRole('log', { name: 'Conversation with Stowie' })
+  await expect(log.getByText(/I have travel styles for 2 of you/)).toBeVisible()
+  await context.setOffline(true)
+  await say(page, 'Somewhere with a beach')
+  await expect(log.getByText(/I can’t reach the planner without a connection/)).toBeVisible()
+  expect(calls).toEqual([])
+  await page.getByRole('button', { name: 'Show my last draft' }).click()
+  await expect(page.getByRole('heading', { name: result.ideas[0]!.title })).toBeVisible()
+  await page.getByRole('button', { name: 'Add it to the plan' }).click()
+  await expect(log.getByText(/1 tentative item is in the plan/)).toBeVisible()
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-4-applied.png` })
+  await page.getByRole('button', { name: 'Open the plan' }).click()
+  await page.waitForURL(/\/plan$/)
+  await expect(page.getByRole('link', { name: 'Visit the food market', exact: true })).toBeVisible()
+  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  await page.getByRole('button', { name: 'Undo that' }).click()
+  await expect(log.getByText(/Removed 3 generated entries/)).toBeVisible()
+})
+
+test('Stowie hosts the quiz and picks the conversation back up with the result', async ({ page }) => {
+  await mockNetwork(page, [])
+  await page.goto('/inspire')
+  await page.getByRole('button', { name: 'Take the quiz' }).click()
+  await page.waitForURL(/\/quiz\?next=%2Finspire$/)
+  await page.getByRole('button', { name: 'Start the quiz' }).click()
+  const progress = page.getByRole('progressbar', { name: 'Quiz progress' })
+  const total = Number(await progress.getAttribute('aria-valuemax'))
+  for (let i = 0; i < total; i++) {
+    await expect(progress).toHaveAttribute('aria-valuenow', String(i + 1))
+    if (i === 2 && SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-5-quiz.png` })
+    await page.getByRole('radio').first().click()
+  }
+  await expect(page.getByRole('img', { name: /Your travel style/ })).toBeVisible()
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-6-quiz-result.png` })
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.waitForURL(/\/inspire$/)
+  const log = page.getByRole('log', { name: 'Conversation with Stowie' })
+  await expect(log.getByText(/^Stowie: Saved\. I’d call you a /)).toBeVisible()
+  await expect(log.getByText('Now, what are you imagining?')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Surprise me' })).toBeVisible()
 })

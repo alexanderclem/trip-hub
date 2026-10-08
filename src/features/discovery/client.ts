@@ -1,10 +1,11 @@
 import { ensureSession, supabase } from '@/lib/supabase'
-import { inferredProfileSchema, ideasSchema, type AIRequest } from './model'
+import { chatReplySchema, inferredProfileSchema, ideasSchema, type AIRequest } from './model'
 
 export async function requestAI(request: AIRequest, signal?: AbortSignal) {
   const controller = new AbortController()
   const cancel = () => controller.abort(new Error('Idea generation cancelled. You can try again.'))
-  const timer = setTimeout(() => controller.abort(new Error('The planner took too long. Try again with fewer days or a shorter brief.')), 90000)
+  // A chat line is one short reply; a draft can take over a minute.
+  const timer = setTimeout(() => controller.abort(new Error('The planner took too long. Try again with fewer days or a shorter brief.')), request.action === 'chat' ? 20000 : 90000)
   signal?.addEventListener('abort', cancel, { once: true })
   if (signal?.aborted) cancel()
   let onAbort: () => void = () => {}
@@ -39,5 +40,5 @@ async function performRequest(request: AIRequest, signal: AbortSignal) {
     const error = typeof body === 'object' && body && 'error' in body ? String(body.error) : 'Could not generate ideas. Try again.'
     throw new Error(error)
   }
-  return request.action === 'profile' ? inferredProfileSchema.parse(body) : ideasSchema.parse(body)
+  return request.action === 'profile' ? inferredProfileSchema.parse(body) : request.action === 'chat' ? chatReplySchema.parse(body) : ideasSchema.parse(body)
 }

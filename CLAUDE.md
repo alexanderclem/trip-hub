@@ -41,6 +41,7 @@ src/data/         types.ts (row types), db.ts (Dexie schema), repo.ts (save/save
 src/data/sync/    engine.ts (push/pull), remote.ts (Supabase adapter), controller.ts (timers, realtime)
 src/features/     onboarding/ (welcome, travel quiz) trips/ places/ map/ map/offline/ routing/ polls/ ratings/ itinerary/ money/ tickets/ offline/
                   packing/ notifications/ (push) emergency/ scan/ (photo → text) wrapped/ (trip recap)
+                  discovery/ (profiles, drafts, hand editor) stowie/ (the mascot chat over discovery; docs/STOWIE.md)
 src/ui/           index.tsx (Button, Field, Input, Card, PageHeader…), collection.tsx (adapted shadcn)
 supabase/migrations/          SQL, applied in filename order
 supabase/functions/route-legs Edge Function (routing.ts is pure and unit-tested)

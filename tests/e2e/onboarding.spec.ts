@@ -49,7 +49,7 @@ test('opening sequence: welcome → create → quiz → trip; a friend joins, sk
   // Not asked again, and the result is this trip's profile.
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Invite the group' })).toBeVisible()
-  await page.goto(`${tripPath}/more/ideas`)
+  await page.goto(`${tripPath}/more/ideas/manual`)
   await expect(page.getByRole('link', { name: 'Retake the quiz' })).toBeVisible()
   await expect(page.getByRole('checkbox', { name: 'Alex (you)' })).toBeEnabled()
 
@@ -66,7 +66,7 @@ test('opening sequence: welcome → create → quiz → trip; a friend joins, sk
   await expect(pageB).toHaveURL(/\/map$/)
 
   // Alex's quiz reached the server: Sam's phone lists Alex as having a profile.
-  await pageB.goto(`${tripPath}/more/ideas`)
+  await pageB.goto(`${tripPath}/more/ideas/manual`)
   await expect(pageB.getByRole('checkbox', { name: 'Alex', exact: true })).toBeEnabled({ timeout: 75_000 })
   await expect(pageB.getByRole('checkbox', { name: 'Sam (you) · Needs a profile' })).toBeDisabled()
   await expect(pageB.getByRole('link', { name: 'Take the quiz' })).toBeVisible()

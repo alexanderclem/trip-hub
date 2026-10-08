@@ -2,6 +2,8 @@
 
 Entry points: Home → **Help me plan**, New trip → **Need a starting point?**, or a trip’s More → **Trip ideas & travel preferences**. The Plan tab also links to ideas.
 
+All of these now open **Stowie**, a chat that collects the brief and shows drafts (`docs/STOWIE.md`). The form described below is its **Edit by hand** view at `/inspire/manual` and `/t/:tripId/more/ideas/manual`; profiles, matching, drafts and the Worker endpoint are shared by both.
+
 ## Opening quiz (`src/features/onboarding`)
 
 Most people get their profile from the opening sequence: the welcome screen (`/` while the phone has no trips: create, join by link, or Google sign-in), then **join/create**, then the travel quiz at `/quiz?next=<path>`, then the app. The quiz is 10 this-or-that scenarios (`quiz.ts`); each answer carries small positive and negative weights on several axes. `scoreQuiz` starts every axis at 50 and moves it towards 100 or 0 in proportion to how far that axis could go across all questions, rounded to 5. Unit tests check that every axis can reach ≥65 and ≤35 and that no question carries more than 40% of an axis.
