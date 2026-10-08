@@ -20,7 +20,8 @@ describe('traffic driving routes', () => {
     const result = await computeTrafficRoute(from, to, 'server-key', fetcher as typeof fetch)
     const init = fetcher.mock.calls[0]?.[1] as RequestInit | undefined
     const body = JSON.parse(init?.body as string)
-    expect(body).toMatchObject({ origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } }, destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } }, travelMode: 'DRIVE', routingPreference: 'TRAFFIC_AWARE_OPTIMAL', departureTime: result.departure_at })
+    expect(body).toMatchObject({ origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } }, destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } }, travelMode: 'DRIVE', routingPreference: 'TRAFFIC_AWARE_OPTIMAL' })
+    expect(body).not.toHaveProperty('departureTime')
     expect(result).toMatchObject({ duration_s: 1235, distance_m: 76543 })
     expect(init?.headers).toMatchObject({ 'X-Goog-Api-Key': 'server-key', 'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters' })
   })

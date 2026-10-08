@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 const base = '/t/00000000-0000-4000-8000-000000000901'
-test.beforeEach(async ({ page }) => {
-  await page.route('https://**/*', route => route.abort())
+test.beforeEach(async ({ page, baseURL }) => {
+  await page.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL!).origin, route => route.abort())
   await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
   await page.goto('/inspire')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()

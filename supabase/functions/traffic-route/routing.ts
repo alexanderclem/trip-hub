@@ -15,6 +15,8 @@ export async function computeTrafficRoute(from: Point, to: Point, key: string, f
   if (!validPoint(from) || !validPoint(to)) throw new Error('Both places need valid map pins.')
   const departure = new Date().toISOString()
   const waypoint = (p: Point) => ({ location: { latLng: { latitude: p.lat, longitude: p.lng } } })
+  // Let Google set departure to receipt time: an explicit 'now' can be in the
+  // past by the time the network request arrives and is rejected for driving.
   const response = await fetchFn('https://routes.googleapis.com/directions/v2:computeRoutes', {
     method: 'POST',
     headers: {
@@ -22,7 +24,7 @@ export async function computeTrafficRoute(from: Point, to: Point, key: string, f
       'X-Goog-Api-Key': key,
       'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters',
     },
-    body: JSON.stringify({ origin: waypoint(from), destination: waypoint(to), travelMode: 'DRIVE', routingPreference: 'TRAFFIC_AWARE_OPTIMAL', departureTime: departure }),
+    body: JSON.stringify({ origin: waypoint(from), destination: waypoint(to), travelMode: 'DRIVE', routingPreference: 'TRAFFIC_AWARE_OPTIMAL' }),
     signal: AbortSignal.timeout(15_000),
   })
   if (!response.ok) {

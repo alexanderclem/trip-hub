@@ -2,9 +2,9 @@ import { devices, expect, test, type Page } from '@playwright/test'
 
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Take Stowaway with you' })
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, baseURL }) => {
   // These checks use only this browser's data, with no server-side trips or sign-ins.
-  await page.route('https://**/*', (route) => route.abort())
+  await page.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL!).origin, (route) => route.abort())
 })
 
 test('mobile app entry shows iPhone instructions and remembers dismissal for the session', async ({ page }) => {

@@ -14,11 +14,14 @@ browser goes offline. They are never saved in IndexedDB or Supabase.
 3. Add `GOOGLE_ROUTES_API_KEY` to the linked Supabase project's Edge Function
    secrets using the Supabase dashboard. Do not paste the key into chat.
 4. Deploy `supabase/functions/traffic-route` with the Supabase CLI:
-   `supabase functions deploy traffic-route --project-ref croqjdvzbpcscdcshnet`
+   `supabase functions deploy traffic-route --project-ref croqjdvzbpcscdcshnet --no-verify-jwt`
 5. Build and publish the frontend through the existing Cloudflare workflow.
 6. Set an appropriate Google Routes request quota and billing alerts in Google
    Cloud before enabling usage. Billing alerts do not cap spend. Only explicit
    button clicks request a route; there are no background or all-pairs requests.
+
+The function validates authentication with `auth.getUser()` internally; the CLI flag
+uses that check instead of the legacy gateway JWT verifier.
 
 The endpoint validates the caller's Supabase session and loads both places
 through row-level security. Both places must be accessible to that caller,
@@ -44,3 +47,12 @@ After activation, check a place pair in both directions, refresh, try offline,
 and verify that a failed check leaves the existing planning estimate available.
 Live Google accuracy and credential configuration cannot be verified without
 an enabled server secret.
+
+## Activation verified October 8, 2026
+
+The function is deployed. Live Google checks succeeded for both directions of a
+synthetic place pair. Missing authentication returns 401 and inaccessible places
+return 403. Departure time is omitted from the Google request to use Google's
+request-time default (an explicit local "now" can arrive in the past). Public
+`/privacy` and `/terms` pages are available on joinstowaway.app. Google Cloud
+quotas have not been inspected; set a low daily quota in the Google project.
