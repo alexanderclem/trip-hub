@@ -64,8 +64,31 @@ export function parseShareToken(input: string): string | null {
   return /^[A-Za-z0-9_-]{16,}$/.test(s) ? s : null
 }
 
-export function shareLink(token: string): string {
-  return `${location.origin}/join#t=${token}`
+/** The invite link. With `to` (for example `vote/<poll id>`), joining lands on that page. */
+export function shareLink(token: string, to?: string): string {
+  return `${location.origin}/join${to ? `?to=${to}` : ''}#t=${token}`
+}
+
+const JOIN_TARGET = /[?&]to=vote\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?=$|[&#])/i
+
+/**
+ * Where a shared link wants to land inside the trip, as a path under `/t/<trip>/`. Only known
+ * shapes are accepted, so a crafted link can't send people anywhere else.
+ */
+export function parseJoinTarget(input: string): string | null {
+  const m = input.match(JOIN_TARGET)
+  return m ? `more/vote/${m[1]!.toLowerCase()}` : null
+}
+
+/** The `?to=` form of a target from `parseJoinTarget`, for passing it on to the next screen. */
+export function joinTargetQuery(target: string | null): string {
+  return target ? `?to=${target.replace(/^more\//, '')}` : ''
+}
+
+/** A trip already on this phone, with a claimed person, that this invite token belongs to. */
+export async function joinedTripForToken(token: string): Promise<string | null> {
+  const trip = await db.trips.filter((t) => t.share_token === token && !t.deleted_at).first()
+  return trip && useDevice.getState().trips[trip.id]?.memberId ? trip.id : null
 }
 
 /**

@@ -8,7 +8,7 @@ import { isIOS, isStandalone } from '@/features/map/offline/OfflineMapCard'
 
 const VAPID_PUBLIC_KEY = (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ?? ''
 
-export const DEFAULT_PREFS: PushPrefs = { leave: true, vote: true, expense: true, task: true }
+export const DEFAULT_PREFS: PushPrefs = { leave: true, vote: true, expense: true, task: true, comment: true }
 
 export type PushSupport = 'ok' | 'install' | 'unsupported' | 'blocked'
 

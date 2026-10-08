@@ -1,7 +1,7 @@
 // What each queued event says on the lock screen. Pure, so it is unit-tested with Vitest; the
 // Edge Function (index.ts) only fetches, sends and records failures.
 
-export type EventKind = 'vote' | 'vote_nudge' | 'expense' | 'task' | 'task_due' | 'leave'
+export type EventKind = 'vote' | 'vote_nudge' | 'vote_closing' | 'vote_closed' | 'expense' | 'task' | 'task_due' | 'leave' | 'comment'
 
 export interface Subscription {
   endpoint: string
@@ -51,6 +51,20 @@ export function compose(e: QueuedEvent): Notice {
       return { title: `New vote in ${trip}`, body: `${str(d.by) || 'Someone'} asks: ${str(d.title)}. Tap to vote.`, url: `${base}/more/vote/${str(d.poll_id)}`, tag: `vote:${str(d.poll_id)}` }
     case 'vote_nudge':
       return { title: 'Your vote is missing', body: `${str(d.title)} is still open in ${trip}.`, url: `${base}/more/vote/${str(d.poll_id)}`, tag: `vote:${str(d.poll_id)}` }
+    case 'vote_closing':
+      return { title: 'Voting closes soon', body: `${str(d.title)} in ${trip} still needs your vote.`, url: `${base}/more/vote/${str(d.poll_id)}`, tag: `vote:${str(d.poll_id)}` }
+    case 'vote_closed':
+      return { title: str(d.winner) ? `Decided: ${str(d.winner)}` : 'Voting has ended', body: `${str(d.title)} · ${trip}`, url: `${base}/more/vote/${str(d.poll_id)}`, tag: `vote:${str(d.poll_id)}` }
+    case 'comment': {
+      const path = d.subject_type === 'poll' ? 'more/vote' : d.subject_type === 'place' ? 'more/places' : 'plan'
+      return {
+        title: `${str(d.by) || 'Someone'} on ${str(d.subject) || trip}`,
+        body: str(d.body),
+        url: `${base}/${path}/${str(d.subject_id)}`,
+        // One notification per conversation: a newer comment replaces the older one.
+        tag: `comment:${str(d.subject_id)}`,
+      }
+    }
     case 'expense': {
       const share = Number(d.share_minor)
       const currency = str(d.currency)

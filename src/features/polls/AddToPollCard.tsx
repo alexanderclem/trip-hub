@@ -4,11 +4,12 @@ import { Check, Vote } from 'lucide-react'
 import type { Place } from '@/data/types'
 import { Button, Card, Select } from '@/ui'
 import { addOption, createPoll, usePollsForPlace } from './data'
+import { votingEnded } from './rank'
 
 /** Put this place up for a group vote: add it to an open poll, or start a new one. */
 export function AddToPollCard({ place, memberId }: { place: Place; memberId: string }) {
   const polls = usePollsForPlace(place.trip_id, place.id) ?? []
-  const open = polls.filter((p) => p.poll.status === 'open' && !p.includesPlace)
+  const open = polls.filter((p) => !votingEnded(p.poll, Date.now()) && p.poll.kind !== 'dates' && !p.includesPlace)
   const included = polls.filter((p) => p.includesPlace)
   const [choice, setChoice] = useState('')
   const selected = open.find((p) => p.poll.id === choice)?.poll ?? open[0]?.poll
@@ -21,7 +22,7 @@ export function AddToPollCard({ place, memberId }: { place: Place; memberId: str
           {included.map(({ poll }) => (
             <li key={poll.id}>
               <Link to={`/t/${place.trip_id}/more/vote/${poll.id}`} className="flex min-h-11 items-center gap-2 text-sm text-brand-700">
-                <Check aria-hidden="true" className="size-4" /> In “{poll.title}”{poll.status === 'closed' ? ' (closed)' : ''}
+                <Check aria-hidden="true" className="size-4" /> In “{poll.title}”{votingEnded(poll, Date.now()) ? ' (closed)' : ''}
               </Link>
             </li>
           ))}

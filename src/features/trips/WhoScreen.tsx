@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMembers, useTrip } from '@/data/hooks'
 import { Avatar, Button, Card, ErrorNote, Input } from '@/ui'
-import { claimMember, createMemberAndClaim, MEMBER_COLORS } from './actions'
+import { claimMember, createMemberAndClaim, MEMBER_COLORS, parseJoinTarget } from './actions'
 import { LoadingState } from '@/ui/LoadingState'
 
 /** "Who are you?" — ties this device to a person on the trip. */
@@ -20,7 +20,7 @@ export function WhoScreen() {
     setError(null)
     try {
       await fn()
-      navigate(`/t/${tripId}/overview?joined=1`, { replace: true })
+      navigate(`/t/${tripId}/${parseJoinTarget(location.search) ?? 'overview?joined=1'}`, { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
       setBusy(false)

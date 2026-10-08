@@ -14,6 +14,7 @@ import { PlaceCategoryIcon } from '@/features/places/PlaceSummary'
 import { travelOptions } from '@/features/routing/legs'
 import { TravelOptionsList } from '@/features/routing/TravelOptionsList'
 import { planIcs, shareCalendar } from './calendar'
+import { CommentThread } from '@/features/comments/CommentThread'
 import { deleteItem, useDisplayZone, useItem, useItems } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
 import { onDay } from './layout'
@@ -175,6 +176,8 @@ export function ItemDetailScreen() {
         <Button variant="secondary" className="w-full" onClick={() => void shareCalendar(item.title, planIcs([item], places, members, item.title, location.origin))}>
           <CalendarPlus aria-hidden="true" className="size-4" /> Add to calendar
         </Button>
+
+        <CommentThread tripId={tripId} type="item" subjectId={item.id} me={me} />
 
         <Button
           variant="danger"

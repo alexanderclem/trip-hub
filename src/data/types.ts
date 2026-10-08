@@ -146,12 +146,19 @@ export interface AreaRoute {
 export const VOTE_SCORES = [0, 1, 2, 3] as const
 export type VoteScore = (typeof VOTE_SCORES)[number]
 
+export const POLL_KINDS = ['options', 'dates'] as const
+export type PollKind = (typeof POLL_KINDS)[number]
+
 export interface Poll extends SyncColumns {
   trip_id: string
   title: string
   description: string | null
   status: 'open' | 'closed'
   winner_option_id: string | null
+  /** 'dates' asks which dates work; rows saved before this column existed have none. */
+  kind?: PollKind
+  /** Voting ends at this instant, if set. */
+  closes_at?: string | null
 }
 
 export interface PollOption extends SyncColumns {
@@ -161,6 +168,9 @@ export interface PollOption extends SyncColumns {
   place_id: string | null
   url: string | null
   description: string | null
+  /** Date votes: the first and last day (ISO dates) this option covers. */
+  starts_on?: string | null
+  ends_on?: string | null
 }
 
 /** One per (option, member); id = stableId(trip, 'vote', option, member). score null = no vote. */
@@ -328,6 +338,18 @@ export interface Attachment extends SyncColumns {
   details?: ScanDetails | null
 }
 
+export const COMMENT_SUBJECTS = ['poll', 'place', 'item'] as const
+export type CommentSubject = (typeof COMMENT_SUBJECTS)[number]
+
+/** A comment on a vote, a place or a plan item. Only its author's phone can write it. */
+export interface Comment extends SyncColumns {
+  trip_id: string
+  subject_type: CommentSubject
+  subject_id: string
+  member_id: string
+  body: string
+}
+
 export interface Tables {
   trips: Trip
   members: Member
@@ -347,6 +369,7 @@ export interface Tables {
   fx_snapshots: FxSnapshot
   attachments: Attachment
   trip_tasks: TripTask
+  comments: Comment
   packing_items: PackingItem
   packing_checks: PackingCheck
   member_safety: MemberSafety

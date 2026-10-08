@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { Button, ErrorNote, LinkButton } from '@/ui'
 import { Brand } from '@/ui/Brand'
 import { LoadingState } from '@/ui/LoadingState'
-import { joinTrip, parseShareToken } from './actions'
+import { joinedTripForToken, joinTargetQuery, joinTrip, parseJoinTarget, parseShareToken } from './actions'
 
 /** The token remains in memory for recovery after it is removed from browser history. */
 export function JoinScreen() {
@@ -11,14 +11,20 @@ export function JoinScreen() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const token = useRef(parseShareToken(location.hash))
+  // A shared vote link also says where to land (`?to=vote/<id>`).
+  const target = useRef(parseJoinTarget(location.search))
   const started = useRef(false)
   const attempt = useCallback(async () => {
     if (!token.current) { setError('This link is missing its trip code. Ask your group for a new invite.'); return }
     setError(null)
     setBusy(true)
     try {
+      const to = target.current
+      // Someone already on the trip opens a shared link straight away, with or without signal.
+      const known = to ? await joinedTripForToken(token.current) : null
+      if (known) { navigate(`/t/${known}/${to}`, { replace: true }); return }
       const { tripId, memberId } = await joinTrip(token.current)
-      navigate(memberId ? `/t/${tripId}/overview?joined=1` : `/t/${tripId}/who`, { replace: true })
+      navigate(memberId ? `/t/${tripId}/${to ?? 'overview?joined=1'}` : `/t/${tripId}/who${joinTargetQuery(to)}`, { replace: true })
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not join. Please try again.') }
     finally { setBusy(false) }
   }, [navigate])

@@ -34,6 +34,8 @@ with test_trips as (
   delete from public.settlements where trip_id in (select id from test_trips) returning 1
 ), dfx as (
   delete from public.fx_snapshots where trip_id in (select id from test_trips) returning 1
+), dc as (
+  delete from public.comments where trip_id in (select id from test_trips) returning 1
 ), dv as (
   delete from public.poll_votes where trip_id in (select id from test_trips) returning 1
 ), dr as (

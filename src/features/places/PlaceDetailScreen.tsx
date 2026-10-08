@@ -13,6 +13,7 @@ import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
 import { TravelTimesCard } from '@/features/routing/TravelTimesCard'
 import { GroupRatingCard } from '@/features/ratings/GroupRatingCard'
 import { AddToPollCard } from '@/features/polls/AddToPollCard'
+import { CommentThread } from '@/features/comments/CommentThread'
 
 export function PlaceDetailScreen() {
   const confirm = useConfirm()
@@ -81,6 +82,8 @@ export function PlaceDetailScreen() {
         {at && allPlaces && legCtx && <TravelTimesCard place={place} places={allPlaces} ctx={legCtx} />}
 
         {me && <AddToPollCard place={place} memberId={me} />}
+
+        <CommentThread tripId={tripId} type="place" subjectId={place.id} me={me} />
 
         <Card>
           <h2 className="mb-2 font-semibold">Links</h2>

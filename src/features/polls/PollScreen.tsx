@@ -1,16 +1,34 @@
 import { useConfirm } from '@/ui/ConfirmProvider'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
-import { CalendarPlus, Lock, LockOpen, Plus, Search, Trash2, Trophy } from 'lucide-react'
+import { DateTime } from 'luxon'
+import { CalendarCheck, CalendarPlus, Clock, Lock, LockOpen, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
-import { useMembers, usePlaces } from '@/data/hooks'
+import { useMembers, usePlaces, useTrip } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
-import { VOTE_SCORES, type Member, type Place, type Poll, type PollOption, type PollVote, type VoteScore } from '@/data/types'
-import { Avatar, Button, Card, ErrorNote, Input, PageHeader } from '@/ui'
+import { VOTE_SCORES, type Member, type Place, type Poll, type PollOption, type PollVote, type Trip, type VoteScore } from '@/data/types'
+import { useOnline } from '@/lib/useOnline'
+import { Avatar, Button, Card, ErrorNote, Field, Input, PageHeader } from '@/ui'
 import { PlaceCategoryIcon, PlaceStatusBadge } from '@/features/places/PlaceSummary'
 import { StarsSummary } from '@/features/ratings/Stars'
-import { addOption, usePoll, useRatingSummaries, vote } from './data'
-import { leader, rankOptions, SCORE_LABEL, type RankedOption } from './rank'
+import { CommentThread } from '@/features/comments/CommentThread'
+import { addDateOption, addOption, usePoll, useRatingSummaries, vote } from './data'
+import { dateRangeLabel } from './deadline'
+import { leader, rankOptions, scoreLabels, voterCount, votingEnded, type RankedOption } from './rank'
+import { closesLabel } from './share'
+import { SharePollCard, useSharePoll } from './SharePoll'
+
+/** The current time, refreshed often enough for a deadline to pass while the page is open. */
+function useNow(everyMs = 30_000) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const refresh = () => setNow(Date.now())
+    const timer = setInterval(refresh, everyMs)
+    document.addEventListener('visibilitychange', refresh)
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', refresh) }
+  }, [everyMs])
+  return now
+}
 
 const SCORE_STYLE: Record<VoteScore, string> = {
   0: 'border-red-300 bg-red-50 text-red-800',
@@ -23,12 +41,29 @@ export function PollScreen() {
   const { tripId, pollId } = useParams() as { tripId: string; pollId: string }
   const me = useMyMemberId(tripId)!
   const data = usePoll(pollId)
-  const members = useMembers(tripId) ?? []
+  const trip = useTrip(tripId)
+  const loadedMembers = useMembers(tripId)
+  const members = loadedMembers ?? []
   const places = usePlaces(tripId) ?? []
   const ratings = useRatingSummaries(tripId)
+  const online = useOnline()
+  const now = useNow()
   const [tab, setTab] = useState<'vote' | 'results'>('vote')
 
   const ranked = useMemo(() => (data ? rankOptions(data.options, data.votes, Math.max(1, members.length)) : []), [data, members.length])
+
+  // A deadline that has passed closes the vote for everyone. The first phone to see it with signal
+  // records the winner; the ranking is the same on every phone, so two of them agree.
+  const finalised = useRef<string | null>(null)
+  const due = !!data && !data.poll.deleted_at && data.poll.status === 'open' && votingEnded(data.poll, now)
+  useEffect(() => {
+    if (!due || !online || !loadedMembers || !data || finalised.current === data.poll.id) return
+    finalised.current = data.poll.id
+    void save('polls', { ...data.poll, status: 'closed', winner_option_id: leader(ranked)?.option.id ?? null }, me)
+  }, [due, online, loadedMembers, data, ranked, me])
+
+  const sharing = useSharePoll(trip, data && !data.poll.deleted_at ? data.poll : undefined, data?.options ?? [])
+
   if (data === undefined) return <PageHeader title="Vote" back={`/t/${tripId}/more/vote`} />
   if (data === null || data.poll.deleted_at) {
     return (
@@ -40,40 +75,61 @@ export function PollScreen() {
   }
 
   const { poll, options, votes } = data
-  const closed = poll.status === 'closed'
+  const closed = votingEnded(poll, now)
+  const labels = scoreLabels(poll.kind)
+  const zone = DateTime.local().zoneName
   const placeOf = (o: PollOption) => (o.place_id ? places.find((p) => p.id === o.place_id) : undefined)
   const myScore = (o: PollOption) => votes.find((v) => v.option_id === o.id && v.member_id === me)?.score ?? null
   const myCount = options.filter((o) => myScore(o) != null).length
-  const winner = closed ? options.find((o) => o.id === poll.winner_option_id) : undefined
+  // Past the deadline but not yet recorded as closed: the leader is the winner-to-be.
+  const winnerId = poll.status === 'closed' ? poll.winner_option_id : closed ? (leader(ranked)?.option.id ?? null) : null
+  const winner = winnerId ? options.find((o) => o.id === winnerId) : undefined
   const winnerPlace = winner && placeOf(winner)
+  const quiet = !closed && options.length >= 2 && voterCount(votes) < Math.ceil(Math.max(1, members.length) / 2)
 
   async function setStatus(status: Poll['status']) {
     const top = leader(ranked)
-    await save('polls', { ...poll, status, winner_option_id: status === 'closed' ? (top?.option.id ?? null) : null }, me)
+    // Reopening drops the deadline, or the vote would close again at once.
+    await save('polls', { ...poll, status, winner_option_id: status === 'closed' ? (top?.option.id ?? null) : null, closes_at: status === 'open' ? null : poll.closes_at }, me)
     if (status === 'closed') setTab('results')
   }
 
   return (
     <div className="min-h-full pb-10">
-      <PageHeader title={poll.title} back={`/t/${tripId}/more/vote`} />
+      <PageHeader
+        title={poll.title}
+        back={`/t/${tripId}/more/vote`}
+        action={sharing.ready && (
+          <button onClick={() => void sharing.share()} className="ui-icon-button shrink-0 text-brand-700" aria-label="Share this vote">
+            <Share2 aria-hidden="true" className="size-5" />
+          </button>
+        )}
+      />
       <div className="mx-auto max-w-lg space-y-4 p-4">
         {poll.description && <p className="text-sm whitespace-pre-wrap text-stone-600">{poll.description}</p>}
+        {poll.closes_at && (
+          <p className="flex items-center gap-2 text-sm text-stone-600">
+            <Clock aria-hidden="true" className="size-4 shrink-0" />
+            {closed ? 'Voting has ended.' : `Voting closes ${closesLabel(poll.closes_at, now, zone)}.`}
+          </p>
+        )}
+        {quiet && sharing.ready && <SharePollCard sharing={sharing} />}
 
         {winner && (
           <Card className="border-brand-200 bg-brand-50">
             <p className="flex items-center gap-2 text-sm font-medium text-brand-900"><Trophy aria-hidden="true" className="size-4" />Decided</p>
             <p className="mt-1 text-lg font-semibold">{winner.label}</p>
-            {winnerPlace && (
-              <div className="mt-3">
-                {['catalog', 'shortlist'].includes(winnerPlace.status) ? (
-                  <Link to={`/t/${poll.trip_id}/plan/new?place=${winnerPlace.id}`} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white hover:bg-brand-900">
-                    <CalendarPlus aria-hidden="true" className="size-4" />Add to the plan
-                  </Link>
-                ) : (
-                  <p className="flex items-center gap-2 text-sm text-brand-900">On the plan: <PlaceStatusBadge status={winnerPlace.status} /></p>
-                )}
-              </div>
-            )}
+            <div className="mt-3">
+              {winner.starts_on && trip ? (
+                <TripDatesAction trip={trip} option={winner} me={me} />
+              ) : winnerPlace && !['catalog', 'shortlist'].includes(winnerPlace.status) ? (
+                <p className="flex items-center gap-2 text-sm text-brand-900">On the plan: <PlaceStatusBadge status={winnerPlace.status} /></p>
+              ) : (
+                <Link to={`/t/${poll.trip_id}/plan/new?${winnerPlace ? `place=${winnerPlace.id}` : `title=${encodeURIComponent(winner.label)}`}`} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white hover:bg-brand-900">
+                  <CalendarPlus aria-hidden="true" className="size-4" />Add to the plan
+                </Link>
+              )}
+            </div>
           </Card>
         )}
 
@@ -95,15 +151,17 @@ export function PollScreen() {
         {tab === 'vote' ? (
           <ul className="space-y-3">
             {options.map((o) => (
-              <OptionVoteCard key={o.id} option={o} place={placeOf(o)} rating={o.place_id ? ratings?.get(o.place_id) : undefined} score={myScore(o)} closed={closed} me={me} />
+              <OptionVoteCard key={o.id} option={o} place={placeOf(o)} rating={o.place_id ? ratings?.get(o.place_id) : undefined} score={myScore(o)} closed={closed} me={me} labels={labels} />
             ))}
             {options.length === 0 && <p className="text-sm text-stone-500">No options yet. Add the first one below.</p>}
           </ul>
         ) : (
-          <Results ranked={ranked} votes={votes} members={members} groupSize={members.length} winnerId={poll.winner_option_id} placeOf={placeOf} />
+          <Results ranked={ranked} votes={votes} members={members} groupSize={members.length} winnerId={winnerId} placeOf={placeOf} labels={labels} dates={poll.kind === 'dates'} />
         )}
 
-        {!closed && <AddOptionCard poll={poll} options={options} places={places} me={me} />}
+        {!closed && (poll.kind === 'dates' ? <AddDatesCard poll={poll} trip={trip} me={me} /> : <AddOptionCard poll={poll} options={options} places={places} me={me} />)}
+
+        <CommentThread tripId={tripId} type="poll" subjectId={poll.id} me={me} prompt="Say why, or suggest something else" />
 
         <Button variant="secondary" className="w-full" onClick={() => setStatus(closed ? 'open' : 'closed')}>
           {closed ? <><LockOpen aria-hidden="true" className="size-4" />Reopen voting</> : <><Lock aria-hidden="true" className="size-4" />Close voting and pick the winner</>}
@@ -113,10 +171,47 @@ export function PollScreen() {
   )
 }
 
-function OptionVoteCard({ option, place, rating, score, closed, me }: {
-  option: PollOption; place?: Place; rating?: Parameters<typeof StarsSummary>[0]['summary']; score: VoteScore | null; closed: boolean; me: string
+/** A winning set of dates becomes the trip's dates with one tap. */
+function TripDatesAction({ trip, option, me }: { trip: Trip; option: PollOption; me: string }) {
+  const confirm = useConfirm()
+  const start = option.starts_on!
+  const end = option.ends_on ?? start
+  if (trip.start_date === start && trip.end_date === end) {
+    return <p className="flex items-center gap-2 text-sm text-brand-900"><CalendarCheck aria-hidden="true" className="size-4" />These are the trip’s dates.</p>
+  }
+  async function apply() {
+    if (trip.start_date && !(await confirm(`Change the trip’s dates from ${dateRangeLabel(trip.start_date, trip.end_date)} to ${dateRangeLabel(start, end)}? Plan items keep the days they already have.`))) return
+    await save('trips', { ...trip, start_date: start, end_date: end }, me)
+  }
+  return <Button className="w-full" onClick={() => void apply()}><CalendarCheck aria-hidden="true" className="size-4" />Set as the trip’s dates</Button>
+}
+
+function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
+  option: PollOption; place?: Place; rating?: Parameters<typeof StarsSummary>[0]['summary']; score: VoteScore | null; closed: boolean; me: string; labels: Record<VoteScore, string>
 }) {
   const confirm = useConfirm()
+  const inFlight = useRef(false)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  async function castVote(next: VoteScore | null) {
+    if (closed || inFlight.current) return
+    inFlight.current = true
+    setSaving(true)
+    setMessage('Saving your vote…')
+    setError(null)
+    try {
+      await vote(option, me, next)
+      setMessage(next === null ? 'Vote removed from this device. Changes sync when connected.' : 'Vote saved on this device. Changes sync when connected.')
+    } catch {
+      setMessage('')
+      setError('Your vote could not be saved. Try again; your previous choice is unchanged.')
+    } finally {
+      inFlight.current = false
+      setSaving(false)
+    }
+  }
   return (
     <li className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
       <div className="flex items-start gap-3">
@@ -141,25 +236,30 @@ function OptionVoteCard({ option, place, rating, score, closed, me }: {
           </button>
         )}
       </div>
-      <div role="group" aria-label={`Your vote for ${option.label}`} className="mt-3 grid grid-cols-4 gap-1.5">
+      <div role="group" aria-label={`Your vote for ${option.label}`} aria-busy={saving} className="mt-3 grid grid-cols-4 gap-1.5">
         {VOTE_SCORES.map((s) => (
           <button
             key={s}
-            disabled={closed}
+            disabled={closed || saving}
             aria-pressed={score === s}
-            onClick={() => vote(option, me, score === s ? null : s)}
+            onClick={() => void castVote(score === s ? null : s)}
             className={`min-h-11 rounded-xl border px-1 text-sm font-medium transition-colors disabled:opacity-50 ${score === s ? SCORE_STYLE[s] : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'}`}
           >
-            {SCORE_LABEL[s]}
+            {labels[s]}
           </button>
         ))}
+      </div>
+      <div className="mt-2 min-h-10">
+        <p role="status" className="text-xs leading-5 text-stone-600">{message}</p>
+        <ErrorNote error={error} />
       </div>
     </li>
   )
 }
 
-function Results({ ranked, votes, members, groupSize, winnerId, placeOf }: {
+function Results({ ranked, votes, members, groupSize, winnerId, placeOf, labels, dates }: {
   ranked: RankedOption[]; votes: PollVote[]; members: Member[]; groupSize: number; winnerId: string | null; placeOf: (o: PollOption) => Place | undefined
+  labels: Record<VoteScore, string>; dates: boolean
 }) {
   const top = leader(ranked)
   if (!ranked.length) return <p className="text-sm text-stone-500">No options yet.</p>
@@ -180,10 +280,11 @@ function Results({ ranked, votes, members, groupSize, winnerId, placeOf }: {
                 </div>
                 <p className="mt-1.5 text-sm text-stone-600">
                   {r.mean != null ? `${r.mean.toFixed(1)} avg · ${r.voters} of ${groupSize} voted` : 'No votes yet'}
-                  {r.counts[0] > 0 && <span className="ml-2 font-medium text-red-700">{r.counts[0]} × No way</span>}
+                  {r.counts[0] > 0 && <span className="ml-2 font-medium text-red-700">{r.counts[0]} × {labels[0]}</span>}
                 </p>
+                {dates && r.counts[0] === 0 && groupSize > 0 && r.voters >= groupSize && <p className="mt-1 text-sm font-medium text-brand-700">Everyone can make it.</p>}
                 {r.needsVotes && r.voters > 0 && <p className="mt-1 text-xs text-amber-800">Needs votes from at least half the group to count.</p>}
-                <WhoVoted optionId={r.option.id} votes={votes} members={members} />
+                <WhoVoted optionId={r.option.id} votes={votes} members={members} labels={labels} />
               </div>
             </div>
           </li>
@@ -193,7 +294,7 @@ function Results({ ranked, votes, members, groupSize, winnerId, placeOf }: {
   )
 }
 
-function WhoVoted({ optionId, votes, members }: { optionId: string; votes: PollVote[]; members: Member[] }) {
+function WhoVoted({ optionId, votes, members, labels }: { optionId: string; votes: PollVote[]; members: Member[]; labels: Record<VoteScore, string> }) {
   const rows = [3, 2, 1, 0]
     .map((s) => ({ s: s as VoteScore, who: votes.filter((v) => v.option_id === optionId && v.score === s).map((v) => members.find((m) => m.id === v.member_id)).filter(Boolean) as Member[] }))
     .filter((r) => r.who.length)
@@ -202,13 +303,44 @@ function WhoVoted({ optionId, votes, members }: { optionId: string; votes: PollV
     <ul className="mt-2 space-y-1">
       {rows.map(({ s, who }) => (
         <li key={s} className="flex flex-wrap items-center gap-1.5 text-xs text-stone-600">
-          <span className="w-16 shrink-0 font-medium">{SCORE_LABEL[s]}</span>
+          <span className="w-16 shrink-0 font-medium">{labels[s]}</span>
           {who.map((m) => (
             <span key={m.id} className="inline-flex items-center gap-1"><Avatar name={m.display_name} color={m.color} size="sm" />{m.display_name}</span>
           ))}
         </li>
       ))}
     </ul>
+  )
+}
+
+function AddDatesCard({ poll, trip, me }: { poll: Poll; trip: Trip | undefined; me: string }) {
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const today = DateTime.now().setZone(trip?.timezone ?? 'utc').toISODate() ?? undefined
+
+  async function add(e: FormEvent) {
+    e.preventDefault()
+    if (!from) return
+    if (to && to < from) return setError('The last day is before the first day.')
+    // Clear before saving, so dates typed for the next option aren't wiped when the save lands.
+    setFrom(''); setTo(''); setError(null)
+    try { await addDateOption(poll, from, to || null, me) }
+    catch (e) { setFrom(from); setTo(to); setError(e instanceof Error ? e.message : 'Could not add those dates. Try again.') }
+  }
+
+  return (
+    <Card>
+      <h2 className="font-semibold">Add dates</h2>
+      <form onSubmit={add} className="mt-2 space-y-3">
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="First day"><Input type="date" value={from} min={today} onChange={(e) => { setFrom(e.target.value); setError(null) }} required /></Field>
+          <Field label="Last day (optional)"><Input type="date" value={to} min={from || today} onChange={(e) => { setTo(e.target.value); setError(null) }} /></Field>
+        </div>
+        <ErrorNote error={error} />
+        <Button type="submit" variant="secondary" className="w-full" disabled={!from}>{from ? `Add ${dateRangeLabel(from, to || null)}` : 'Add these dates'}</Button>
+      </form>
+    </Card>
   )
 }
 

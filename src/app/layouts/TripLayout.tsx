@@ -10,6 +10,7 @@ import { startSync } from '@/data/sync/controller'
 import { useAutoLegs } from '@/features/routing/requestLegs'
 import { useAttachmentSync } from '@/features/tickets/files'
 import { SyncStatusButton } from '@/features/sync/SyncStatus'
+import { useUnseenActivity } from '@/features/activity/data'
 import { Brand } from '@/ui/Brand'
 import { LoadingState } from '@/ui/LoadingState'
 import { PageTransition } from '@/ui/PageTransition'
@@ -65,6 +66,8 @@ function TripShell({ tripId }: { tripId: string }) {
     }
   }, [pathname])
   const root = `/t/${tripId}`
+  const unseen = useUnseenActivity(tripId, joined[tripId]?.memberId ?? null)
+  const news = unseen > 0 && <span className="rounded-full bg-brand-700 px-2 py-0.5 text-xs font-semibold text-white"><span aria-hidden="true">{unseen > 9 ? '9+' : unseen}</span><span className="sr-only"> {unseen === 1 ? '1 new update' : `${unseen} new updates`}</span></span>
   return (
     <div className="trip-shell flex h-full min-w-0 flex-col lg:flex-row">
       <a href="#trip-content" className="trip-skip">Skip to trip content</a>
@@ -78,7 +81,7 @@ function TripShell({ tripId }: { tripId: string }) {
         <p className="mt-4 break-words text-xl font-semibold leading-snug text-brand-900">{trip?.name ?? 'Your trip'}</p>
         <p className="mt-1 text-xs text-stone-600">{trip?.start_date ? `${trip.start_date}${trip.end_date ? ` – ${trip.end_date}` : ''}` : 'Dates to be decided'}</p>
         <nav aria-label="Trip navigation" className="mt-6 space-y-1">
-          {desktopTabs.map(({ to, label, Icon }) => <NavLink key={to} end={to === 'more'} to={`${root}/${to}`} className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium ${isActive ? 'bg-brand-100 text-brand-900' : 'text-stone-600 hover:bg-brand-50 hover:text-brand-900'}`}><Icon aria-hidden="true" className="size-5 shrink-0" />{label}</NavLink>)}
+          {desktopTabs.map(({ to, label, Icon }) => <NavLink key={to} end={to === 'more'} to={`${root}/${to}`} className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium ${isActive ? 'bg-brand-100 text-brand-900' : 'text-stone-600 hover:bg-brand-50 hover:text-brand-900'}`}><Icon aria-hidden="true" className="size-5 shrink-0" /><span className="flex-1">{label}</span>{to === 'overview' && news}</NavLink>)}
         </nav>
         <div className="mt-5 border-t border-stone-200 pt-4">
           <Link to={`${root}/more/tasks`} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-stone-600 hover:bg-brand-50"><ClipboardCheck aria-hidden="true" className="size-5" />Shared tasks</Link>
@@ -91,7 +94,7 @@ function TripShell({ tripId }: { tripId: string }) {
       </aside>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 border-b border-stone-200 bg-surface px-4 pt-safe lg:hidden">
-          <Link to={`${root}/overview`} className="min-w-0 flex-1 break-words py-3 text-sm font-semibold text-brand-900">{trip?.name ?? 'Your trip'}</Link>
+          <Link to={`${root}/overview`} className="flex min-w-0 flex-1 items-center gap-2 py-3 text-sm font-semibold text-brand-900"><span className="min-w-0 break-words">{trip?.name ?? 'Your trip'}</span>{news}</Link>
           <SyncStatusButton tripId={tripId} className="my-1 shrink-0" />
         </header>
         <main id="trip-content" tabIndex={-1} ref={content} className="relative min-h-0 min-w-0 flex-1 overflow-y-auto outline-none">

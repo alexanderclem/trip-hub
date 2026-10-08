@@ -7,7 +7,10 @@ Free, with no third-party push service: Web Push (VAPID) from a Supabase Edge Fu
 | Kind | When | Who | Pref |
 |---|---|---|---|
 | `vote` | A vote is created | Everyone but its author | Votes |
-| `vote_nudge` | 24 h after a vote opened, if you haven't voted | Members without a vote | Votes |
+| `vote_nudge` | 24 h after a vote opened, if you haven't voted (votes without a deadline) | Members without a vote | Votes |
+| `vote_closing` | 3 h before a vote's deadline, if you haven't voted | Members without a vote | Votes |
+| `vote_closed` | A vote is closed, by hand or by its deadline | Everyone but whoever closed it, with the winner | Votes |
+| `comment` | Someone comments | Earlier commenters on the same thing; on a vote, also its voters and whoever started it | Comments |
 | `expense` | An expense is created | Everyone in its split except whoever logged it, with their share | Expenses |
 | `task` | A task is assigned to you (new, or reassigned) by someone else | The assignee | Tasks |
 | `task_due` | 08:00 trip time on the due date, if not done | The assignee | Tasks |
@@ -17,7 +20,7 @@ Lodging and free-time items never get leave-by reminders. Each event has a uniqu
 
 ## How it flows
 
-1. **Event triggers** on `polls`, `expenses` and `trip_tasks` (`private.queue_*`) insert into `private.push_queue`.
+1. **Event triggers** on `polls`, `comments`, `expenses` and `trip_tasks` (`private.queue_*`) insert into `private.push_queue`.
 2. **pg_cron `push-dispatch`** runs `private.push_tick()` every minute. It first queues the time-based events (`private.push_enqueue_due()`). It then calls the Edge Function through `pg_net` only if a waiting event belongs to someone with notifications on, so a quiet trip costs nothing.
 3. **Edge Function `push-dispatch`** (`supabase/functions/push-dispatch`) checks the `x-cron-token` header against Vault and calls `push_claim_batch()`, which marks events sent and returns the matching subscriptions. It then encrypts and sends each message (`jsr:@negrel/webpush`). If a push service answers 404 or 410, the subscription is disabled; other errors go to `push_subscriptions.last_error`. The message text comes from `dispatch.ts` and is unit-tested.
 4. **The service worker** (`public/push-sw.js`, imported by Workbox) shows the notification. Tapping it opens or focuses the app at the event's page.
@@ -40,7 +43,7 @@ The pg_cron job `ticket-cleanup` runs daily at 03:00 UTC and calls the `ticket-c
 
 ## Setup (already done on the live project)
 
-The migration is `supabase/migrations/20261009000002_push.sql`. It also creates the `pg_cron` and `pg_net` extensions.
+The migrations are `supabase/migrations/20261009000002_push.sql` and `20261012000003_push_votes_comments.sql` (deadlines, results and comments; see `docs/VOTING_AND_COMMENTS.md`). It also creates the `pg_cron` and `pg_net` extensions.
 
 Vault secrets are set out of band, so nothing secret or project-specific is committed:
 

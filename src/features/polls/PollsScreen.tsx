@@ -1,12 +1,16 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { ChevronRight, Plus, Vote } from 'lucide-react'
+import { ChevronRight, Plus } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
-import { Button, Card, ErrorNote, Field, Input, PageHeader, Textarea } from '@/ui'
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
+import { DateTime } from 'luxon'
+import type { PollKind } from '@/data/types'
+import { Button, Card, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { useCommentCounts } from '@/features/comments/data'
 import { createPoll, usePolls } from './data'
-import { leader, rankOptions } from './rank'
+import { deadlineFor, tonightAvailable, type DeadlineChoice } from './deadline'
+import { leader, rankOptions, votingEnded } from './rank'
+import { closesLabel } from './share'
 
 export function PollsScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -14,19 +18,27 @@ export function PollsScreen() {
   const me = useMyMemberId(tripId)
   const polls = usePolls(tripId)
   const groupSize = useMembers(tripId)?.length ?? 1
+  const commentCounts = useCommentCounts(tripId, 'poll')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [kind, setKind] = useState<PollKind>('options')
+  const [deadline, setDeadline] = useState<DeadlineChoice>('none')
+  const [customDeadline, setCustomDeadline] = useState('')
+  // Deadlines are set and shown in this phone's own time: people vote from home.
+  const zone = DateTime.local().zoneName
 
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!title.trim() || busy) return
+    const closesAt = deadlineFor(deadline, Date.now(), zone, customDeadline)
+    if (closesAt === undefined) return setError('Pick a closing time that is still ahead.')
     setBusy(true)
     setError(null)
     try {
-      const id = await createPoll(tripId, title, description, me)
+      const id = await createPoll(tripId, title, description, me, { kind, closesAt })
       navigate(id)
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not create this vote. Try again.') }
     finally { setBusy(false) }
@@ -44,7 +56,6 @@ export function PollsScreen() {
         }
       />
       <div className="mx-auto max-w-2xl space-y-4 p-4">
-        <p className="text-sm leading-relaxed text-stone-600">Decide together. Add your options, let everyone score them, and see which ideas your group wants most.</p>
         {(creating || polls?.length === 0) && (
           <Card>
             <form onSubmit={submit} className="space-y-3">
@@ -55,20 +66,35 @@ export function PollsScreen() {
               <Field label="Details (optional)">
                 <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Budget, dates, anything that matters" />
               </Field>
+              <fieldset>
+                <legend className="text-sm font-medium text-stone-700">What are the choices?</legend>
+                <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1 text-sm">
+                  {([['options', 'Places or ideas'], ['dates', 'Dates that work']] as const).map(([value, label]) => (
+                    <label key={value} className={`flex min-h-11 cursor-pointer items-center justify-center rounded-lg px-2 text-center has-focus-visible:outline-2 has-focus-visible:outline-brand-700 ${kind === value ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}>
+                      <input type="radio" name="vote-kind" value={value} checked={kind === value} onChange={() => setKind(value)} className="sr-only" />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <Field label="Voting closes">
+                <Select value={deadline} onChange={(e) => setDeadline(e.target.value as DeadlineChoice)}>
+                  <option value="none">When someone closes it</option>
+                  {tonightAvailable(Date.now(), zone) && <option value="tonight">Tonight at 9 PM</option>}
+                  <option value="day">In 24 hours</option>
+                  <option value="three">In 3 days</option>
+                  <option value="custom">Pick a time…</option>
+                </Select>
+              </Field>
+              {deadline === 'custom' && (
+                <Field label="Closing time">
+                  <Input type="datetime-local" value={customDeadline} onChange={(e) => setCustomDeadline(e.target.value)} required />
+                </Field>
+              )}
               <ErrorNote error={error} />
-              <Button type="submit" className="w-full" disabled={busy || !title.trim()}>{busy ? 'Creating vote…' : 'Create and add options'}</Button>
+              <Button type="submit" className="w-full" disabled={busy || !title.trim()}>{busy ? 'Creating vote…' : kind === 'dates' ? 'Create and add dates' : 'Create and add options'}</Button>
             </form>
           </Card>
-        )}
-
-        {polls?.length === 0 && !creating && (
-          <Empty>
-            <Vote aria-hidden="true" className="size-8 text-brand-700" />
-            <EmptyHeader>
-              <EmptyTitle>Decide things together</EmptyTitle>
-              <EmptyDescription>Everyone scores each option from “No way” to “Must-do”. The best-loved option rises to the top.</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
         )}
 
         <ul className="space-y-3">
@@ -77,13 +103,15 @@ export function PollsScreen() {
             const top = leader(ranked)
             const live = options.filter((o) => !o.deleted_at)
             const myVotes = votes.filter((v) => v.member_id === me && v.score != null).length
-            const winner = poll.status === 'closed' ? live.find((o) => o.id === poll.winner_option_id) : null
+            const ended = votingEnded(poll, Date.now())
+            const comments = commentCounts?.get(poll.id) ?? 0
+            const winner = poll.status === 'closed' ? live.find((o) => o.id === poll.winner_option_id) : ended ? top?.option : null
             return (
               <li key={poll.id}>
                 <Link to={poll.id} className="block rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-colors hover:border-brand-600 active:bg-brand-50">
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-stone-500">{poll.status === 'closed' ? 'Decided' : `${live.length} option${live.length === 1 ? '' : 's'} · you voted on ${myVotes}`}</p>
+                      <p className="text-xs font-medium text-stone-500">{ended ? (winner ? 'Decided' : 'Voting ended') : `${live.length} option${live.length === 1 ? '' : 's'} · you voted on ${myVotes}${poll.closes_at ? ` · closes ${closesLabel(poll.closes_at, Date.now(), zone)}` : ''}`}{comments > 0 && ` · ${comments} ${comments === 1 ? 'comment' : 'comments'}`}</p>
                       <h2 className="mt-1 break-words text-lg font-semibold tracking-tight">{poll.title}</h2>
                       <p className="mt-1 text-sm text-stone-600">
                         {winner ? `✓ ${winner.label}` : top ? `Leading: ${top.option.label}` : live.length ? 'Not enough votes yet' : 'No options yet'}

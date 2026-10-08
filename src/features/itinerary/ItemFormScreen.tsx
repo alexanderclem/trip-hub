@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { useMyMemberId } from '@/data/device'
@@ -56,10 +56,11 @@ export function ItemFormScreen() {
   const tripTz = trip?.timezone ?? 'America/New_York'
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const savingRef = useRef(false)
   const [f, setF] = useState<FormState | null>(null)
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((cur) => (cur ? { ...cur, [k]: v } : cur))
 
-  // Initialise once: from the item being edited, or from ?day= and ?place=.
+  // Initialise once: from the item being edited, or from ?day=, ?place= and ?title= (a vote's winner).
   useEffect(() => {
     if (f || !trip) return
     if (itemId) {
@@ -82,7 +83,7 @@ export function ItemFormScreen() {
     const kind = (place && KIND_FOR_CATEGORY[place.category]) ?? 'activity'
     const lodging = kind === 'lodging'
     setF({
-      title: place?.name ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: false,
+      title: place?.name ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: false,
       startDate: day, startTime: lodging ? '15:00' : kind === 'meal' ? '19:00' : '09:00',
       endDate: lodging ? DateTime.fromISO(day).plus({ days: 1 }).toISODate()! : day, endTime: lodging ? '11:00' : '',
       startTz: tripTz, endTz: tripTz, status: 'confirmed', code: '', everyone: true, attendees: [], notes: '', cost: '',
@@ -105,7 +106,7 @@ export function ItemFormScreen() {
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!f || !trip) return
+    if (!f || !trip || savingRef.current) return
     if (!f.title.trim()) return setError('Give it a name.')
     if (![f.startTz, f.endTz].every(isValidZone)) return setError('Unknown time zone.')
     const start_local = `${f.startDate}T${f.allDay ? '00:00' : f.startTime || '00:00'}`
@@ -136,6 +137,7 @@ export function ItemFormScreen() {
       est_cost_minor: amount == null ? null : Math.round(amount * 10 ** minorUnits(f.costCurrency)),
       est_cost_currency: amount == null ? null : f.costCurrency,
     }
+    savingRef.current = true
     setSaving(true)
     setError(null)
     try {
@@ -143,6 +145,7 @@ export function ItemFormScreen() {
       navigate(`/t/${tripId}/plan/${item.id}`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
+      savingRef.current = false
       setSaving(false)
     }
   }
@@ -257,7 +260,7 @@ export function ItemFormScreen() {
         </Field>
 
         <ErrorNote error={error} />
-        <Button type="submit" className="w-full" disabled={saving}>{saving ? 'Saving…' : 'Save'}</Button>
+        <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : 'Save'}</Button>
       </form>
     </div>
   )

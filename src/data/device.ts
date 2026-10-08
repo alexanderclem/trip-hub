@@ -8,6 +8,8 @@ export interface PushPrefs {
   vote: boolean
   expense: boolean
   task: boolean
+  /** Missing on phones that turned notifications on before comments existed; treated as on. */
+  comment?: boolean
 }
 
 export interface PushSetting {
@@ -24,6 +26,9 @@ export interface JoinedTrip {
 interface DeviceState {
   setupDismissed: Record<string, boolean>
   setSetupDismissed: (tripId: string, dismissed: boolean) => void
+  /** When this person last looked at each trip's "what's new" (ISO), per trip. */
+  activitySeen: Record<string, string>
+  setActivitySeen: (tripId: string, at: string) => void
   travelProfile: Profile | null
   setTravelProfile: (profile: Profile) => void
   /** The opening quiz was finished or skipped on this device, so it isn't offered again. */
@@ -54,6 +59,8 @@ export const useDevice = create<DeviceState>()(
     (set) => ({
       setupDismissed: {},
       setSetupDismissed: (tripId, dismissed) => set((s) => ({ setupDismissed: { ...s.setupDismissed, [tripId]: dismissed } })),
+      activitySeen: {},
+      setActivitySeen: (tripId, at) => set((s) => ({ activitySeen: { ...s.activitySeen, [tripId]: at } })),
       travelProfile: null,
       setTravelProfile: (travelProfile) => set({ travelProfile }),
       quizSeen: false,

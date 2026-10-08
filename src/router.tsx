@@ -29,6 +29,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="overview" replace /> },
           { path: 'overview', lazy: () => import('./features/trips/TripOverviewScreen').then((m) => ({ Component: m.TripOverviewScreen })) },
+          { path: 'activity', lazy: () => import('./features/activity/ActivityScreen').then((m) => ({ Component: m.ActivityScreen })) },
           { path: 'map', lazy: () => import('./features/map/MapScreen').then((m) => ({ Component: m.default })) },
           { path: 'plan', lazy: () => import('./features/itinerary/PlanScreen').then((m) => ({ Component: m.PlanScreen })) },
           { path: 'plan/new', lazy: () => import('./features/itinerary/ItemFormScreen').then((m) => ({ Component: m.ItemFormScreen })) },

@@ -31,6 +31,26 @@ describe('compose', () => {
   })
 })
 
+describe('votes with deadlines and comments', () => {
+  it('nudges before a deadline and announces the result on the same tag as the vote', () => {
+    expect(compose(ev('vote_closing', { poll_id: 'p1', title: 'Volcano day?' }))).toEqual({
+      title: 'Voting closes soon', body: 'Volcano day? in Guatemala SB 27 still needs your vote.', url: '/t/trip/more/vote/p1', tag: 'vote:p1',
+    })
+    expect(compose(ev('vote_closed', { poll_id: 'p1', title: 'Volcano day?', winner: 'Acatenango' }))).toEqual({
+      title: 'Decided: Acatenango', body: 'Volcano day? · Guatemala SB 27', url: '/t/trip/more/vote/p1', tag: 'vote:p1',
+    })
+    expect(compose(ev('vote_closed', { poll_id: 'p1', title: 'Volcano day?', winner: null })).title).toBe('Voting has ended')
+  })
+
+  it('opens a comment at the thing it is about', () => {
+    const on = (subject_type: string) => compose(ev('comment', { comment_id: 'c1', subject_type, subject_id: 's1', subject: 'Casa del Mundo', by: 'Sam', body: 'Too far from the dock?' }))
+    expect(on('poll')).toEqual({ title: 'Sam on Casa del Mundo', body: 'Too far from the dock?', url: '/t/trip/more/vote/s1', tag: 'comment:s1' })
+    expect(on('place').url).toBe('/t/trip/more/places/s1')
+    expect(on('item').url).toBe('/t/trip/plan/s1')
+    expect(compose(ev('comment', { subject_type: 'item', subject_id: 's1', body: 'ok' })).title).toBe('Someone on Guatemala SB 27')
+  })
+})
+
 describe('plan', () => {
   it('sends each event to every enabled phone of that person, and nothing when there are none', () => {
     expect(plan([ev('task_due', { task_id: 't', title: 'x' }, 2), ev('task_due', { task_id: 'u', title: 'y' }, 0)]).map((s) => s.sub.endpoint))

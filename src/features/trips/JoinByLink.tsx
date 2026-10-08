@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { ArrowRight, ClipboardPaste, Link2 } from 'lucide-react'
 import { Button, Card, Input } from '@/ui'
 import { CardDescription, CardHeader, CardTitle } from '@/ui/collection'
-import { parseShareToken } from './actions'
+import { joinTargetQuery, parseJoinTarget, parseShareToken } from './actions'
 
 /** "Have an invite?": paste the trip link the group shared, then join. */
 export function JoinByLink() {
@@ -34,7 +34,7 @@ export function JoinByLink() {
       setError("That doesn't look like a trip link. Copy the full link and try again.")
       return
     }
-    navigate(`/join#t=${token}`)
+    navigate(`/join${joinTargetQuery(parseJoinTarget(link))}#t=${token}`)
   }
 
   return (

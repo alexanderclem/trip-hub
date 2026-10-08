@@ -7,7 +7,8 @@ import { publishReminders } from './reminders'
 
 const KINDS: { key: keyof PushPrefs; label: string; hint: string }[] = [
   { key: 'leave', label: 'Time to leave', hint: 'Before plans you’re going to, using travel times' },
-  { key: 'vote', label: 'Votes', hint: 'New votes, and a reminder if you haven’t voted' },
+  { key: 'vote', label: 'Votes', hint: 'New votes, a reminder if you haven’t voted, and the result' },
+  { key: 'comment', label: 'Comments', hint: 'Replies where you’ve commented, and comments on votes you’re in' },
   { key: 'expense', label: 'Expenses', hint: 'When someone logs one that includes you' },
   { key: 'task', label: 'Tasks', hint: 'When you’re given one, and on the day it’s due' },
 ]
@@ -27,7 +28,7 @@ export function NotificationsCard({ tripId }: { tripId: string }) {
     finally { setBusy(false) }
   }
   const turnOn = () => run(async () => { await savePush(tripId, me, prefs); await publishReminders(tripId) })
-  const toggle = (key: keyof PushPrefs) => run(async () => { await savePush(tripId, me, { ...prefs, [key]: !prefs[key] }); if (key === 'leave') await publishReminders(tripId) })
+  const toggle = (key: keyof PushPrefs) => run(async () => { await savePush(tripId, me, { ...prefs, [key]: !(prefs[key] ?? true) }); if (key === 'leave') await publishReminders(tripId) })
 
   return (
     <Card>
@@ -55,7 +56,7 @@ export function NotificationsCard({ tripId }: { tripId: string }) {
             <legend className="sr-only">What to be notified about</legend>
             {KINDS.map((k) => (
               <label key={k.key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-1 py-1 hover:bg-stone-50">
-                <input type="checkbox" checked={prefs[k.key]} onChange={() => void toggle(k.key)} className="size-5 shrink-0 accent-brand-700" />
+                <input type="checkbox" checked={prefs[k.key] ?? true} onChange={() => void toggle(k.key)} className="size-5 shrink-0 accent-brand-700" />
                 <span><span className="block text-sm font-medium">{k.label}</span><span className="block text-xs text-stone-500">{k.hint}</span></span>
               </label>
             ))}

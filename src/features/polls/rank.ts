@@ -2,9 +2,23 @@
 // Chosen over ranked choice because options get added mid-poll (nobody has to re-rank), it
 // captures how strongly people feel, and it's four big buttons on a phone.
 
-import type { PlaceRating, PollOption, PollVote, VoteScore } from '@/data/types'
+import type { PlaceRating, Poll, PollKind, PollOption, PollVote, VoteScore } from '@/data/types'
 
 export const SCORE_LABEL: Record<VoteScore, string> = { 0: 'No way', 1: 'Fine', 2: 'Want', 3: 'Must-do' }
+const DATE_SCORE_LABEL: Record<VoteScore, string> = { 0: 'Can’t', 1: 'If needed', 2: 'Works', 3: 'Ideal' }
+
+/** The same four scores read as availability when the vote is about dates. */
+export const scoreLabels = (kind: PollKind | undefined) => (kind === 'dates' ? DATE_SCORE_LABEL : SCORE_LABEL)
+
+/** Closed by someone, or past its deadline (a phone finalises the winner when it next has signal). */
+export function votingEnded(poll: Pick<Poll, 'status' | 'closes_at'>, now: number): boolean {
+  return poll.status === 'closed' || (!!poll.closes_at && Date.parse(poll.closes_at) <= now)
+}
+
+/** How many people have scored at least one option. */
+export function voterCount(votes: PollVote[]): number {
+  return new Set(votes.filter(counted).map((v) => v.member_id)).size
+}
 
 export interface RankedOption {
   option: PollOption
