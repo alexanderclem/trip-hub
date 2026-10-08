@@ -55,6 +55,7 @@ body {
     min-height: 44px; border-radius: var(--stowaway-radius-control); padding: .625rem 1rem;
     font-weight: 600; line-height: 1.4; text-align: center;
   }
+  .ui-button, .ui-icon-button { transition: background-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), border-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
   .ui-button:disabled { cursor: not-allowed; opacity: .45; }
   .ui-button-primary { background: var(--stowaway-action); color: white; }
   .ui-button-primary:hover, .ui-button-primary:active { background: var(--stowaway-ink); }
@@ -84,6 +85,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; }
+  .ui-button, .ui-icon-button { transition-duration: 0s; }
 }
 
 /* Map controls sit below the category chips and idea-pool buttons. */

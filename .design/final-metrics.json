@@ -1,0 +1,506 @@
+{
+  "profile": {
+    "browser": "153.0.8010.12",
+    "origin": "http://127.0.0.1:4176",
+    "viewport": "390x844",
+    "cpu": "4x",
+    "latencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "observation": "10 seconds after load; page CDP throttling does not model OS-wide worker contention",
+    "serving": "Vite production preview, uncompressed responses"
+  },
+  "results": [
+    {
+      "name": "cold-1",
+      "lcp": 1368,
+      "cls": 0,
+      "events": [
+        {
+          "name": "keydown",
+          "duration": 16
+        },
+        {
+          "name": "keypress",
+          "duration": 16
+        },
+        {
+          "name": "click",
+          "duration": 16
+        }
+      ],
+      "longTasks": [
+        52
+      ],
+      "resources": [
+        {
+          "url": "/assets/index-Do3Xm4Cc.js",
+          "transfer": 86620,
+          "encoded": 86320,
+          "start": 168.80000001192093,
+          "end": 1153
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "transfer": 1012,
+          "encoded": 712,
+          "start": 169.40000000596046,
+          "end": 326.90000000596046
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "transfer": 991,
+          "encoded": 691,
+          "start": 169.40000000596046,
+          "end": 335.7000000178814
+        },
+        {
+          "url": "/assets/ui-BvMZ0hI3.js",
+          "transfer": 61382,
+          "encoded": 61082,
+          "start": 169.5,
+          "end": 1025.300000011921
+        },
+        {
+          "url": "/assets/x-DP0NQX9f.js",
+          "transfer": 481,
+          "encoded": 181,
+          "start": 169.59999999403954,
+          "end": 341.80000001192093
+        },
+        {
+          "url": "/assets/index-BxhmiloK.css",
+          "transfer": 12719,
+          "encoded": 12419,
+          "start": 169.59999999403954,
+          "end": 538.7000000178814
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "transfer": 962,
+          "encoded": 662,
+          "start": 1258.2000000178814,
+          "end": 1423.5
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "transfer": 3503,
+          "encoded": 3203,
+          "start": 1259,
+          "end": 1437.0999999940395
+        }
+      ],
+      "domReady": 1205.4000000059605,
+      "controlled": false,
+      "requests": [
+        {
+          "url": "/",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-Do3Xm4Cc.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/ui-BvMZ0hI3.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/x-DP0NQX9f.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-BxhmiloK.css",
+          "worker": false
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": false
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": false
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": false
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "cold-2",
+      "lcp": 1332,
+      "cls": 0,
+      "events": [
+        {
+          "name": "keydown",
+          "duration": 24
+        },
+        {
+          "name": "keypress",
+          "duration": 24
+        },
+        {
+          "name": "click",
+          "duration": 24
+        }
+      ],
+      "longTasks": [],
+      "resources": [
+        {
+          "url": "/assets/index-Do3Xm4Cc.js",
+          "transfer": 86620,
+          "encoded": 86320,
+          "start": 169.2999999821186,
+          "end": 1154.199999988079
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "transfer": 1012,
+          "encoded": 712,
+          "start": 169.39999997615814,
+          "end": 329.19999998807907
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "transfer": 991,
+          "encoded": 691,
+          "start": 170.19999998807907,
+          "end": 337.39999997615814
+        },
+        {
+          "url": "/assets/ui-BvMZ0hI3.js",
+          "transfer": 61382,
+          "encoded": 61082,
+          "start": 170.2999999821186,
+          "end": 1027.0999999940395
+        },
+        {
+          "url": "/assets/x-DP0NQX9f.js",
+          "transfer": 481,
+          "encoded": 181,
+          "start": 170.5,
+          "end": 352.19999998807907
+        },
+        {
+          "url": "/assets/index-BxhmiloK.css",
+          "transfer": 12719,
+          "encoded": 12419,
+          "start": 170.5,
+          "end": 539
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "transfer": 962,
+          "encoded": 662,
+          "start": 1254.2999999821186,
+          "end": 1409
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "transfer": 3503,
+          "encoded": 3203,
+          "start": 1255.0999999940395,
+          "end": 1431.5
+        }
+      ],
+      "domReady": 1207.199999988079,
+      "controlled": false,
+      "requests": [
+        {
+          "url": "/",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-Do3Xm4Cc.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/ui-BvMZ0hI3.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/x-DP0NQX9f.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-BxhmiloK.css",
+          "worker": false
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": false
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": false
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": false
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "cold-3",
+      "lcp": 1332,
+      "cls": 0,
+      "events": [
+        {
+          "name": "keydown",
+          "duration": 120
+        },
+        {
+          "name": "keypress",
+          "duration": 120
+        },
+        {
+          "name": "click",
+          "duration": 120
+        },
+        {
+          "name": "keyup",
+          "duration": 56
+        }
+      ],
+      "longTasks": [],
+      "resources": [
+        {
+          "url": "/assets/index-Do3Xm4Cc.js",
+          "transfer": 86620,
+          "encoded": 86320,
+          "start": 168.5,
+          "end": 1153.7999999821186
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "transfer": 1012,
+          "encoded": 712,
+          "start": 168.59999999403954,
+          "end": 329.2999999821186
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "transfer": 991,
+          "encoded": 691,
+          "start": 169.19999998807907,
+          "end": 351.5
+        },
+        {
+          "url": "/assets/x-DP0NQX9f.js",
+          "transfer": 481,
+          "encoded": 181,
+          "start": 169.19999998807907,
+          "end": 360.59999999403954
+        },
+        {
+          "url": "/assets/index-BxhmiloK.css",
+          "transfer": 12719,
+          "encoded": 12419,
+          "start": 169.19999998807907,
+          "end": 532.5
+        },
+        {
+          "url": "/assets/ui-BvMZ0hI3.js",
+          "transfer": 61382,
+          "encoded": 61082,
+          "start": 169.19999998807907,
+          "end": 1027.5999999940395
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "transfer": 962,
+          "encoded": 662,
+          "start": 1254.199999988079,
+          "end": 1408.7999999821186
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "transfer": 3503,
+          "encoded": 3203,
+          "start": 1255.2999999821186,
+          "end": 1432.5999999940395
+        }
+      ],
+      "domReady": 1207.2999999821186,
+      "controlled": false,
+      "requests": [
+        {
+          "url": "/",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-Do3Xm4Cc.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/ui-BvMZ0hI3.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/x-DP0NQX9f.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-BxhmiloK.css",
+          "worker": false
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": false
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": false
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": false
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "warm",
+      "lcp": 608,
+      "cls": 0,
+      "events": [],
+      "longTasks": [],
+      "resources": [
+        {
+          "url": "/assets/index-Do3Xm4Cc.js",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 266.5,
+          "end": 422.40000000596046
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 267.7999999821186,
+          "end": 431.2999999821186
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 268.19999998807907,
+          "end": 438
+        },
+        {
+          "url": "/assets/ui-BvMZ0hI3.js",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 268.19999998807907,
+          "end": 453.40000000596046
+        },
+        {
+          "url": "/assets/index-BxhmiloK.css",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 268.2999999821186,
+          "end": 444.40000000596046
+        },
+        {
+          "url": "/assets/x-DP0NQX9f.js",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 268.2999999821186,
+          "end": 459.2999999821186
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 521,
+          "end": 677.5
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 538.9000000059605,
+          "end": 691.6999999880791
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "transfer": 300,
+          "encoded": 0,
+          "start": 546.6999999880791,
+          "end": 699.0999999940395
+        }
+      ],
+      "domReady": 495.5,
+      "controlled": false,
+      "requests": [
+        {
+          "url": "/",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-Do3Xm4Cc.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/ui-BvMZ0hI3.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/x-DP0NQX9f.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-BxhmiloK.css",
+          "worker": false
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": false
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": false
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": false
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

@@ -1,4 +1,6 @@
 :root {
+  --stowaway-feedback-duration: 160ms;
+  --stowaway-feedback-ease: cubic-bezier(.16, 1, .3, 1);
   --stowaway-canvas: #f8f5ee;
   --stowaway-surface: #fffdf8;
   --stowaway-ink: #183e4b;

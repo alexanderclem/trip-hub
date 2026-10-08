@@ -1,44 +1,27 @@
-# Stowaway professional polish checkup
+# Stowaway polish checkup
 
-## Scope and method
-Static review of the current stowaway-website landing page, onboarding, home, shared primitives, trip shell, routes, and metadata. No product files changed. Rendered views, device behavior, and backend reliability were not verified.
+Scope: static review of the marketing landing page and shared motion/startup infrastructure, 2026-10-08. No product files changed. No rendered UI or load-time measurements performed.
 
-## Executive read
-Stowaway has a recognizable travel identity, specific copy, and a substantial product underneath it. The next pass should improve continuity between marketing and application, recovery feedback, and layouts tailored to desktop work.
+The site already has a coherent travel identity, Motion, reduced-motion support, shared timings, and lazy application routes. More animation dependencies are unnecessary.
 
-## Preserve
-- Warm canvas, blue-green brand palette, serif headings, suitcase illustration.
-- Specific shared-trip language and honest illustrative-preview labels.
-- Existing focus indicators, input sizing, loading skeletons, and offline status.
-- Existing functional and end-to-end test coverage; coverage presence does not establish passing results.
+| ID | Severity | Area | Location / evidence | Current behavior | Proposed correction | User impact |
+|---|---|---|---|---|---|---|
+| P01 | LOW | Control feedback | src/features/website/website.css, .website-button hover/active rules | Background changes immediately; press moves 1px | Add brief color and transform transitions; preserve reduced-motion handling | More deliberate tactile feedback |
+| P02 | LOW, optional design direction | Product demonstration | src/features/website/LandingScreen.tsx, TripPreview | Static illustrative map and itinerary | Add an accessible day selector that updates stops and map highlights with a short transition | Lets visitors understand the product through interaction |
 
-## Scorecard
-Static evidence only; runtime-dependent dimensions remain unscored.
+## Recommended order
 
-| Dimension | Assessment |
-| --- | --- |
-| Product clarity | 3 Strong: shared trip purpose is explicit. |
-| Brand consistency | 2 Mixed: marketing uses an SVG logo, app uses a separate Brand component; primitives use multiple styling patterns. |
-| Credibility | 2 Mixed: illustrative preview explains the category, but does not demonstrate actual product screens. |
-| Responsive behavior, accessibility, performance | Pending rendered verification. |
-
-## Findings
-| Severity | Evidence | Impact | Prescription |
-| --- | --- | --- | --- |
-| MEDIUM | src/app/layouts/TripLayout.tsx: trip shell uses the same five-column bottom navigation at every width. | Desktop space is not used to support planning and switching context. | Introduce a desktop sidebar with persistent trip identity; preserve mobile tabs. Verify each destination layout. |
-| MEDIUM | src/app/layouts/TripLayout.tsx: SyncPill is pointer-events-none and reports only “Sync problem”. | The error message offers no recovery action or explanation of the next step. | Add a recoverable status panel with pending-change details and a retry action where supported. |
-| MEDIUM | src/app/layouts/TripLayout.tsx: quiz/profile lookup returns null while pending. | This branch supplies no loading feedback. | Show a compact, accessible loading state with failure recovery. |
-| MEDIUM | src/ui/index.tsx: PageHeader truncates titles and gives the back control a 40px square target. | Long trip content loses context; target sizing differs from the 44px controls elsewhere. | Standardize touch targets and provide a readable long-title treatment. |
-| LOW | src/features/website/LandingScreen.tsx: product preview is illustrative; footer contains brand, tagline, and app link only. | Visitors have limited concrete product proof and limited access to support or data-handling information. | Add verified real-product examples and support/privacy links backed by actual policies. |
-| LOW | Native confirm dialogs across itinerary, tickets, money, tasks, packing, and settings. | Destructive flows use browser styling and inconsistent interaction patterns. | Use a shared accessible confirmation component; provide undo only where data behavior supports it. |
-
-## Priorities
-Now: desktop shell, actionable sync errors, profile-loading feedback, consistent shared primitives.
-Next: real-product website demonstration, clear first-trip onboarding, support/privacy information, consistent destructive-action flows.
-Later: purposeful motion and contextual shortcuts after primary journeys are verified.
+1. Measure cold landing load and navigation on a throttled mobile profile; examine startup dependencies and service-worker requests before optimizing.
+2. Complete control feedback, then build one useful interactive trip preview.
+3. Add restrained one-time choreography to the preview, preserving immediate headline and CTA visibility.
 
 ## Verification gaps
-Check landing, create, invite, itinerary, ticket, expense, and offline recovery flows on phone and desktop. Include keyboard navigation, 200% zoom, long titles, slow loading, interrupted uploads, and denied permissions. Measure performance before prescribing optimization. Review real account/sync behavior before making durability or privacy claims.
 
-## Verdict
-Verdict pending rendered and end-to-end verification. This report identifies code-supported opportunities; it does not certify launch readiness.
+- Existing dist entry JavaScript is approximately 268 KiB uncompressed and entry CSS approximately 64 KiB. This is an existing artifact, not a new build; it does not establish slow loading or current production transfer size.
+- src/main.tsx registers the service worker immediately. vite.config.ts broadly precaches JS, CSS, PNG, map fonts and sprites. Measure background download activity before changing offline behavior.
+- MotionProvider uses synchronous domAnimation with LazyMotion. Asynchronous feature loading is a candidate only after bundle and runtime profiling.
+- Runtime typography, responsive composition, keyboard flows, FAQ behavior and Core Web Vitals remain unverified.
+
+Rejected: adding a second animation library; Motion already serves this role. Rejected: calling loading slow based solely on source or artifact sizes.
+
+Verdict pending verification: this is a code-informed improvement plan, not a runtime design or performance certification.

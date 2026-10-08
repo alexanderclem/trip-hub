@@ -84,7 +84,7 @@ Use `public/brand/stowaway-wordmark.svg` for the website header and footer;
 the app retains its shared `src/ui/Brand.tsx` lockup. Use native links for navigation and
 native details/summary for the FAQ. Website links use shared website button
 classes; app forms retain the existing `src/ui` primitives. Do not add a component
-library. The static example is a labelled figure, not an interactive app demo.
+library. The example is a labelled, local three-day itinerary preview. Day selection updates the illustrative map and stops without loading app data.
 
 ## Do's and Don'ts
 
@@ -96,7 +96,7 @@ library. The static example is a labelled figure, not an interactive app demo.
   all-caps section labels, fake people, statistics, or operational status badges.
 - Do not add destination imagery as filler or replace this brand with a new palette.
 - Use the map/itinerary as evidence; label examples honestly and do not imply a booking.
-- App features load at their routes. All generated app chunks remain precached for offline use.
+- App features load at their routes. Entering an app route starts precaching all generated app chunks for offline use; public marketing visits do not start the offline download.
 
 ## Hallmark refinement
 

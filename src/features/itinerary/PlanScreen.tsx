@@ -106,7 +106,7 @@ export function PlanScreen() {
       <div className="trip-page-grid mx-auto max-w-2xl p-4 lg:p-6">
         <aside className="trip-side mb-4 space-y-4 lg:mb-0" aria-label="Trip planning context">
           <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} />
-          <Card className="hidden lg:block"><h2 className="text-lg font-semibold text-brand-900">This day at a glance</h2><p className="mt-2 text-sm text-stone-600">{perDay[day]?.count ?? 0} planned items · {conflicts} overlaps</p><p className="mt-3 text-sm leading-relaxed text-stone-600">Trip times use {zone.replaceAll('_', ' ')}. Select a day above to shape the plan.</p><Link to={`/t/${tripId}/overview`} className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to trip overview</Link></Card>
+          <Card className="hidden lg:block"><h2 className="text-lg font-semibold text-brand-900">This day at a glance</h2><p className="mt-2 text-sm text-stone-600">{perDay[day]?.count ?? 0} planned items · {conflicts} overlaps</p><p className="mt-3 text-sm leading-relaxed text-stone-600">Time zone: {zone.replaceAll('_', ' ')}</p><Link to={`/t/${tripId}/overview`} className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to trip overview</Link></Card>
         </aside>
         <div className="trip-main space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-x-3">

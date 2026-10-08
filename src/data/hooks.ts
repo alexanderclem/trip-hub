@@ -12,8 +12,10 @@ export function useMembers(tripId: string | undefined): Member[] | undefined {
   return useLiveQuery(
     async () =>
       tripId
-        ? (await db.members.where('trip_id').equals(tripId).filter(alive).toArray()).sort((a, b) =>
-            a.display_name.localeCompare(b.display_name),
+        ? // Read the small members store in bulk. Safari can stall secondary-index
+          // cursor reads even while other stores and the primary key still work.
+          (await db.members.toArray()).filter((member) => member.trip_id === tripId && alive(member)).sort((a, b) =>
+            (a.display_name ?? '').localeCompare(b.display_name ?? ''),
           )
         : [],
     [tripId],
@@ -22,7 +24,7 @@ export function useMembers(tripId: string | undefined): Member[] | undefined {
 
 export function usePlaces(tripId: string | undefined): Place[] | undefined {
   return useLiveQuery(
-    async () => (tripId ? db.places.where('trip_id').equals(tripId).filter(alive).toArray() : []),
+    async () => (tripId ? (await db.places.where('trip_id').equals(tripId).toArray()).filter(alive) : []),
     [tripId],
   )
 }

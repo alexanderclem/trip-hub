@@ -1,57 +1,14 @@
 import { CalendarDays, Ticket, Users, Vote } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
 import { Brand } from '@/ui/Brand'
-import { m } from 'motion/react'
-import { useMotionPreference } from '@/ui/MotionProvider'
-import { motionTiming } from '@/ui/motion'
+import { TripPreview } from './TripPreview'
 import './website.css'
 
 function WebsiteLogo() {
   return <Brand variant="website" className="website-logo" />
 }
 
-const stops = [
-  { time: '09:00', name: 'Coffee in the West Village', note: 'An easy start, together.' },
-  { time: '11:00', name: 'Walk the High Line', note: 'A few favorites from the group.' },
-  { time: '16:00', name: 'An afternoon by the Hudson', note: 'Leave room for a little wandering.' },
-]
-
-/** An illustrative itinerary, deliberately separate from real trip data. */
-function TripPreview() {
-  const reducedMotion = useMotionPreference()
-  return (
-    <m.figure initial={reducedMotion ? false : { opacity: 0.85, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={motionTiming.enter} className="website-preview" aria-labelledby="preview-caption">
-      <div className="preview-heading">
-        <div><span className="website-eyebrow">Example itinerary</span><h2>A few days in NYC</h2></div>
-        <span className="preview-tag"><Users size={15} aria-hidden="true" /> Group trip</span>
-      </div>
-      <div className="preview-map" aria-hidden="true">
-        <svg viewBox="0 0 560 260" preserveAspectRatio="xMidYMid slice">
-          <rect width="560" height="260" fill="var(--color-website-map-ground)" />
-          <path d="M0 0H120L65 95 90 170 35 260H0ZM470 0H560V260H405L455 170 430 95Z" fill="var(--color-website-map-park)" opacity="0.65" />
-          <path d="M0 10L190 0 155 75 40 130 0 95ZM390 0L560 0 560 100 450 135 390 85ZM0 225L120 170 175 210 160 260 0 260ZM420 195L510 160 560 200 560 260 380 260Z" fill="var(--color-website-map-blocks)" />
-          <g stroke="var(--color-website-map-streets)" strokeWidth="11" fill="none">
-            <path d="M-20 65L580 180M-20 140L580 255M70 -20L15 280M170 -20L115 280M270 -20L215 280M370 -20L315 280M470 -20L415 280M570 -20L515 280M0 -10L580 105" />
-          </g>
-          <rect x="244" y="20" width="38" height="88" rx="4" fill="var(--color-website-map-park)" transform="rotate(11 260 119)" />
-          <path d="M164 178C195 187 197 112 260 123S381 167 401 66" fill="none" stroke="var(--color-brand-700)" strokeWidth="3" strokeDasharray="6 6" strokeLinecap="round" />
-          {([[164, 178], [260, 123], [401, 66]] as const).map(([x, y], i) => (
-            <g key={i}><circle cx={x} cy={y} r="16" fill="var(--color-brand-700)" stroke="var(--color-website-surface)" strokeWidth="4" /><text x={x} y={y + 5} textAnchor="middle" fill="var(--color-website-on-action)" fontSize="13" fontFamily="var(--font-website-body)" fontWeight="600">{i + 1}</text></g>
-          ))}
-          <text x="309" y="220" fill="var(--color-website-map-label)" fontSize="14" fontFamily="var(--font-website-body)">Manhattan</text>
-        </svg>
-      </div>
-      <div className="preview-plan">
-        <div className="preview-day"><CalendarDays size={16} aria-hidden="true" /><span>A day to explore</span><span>Day 01</span></div>
-        <ol>{stops.map((stop) => <li key={stop.time}><span className="preview-time">{stop.time}</span><div><h3>{stop.name}</h3><p>{stop.note}</p></div></li>)}</ol>
-      </div>
-      <figcaption id="preview-caption">Illustrative map. Example itinerary.</figcaption>
-    </m.figure>
-  )
-}
-
 export function LandingScreen() {
-  const reducedMotion = useMotionPreference()
   // Existing Home Screen installations may still launch the old root URL.
   if (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone === true)) {
     return <Navigate to="/app" replace />
@@ -71,7 +28,7 @@ export function LandingScreen() {
 
       <main id="main-content" tabIndex={-1}>
         <section className="website-hero website-container" aria-labelledby="hero-title">
-          <m.div initial={reducedMotion ? false : { opacity: 0.85, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={motionTiming.enter} className="website-hero-copy">
+          <div className="website-hero-copy">
             <p className="website-eyebrow">A shared trip planner</p>
             <h1 id="hero-title">The whole trip,<br />tucked away.</h1>
             <p className="website-intro">Vote on the possibilities and build a trip everyone wants to take. Keep your group’s decisions, daily plan, tickets, and shared expenses together.</p>
@@ -80,7 +37,7 @@ export function LandingScreen() {
               <Link to="/app#join" className="website-text-link">Join your group</Link>
             </div>
             <p className="website-hero-note">Start in your browser. Take it along on your phone.</p>
-          </m.div>
+          </div>
           <TripPreview />
         </section>
 

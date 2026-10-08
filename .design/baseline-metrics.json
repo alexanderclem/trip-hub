@@ -1,0 +1,2635 @@
+{
+  "profile": {
+    "browser": "153.0.8010.12",
+    "origin": "http://127.0.0.1:4176",
+    "viewport": "390x844",
+    "cpu": "4x",
+    "latencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "observation": "10 seconds after load; page CDP throttling does not model OS-wide worker contention",
+    "serving": "Vite production preview, uncompressed responses"
+  },
+  "results": [
+    {
+      "name": "cold-1",
+      "lcp": 1652,
+      "cls": 0,
+      "events": [
+        {
+          "name": "keydown",
+          "duration": 32
+        },
+        {
+          "name": "keypress",
+          "duration": 32
+        },
+        {
+          "name": "click",
+          "duration": 32
+        },
+        {
+          "name": "keyup",
+          "duration": 16
+        }
+      ],
+      "longTasks": [
+        94,
+        64,
+        50
+      ],
+      "resources": [
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "transfer": 85659,
+          "encoded": 85359,
+          "start": 202,
+          "end": 1187.5999999940395
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "transfer": 1012,
+          "encoded": 712,
+          "start": 202.59999999403954,
+          "end": 378.59999999403954
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "transfer": 991,
+          "encoded": 691,
+          "start": 203.80000001192093,
+          "end": 386.59999999403954
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "transfer": 481,
+          "encoded": 181,
+          "start": 203.80000001192093,
+          "end": 393.90000000596046
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "transfer": 12416,
+          "encoded": 12116,
+          "start": 203.80000001192093,
+          "end": 573.4000000059605
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "transfer": 61374,
+          "encoded": 61074,
+          "start": 203.80000001192093,
+          "end": 1061.199999988079
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "transfer": 2514,
+          "encoded": 2214,
+          "start": 1286.300000011921,
+          "end": 1451.5
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "transfer": 962,
+          "encoded": 662,
+          "start": 1354.9000000059605,
+          "end": 1510.699999988079
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "transfer": 3503,
+          "encoded": 3203,
+          "start": 1356.199999988079,
+          "end": 1532.300000011921
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "transfer": 833,
+          "encoded": 533,
+          "start": 1629.5999999940395,
+          "end": 1788.9000000059605
+        }
+      ],
+      "domReady": 1288.199999988079,
+      "controlled": true,
+      "requests": [
+        {
+          "url": "/",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "worker": false
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "worker": false
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": false
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": false
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": false
+        },
+        {
+          "url": "/sw.js",
+          "worker": true
+        },
+        {
+          "url": "/workbox-5c34f092.js",
+          "worker": true
+        },
+        {
+          "url": "/push-sw.js",
+          "worker": true
+        },
+        {
+          "url": "/push-sw.js",
+          "worker": true
+        },
+        {
+          "url": "/index.html",
+          "worker": true
+        },
+        {
+          "url": "/icon.svg",
+          "worker": true
+        },
+        {
+          "url": "/icon-512.png",
+          "worker": true
+        },
+        {
+          "url": "/icon-192.png",
+          "worker": true
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light@2x.png",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light.png",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-type.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-mark.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-mark-small.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/social-preview.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/social-preview.png",
+          "worker": true
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": true
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/worker.min-DvrjHhfF.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/worker.min-32WLk7pY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/weather-CPle6VIz.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/wallet-CouOkc-k.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/types-II-089IS.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/triangle-alert-CKfvvK6r.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/travel-a2U5V57S.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/trash-Bua63zIr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/time-BHAyx1s4.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/text-B07yb1tw.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/supabase-Dzi2kwco.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/stats-BPXJZLhH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/src-SuYvKHvm.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/sparkles-lBnnu7KX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/shield-plus-yocZjMg2.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/share-2-Bnx3ipGW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/share-0reRsLe0.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/settings-DNmkfpK3.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/search-Dna35pvS.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/schemas-DIx9C9cg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/savedArea-C_ZEruoF.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/requestLegs-CvSD7Em1.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/repo-DK_692zs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/remote-C4-AUvle.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/receipt-D_oJkfZH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/rank-BUchc4oN.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/profile-BQ9IiAKY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/plus-CBH-zLFd.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/plane-CIajcNWH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/phone-oZPJZy7b.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pencil-C06SxITt.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf.worker.min-zC6nfbxG.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf.worker.min-Dswkl-cV.mjs",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf-BHDyQiZ-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/navigation-PQ9mPl95.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/money-DEbDtpKR.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/model-DqKIyvs5.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/maplibre-gl-worker-DRFeyNJw.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/map-pin-Dvdiljbg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/map-C67xfRbR.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/luxon-BFerHnpC.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/legs-B58wwNDs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/layout-NDyePTig.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/kinds-C8KMCKZl.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "worker": true
+        },
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ids-CV4jEyV-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/hooks-UHp_bzcg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/globe-DdSwV8PG.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/geo-Tx3X0v8a.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/files-oP4JIcUU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/file-text-qNaN0po5.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/download-Jk8iIVza.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/dexie-react-hooks-CN_W7L26.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/device-B6-H6jtD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/destinations-DLtZf6gX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-xa1HTQgI.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-IpvuRrU9.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-Dwt4_FGr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-DiWb-z7t.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-DYyAKr-D.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-D83SZW17.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-CsGbm24e.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-Cl4Ni_qg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-BEfq2LiA.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/copy-mmjDxJ8k.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/controller-D5Y7D54j.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/connector-B847kA1N.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/compass-UYREv3rb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/collection-DXXUWqVb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/cloud-upload-c6pzMbJu.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/clock-3NIZCQ19.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/clipboard-check-DgJ44G-J.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/client-Dy9JH_W7.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/circle-check-CcGo095H.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/chevron-right-DmV7h_Xc.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/chevron-down-DYwj2mUU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/check-Nw7KigBd.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/categories-CpJxMRAk.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/camera-Bkw5Bnmg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/calendar-plus-DD5x45fM.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/calendar-CEk9E9yi.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/build-Buj-29O4.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/bed-double-CGwO0vut.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/backpack-D4fUlExD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/arrow-right-CLEuH9l-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/actions-7nuqgXpY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/account-DxjI17AK.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WrappedScreen-NVHK7DUX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WhoScreen-CWx9wBNe.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WelcomeScreen-DnhIW_wq.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/UpNextCard-D13itEYx.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TripOverviewScreen-D905ys2d.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TripLayout-D8nHD29q.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TravelOptionsList-DgRFaGQ6.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketsScreen-DSzfh73s.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketViewerScreen-BacWI9bn.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketFormScreen-DVpbU8eb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TasksScreen-Dyeq4OTM.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TaskFormScreen-Dmxmrp2P.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/SyncStatus-DZixS5HL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/Stars-CbLz9oEJ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/SettingsScreen-Cxbwv7Xv.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/RadarChart-atI1ELEX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/QuizScreen-DBbODbGB.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PollsScreen-CoJG6qBW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PollScreen-BKBWN6Y1.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlanScreen-8Ov3JZHQ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlacesScreen-D_YhF9ms.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceSummary-COwikW76.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceFormScreen-D-i5zIRr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceDetailScreen-ZcxEGVez.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PackingScreen-BYk0LhxE.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PackingFormScreen-DqZYWZDs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/OfflineReadyCard-Dw0ASwvP.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MoreScreen-BAyHPBRC.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MoneyScreen-YsfgzynD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MapScreen-C7rOb-Bl.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MapScreen-B8-mEBLf.css",
+          "worker": true
+        },
+        {
+          "url": "/assets/JoinScreen-Cw7S5fZ6.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ItemFormScreen-DzeiuhAQ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ItemDetailScreen-SdP8pgHg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/InviteTripCard-U-V3A1vx.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ExpenseFormScreen-DttPOtw-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/EmergencyScreen-UxOwxU4Q.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/EmergencyEditScreen-BK5iBinU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/DiscoveryScreen-Cr7m79fH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/DestinationSearch-Bcfp1887.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/CreateTripScreen-DK-vftJ_.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ConnectorConsentScreen-B8rzAS0v.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ConnectedAppsScreen-D4-VErSL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/CommentThread-66_5SXNq.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/AuthCallbackScreen-DzWnno20.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ActivityScreen-C_InQFuD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ActivityList-BVqwLBu_.js",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light@2x.json",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light.json",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/manifest.webmanifest",
+          "worker": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "cold-2",
+      "lcp": 1432,
+      "cls": 0,
+      "events": [
+        {
+          "name": "keydown",
+          "duration": 16
+        },
+        {
+          "name": "keypress",
+          "duration": 16
+        },
+        {
+          "name": "click",
+          "duration": 16
+        }
+      ],
+      "longTasks": [
+        64,
+        51
+      ],
+      "resources": [
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "transfer": 85659,
+          "encoded": 85359,
+          "start": 180.90000000596046,
+          "end": 1163.699999988079
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "transfer": 1012,
+          "encoded": 712,
+          "start": 181,
+          "end": 339.09999999403954
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "transfer": 991,
+          "encoded": 691,
+          "start": 181,
+          "end": 347.59999999403954
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "transfer": 481,
+          "encoded": 181,
+          "start": 181.59999999403954,
+          "end": 362.40000000596046
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "transfer": 12416,
+          "encoded": 12116,
+          "start": 181.59999999403954,
+          "end": 549.4000000059605
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "transfer": 61374,
+          "encoded": 61074,
+          "start": 181.59999999403954,
+          "end": 1037.2999999821186
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "transfer": 2514,
+          "encoded": 2214,
+          "start": 1231.4000000059605,
+          "end": 1395.7999999821186
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "transfer": 962,
+          "encoded": 662,
+          "start": 1286.7999999821186,
+          "end": 1450
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "transfer": 3503,
+          "encoded": 3203,
+          "start": 1287.4000000059605,
+          "end": 1464.0999999940395
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "transfer": 833,
+          "encoded": 533,
+          "start": 1421.5999999940395,
+          "end": 1576.2999999821186
+        }
+      ],
+      "domReady": 1233.199999988079,
+      "controlled": true,
+      "requests": [
+        {
+          "url": "/",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "worker": false
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "worker": false
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": false
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": false
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": false
+        },
+        {
+          "url": "/sw.js",
+          "worker": true
+        },
+        {
+          "url": "/workbox-5c34f092.js",
+          "worker": true
+        },
+        {
+          "url": "/push-sw.js",
+          "worker": true
+        },
+        {
+          "url": "/push-sw.js",
+          "worker": true
+        },
+        {
+          "url": "/index.html",
+          "worker": true
+        },
+        {
+          "url": "/icon.svg",
+          "worker": true
+        },
+        {
+          "url": "/icon-512.png",
+          "worker": true
+        },
+        {
+          "url": "/icon-192.png",
+          "worker": true
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light@2x.png",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light.png",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-type.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-mark.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-mark-small.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/social-preview.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/social-preview.png",
+          "worker": true
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": true
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/worker.min-DvrjHhfF.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/worker.min-32WLk7pY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/weather-CPle6VIz.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/wallet-CouOkc-k.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/types-II-089IS.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/triangle-alert-CKfvvK6r.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/travel-a2U5V57S.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/trash-Bua63zIr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/time-BHAyx1s4.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/text-B07yb1tw.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/supabase-Dzi2kwco.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/stats-BPXJZLhH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/src-SuYvKHvm.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/sparkles-lBnnu7KX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/shield-plus-yocZjMg2.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/share-2-Bnx3ipGW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/share-0reRsLe0.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/settings-DNmkfpK3.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/search-Dna35pvS.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/schemas-DIx9C9cg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/savedArea-C_ZEruoF.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/requestLegs-CvSD7Em1.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/repo-DK_692zs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/remote-C4-AUvle.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/receipt-D_oJkfZH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/rank-BUchc4oN.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/profile-BQ9IiAKY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/plus-CBH-zLFd.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/plane-CIajcNWH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/phone-oZPJZy7b.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pencil-C06SxITt.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf.worker.min-zC6nfbxG.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf.worker.min-Dswkl-cV.mjs",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf-BHDyQiZ-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/navigation-PQ9mPl95.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/money-DEbDtpKR.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/model-DqKIyvs5.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/maplibre-gl-worker-DRFeyNJw.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/map-pin-Dvdiljbg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/map-C67xfRbR.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/luxon-BFerHnpC.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/legs-B58wwNDs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/layout-NDyePTig.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/kinds-C8KMCKZl.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "worker": true
+        },
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ids-CV4jEyV-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/hooks-UHp_bzcg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/globe-DdSwV8PG.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/geo-Tx3X0v8a.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/files-oP4JIcUU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/file-text-qNaN0po5.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/download-Jk8iIVza.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/dexie-react-hooks-CN_W7L26.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/device-B6-H6jtD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/destinations-DLtZf6gX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-xa1HTQgI.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-IpvuRrU9.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-Dwt4_FGr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-DiWb-z7t.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-DYyAKr-D.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-D83SZW17.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-CsGbm24e.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-Cl4Ni_qg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-BEfq2LiA.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/copy-mmjDxJ8k.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/controller-D5Y7D54j.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/connector-B847kA1N.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/compass-UYREv3rb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/collection-DXXUWqVb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/cloud-upload-c6pzMbJu.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/clock-3NIZCQ19.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/clipboard-check-DgJ44G-J.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/client-Dy9JH_W7.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/circle-check-CcGo095H.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/chevron-right-DmV7h_Xc.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/chevron-down-DYwj2mUU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/check-Nw7KigBd.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/categories-CpJxMRAk.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/camera-Bkw5Bnmg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/calendar-plus-DD5x45fM.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/calendar-CEk9E9yi.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/build-Buj-29O4.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/bed-double-CGwO0vut.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/backpack-D4fUlExD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/arrow-right-CLEuH9l-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/actions-7nuqgXpY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/account-DxjI17AK.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WrappedScreen-NVHK7DUX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WhoScreen-CWx9wBNe.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WelcomeScreen-DnhIW_wq.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/UpNextCard-D13itEYx.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TripOverviewScreen-D905ys2d.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TripLayout-D8nHD29q.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TravelOptionsList-DgRFaGQ6.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketsScreen-DSzfh73s.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketViewerScreen-BacWI9bn.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketFormScreen-DVpbU8eb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TasksScreen-Dyeq4OTM.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TaskFormScreen-Dmxmrp2P.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/SyncStatus-DZixS5HL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/Stars-CbLz9oEJ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/SettingsScreen-Cxbwv7Xv.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/RadarChart-atI1ELEX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/QuizScreen-DBbODbGB.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PollsScreen-CoJG6qBW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PollScreen-BKBWN6Y1.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlanScreen-8Ov3JZHQ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlacesScreen-D_YhF9ms.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceSummary-COwikW76.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceFormScreen-D-i5zIRr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceDetailScreen-ZcxEGVez.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PackingScreen-BYk0LhxE.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PackingFormScreen-DqZYWZDs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/OfflineReadyCard-Dw0ASwvP.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MoreScreen-BAyHPBRC.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MoneyScreen-YsfgzynD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MapScreen-C7rOb-Bl.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MapScreen-B8-mEBLf.css",
+          "worker": true
+        },
+        {
+          "url": "/assets/JoinScreen-Cw7S5fZ6.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ItemFormScreen-DzeiuhAQ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ItemDetailScreen-SdP8pgHg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/InviteTripCard-U-V3A1vx.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ExpenseFormScreen-DttPOtw-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/EmergencyScreen-UxOwxU4Q.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/EmergencyEditScreen-BK5iBinU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/DiscoveryScreen-Cr7m79fH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/DestinationSearch-Bcfp1887.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/CreateTripScreen-DK-vftJ_.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ConnectorConsentScreen-B8rzAS0v.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ConnectedAppsScreen-D4-VErSL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/CommentThread-66_5SXNq.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/AuthCallbackScreen-DzWnno20.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ActivityScreen-C_InQFuD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ActivityList-BVqwLBu_.js",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light@2x.json",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light.json",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/manifest.webmanifest",
+          "worker": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "cold-3",
+      "lcp": 1332,
+      "cls": 0,
+      "events": [
+        {
+          "name": "keydown",
+          "duration": 16
+        },
+        {
+          "name": "keypress",
+          "duration": 16
+        },
+        {
+          "name": "click",
+          "duration": 16
+        }
+      ],
+      "longTasks": [
+        50
+      ],
+      "resources": [
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "transfer": 85659,
+          "encoded": 85359,
+          "start": 173.39999997615814,
+          "end": 1155.0999999940395
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "transfer": 1012,
+          "encoded": 712,
+          "start": 174,
+          "end": 329
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "transfer": 991,
+          "encoded": 691,
+          "start": 174,
+          "end": 338
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "transfer": 481,
+          "encoded": 181,
+          "start": 174.2999999821186,
+          "end": 352.59999999403954
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "transfer": 61374,
+          "encoded": 61074,
+          "start": 174.2999999821186,
+          "end": 1026.7999999821186
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "transfer": 12416,
+          "encoded": 12116,
+          "start": 174.39999997615814,
+          "end": 540.1999999880791
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "transfer": 2514,
+          "encoded": 2214,
+          "start": 1208,
+          "end": 1371.5999999940395
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "transfer": 962,
+          "encoded": 662,
+          "start": 1252.3999999761581,
+          "end": 1408.699999988079
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "transfer": 3503,
+          "encoded": 3203,
+          "start": 1253.199999988079,
+          "end": 1431.5
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "transfer": 833,
+          "encoded": 533,
+          "start": 1321.8999999761581,
+          "end": 1476.2999999821186
+        }
+      ],
+      "domReady": 1208.7999999821186,
+      "controlled": true,
+      "requests": [
+        {
+          "url": "/",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "worker": false
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "worker": false
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": false
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": false
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": false
+        },
+        {
+          "url": "/sw.js",
+          "worker": true
+        },
+        {
+          "url": "/workbox-5c34f092.js",
+          "worker": true
+        },
+        {
+          "url": "/push-sw.js",
+          "worker": true
+        },
+        {
+          "url": "/push-sw.js",
+          "worker": true
+        },
+        {
+          "url": "/index.html",
+          "worker": true
+        },
+        {
+          "url": "/icon.svg",
+          "worker": true
+        },
+        {
+          "url": "/icon-512.png",
+          "worker": true
+        },
+        {
+          "url": "/icon-192.png",
+          "worker": true
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light@2x.png",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light.png",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-type.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-mark.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/stowaway-mark-small.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/social-preview.svg",
+          "worker": true
+        },
+        {
+          "url": "/brand/social-preview.png",
+          "worker": true
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": true
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/worker.min-DvrjHhfF.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/worker.min-32WLk7pY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/weather-CPle6VIz.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/wallet-CouOkc-k.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/types-II-089IS.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/triangle-alert-CKfvvK6r.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/travel-a2U5V57S.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/trash-Bua63zIr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/time-BHAyx1s4.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/text-B07yb1tw.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/supabase-Dzi2kwco.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/stats-BPXJZLhH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/src-SuYvKHvm.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/sparkles-lBnnu7KX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/shield-plus-yocZjMg2.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/share-2-Bnx3ipGW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/share-0reRsLe0.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/settings-DNmkfpK3.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/search-Dna35pvS.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/schemas-DIx9C9cg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/savedArea-C_ZEruoF.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/requestLegs-CvSD7Em1.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/repo-DK_692zs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/remote-C4-AUvle.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/receipt-D_oJkfZH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/rank-BUchc4oN.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/profile-BQ9IiAKY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/plus-CBH-zLFd.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/plane-CIajcNWH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/phone-oZPJZy7b.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pencil-C06SxITt.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf.worker.min-zC6nfbxG.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf.worker.min-Dswkl-cV.mjs",
+          "worker": true
+        },
+        {
+          "url": "/assets/pdf-BHDyQiZ-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/navigation-PQ9mPl95.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/money-DEbDtpKR.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/model-DqKIyvs5.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/maplibre-gl-worker-DRFeyNJw.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/map-pin-Dvdiljbg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/map-C67xfRbR.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/luxon-BFerHnpC.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/legs-B58wwNDs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/layout-NDyePTig.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/kinds-C8KMCKZl.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "worker": true
+        },
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ids-CV4jEyV-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/hooks-UHp_bzcg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/globe-DdSwV8PG.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/geo-Tx3X0v8a.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/files-oP4JIcUU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/file-text-qNaN0po5.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/download-Jk8iIVza.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/dexie-react-hooks-CN_W7L26.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/device-B6-H6jtD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/destinations-DLtZf6gX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-xa1HTQgI.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-IpvuRrU9.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-Dwt4_FGr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-DiWb-z7t.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-DYyAKr-D.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-D83SZW17.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-CsGbm24e.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-Cl4Ni_qg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/data-BEfq2LiA.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/copy-mmjDxJ8k.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/controller-D5Y7D54j.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/connector-B847kA1N.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/compass-UYREv3rb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/collection-DXXUWqVb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/cloud-upload-c6pzMbJu.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/clock-3NIZCQ19.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/clipboard-check-DgJ44G-J.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/client-Dy9JH_W7.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/circle-check-CcGo095H.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/chevron-right-DmV7h_Xc.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/chevron-down-DYwj2mUU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/check-Nw7KigBd.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/categories-CpJxMRAk.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/camera-Bkw5Bnmg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/calendar-plus-DD5x45fM.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/calendar-CEk9E9yi.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/build-Buj-29O4.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/bed-double-CGwO0vut.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/backpack-D4fUlExD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/arrow-right-CLEuH9l-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/actions-7nuqgXpY.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/account-DxjI17AK.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WrappedScreen-NVHK7DUX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WhoScreen-CWx9wBNe.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/WelcomeScreen-DnhIW_wq.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/UpNextCard-D13itEYx.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TripOverviewScreen-D905ys2d.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TripLayout-D8nHD29q.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TravelOptionsList-DgRFaGQ6.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketsScreen-DSzfh73s.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketViewerScreen-BacWI9bn.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TicketFormScreen-DVpbU8eb.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TasksScreen-Dyeq4OTM.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/TaskFormScreen-Dmxmrp2P.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/SyncStatus-DZixS5HL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/Stars-CbLz9oEJ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/SettingsScreen-Cxbwv7Xv.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/RadarChart-atI1ELEX.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/QuizScreen-DBbODbGB.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PollsScreen-CoJG6qBW.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PollScreen-BKBWN6Y1.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlanScreen-8Ov3JZHQ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlacesScreen-D_YhF9ms.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceSummary-COwikW76.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceFormScreen-D-i5zIRr.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PlaceDetailScreen-ZcxEGVez.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PackingScreen-BYk0LhxE.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/PackingFormScreen-DqZYWZDs.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/OfflineReadyCard-Dw0ASwvP.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MoreScreen-BAyHPBRC.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MoneyScreen-YsfgzynD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MapScreen-C7rOb-Bl.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/MapScreen-B8-mEBLf.css",
+          "worker": true
+        },
+        {
+          "url": "/assets/JoinScreen-Cw7S5fZ6.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ItemFormScreen-DzeiuhAQ.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ItemDetailScreen-SdP8pgHg.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/InviteTripCard-U-V3A1vx.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ExpenseFormScreen-DttPOtw-.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/EmergencyScreen-UxOwxU4Q.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/EmergencyEditScreen-BK5iBinU.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/DiscoveryScreen-Cr7m79fH.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/DestinationSearch-Bcfp1887.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/CreateTripScreen-DK-vftJ_.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ConnectorConsentScreen-B8rzAS0v.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ConnectedAppsScreen-D4-VErSL.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/CommentThread-66_5SXNq.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/AuthCallbackScreen-DzWnno20.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ActivityScreen-C_InQFuD.js",
+          "worker": true
+        },
+        {
+          "url": "/assets/ActivityList-BVqwLBu_.js",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light@2x.json",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/sprites/v4/light.json",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Regular/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Medium/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/8192-8447.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/256-511.pbf",
+          "worker": true
+        },
+        {
+          "url": "/map-assets/fonts/Noto%20Sans%20Italic/0-255.pbf",
+          "worker": true
+        },
+        {
+          "url": "/manifest.webmanifest",
+          "worker": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "warm",
+      "lcp": 104,
+      "cls": 0,
+      "events": [
+        {
+          "name": "keydown",
+          "duration": 16
+        },
+        {
+          "name": "keypress",
+          "duration": 16
+        },
+        {
+          "name": "click",
+          "duration": 16
+        },
+        {
+          "name": "keyup",
+          "duration": 16
+        }
+      ],
+      "longTasks": [],
+      "resources": [
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "transfer": 0,
+          "encoded": 271796,
+          "start": 20.400000005960464,
+          "end": 22.900000005960464
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "transfer": 0,
+          "encoded": 1291,
+          "start": 21.5,
+          "end": 23.30000001192093
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "transfer": 0,
+          "encoded": 62164,
+          "start": 21.599999994039536,
+          "end": 23.80000001192093
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "transfer": 0,
+          "encoded": 1218,
+          "start": 21.599999994039536,
+          "end": 23.30000001192093
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "transfer": 0,
+          "encoded": 181,
+          "start": 21.599999994039536,
+          "end": 23.80000001192093
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "transfer": 0,
+          "encoded": 182198,
+          "start": 21.599999994039536,
+          "end": 23.599999994039536
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "transfer": 0,
+          "encoded": 5653,
+          "start": 39.5,
+          "end": 40
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "transfer": 0,
+          "encoded": 1576,
+          "start": 64.5,
+          "end": 65.7000000178814
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "transfer": 0,
+          "encoded": 3203,
+          "start": 65,
+          "end": 65.7000000178814
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "transfer": 0,
+          "encoded": 1323,
+          "start": 99.2000000178814,
+          "end": 99.90000000596046
+        }
+      ],
+      "domReady": 40.20000001788139,
+      "controlled": true,
+      "requests": [
+        {
+          "url": "/",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-BHyOHRHz.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/rolldown-runtime-C0FnF6B9.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/preload-helper-BZ1Pz5am.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/ui-ODFW64kW.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/x-DXMN8GPh.js",
+          "worker": false
+        },
+        {
+          "url": "/assets/index-Dh_aOXr4.css",
+          "worker": false
+        },
+        {
+          "url": "/assets/workbox-window.prod.es5-Bd17z0YL.js",
+          "worker": false
+        },
+        {
+          "url": "/brand/stowaway-wordmark.svg",
+          "worker": false
+        },
+        {
+          "url": "/apple-touch-icon.png",
+          "worker": false
+        },
+        {
+          "url": "/brand/packed-for-anywhere.svg",
+          "worker": false
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

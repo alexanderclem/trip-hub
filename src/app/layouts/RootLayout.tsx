@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { prepareOfflineApp } from '../offlineApp'
 import { Outlet, useLocation, useNavigation } from 'react-router'
 import { useOnline } from '@/lib/useOnline'
 import { ConfirmProvider } from '@/ui/ConfirmProvider'
@@ -14,6 +15,10 @@ export function RootLayout() {
   const { pathname, hash } = useLocation()
   const navigation = useNavigation()
   const reducedMotion = useMotionPreference()
+
+  useEffect(() => {
+    if (!['/', '/privacy', '/terms'].includes(pathname)) prepareOfflineApp()
+  }, [pathname])
 
   useEffect(() => {
     document.title = pathname === '/' ? 'Stowaway — Plan your trip together' : pathname === '/app' ? 'Your trips — Stowaway' : 'Stowaway — Group trip planner'

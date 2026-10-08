@@ -118,7 +118,6 @@ export function CreateTripScreen() {
       <PageHeader title="New trip" back="/app" />
       {loadingDraft && <LoadingState title="Loading your trip idea…" description="Bringing in the suggested itinerary and dates." />}
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-5">
-        <div><h2 className="travel-heading text-3xl text-brand-900">Start with the essentials.</h2><p className="mt-2 text-sm leading-relaxed text-stone-600">Give the trip a name and tell your group who you are. Dates and destinations can come later.</p></div>
         {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name; we’ll add the itinerary as tentative items, ready to edit.</p>}
         {!draftId && <Link to="/inspire" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Need a starting point? Help me plan →</Link>}
         <Field label="Trip name">
@@ -137,7 +136,7 @@ export function CreateTripScreen() {
         </div>
         <div>
           <p className="text-sm font-medium text-stone-700">Where are you going?</p>
-          <p className="mt-1 text-xs text-stone-500">Optional. Pick the towns you'll visit to set the time zone and currency, and to load places and an offline map later.</p>
+          <p className="mt-1 text-xs text-stone-500">Optional. Destinations set the time zone and currency.</p>
           {areas.length > 0 && (
             <ul aria-label="Destinations" className="mt-2 flex flex-wrap gap-2">
               {areas.map((a) => (

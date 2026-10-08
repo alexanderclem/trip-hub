@@ -65,3 +65,20 @@ test('voting leads navigation, persists offline and appears in the overview', as
   await expect(sync).toBeFocused()
   expect(errors).toEqual([])
 })
+
+test('overview loads when Safari member-index cursors stall', async ({ page }) => {
+  await page.addInitScript(() => {
+    const openCursor = IDBIndex.prototype.openCursor
+    IDBIndex.prototype.openCursor = function (...args) {
+      if (this.objectStore.name === 'members' && this.name === 'trip_id') {
+        // Reproduce a request that never fires success/error, observed in Safari.
+        return {} as IDBRequest<IDBCursorWithValue | null>
+      }
+      return openCursor.apply(this, args)
+    }
+  })
+  await page.goto(`${base}/overview`)
+  await expect(page.getByRole('heading', { name: 'Group votes' })).toBeVisible()
+  await expect(page.getByText('Alex (you)', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Opening your trip…' })).toHaveCount(0)
+})

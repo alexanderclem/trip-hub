@@ -52,13 +52,12 @@ export function TasksScreen() {
     <div className="min-h-full pb-24">
       <PageHeader title="Tasks" back={`/t/${tripId}/more`} action={<Link to="new" className="inline-flex min-h-11 items-center gap-1 rounded-xl px-3 font-medium text-brand-700 hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add task</Link>} />
       <div className="mx-auto max-w-2xl space-y-4 p-4">
-        <div><h2 className="text-xl font-semibold tracking-tight">Share the to-do list</h2><p className="mt-1 text-sm text-stone-600">Give each job an owner. Changes save on your phone and sync when you’re online.</p></div>
         <div role="group" aria-label="Filter tasks" className="flex flex-wrap gap-2">
           {[['all', 'Everyone'], ['mine', 'Assigned to me'], ['unassigned', 'Unassigned']].map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value!)} className={`min-h-11 rounded-xl border px-3 text-sm font-medium ${filter === value ? 'border-brand-700 bg-brand-700 text-white' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'}`}>{label}</button>)}
         </div>
         <ErrorNote error={error} />
         {tasks === undefined ? <p role="status" className="py-8 text-center text-stone-500">Loading tasks…</p> : visible.length === 0 ? (
-          <Empty><ClipboardCheck aria-hidden="true" className="size-8 text-brand-700" /><EmptyHeader><EmptyTitle>{filter === 'all' ? 'What needs doing?' : 'No tasks here'}</EmptyTitle><EmptyDescription>{filter === 'all' ? 'Book the shuttle, reserve dinner, or confirm check-in. Add a task and choose who will handle it.' : 'Try another filter or add a task.'}</EmptyDescription></EmptyHeader><Link to="new" className="inline-flex min-h-11 items-center rounded-xl bg-brand-700 px-4 font-medium text-white">Add a task</Link></Empty>
+          <Empty><ClipboardCheck aria-hidden="true" className="size-8 text-brand-700" /><EmptyHeader><EmptyTitle>{filter === 'all' ? 'No tasks yet' : 'No tasks here'}</EmptyTitle><EmptyDescription>{filter === 'all' ? 'Assign tasks to travelers and set due dates.' : 'Try another filter or add a task.'}</EmptyDescription></EmptyHeader><Link to="new" className="inline-flex min-h-11 items-center rounded-xl bg-brand-700 px-4 font-medium text-white">Add a task</Link></Empty>
         ) : (
           <>
             <section aria-labelledby="open-tasks"><h2 id="open-tasks" className="mb-2 text-sm font-semibold text-stone-700">To do · {open.length}</h2>{open.length ? <ul className="rounded-2xl border border-stone-200 bg-white px-2">{open.map(row)}</ul> : <p className="rounded-xl bg-brand-50 p-4 text-sm text-brand-900">All caught up.</p>}</section>
