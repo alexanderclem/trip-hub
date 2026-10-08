@@ -1,3 +1,4 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { CalendarPlus, Lock, LockOpen, Plus, Search, Trash2, Trophy } from 'lucide-react'
@@ -78,7 +79,14 @@ export function PollScreen() {
 
         <div role="tablist" aria-label="View" className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1 text-sm">
           {(['vote', 'results'] as const).map((t) => (
-            <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={`min-h-11 rounded-lg ${tab === t ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}>
+            <button key={t} role="tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onKeyDown={(event) => {
+              if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+              event.preventDefault()
+              const next = event.key === 'Home' ? 'vote' : event.key === 'End' ? 'results' : t === 'vote' ? 'results' : 'vote'
+              setTab(next)
+              const tabs = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+              tabs?.[next === 'vote' ? 0 : 1]?.focus()
+            }} onClick={() => setTab(t)} className={`min-h-11 rounded-lg ${tab === t ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}>
               {t === 'vote' ? `Vote (${myCount}/${options.length})` : 'Results'}
             </button>
           ))}
@@ -108,6 +116,7 @@ export function PollScreen() {
 function OptionVoteCard({ option, place, rating, score, closed, me }: {
   option: PollOption; place?: Place; rating?: Parameters<typeof StarsSummary>[0]['summary']; score: VoteScore | null; closed: boolean; me: string
 }) {
+  const confirm = useConfirm()
   return (
     <li className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
       <div className="flex items-start gap-3">
@@ -127,7 +136,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me }: {
           {option.description && <p className="mt-1 text-sm text-stone-600">{option.description}</p>}
         </div>
         {!closed && (
-          <button onClick={() => confirm(`Remove “${option.label}” from this vote?`) && softDelete('poll_options', option.id, me)} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-400 hover:bg-stone-100" aria-label={`Remove ${option.label}`}>
+          <button onClick={async () => { if (await confirm(`Remove “${option.label}” from this vote?`)) await softDelete('poll_options', option.id, me) }} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-400 hover:bg-stone-100" aria-label={`Remove ${option.label}`}>
             <Trash2 aria-hidden="true" className="size-4" />
           </button>
         )}

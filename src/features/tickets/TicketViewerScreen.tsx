@@ -1,3 +1,4 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -8,8 +9,10 @@ import { Button, ErrorNote, PageHeader } from '@/ui'
 import { getBlob, removeAttachment } from './files'
 import { PdfView } from './PdfView'
 import { AttachmentText } from '@/features/scan/AttachmentText'
+import { LoadingState } from '@/ui/LoadingState'
 
 export function TicketViewerScreen() {
+  const confirm = useConfirm()
   const { tripId, attachmentId } = useParams() as { tripId: string; attachmentId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
@@ -65,7 +68,7 @@ export function TicketViewerScreen() {
         <div style={{ touchAction: 'pan-x pan-y pinch-zoom' }}>
           {blob && att.mime === 'application/pdf' && <PdfView blob={blob} title={att.title} />}
           {url && att.mime.startsWith('image/') && <img src={url} alt={att.title} className="w-full rounded-lg bg-white shadow-sm" />}
-          {!blob && !error && <p className="p-6 text-center text-sm text-stone-500">Opening…</p>}
+          {!blob && !error && <LoadingState title="Opening your ticket…" description="Getting your saved ticket ready to view." />}
         </div>
         <AttachmentText att={att} blob={blob} />
         <div className="grid grid-cols-2 gap-2 pt-2">
@@ -75,7 +78,7 @@ export function TicketViewerScreen() {
             </a>
           )}
           <Button variant="danger" onClick={async () => {
-            if (!confirm(`Remove "${att.title}" for everyone?`)) return
+            if (!await confirm(`Remove "${att.title}" for everyone?`)) return
             await removeAttachment(att.id, me)
             navigate(`/t/${tripId}/tickets`, { replace: true })
           }}>

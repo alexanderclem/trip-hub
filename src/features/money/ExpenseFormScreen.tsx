@@ -1,3 +1,4 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -31,6 +32,7 @@ const major = (minor: number, ccy: string) => (minor / 10 ** minorUnits(ccy)).to
 type Draft = Omit<ExpenseDraft, 'rate'> & { rateText: string; rateEdited: boolean; multiPay: boolean }
 
 export function ExpenseFormScreen() {
+  const confirm = useConfirm()
   const { tripId, expenseId } = useParams() as { tripId: string; expenseId?: string }
   const [search] = useSearchParams()
   const navigate = useNavigate()
@@ -263,7 +265,7 @@ export function ExpenseFormScreen() {
         <Button type="submit" className="w-full" disabled={saving}>{saving ? 'Saving…' : 'Save expense'}</Button>
         {existing && (
           <Button type="button" variant="danger" className="w-full" onClick={async () => {
-            if (!confirm(`Delete "${existing.description}" for everyone?`)) return
+            if (!await confirm(`Delete "${existing.description}" for everyone?`)) return
             await deleteExpense(existing.id, me)
             navigate(`/t/${tripId}/money`, { replace: true })
           }}>

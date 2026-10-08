@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { ChevronRight, Plus, Vote } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
-import { Button, Card, Field, Input, PageHeader, Textarea } from '@/ui'
+import { Button, Card, ErrorNote, Field, Input, PageHeader, Textarea } from '@/ui'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { createPoll, usePolls } from './data'
 import { leader, rankOptions } from './rank'
@@ -14,15 +14,22 @@ export function PollsScreen() {
   const me = useMyMemberId(tripId)
   const polls = usePolls(tripId)
   const groupSize = useMembers(tripId)?.length ?? 1
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!title.trim()) return
-    const id = await createPoll(tripId, title, description, me)
-    navigate(id)
+    if (!title.trim() || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      const id = await createPoll(tripId, title, description, me)
+      navigate(id)
+    } catch (e) { setError(e instanceof Error ? e.message : 'Could not create this vote. Try again.') }
+    finally { setBusy(false) }
   }
 
   return (
@@ -31,12 +38,13 @@ export function PollsScreen() {
         title="Votes"
         back={`/t/${tripId}/more`}
         action={
-          <button onClick={() => setCreating((v) => !v)} className="flex size-10 items-center justify-center rounded-full text-brand-700 active:bg-brand-50" aria-label="New vote" aria-expanded={creating}>
+          <button onClick={() => setCreating((v) => !v)} className="flex size-11 items-center justify-center rounded-full text-brand-700 active:bg-brand-50" aria-label="New vote" aria-expanded={creating}>
             <Plus aria-hidden="true" className="size-6" />
           </button>
         }
       />
-      <div className="mx-auto max-w-lg space-y-4 p-4">
+      <div className="mx-auto max-w-2xl space-y-4 p-4">
+        <p className="text-sm leading-relaxed text-stone-600">Decide together. Add your options, let everyone score them, and see which ideas your group wants most.</p>
         {(creating || polls?.length === 0) && (
           <Card>
             <form onSubmit={submit} className="space-y-3">
@@ -47,7 +55,8 @@ export function PollsScreen() {
               <Field label="Details (optional)">
                 <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Budget, dates, anything that matters" />
               </Field>
-              <Button type="submit" className="w-full" disabled={!title.trim()}>Create and add options</Button>
+              <ErrorNote error={error} />
+              <Button type="submit" className="w-full" disabled={busy || !title.trim()}>{busy ? 'Creating vote…' : 'Create and add options'}</Button>
             </form>
           </Card>
         )}

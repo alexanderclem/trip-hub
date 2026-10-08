@@ -35,9 +35,72 @@ describe('applying AI trip drafts offline', () => {
     await applyIdea(draft.id, 0, trip, member, '2027-03-14', database)
     const other = { ...structuredClone(draft), id: crypto.randomUUID() }
     await database.ai_drafts.add(other)
-    await expect(applyIdea(other.id, 0, trip, member, '2027-03-14', database)).rejects.toThrow('overlaps')
+    await expect(applyIdea(other.id, 0, trip, member, '2027-03-14', database)).rejects.toThrow('overlaps “Visit the market” already in your plan (Sun, 14 Mar 2027 at 10:00)')
     expect(await database.itinerary_items.count()).toBe(1)
     expect(await database._outbox.count()).toBe(3)
+  })
+  it('identifies overlaps inside a draft when the plan is empty and writes nothing', async () => {
+    const changed = structuredClone(draft)
+    const activities = changed.result.ideas[0]!.days[0]!.activities
+    activities.push({ ...activities[0]!, title: 'Sunset at El Arco', time: '10:30' })
+    await database.ai_drafts.put(changed)
+
+    await expect(applyIdea(draft.id, 0, trip, member, '2027-03-14', database)).rejects.toThrow('“Sunset at El Arco” overlaps “Visit the market” within this draft on 2027-03-14. Nothing was added to your plan.')
+    expect(await database.itinerary_items.count()).toBe(0)
+    expect(await database.places.count()).toBe(0)
+    expect(await database.trip_tasks.count()).toBe(0)
+    expect(await database._outbox.count()).toBe(0)
+    expect((await database.ai_drafts.get(draft.id))?.application).toBeUndefined()
+
+    activities[1]!.time = '11:00'
+    await database.ai_drafts.put(changed)
+    expect(await applyIdea(draft.id, 0, trip, member, '2027-03-14', database)).toBe(2)
+  })
+  it('allows a draft activity to start exactly when an existing plan ends', async () => {
+    await applyIdea(draft.id, 0, trip, member, '2027-03-14', database)
+    const original = (await database.itinerary_items.toArray())[0]!
+    const next = { ...structuredClone(draft), id: crypto.randomUUID() }
+    next.result.ideas[0]!.days[0]!.activities[0]!.time = '11:00'
+    await database.ai_drafts.add(next)
+
+    expect(await applyIdea(next.id, 0, trip, member, '2027-03-14', database)).toBe(1)
+    expect(await database.itinerary_items.get(original.id)).toEqual(original)
+    expect(await database.itinerary_items.count()).toBe(2)
+  })
+  it.each(['lodging', 'all-day', 'cancelled', 'deleted'] as const)('does not block timed draft activities with %s entries', async (kind) => {
+    await applyIdea(draft.id, 0, trip, member, '2027-03-14', database)
+    const original = (await database.itinerary_items.toArray())[0]!
+    const updates = kind === 'lodging' ? { kind: 'lodging' as const }
+      : kind === 'all-day' ? { all_day: true }
+      : kind === 'cancelled' ? { status: 'cancelled' as const }
+      : { deleted_at: '2027-01-01T00:00:00Z' }
+    await database.itinerary_items.update(original.id, updates)
+    const next = { ...structuredClone(draft), id: crypto.randomUUID() }
+    await database.ai_drafts.add(next)
+
+    expect(await applyIdea(next.id, 0, trip, member, '2027-03-14', database)).toBe(1)
+    expect(await database.itinerary_items.get(original.id)).toEqual({ ...original, ...updates })
+  })
+  it('uses the calendar’s one-hour duration for existing items without an end', async () => {
+    await applyIdea(draft.id, 0, trip, member, '2027-03-14', database)
+    const original = (await database.itinerary_items.toArray())[0]!
+    await database.itinerary_items.update(original.id, { end_at: null, end_local: null, end_tz: null })
+    const next = { ...structuredClone(draft), id: crypto.randomUUID() }
+    next.result.ideas[0]!.days[0]!.activities[0]!.time = '10:30'
+    await database.ai_drafts.add(next)
+
+    await expect(applyIdea(next.id, 0, trip, member, '2027-03-14', database)).rejects.toThrow('already in your plan')
+    expect(await database.itinerary_items.count()).toBe(1)
+  })
+  it('checks draft overlaps across midnight and day boundaries', async () => {
+    const changed = structuredClone(draft)
+    const first = changed.result.ideas[0]!.days[0]!
+    first.activities[0]!.time = '23:30'
+    changed.result.ideas[0]!.days.push({ title: 'Early start', activities: [{ ...first.activities[0]!, title: 'Morning walk', time: '00:15' }] })
+    await database.ai_drafts.put(changed)
+
+    await expect(applyIdea(draft.id, 0, trip, member, '2027-03-14', database)).rejects.toThrow('within this draft on 2027-03-15')
+    expect(await database.itinerary_items.count()).toBe(0)
   })
   it('undo removes unedited generated rows even after timestamps are normalized by sync', async () => {
     await applyIdea(draft.id, 0, trip, member, '2027-03-14', database)

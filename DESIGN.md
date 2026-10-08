@@ -104,9 +104,24 @@ The public page uses a mobile-first layout and five text roles: 14px secondary
 labels, 16px body/itinerary titles, 20px preview title, fluid section headings,
 and fluid display type. Brand lockups retain their established sizes. Body
 line-height stays at the locked 1.8. All clickable navigation and CTA labels
-remain on one line; FAQ questions may wrap to stay fully readable. Motion is
-cut: focus, hover, disclosure, and press feedback are immediate. Reduced motion
-also removes the 1px press shift.
+remain on one line; FAQ questions may wrap to stay fully readable. Focus and
+disclosure feedback are immediate. Motion follows the shared behavior below.
+
+## Motion
+
+Use `motion/react` through the shared `MotionProvider` with the lightweight
+`m` components. `src/ui/motion.ts` owns entrance, fade, and spring feedback timing.
+Homepage copy and the example itinerary settle into place over 280ms. Route
+changes fade over 180ms without remounting forms, maps, or sync subscriptions.
+Shared buttons lift 1px on hover and compress slightly on press; native dialogs
+animate their contents on opening while retaining immediate focus and dismissal.
+
+Loading screens use the original suitcase mark in `LoadingLogo`: a small hop,
+a soft squash on landing, and a synchronized ground shadow. The compact version
+also accompanies pending route navigation. Loading never adds an artificial delay.
+Honor reduced motion globally and explicitly in repeating animations and gestures:
+the suitcase and shadow become static, page and dialog updates are immediate,
+and buttons retain their normal color and focus feedback without moving.
 
 Website tokens use a `website` namespace so they cannot change Tailwind text,
 spacing, or font utilities on trip screens. The original hex brand values remain

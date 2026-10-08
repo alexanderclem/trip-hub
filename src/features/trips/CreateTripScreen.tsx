@@ -11,6 +11,7 @@ import { currencyFor, lookupZone, MAX_AREAS, type Destination } from '@/features
 import { isValidZone } from '@/lib/time'
 import { Button, ErrorNote, Field, Input, PageHeader, Select } from '@/ui'
 import { createTrip } from './actions'
+import { LoadingState } from '@/ui/LoadingState'
 
 const COMMON_ZONES = [
   'America/Guatemala',
@@ -41,9 +42,9 @@ export function CreateTripScreen() {
     yourName: '',
     startDate: '',
     endDate: '',
-    timezone: 'America/Guatemala',
+    timezone: 'America/New_York',
     baseCurrency: 'USD',
-    localCurrency: 'GTQ',
+    localCurrency: 'USD',
   })
   const [areas, setAreas] = useState<Destination[]>([])
   const [busy, setBusy] = useState(false)
@@ -105,7 +106,7 @@ export function CreateTripScreen() {
         navigate(`/t/${tripId}/plan`, { replace: true })
         return
       }
-      navigate(`/t/${tripId}/more/settings`, { replace: true })
+      navigate(`/t/${tripId}/overview?created=1`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       setBusy(false)
@@ -115,11 +116,13 @@ export function CreateTripScreen() {
   return (
     <div className="min-h-full">
       <PageHeader title="New trip" back="/app" />
+      {loadingDraft && <LoadingState title="Loading your trip idea…" description="Bringing in the suggested itinerary and dates." />}
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-5">
+        <div><h2 className="travel-heading text-3xl text-brand-900">Start with the essentials.</h2><p className="mt-2 text-sm leading-relaxed text-stone-600">Give the trip a name and tell your group who you are. Dates and destinations can come later.</p></div>
         {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name; we’ll add the itinerary as tentative items, ready to edit.</p>}
         {!draftId && <Link to="/inspire" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Need a starting point? Help me plan →</Link>}
         <Field label="Trip name">
-          <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="Guatemala spring break 2027" />
+          <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="NYC spring break 2027" />
         </Field>
         <Field label="Your name" hint="How the group will see you.">
           <Input required maxLength={40} value={form.yourName} onChange={set('yourName')} />
@@ -167,7 +170,8 @@ export function CreateTripScreen() {
           </Field>
         </div>
         <ErrorNote error={error} />
-        {createdTripId && error && <Link className="inline-flex min-h-11 items-center text-brand-700" to={`/t/${createdTripId}/more/settings`}>Open the created trip →</Link>}
+        {createdTripId && error && <Link className="inline-flex min-h-11 items-center text-brand-700" to={`/t/${createdTripId}/overview`}>Open the created trip →</Link>}
+        {busy && <p role="status" className="text-sm text-stone-600">Creating your shared trip and saving a copy on this device…</p>}
         <Button type="submit" className="w-full" disabled={busy || loadingDraft || (!!draftId && !draft)}>
           {busy ? 'Creating…' : 'Create trip'}
         </Button>

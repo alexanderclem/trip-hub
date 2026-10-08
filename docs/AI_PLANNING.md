@@ -45,3 +45,21 @@ npx wrangler deploy --dry-run
 ```
 
 Workers AI references: [pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/), [bindings](https://developers.cloudflare.com/workers-ai/configuration/bindings/), [JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/), [rate limits](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/), [static asset routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/).
+
+## Lower-usage ideas generation
+
+Ideas use `@cf/meta/llama-3.1-8b-instruct-fp8-fast`, configured independently with
+`IDEAS_MODEL`. Profile inference and ticket scanning keep their existing model.
+Each ideas request asks for one complete draft with two concise activities per day,
+reducing generated tokens. Existing output validation remains required. No automatic
+retry or larger-model fallback consumes additional allowance. Smaller-model latency
+and itinerary quality need live verification after deployment.
+
+Workers AI includes 10,000 neurons daily shared across the account. Workers Free
+stops serving AI when the allocation is exhausted; Workers Paid bills overage.
+Keeping the account on Workers Free is required for a provider-enforced zero-cost
+limit; the app's per-minute rate limiter alone cannot guarantee zero spending on a
+paid account. See https://developers.cloudflare.com/workers-ai/platform/pricing/.
+
+Ideas generation does not call Google Routes. Traffic-aware driving remains an
+explicit user action in Place detail, with no background or all-pairs requests.

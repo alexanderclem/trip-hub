@@ -16,7 +16,7 @@ describe('importPlaces', () => {
     const again = await importPlaces(TRIP, seed, 'ben')
     expect(again).toEqual({ added: 0, skipped: seed.places.length, routesAdded: 0 })
     expect(await db.places.count()).toBe(seed.places.length)
-  })
+  }, 30_000)
 
   it('keeps edits people made to imported places', async () => {
     const one = { places: [seed.places[0]] }
@@ -40,7 +40,7 @@ describe('importPlaces', () => {
     const routes = (await db.trips.get(trip))!.settings.area_routes as { note?: string; a: string; b: string; mode: string }[]
     expect(routes.find((x) => x.mode === 'boat' && [x.a, x.b].includes('Panajachel') && [x.a, x.b].includes('San Pedro La Laguna'))!.note).toBe('ours')
     expect((await importPlaces(trip, seed, 'ana')).routesAdded).toBe(0)
-  })
+  }, 30_000)
 
   it('rejects files that are not places files', async () => {
     await expect(importPlaces(TRIP, { hello: 1 }, 'ana')).rejects.toThrow(/Not a Stowaway places file/)

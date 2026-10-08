@@ -10,6 +10,7 @@ import { useDisplayZone, useItems } from '@/features/itinerary/data'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { useAttachments } from './files'
 import { Input } from '@/ui'
+import { LoadingState } from '@/ui/LoadingState'
 
 /** Lower-case text to search: title, code, the read text and any pulled-out details. */
 const haystack = (a: Attachment) => [a.title, a.confirmation_code, a.text, a.details?.merchant, a.details?.flight, a.details?.confirmation_code].filter(Boolean).join(' ').toLowerCase()
@@ -47,6 +48,8 @@ export function TicketsScreen() {
     return receipts ? [...out, ['receipts', receipts] as const] : [...out]
   }, [rows, items, zone, query])
 
+  if (!trip || !rows) return <LoadingState fullScreen title="Loading your tickets…" description="Finding the documents saved for this trip." />
+
   return (
     <div className="min-h-full pb-28">
       <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-stone-50/95 backdrop-blur">
@@ -55,7 +58,7 @@ export function TicketsScreen() {
           <h1 className="text-xl font-semibold tracking-tight">Tickets</h1>
         </div>
       </header>
-      <div className="mx-auto max-w-lg space-y-4 p-4">
+      <div className="mx-auto max-w-lg space-y-4 p-4 lg:max-w-5xl lg:p-6">
         {trip && <OfflineReadyCard trip={trip} compact />}
         {rows && rows.length > 0 && (
           <label className="relative block">

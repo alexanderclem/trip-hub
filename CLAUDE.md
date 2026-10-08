@@ -8,6 +8,9 @@ Live at https://trip-hub.alexanderclem12.workers.dev. Repo: github.com/alexander
 
 - **$0, no credit card, no business verification.** Don't propose paid APIs or services that
   need a card. Signups used so far: GitHub, Supabase, Cloudflare, OpenRouteService.
+  **One approved exception (8 Oct 2026):** Google Routes for the on-demand "Check driving
+  traffic" button (`docs/TRAFFIC_ROUTING.md`). Low GCP cost is accepted for that button only;
+  no background or all-pairs requests, and nothing else paid without asking.
 - **Offline-first.** The UI reads only from IndexedDB, and the network is an enhancement.
   Everything must keep working with no signal (rural Guatemala, airports, lanchas).
 - **iPhone Safari installed to the Home Screen** is the primary target. Touch targets are at

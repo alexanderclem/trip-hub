@@ -1,3 +1,5 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
+import { LoadingState } from '@/ui/LoadingState'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
@@ -16,6 +18,7 @@ import { useMoneyFormat } from './format'
 import { TripCostCard } from './TripCostCard'
 
 export function MoneyScreen() {
+  const confirm = useConfirm()
   const { tripId } = useParams() as { tripId: string }
   const me = useMyMemberId(tripId)
   const trip = useTrip(tripId)
@@ -45,6 +48,8 @@ export function MoneyScreen() {
     return [...byDay]
   }, [money])
 
+  if (!trip || !money) return <LoadingState fullScreen title="Loading shared expenses…" />
+
   return (
     <div className="min-h-full pb-28">
       <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-stone-50/95 backdrop-blur">
@@ -66,7 +71,7 @@ export function MoneyScreen() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-lg space-y-4 p-4">
+      <div className="mx-auto max-w-lg space-y-4 p-4 lg:max-w-4xl lg:p-6">
         {trip && me && money && (
           <TripCostCard trip={trip} me={me} memberIds={members.map((m) => m.id)} expenses={money.expenses} snapshot={money.snapshot} fmt={(v) => fmt(v)} />
         )}
@@ -156,7 +161,7 @@ export function MoneyScreen() {
                             <span className="text-stone-500"> · {r.s.method}</span>
                           </p>
                           <span className="font-semibold tabular-nums">{formatMoney(r.s.amount_minor, r.s.currency)}</span>
-                          <button onClick={() => confirm('Undo this payment?') && deleteSettlement(r.s.id, me)} aria-label="Undo payment" className="flex size-11 items-center justify-center rounded-xl text-stone-400 hover:bg-stone-100">
+                          <button onClick={async () => { if (await confirm('Undo this payment?')) await deleteSettlement(r.s.id, me) }} aria-label="Undo payment" className="flex size-11 items-center justify-center rounded-xl text-stone-400 hover:bg-stone-100">
                             <Undo2 aria-hidden="true" className="size-4" />
                           </button>
                         </li>

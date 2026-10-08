@@ -21,7 +21,7 @@ export function WelcomeScreen() {
       <p className="mt-6 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">Good company. Great trips.</p>
       <h1 className="travel-heading mt-2 text-5xl text-brand-900">Plan it together, take it anywhere.</h1>
       <p className="mt-4 leading-relaxed text-stone-600">
-        Join your group’s trip or start a new one. Then a quick quiz maps how you like to travel, so the plan has something for everyone.
+        Join your group’s trip or start a new one. Your shared plan, places, and tickets will be ready to shape together.
       </p>
 
       <Link to="/new" className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-brand-900 active:bg-brand-900">

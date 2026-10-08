@@ -21,6 +21,7 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
   }
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app', exact: true }).click()
   await page.waitForURL('**/app')
+  await page.getByRole('button', { name: 'Continue in browser' }).click()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
   await page.getByRole('link', { name: 'Create a trip', exact: true }).click()
   await page.waitForURL('**/new')
@@ -34,6 +35,7 @@ test('joining from the website focuses the invite field and retains validation',
   await page.goto('/')
   await page.getByRole('link', { name: 'Join your group' }).click()
   await page.waitForURL('**/app#join')
+  await page.getByRole('button', { name: 'Continue in browser' }).click()
   const input = page.getByLabel('Trip link', { exact: true })
   await expect(input).toBeFocused()
   await input.fill('not a trip link')

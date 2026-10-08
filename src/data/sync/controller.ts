@@ -9,12 +9,14 @@ import { publishReminders } from '@/features/notifications/reminders'
 export type SyncPhase = 'idle' | 'syncing' | 'offline' | 'error'
 
 interface SyncStatus {
+  tripId: string | null
   phase: SyncPhase
   lastSyncedAt: string | null
   lastError: string | null
 }
 
 export const useSyncStatus = create<SyncStatus>(() => ({
+  tripId: null,
   phase: 'idle',
   lastSyncedAt: null,
   lastError: null,
@@ -25,50 +27,66 @@ const PUSH_RETRY_MS = 30_000
 const POKE_DEBOUNCE_MS = 500
 
 let running: Promise<void> | null = null
-let again = false
+const requested = new Set<string>()
+let activeTripId: string | null = null
+
+function setStatus(tripId: string, status: Partial<SyncStatus>) {
+  if (activeTripId === null || activeTripId === tripId) useSyncStatus.setState({ ...status, tripId })
+}
 
 /** Runs one push+pull cycle. Calls made while a cycle is running coalesce into one more. */
 export function syncNow(tripId: string): Promise<void> {
-  if (running) {
-    again = true
-    return running
-  }
+  requested.add(tripId)
+  if (running) return running
   running = (async () => {
-    do {
-      again = false
-      await cycle(tripId)
-    } while (again)
+    while (requested.size) {
+      const next = requested.values().next().value!
+      requested.delete(next)
+      await cycle(next)
+    }
   })().finally(() => {
     running = null
   })
   return running
 }
 
+/** A deliberate retry bypasses backoff, while retaining rejected changes for review. */
+export async function retrySync(tripId: string) {
+  await resetBackoff()
+  return syncNow(tripId)
+}
+
 async function cycle(tripId: string) {
+  try {
   if (!navigator.onLine) {
-    useSyncStatus.setState({ phase: 'offline' })
+    setStatus(tripId, { phase: 'offline', lastError: null })
     return
   }
-  useSyncStatus.setState({ phase: 'syncing' })
+  setStatus(tripId, { phase: 'syncing', lastError: null })
   const pushed = await push(supabaseRemote)
   const pulled = await pull(supabaseRemote, tripId)
   if (pulled.error) {
-    useSyncStatus.setState({
+    setStatus(tripId, {
       phase: pulled.error.status === 0 ? 'offline' : 'error',
       lastError: pulled.error.message,
     })
   } else if (pushed.retryLater) {
     const head = await db._outbox.orderBy('seq').first()
-    useSyncStatus.setState({ phase: 'error', lastError: head?.lastError ?? 'Some changes are waiting to sync' })
+    setStatus(tripId, { phase: 'error', lastError: head?.lastError ?? 'Some changes are waiting to sync' })
   } else {
-    useSyncStatus.setState({ phase: 'idle', lastSyncedAt: new Date().toISOString(), lastError: null })
+    setStatus(tripId, { phase: 'idle', lastSyncedAt: new Date().toISOString(), lastError: null })
     // With fresh plans and travel times, refresh this phone's leave-by reminders (push on only).
     void publishReminders(tripId).catch((e) => console.warn('leave-by reminders failed', e))
+  }
+  } catch (error) {
+    setStatus(tripId, { phase: navigator.onLine ? 'error' : 'offline', lastError: error instanceof Error ? error.message : 'Could not finish syncing. Try again.' })
   }
 }
 
 /** Starts background sync for a trip. Returns a function that stops it. */
 export function startSync(tripId: string): () => void {
+  activeTripId = tripId
+  useSyncStatus.setState({ tripId, phase: navigator.onLine ? 'syncing' : 'offline', lastSyncedAt: null, lastError: null })
   let pokeTimer: ReturnType<typeof setTimeout> | undefined
   const poke = () => {
     clearTimeout(pokeTimer)
@@ -78,7 +96,7 @@ export function startSync(tripId: string): () => void {
   const onOnline = () => {
     void resetBackoff().then(() => syncNow(tripId))
   }
-  const onOffline = () => useSyncStatus.setState({ phase: 'offline' })
+  const onOffline = () => setStatus(tripId, { phase: 'offline', lastError: null })
   const onVisible = () => {
     if (document.visibilityState === 'visible') void syncNow(tripId)
   }
@@ -113,6 +131,7 @@ export function startSync(tripId: string): () => void {
   void syncNow(tripId)
 
   return () => {
+    if (activeTripId === tripId) activeTripId = null
     clearTimeout(pokeTimer)
     clearInterval(pullTimer)
     clearInterval(pushTimer)

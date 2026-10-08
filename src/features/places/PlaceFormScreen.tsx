@@ -96,7 +96,7 @@ export function PlaceFormScreen() {
             </Select>
           </Field>
         </div>
-        <Field label="Area" hint="Town or neighbourhood, e.g. Antigua, Panajachel, San Pedro">
+        <Field label="Area" hint="Town or neighbourhood, e.g. West Village, Chelsea, Williamsburg">
           <Input {...text('area')} maxLength={80} />
         </Field>
         <Field

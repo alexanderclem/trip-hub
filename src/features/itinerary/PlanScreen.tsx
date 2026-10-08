@@ -6,7 +6,8 @@ import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatInZone } from '@/lib/time'
-import { Textarea } from '@/ui'
+import { Card, Textarea } from '@/ui'
+import { LoadingState } from '@/ui/LoadingState'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { itemsFor, planIcs, shareCalendar } from './calendar'
 import { saveDayNote, useDayNote, useDisplayZone, useItems } from './data'
@@ -60,6 +61,8 @@ export function PlanScreen() {
     stripRef.current?.querySelector<HTMLElement>('[aria-current="date"]')?.scrollIntoView({ inline: 'center', block: 'nearest' })
   }, [day])
 
+  if (!trip || !items) return <LoadingState fullScreen title="Loading your itinerary…" />
+
   return (
     <div className="min-h-full pb-28">
       <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-stone-50/95 backdrop-blur">
@@ -100,8 +103,12 @@ export function PlanScreen() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-2xl space-y-3 p-4">
-        {items && <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} />}
+      <div className="trip-page-grid mx-auto max-w-2xl p-4 lg:p-6">
+        <aside className="trip-side mb-4 space-y-4 lg:mb-0" aria-label="Trip planning context">
+          <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} />
+          <Card className="hidden lg:block"><h2 className="text-lg font-semibold text-brand-900">This day at a glance</h2><p className="mt-2 text-sm text-stone-600">{perDay[day]?.count ?? 0} planned items · {conflicts} overlaps</p><p className="mt-3 text-sm leading-relaxed text-stone-600">Trip times use {zone.replaceAll('_', ' ')}. Select a day above to shape the plan.</p><Link to={`/t/${tripId}/overview`} className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to trip overview</Link></Card>
+        </aside>
+        <div className="trip-main space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-x-3">
           <Link to={`/t/${tripId}/more/ideas`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Explore trip ideas →</Link>
           <Link to={`/t/${tripId}/more/tasks`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Shared tasks →</Link>
@@ -160,6 +167,7 @@ export function PlanScreen() {
         ) : (
           <Timeline blocks={layout.blocks} fromHour={layout.fromHour} toHour={layout.toHour} zone={zone} day={day} tripId={tripId} placeOf={placeOf} />
         )}
+        </div>
       </div>
 
       <Link

@@ -17,6 +17,7 @@
   ],
   "vars": {
     "MCP_RESOURCE_URL": "https://trip-hub.alexanderclem12.workers.dev/mcp",
+    "IDEAS_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
     "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "SUPABASE_URL": "https://croqjdvzbpcscdcshnet.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_FpJvcMvfUFtCO49tcx0tGA_fZUqNroP"

@@ -48,6 +48,30 @@ async function mockNetwork(page: Page, calls: AIRequest[]) {
   }, { user: USER })
 }
 
+async function seedTrip(page: Page, ideas: IdeaResult) {
+  // Wait for the app's Dexie schema before opening it with the native API.
+  await expect.poll(() => page.evaluate(async () => {
+    if (!(await indexedDB.databases()).some((entry) => entry.name === 'trip-hub')) return []
+    const database = await new Promise<IDBDatabase>((resolve, reject) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
+    const stores = Array.from(database.objectStoreNames)
+    database.close()
+    return stores
+  })).toEqual(expect.arrayContaining(['trips', 'members', 'member_preferences', 'ai_drafts']))
+  await page.evaluate(async ({ tripId, alex, sam, profile: p, ideas }) => {
+    localStorage.setItem('trip-hub-device', JSON.stringify({ version: 1, state: { trips: { [tripId]: { tripId, memberId: alex, joinedAt: new Date().toISOString() } }, travelProfile: p } }))
+    const database = await new Promise<IDBDatabase>((resolve, reject) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
+    const tables = ['trips', 'members', 'member_preferences', 'ai_drafts']
+    const tx = database.transaction(tables, 'readwrite')
+    tx.objectStore('trips').put({ id: tripId, name: 'E2E TEST local AI planning', timezone: 'America/Los_Angeles', start_date: '2027-03-14', end_date: '2027-03-15', base_currency: 'USD', local_currency: null, route_factor_low: 1.4, route_factor_high: 2, bbox: null, offline_pack: null, share_token: 'test', settings: {} })
+    for (const [id, name] of [[alex, 'Alex'], [sam, 'Sam'], ['00000000-0000-4000-8000-000000000015', 'Lee']]) tx.objectStore('members').put({ id, trip_id: tripId, display_name: name, color: '#295361', avatar_emoji: null, home_timezone: null })
+    tx.objectStore('member_preferences').put({ id: crypto.randomUUID(), trip_id: tripId, member_id: alex, ...p })
+    tx.objectStore('member_preferences').put({ id: crypto.randomUUID(), trip_id: tripId, member_id: sam, ...p, scores: { ...p.scores, nature: 20, nightlife: 90 }, constraints: 'No long walks' })
+    tx.objectStore('ai_drafts').put({ id: '00000000-0000-4000-8000-000000000016', scope: tripId, createdAt: new Date().toISOString(), brief: { prompt: 'A relaxed day', destination: 'California', days: 1, startDate: '2027-03-14', budgetMinor: null, currency: 'USD' }, result: ideas })
+    await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error) })
+    database.close()
+  }, { tripId: TRIP, alex: ALEX, sam: SAM, profile, ideas })
+}
+
 test('preferences become a radar profile, generate ideas, filter, refine and survive reload', async ({ page }) => {
   const calls: AIRequest[] = []
   await mockNetwork(page, calls)
@@ -114,19 +138,7 @@ test('group radar excludes missing profiles, updates membership and applies and 
   const calls: AIRequest[] = []
   await mockNetwork(page, calls)
   await page.goto('/inspire') // opens the current IndexedDB schema
-  await page.evaluate(async ({ tripId, alex, sam, profile: p, ideas }) => {
-    localStorage.setItem('trip-hub-device', JSON.stringify({ version: 1, state: { trips: { [tripId]: { tripId, memberId: alex, joinedAt: new Date().toISOString() } }, travelProfile: p } }))
-    const database = await new Promise<IDBDatabase>((resolve, reject) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
-    const tables = ['trips', 'members', 'member_preferences', 'ai_drafts']
-    const tx = database.transaction(tables, 'readwrite')
-    tx.objectStore('trips').put({ id: tripId, name: 'E2E TEST local AI planning', timezone: 'America/Los_Angeles', start_date: '2027-03-14', end_date: '2027-03-15', base_currency: 'USD', local_currency: null, route_factor_low: 1.4, route_factor_high: 2, bbox: null, offline_pack: null, share_token: 'test', settings: {} })
-    for (const [id, name] of [[alex, 'Alex'], [sam, 'Sam'], ['00000000-0000-4000-8000-000000000015', 'Lee']]) tx.objectStore('members').put({ id, trip_id: tripId, display_name: name, color: '#295361', avatar_emoji: null, home_timezone: null })
-    tx.objectStore('member_preferences').put({ id: crypto.randomUUID(), trip_id: tripId, member_id: alex, ...p })
-    tx.objectStore('member_preferences').put({ id: crypto.randomUUID(), trip_id: tripId, member_id: sam, ...p, scores: { ...p.scores, nature: 20, nightlife: 90 }, constraints: 'No long walks' })
-    tx.objectStore('ai_drafts').put({ id: '00000000-0000-4000-8000-000000000016', scope: tripId, createdAt: new Date().toISOString(), brief: { prompt: 'A relaxed day', destination: 'California', days: 1, startDate: '2027-03-14', budgetMinor: null, currency: 'USD' }, result: ideas })
-    await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error) })
-    database.close()
-  }, { tripId: TRIP, alex: ALEX, sam: SAM, profile, ideas: result })
+  await seedTrip(page, result)
   await page.goto(`/t/${TRIP}/more/ideas`)
   await expect(page.getByText('2 of 3 travelers included.', { exact: false })).toBeVisible()
   await expect(page.getByRole('checkbox', { name: 'Lee · Needs a profile' })).toBeDisabled()
@@ -137,8 +149,12 @@ test('group radar excludes missing profiles, updates membership and applies and 
   await page.getByRole('checkbox', { name: 'Alex (you)' }).uncheck()
   await expect(page.getByText('Select at least one traveler')).toBeVisible()
   await page.getByRole('checkbox', { name: 'Alex (you)' }).check()
+  // Load the lazy calendar route before testing offline navigation.
+  await page.goto(`/t/${TRIP}/plan`)
+  await expect(page.getByText('Nothing planned yet', { exact: true })).toBeVisible()
+  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
   await context.setOffline(true)
-  await page.getByRole('button', { name: 'Add draft to plan' }).first().click()
+  await page.locator('section').filter({ has: page.getByRole('heading', { name: result.ideas[0]!.title }) }).last().getByRole('button', { name: 'Add draft to plan' }).click()
   await expect(page.getByText(/Added 1 tentative items/)).toBeVisible()
   await page.getByRole('link', { name: 'Open plan' }).click()
   await page.waitForURL(/\/plan$/)
@@ -167,4 +183,39 @@ test('group radar excludes missing profiles, updates membership and applies and 
   await page.waitForURL(/\/plan$/)
   await expect(page.getByText('Visit the food market', { exact: true })).toHaveCount(0)
   await expect(page.getByText('A slower food market morning', { exact: true })).toHaveCount(0)
+})
+
+test('an overlapping draft explains the empty plan and can be refined and added', async ({ page }) => {
+  const calls: AIRequest[] = []
+  await mockNetwork(page, calls)
+  await page.goto('/inspire')
+  const overlapping = structuredClone(result)
+  overlapping.ideas = [overlapping.ideas[0]!]
+  const activities = overlapping.ideas[0]!.days[0]!.activities
+  activities[0]!.time = '17:00'
+  activities[0]!.durationMinutes = 120
+  activities.push({ ...activities[0]!, title: 'Sunset at El Arco', time: '18:00', durationMinutes: 60 })
+  await seedTrip(page, overlapping)
+  await page.goto(`/t/${TRIP}/more/ideas`)
+  await page.getByText('Preview daily itinerary', { exact: true }).click()
+  await expect(page.getByText('17:00–19:00', { exact: true })).toBeVisible()
+  await expect(page.getByText('18:00–19:00', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Add draft to plan' }).click()
+  await expect(page.getByRole('alert')).toHaveText('“Sunset at El Arco” overlaps “Visit the food market” within this draft on 2027-03-14. Nothing was added to your plan. Refine this idea to give the activities separate times.')
+  await page.goto(`/t/${TRIP}/plan`)
+  await expect(page.getByText('Nothing planned yet', { exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Sunset at El Arco/ })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  await page.getByRole('button', { name: 'Refine this idea' }).click()
+  await page.getByRole('textbox', { name: 'What would you change?' }).fill('Give the market and sunset separate times, keeping sunset in the evening')
+  await page.getByRole('spinbutton', { name: /^Days/ }).fill('1')
+  await page.getByRole('button', { name: 'Generate a revised draft' }).click()
+  await expect(page.getByRole('combobox', { name: 'Saved draft' })).toBeVisible()
+  const revised = calls.at(-1) as Extract<AIRequest, { action: 'ideas' }>
+  expect(revised.existingPlan).toEqual([])
+  expect(revised.previous?.days[0]?.activities[1]?.title).toBe('Sunset at El Arco')
+  await page.locator('section').filter({ has: page.getByRole('heading', { name: result.ideas[0]!.title }) }).last().getByRole('button', { name: 'Add draft to plan' }).click()
+  await expect(page.getByText(/Added 1 tentative items/)).toBeVisible()
+  await page.getByRole('link', { name: 'Open plan' }).click()
+  await expect(page.getByRole('link', { name: 'A slower food market morning', exact: true })).toBeVisible()
 })

@@ -2,14 +2,18 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { RouteError } from './app/RouteError'
 import { RootLayout } from './app/layouts/RootLayout'
 import { LandingScreen } from './features/website/LandingScreen'
+import { LegalScreen } from './features/legal/LegalScreen'
+import { LoadingState } from './ui/LoadingState'
 
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     errorElement: <RouteError />,
-    hydrateFallbackElement: <div role="status" className="flex min-h-screen items-center justify-center bg-canvas px-5 text-brand-900">Opening Stowaway…</div>,
+    hydrateFallbackElement: <LoadingState fullScreen title="Opening Stowaway…" description="Getting the app ready for your next trip." />,
     children: [
       { path: '/', element: <LandingScreen /> },
+      { path: '/privacy', element: <LegalScreen policy="privacy" /> },
+      { path: '/terms', element: <LegalScreen policy="terms" /> },
       { path: '/app', lazy: () => import('./features/onboarding/WelcomeScreen').then((m) => ({ Component: m.StartScreen })) },
       { path: '/quiz', lazy: () => import('./features/onboarding/QuizScreen').then((m) => ({ Component: m.QuizScreen })) },
       { path: '/new', lazy: () => import('./features/trips/CreateTripScreen').then((m) => ({ Component: m.CreateTripScreen })) },
@@ -23,7 +27,8 @@ export const router = createBrowserRouter([
         path: '/t/:tripId',
         lazy: () => import('./app/layouts/TripLayout').then((m) => ({ Component: m.TripLayout })),
         children: [
-          { index: true, element: <Navigate to="map" replace /> },
+          { index: true, element: <Navigate to="overview" replace /> },
+          { path: 'overview', lazy: () => import('./features/trips/TripOverviewScreen').then((m) => ({ Component: m.TripOverviewScreen })) },
           { path: 'map', lazy: () => import('./features/map/MapScreen').then((m) => ({ Component: m.default })) },
           { path: 'plan', lazy: () => import('./features/itinerary/PlanScreen').then((m) => ({ Component: m.PlanScreen })) },
           { path: 'plan/new', lazy: () => import('./features/itinerary/ItemFormScreen').then((m) => ({ Component: m.ItemFormScreen })) },

@@ -1,3 +1,4 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { CalendarPlus, ExternalLink, Globe, Pencil, Phone, Plus, Trash2 } from 'lucide-react'
@@ -14,6 +15,7 @@ import { GroupRatingCard } from '@/features/ratings/GroupRatingCard'
 import { AddToPollCard } from '@/features/polls/AddToPollCard'
 
 export function PlaceDetailScreen() {
+  const confirm = useConfirm()
   const { tripId, placeId } = useParams() as { tripId: string; placeId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
@@ -109,7 +111,7 @@ export function PlaceDetailScreen() {
           variant="danger"
           className="flex w-full items-center justify-center gap-2"
           onClick={async () => {
-            if (!confirm(`Delete "${place.name}" for everyone?`)) return
+            if (!await confirm(`Delete "${place.name}" for everyone?`)) return
             await softDelete('places', place.id, me)
             navigate(`/t/${tripId}/more/places`, { replace: true })
           }}

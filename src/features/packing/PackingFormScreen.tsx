@@ -1,3 +1,4 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMyMemberId } from '@/data/device'
@@ -24,6 +25,7 @@ export function PackingFormScreen() {
 }
 
 function PackingEditor({ tripId, itemId, initial }: { tripId: string; itemId?: string; initial: PackingFields }) {
+  const confirm = useConfirm()
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
   const members = useMembers(tripId) ?? []
@@ -41,7 +43,7 @@ function PackingEditor({ tripId, itemId, initial }: { tripId: string; itemId?: s
     catch (err) { setError(err instanceof Error ? err.message : 'Could not save. Try again.'); setBusy(false) }
   }
   async function remove() {
-    if (!itemId || !window.confirm(fields.kind === 'personal' ? 'Remove this from your list?' : 'Remove this item for everyone?')) return
+    if (!itemId || !await confirm(fields.kind === 'personal' ? 'Remove this from your list?' : 'Remove this item for everyone?')) return
     setBusy(true); setError(null)
     try { await deletePackingItem(itemId, me); navigate(back) }
     catch (err) { setError(err instanceof Error ? err.message : 'Could not remove. Try again.'); setBusy(false) }

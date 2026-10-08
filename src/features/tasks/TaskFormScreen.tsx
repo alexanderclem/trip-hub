@@ -1,3 +1,4 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMyMemberId } from '@/data/device'
@@ -17,6 +18,7 @@ export function TaskFormScreen() {
 }
 
 function TaskEditor({ tripId, taskId, initial }: { tripId: string; taskId?: string; initial: TaskFields }) {
+  const confirm = useConfirm()
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
   const members = useMembers(tripId) ?? []
@@ -33,7 +35,7 @@ function TaskEditor({ tripId, taskId, initial }: { tripId: string; taskId?: stri
     catch (err) { setError(err instanceof Error ? err.message : 'Could not save. Try again.'); setBusy(false) }
   }
   async function remove() {
-    if (!taskId || !window.confirm('Remove this task for everyone?')) return
+    if (!taskId || !await confirm('Remove this task for everyone?')) return
     setBusy(true); setError(null)
     try { await deleteTask(taskId, me); navigate(back) }
     catch (err) { setError(err instanceof Error ? err.message : 'Could not remove task. Try again.'); setBusy(false) }

@@ -22,6 +22,8 @@ export interface JoinedTrip {
 }
 
 interface DeviceState {
+  setupDismissed: Record<string, boolean>
+  setSetupDismissed: (tripId: string, dismissed: boolean) => void
   travelProfile: Profile | null
   setTravelProfile: (profile: Profile) => void
   /** The opening quiz was finished or skipped on this device, so it isn't offered again. */
@@ -50,6 +52,8 @@ interface DeviceState {
 export const useDevice = create<DeviceState>()(
   persist(
     (set) => ({
+      setupDismissed: {},
+      setSetupDismissed: (tripId, dismissed) => set((s) => ({ setupDismissed: { ...s.setupDismissed, [tripId]: dismissed } })),
       travelProfile: null,
       setTravelProfile: (travelProfile) => set({ travelProfile }),
       quizSeen: false,

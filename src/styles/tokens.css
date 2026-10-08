@@ -1,0 +1,13 @@
+:root {
+  --stowaway-canvas: #f8f5ee;
+  --stowaway-surface: #fffdf8;
+  --stowaway-ink: #183e4b;
+  --stowaway-muted: #586467;
+  --stowaway-action: #295361;
+  --stowaway-border: #dcded5;
+  --stowaway-control-border: #687e83;
+  --stowaway-radius-control: 12px;
+  --stowaway-radius-surface: 16px;
+  --stowaway-font-display: Georgia, 'Times New Roman', serif;
+  --stowaway-font-body: system-ui, sans-serif;
+}

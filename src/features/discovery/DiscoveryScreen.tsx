@@ -16,8 +16,14 @@ import { AXES, briefSchema, classify, combine, ideasSchema, matchScore, type Axi
 import { ProfileEditor } from './ProfileEditor'
 import { RadarChart } from './RadarChart'
 
+function activityTimeRange(time: string, durationMinutes: number) {
+  const end = DateTime.fromISO(`2000-01-01T${time}`, { zone: 'utc' }).plus({ minutes: durationMinutes })
+  return `${time}–${end.toFormat('HH:mm')}${end.day > 1 ? ' (+1 day)' : ''}`
+}
+
 export function DiscoveryScreen() {
   const { tripId } = useParams()
+  const generationRef = useRef<AbortController | null>(null)
   const topRef = useRef<HTMLElement>(null)
   const navigate = useNavigate()
   const trip = useTrip(tripId)
@@ -64,12 +70,15 @@ export function DiscoveryScreen() {
   }
 
   async function generate(e: FormEvent) {
-    e.preventDefault(); setError(null); setMessage('')
+    e.preventDefault(); if (busy) return
+    setError(null); setMessage('')
     if (!included.length) { setError('Save at least one traveler’s preferences before generating ideas.'); return }
     const effectiveCurrency = trip?.base_currency ?? currency.toUpperCase()
     if (!/^[A-Z]{3}$/.test(effectiveCurrency)) { setError('Enter a three-letter currency code, such as USD or EUR.'); return }
     const brief = briefSchema.safeParse({ prompt: prompt.trim(), destination: effectiveDestination.trim(), days: effectiveDays, startDate: effectiveDate || null, budgetMinor: budget ? Math.round(Number(budget) * 10 ** minorUnits(effectiveCurrency)) : null, currency: effectiveCurrency })
     if (!brief.success) { setError('Enter a trip brief, 1–14 days, a valid start date, and a nonnegative budget.'); return }
+    const controller = new AbortController()
+    generationRef.current = controller
     setBusy('generate')
     try {
       const protectedItems = replacesDraftId ? await refinementPlan(items ?? [], replacesDraftId) : items ?? []
@@ -77,12 +86,12 @@ export function DiscoveryScreen() {
         profiles: included.map((p) => ({ scores: p.scores, description: p.description, constraints: p.constraints })), mode, requiredAxes: required, previous,
         places: (places ?? []).filter((p) => p.status !== 'rejected').slice(0, 100).map((p) => ({ id: p.id, name: p.name.slice(0, 160), category: p.category, area: p.area?.slice(0, 160) ?? null })),
         existingPlan: protectedItems.filter((i) => i.status !== 'cancelled').slice(0, 100).map((i) => ({ title: i.title.slice(0, 160), start: i.start_local, end: i.end_local, status: i.status })),
-      }))
+      }, controller.signal))
       const saved: Draft = { id: newId(), scope: tripId ?? 'personal', createdAt: new Date().toISOString(), brief: brief.data, result, replacesDraftId }
       await db.ai_drafts.add(saved)
       setActiveId(saved.id); setMessage('New draft saved on this device. Review it before adding it to your plan.')
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not generate ideas. Your previous draft is saved.') }
-    finally { setBusy(null) }
+    finally { generationRef.current = null; setBusy(null) }
   }
 
   async function apply(index: number) {
@@ -130,6 +139,7 @@ export function DiscoveryScreen() {
           <fieldset><legend className="text-sm font-medium">Focus the ideas</legend><p className="mt-1 text-xs text-stone-600">Selected interests need a score of at least 65. Filters also apply to saved ideas.</p><div className="mt-2 flex flex-wrap gap-2">{AXES.map(({ key, label }) => <label key={key} className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 px-3 text-sm"><input type="checkbox" className="size-4 accent-brand-700" disabled={!!busy} checked={required.includes(key)} onChange={(e) => setRequired((s) => e.target.checked ? [...s, key] : s.filter((a) => a !== key))} />{label}</label>)}</div></fieldset>
           <p className="text-xs leading-relaxed text-stone-600">Generating sends included travelers’ saved preferences and this brief to our AI provider. Review suggestions and verify costs, places, and availability before booking.</p>
           <Button className="w-full" disabled={!!busy || !included.length}>{busy === 'generate' ? 'Sketching your trip ideas…' : previous ? 'Generate a revised draft' : 'Generate trip ideas'}</Button>
+          {busy === 'generate' && <div className="space-y-2"><p role="status" className="text-xs text-stone-600">This can take up to 90 seconds. You can cancel and try a shorter trip brief.</p><Button type="button" variant="secondary" onClick={() => generationRef.current?.abort()}>Cancel generation</Button></div>}
         </form></Card>
       </div>}
       <ErrorNote error={error} /><p role="status" className="text-sm text-brand-900">{message}</p>
@@ -142,7 +152,7 @@ export function DiscoveryScreen() {
           <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm font-medium text-brand-700">{idea.destination}</p><h3 className="travel-heading mt-1 text-2xl">{idea.title}</h3></div><span className="rounded-xl bg-brand-50 px-3 py-2 text-sm font-medium text-brand-900">{included.length ? `${match}% preference match` : 'Save preferences to compare'}</span></div>
           <p className="mt-3 text-sm leading-relaxed text-stone-700">{idea.summary}</p><p className="mt-3 text-sm"><strong>Why it fits:</strong> {idea.why}</p>{idea.tradeoffs && <p className="mt-2 text-sm text-stone-600"><strong>Tradeoffs:</strong> {idea.tradeoffs}</p>}
           <p className="mt-3 text-sm font-medium">{idea.days.length} days{idea.estimatedCostMinor !== null ? ` · About ${formatMoney(idea.estimatedCostMinor, idea.currency)} per person` : ''}<span className="font-normal text-stone-500"> · Estimate, verify before booking</span></p>
-          <details className="mt-4 border-t border-stone-200"><summary className="min-h-11 cursor-pointer py-3 font-medium text-brand-700">Preview daily itinerary</summary><ol className="space-y-4 pb-4">{idea.days.map((day, i) => <li key={i}><h4 className="font-semibold">Day {i + 1} · {day.title}</h4><ul className="mt-2 space-y-2">{day.activities.map((a, j) => <li key={j} className="flex gap-3 text-sm"><span className="shrink-0 tabular-nums text-stone-500">{a.time}</span><div><p>{a.title}</p><p className="text-xs leading-relaxed text-stone-500">{a.notes}</p></div></li>)}</ul></li>)}</ol>{!!idea.tasks.length && <p className="pb-4 text-sm text-stone-600">Planning tasks: {idea.tasks.join(' · ')}</p>}</details>
+          <details className="mt-4 border-t border-stone-200"><summary className="min-h-11 cursor-pointer py-3 font-medium text-brand-700">Preview daily itinerary</summary><ol className="space-y-4 pb-4">{idea.days.map((day, i) => <li key={i}><h4 className="font-semibold">Day {i + 1} · {day.title}</h4><ul className="mt-2 space-y-2">{day.activities.map((a, j) => <li key={j} className="flex gap-3 text-sm"><span className="shrink-0 tabular-nums text-stone-500">{activityTimeRange(a.time, a.durationMinutes)}</span><div><p>{a.title}</p><p className="text-xs leading-relaxed text-stone-500">{a.notes}</p></div></li>)}</ul></li>)}</ol>{!!idea.tasks.length && <p className="pb-4 text-sm text-stone-600">Planning tasks: {idea.tasks.join(' · ')}</p>}</details>
           {draft.replacesDraftId && !draft.application && <p className="mt-3 rounded-xl bg-brand-50 p-3 text-sm">This revision replaces the previous draft’s unedited additions. Booked, edited, and referenced entries stay in the plan.</p>}
           <div className="mt-3 flex flex-wrap gap-2"><Button disabled={!!busy || !!draft.application || (!!tripId && (!memberId || !effectiveDate))} onClick={() => void apply(index)}>{busy === 'apply' ? 'Adding draft…' : tripId ? draft.replacesDraftId ? 'Replace unedited draft' : 'Add draft to plan' : 'Build this trip'}</Button><Button variant="secondary" disabled={!!busy} onClick={() => { setPrevious(idea); setReplacesDraftId(draft.application && !draft.application.undone && draft.application.ideaIndex === index && draft.application.tripId === tripId ? draft.id : undefined); setShowProfile(false); setPrompt(''); topRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }) }}>Refine this idea</Button></div>
           {tripId && !effectiveDate && <p className="mt-2 text-xs text-stone-600">Choose a start date above to add this draft to the plan.</p>}

@@ -1,90 +1,110 @@
-import { useEffect } from 'react'
-import { Navigate, NavLink, Outlet, useLocation, useMatch, useParams } from 'react-router'
-import { CalendarDays, Map, MoreHorizontal, Ticket, Wallet } from 'lucide-react'
-import { useDevice, useQuizPending } from '@/data/device'
-import { useOnline } from '@/lib/useOnline'
+import { useEffect, useRef } from 'react'
+import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { CalendarDays, ChevronLeft, ClipboardCheck, Home, Map, MoreHorizontal, Settings, Ticket, Vote, Wallet } from 'lucide-react'
+import { db } from '@/data/db'
+import { useDevice } from '@/data/device'
+import { useTrip } from '@/data/hooks'
 import { adoptProfile, useMyTripProfile, useSeedMyProfile } from '@/features/onboarding/profile'
-import { usePendingCount } from '@/data/hooks'
-import { startSync, useSyncStatus } from '@/data/sync/controller'
+import { startSync } from '@/data/sync/controller'
 import { useAutoLegs } from '@/features/routing/requestLegs'
 import { useAttachmentSync } from '@/features/tickets/files'
+import { SyncStatusButton } from '@/features/sync/SyncStatus'
+import { Brand } from '@/ui/Brand'
+import { LoadingState } from '@/ui/LoadingState'
+import { PageTransition } from '@/ui/PageTransition'
 
 const tabs = [
+  { to: 'more/vote', label: 'Vote', Icon: Vote },
   { to: 'map', label: 'Map', Icon: Map },
   { to: 'plan', label: 'Plan', Icon: CalendarDays },
   { to: 'tickets', label: 'Tickets', Icon: Ticket },
-  { to: 'money', label: 'Money', Icon: Wallet },
   { to: 'more', label: 'More', Icon: MoreHorizontal },
 ]
+const desktopTabs = [{ to: 'overview', label: 'Overview', Icon: Home }, ...tabs, { to: 'money', label: 'Money', Icon: Wallet }]
 
 export function TripLayout() {
   const { tripId } = useParams() as { tripId: string }
-  const { pathname, search } = useLocation()
   const joined = useDevice((s) => s.trips[tripId])
   const memberId = joined?.memberId ?? null
-  const online = useOnline()
-  // The opening quiz waits for signal: someone offline is probably reaching for a ticket.
-  const askQuiz = useQuizPending() && online
-  const savedProfile = useMyTripProfile(tripId, memberId, askQuiz)
+  const needsProfile = useDevice((s) => !s.quizSeen && s.travelProfile === null)
+  const savedProfile = useMyTripProfile(tripId, memberId, needsProfile)
 
   useEffect(() => {
     if (!joined) return
     return startSync(tripId)
   }, [tripId, joined])
   useEffect(() => {
-    if (askQuiz && savedProfile) adoptProfile(savedProfile) // answered on another phone
-  }, [askQuiz, savedProfile])
+    if (savedProfile) adoptProfile(savedProfile)
+  }, [savedProfile])
   useSeedMyProfile(tripId, memberId)
   useAutoLegs(tripId)
   useAttachmentSync(tripId, memberId)
 
   if (!joined) return <Navigate to="/app" replace />
   if (!memberId) return <Navigate to={`/t/${tripId}/who`} replace />
-  if (askQuiz && savedProfile === undefined) return null
-  if (askQuiz && savedProfile === null) return <Navigate to={`/quiz?next=${encodeURIComponent(pathname + search)}`} replace />
+  // Looking up optional preferences never blocks a saved ticket or trip deep link.
+  return <TripShell tripId={tripId} />
+}
 
+function TripShell({ tripId }: { tripId: string }) {
+  const trip = useTrip(tripId)
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const joined = useDevice((s) => s.trips)
+  const trips = useLiveQuery(() => db.trips.bulkGet(Object.keys(joined)), [joined])
+  const content = useRef<HTMLElement>(null)
+  const previousPath = useRef(pathname)
+  useEffect(() => {
+    if (previousPath.current !== pathname) {
+      content.current?.scrollTo(0, 0)
+      // Route changes restore reading context without stealing focus on initial map load.
+      const heading = content.current?.querySelector<HTMLElement>('h1')
+      if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }) }
+      previousPath.current = pathname
+    }
+  }, [pathname])
+  const root = `/t/${tripId}`
   return (
-    <div className="flex h-full flex-col">
-      <main className="relative min-h-0 flex-1 overflow-y-auto">
-        <SyncPill />
-        <Outlet />
-      </main>
-      <nav className="pb-safe grid grid-cols-5 border-t border-stone-200 bg-white">
-        {tabs.map(({ to, label, Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-700' : 'text-stone-500'}`
-            }
-          >
-            <Icon className="size-6" aria-hidden />
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+    <div className="trip-shell flex h-full min-w-0 flex-col lg:flex-row">
+      <a href="#trip-content" className="trip-skip">Skip to trip content</a>
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-stone-200 bg-surface p-5 lg:flex" aria-label="Trip workspace">
+        <Link to="/app" aria-label="Stowaway — your trips" className="mb-6"><Brand /></Link>
+        <label className="text-xs font-semibold text-stone-600" htmlFor="trip-switcher">Your trips</label>
+        <select id="trip-switcher" className="mt-2 min-h-11 w-full min-w-0 rounded-xl border border-stone-300 bg-white px-3 text-sm" value={tripId} onChange={(event) => navigate(`/t/${event.target.value}/overview`)}>
+          {!trips?.some((t) => t?.id === tripId) && <option value={tripId}>{trip?.name ?? 'Loading trip…'}</option>}
+          {trips?.filter((t) => t && !t.deleted_at).map((t) => <option key={t!.id} value={t!.id}>{t!.name}</option>)}
+        </select>
+        <p className="mt-4 break-words text-xl font-semibold leading-snug text-brand-900">{trip?.name ?? 'Your trip'}</p>
+        <p className="mt-1 text-xs text-stone-600">{trip?.start_date ? `${trip.start_date}${trip.end_date ? ` – ${trip.end_date}` : ''}` : 'Dates to be decided'}</p>
+        <nav aria-label="Trip navigation" className="mt-6 space-y-1">
+          {desktopTabs.map(({ to, label, Icon }) => <NavLink key={to} end={to === 'more'} to={`${root}/${to}`} className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium ${isActive ? 'bg-brand-100 text-brand-900' : 'text-stone-600 hover:bg-brand-50 hover:text-brand-900'}`}><Icon aria-hidden="true" className="size-5 shrink-0" />{label}</NavLink>)}
+        </nav>
+        <div className="mt-5 border-t border-stone-200 pt-4">
+          <Link to={`${root}/more/tasks`} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-stone-600 hover:bg-brand-50"><ClipboardCheck aria-hidden="true" className="size-5" />Shared tasks</Link>
+          <Link to={`${root}/more/settings`} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-stone-600 hover:bg-brand-50"><Settings aria-hidden="true" className="size-5" />Trip settings & sharing</Link>
+        </div>
+        <div className="mt-auto pt-6">
+          <SyncStatusButton tripId={tripId} className="w-full justify-start" />
+          <Link to="/app" className="mt-2 flex min-h-11 items-center gap-2 px-3 text-sm text-stone-600 hover:text-brand-900"><ChevronLeft aria-hidden="true" className="size-4" />All trips</Link>
+        </div>
+      </aside>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 border-b border-stone-200 bg-surface px-4 pt-safe lg:hidden">
+          <Link to={`${root}/overview`} className="min-w-0 flex-1 break-words py-3 text-sm font-semibold text-brand-900">{trip?.name ?? 'Your trip'}</Link>
+          <SyncStatusButton tripId={tripId} className="my-1 shrink-0" />
+        </header>
+        <main id="trip-content" tabIndex={-1} ref={content} className="relative min-h-0 min-w-0 flex-1 overflow-y-auto outline-none">
+          <PageTransition routeKey={pathname} className="h-full min-w-0"><Outlet /></PageTransition>
+        </main>
+        <nav aria-label="Trip navigation" className="pb-safe grid shrink-0 grid-cols-5 border-t border-stone-200 bg-surface lg:hidden">
+          {tabs.map(({ to, label, Icon }) => <NavLink key={to} end={to === 'more'} to={`${root}/${to}`} className={({ isActive }) => `flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-xs ${isActive ? 'bg-brand-50 font-semibold text-brand-700' : 'text-stone-600'}`}><Icon className="size-5" aria-hidden="true" />{label}</NavLink>)}
+        </nav>
+      </div>
     </div>
   )
 }
 
-/** Small status badge: only shown when there's something worth knowing. */
-function SyncPill() {
-  // On the map it sits under the filter chips; elsewhere above the tab bar, clear of content.
-  const onMap = useMatch('/t/:tripId/map') != null
-  const phase = useSyncStatus((s) => s.phase)
-  const pending = usePendingCount()
-  if (phase === 'idle' && pending === 0) return null
-  const text =
-    phase === 'offline'
-      ? `Offline${pending ? ` · ${pending} to sync` : ''}`
-      : phase === 'error'
-        ? `Sync problem${pending ? ` · ${pending} waiting` : ''}`
-        : phase === 'syncing'
-          ? 'Syncing…'
-          : `${pending} to sync`
-  return (
-    <div role="status" className={`pointer-events-none fixed z-30 rounded-full bg-stone-900/80 px-3 py-1 text-xs text-white ${onMap ? 'top-[calc(env(safe-area-inset-top)+6.75rem)] left-3' : 'bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] left-1/2 -translate-x-1/2'}`}>
-      {text}
-    </div>
-  )
+export function TripRouteLoading() {
+  return <LoadingState fullScreen title="Opening Stowaway…" description="Getting the app ready for your next trip." />
 }

@@ -1,14 +1,17 @@
 @import 'tailwindcss';
+@import './tokens.css';
 
 @theme {
   --color-brand-50: #edf3f3;
   --color-brand-100: #d6e4e5;
   --color-brand-500: #517f8a;
   --color-brand-600: #396673;
-  --color-brand-700: #295361;
-  --color-brand-900: #183e4b;
+  --color-brand-700: var(--stowaway-action);
+  --color-brand-900: var(--stowaway-ink);
   --color-brand-accent: #ef9477;
-  --color-canvas: #f8f5ee;
+  --color-canvas: var(--stowaway-canvas);
+  --color-surface: var(--stowaway-surface);
+  --color-muted: var(--stowaway-muted);
 }
 
 @utility pt-safe {
@@ -25,6 +28,7 @@ body,
 }
 
 body {
+  font-family: var(--stowaway-font-body);
   background: var(--color-canvas);
   color: var(--color-stone-900);
   -webkit-tap-highlight-color: transparent;
@@ -40,9 +44,46 @@ body {
 }
 
 .travel-heading {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--stowaway-font-display);
   font-weight: 400;
   letter-spacing: -0.045em;
+}
+
+@layer components {
+  .ui-button {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    min-height: 44px; border-radius: var(--stowaway-radius-control); padding: .625rem 1rem;
+    font-weight: 600; line-height: 1.4; text-align: center;
+  }
+  .ui-button:disabled { cursor: not-allowed; opacity: .45; }
+  .ui-button-primary { background: var(--stowaway-action); color: white; }
+  .ui-button-primary:hover, .ui-button-primary:active { background: var(--stowaway-ink); }
+  .ui-button-secondary { border: 1px solid var(--stowaway-control-border); background: var(--stowaway-surface); color: var(--stowaway-ink); }
+  .ui-button-secondary:hover { background: var(--color-brand-50); }
+  .ui-button-danger { border: 1px solid #fecaca; background: var(--stowaway-surface); color: #b91c1c; }
+  .ui-button-danger:hover { background: #fef2f2; }
+  .ui-button-ghost { color: var(--stowaway-action); }
+  .ui-button-ghost:hover { background: var(--color-brand-50); }
+  .ui-icon-button { display: inline-flex; min-height: 44px; min-width: 44px; align-items: center; justify-content: center; border-radius: var(--stowaway-radius-control); }
+  .ui-icon-button:hover { background: var(--color-brand-50); }
+  .ui-card { border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); padding: 1rem; }
+}
+
+.ui-dialog {
+  margin: auto; width: min(34rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem);
+  overflow-y: auto; border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface);
+  background: var(--stowaway-surface); color: var(--stowaway-ink); padding: 1.25rem;
+  box-shadow: 0 24px 80px #183e4b33;
+}
+.ui-dialog::backdrop { background: #183e4b66; }
+
+.loading-logo { position: relative; display: inline-block; flex-shrink: 0; }
+.loading-logo-mark { position: relative; z-index: 1; display: block; transform-origin: 50% 85%; }
+.loading-logo-mark img { display: block; width: 100%; height: auto; }
+.loading-logo-shadow { position: absolute; bottom: 8%; inset-inline: 22%; height: 6%; border-radius: 50%; background: var(--stowaway-ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
 }
 
 /* Map controls sit below the category chips and idea-pool buttons. */
@@ -54,4 +95,15 @@ body {
 :where(a, button, input, select, textarea):focus-visible {
   outline: 2px solid var(--color-brand-700);
   outline-offset: 3px;
+}
+
+.trip-skip { position: fixed; inset-inline-start: 1rem; top: -10rem; z-index: 100; padding: .75rem 1rem; background: var(--stowaway-surface); color: var(--stowaway-ink); border: 2px solid var(--stowaway-action); border-radius: var(--stowaway-radius-control); }
+.trip-skip:focus { top: 1rem; }
+@media (min-width: 1024px) {
+  .trip-shell > aside { overflow-y: auto; }
+  .trip-shell .trip-page { max-width: 76rem; margin-inline: auto; }
+  .trip-shell .trip-page-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem); gap: 1.5rem; align-items: start; max-width: 72rem; }
+  .trip-shell .trip-page-grid > * { min-width: 0; }
+  .trip-shell .trip-page-grid > .trip-main { grid-column: 1; }
+  .trip-shell .trip-page-grid > .trip-side { grid-column: 2; grid-row: 1 / span 20; }
 }

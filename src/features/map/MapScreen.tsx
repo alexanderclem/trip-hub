@@ -25,7 +25,7 @@ import { ME_ID, PlaceSheet, Sheet, type OriginChoice } from './PlaceSheet'
 setWorkerUrl(mapWorkerUrl)
 
 // Shown only until the trip's own places or destinations are known.
-const DEFAULT_VIEW = { center: [-90.95, 14.65] as [number, number], zoom: 8.6 } // Antigua ↔ Atitlán
+const DEFAULT_VIEW = { center: [-73.98, 40.75] as [number, number], zoom: 11 } // New York City
 const LONG_PRESS_MS = 550
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 

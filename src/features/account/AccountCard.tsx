@@ -1,3 +1,4 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
 import { ShieldCheck, UserRound } from 'lucide-react'
 import { useOnline } from '@/lib/useOnline'
@@ -7,6 +8,7 @@ import { signOutAndClear, startGoogleSignIn, unsyncedCount, useAccount, useGoogl
 
 /** Sign in with Google, or see who is signed in. Hidden until Google sign-in is switched on. */
 export function AccountCard() {
+  const confirm = useConfirm()
   const account = useAccount()
   const google = useGoogleEnabled()
   const online = useOnline()
@@ -32,7 +34,7 @@ export function AccountCard() {
     const warning = waiting > 0
       ? `${waiting} ${waiting === 1 ? 'change has' : 'changes have'} not synced yet and will be lost. `
       : ''
-    if (!window.confirm(`${warning}Sign out and remove all trips from this phone? You can get them back by signing in again.`)) return
+    if (!await confirm(`${warning}Sign out and remove all trips from this phone? You can get them back by signing in again.`)) return
     setBusy(true)
     try {
       await signOutAndClear()

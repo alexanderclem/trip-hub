@@ -144,8 +144,8 @@ test('shared tasks create, assign, edit, filter, complete, reopen and remove whi
   await expect(page.getByRole('heading', { name: 'Completed · 1' })).toBeVisible()
   await page.getByRole('link', { name: /Confirm the shuttle/ }).click()
   await page.waitForURL(/\/more\/tasks\/[0-9a-f-]+$/)
-  page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Remove task' }).click()
+  await page.getByRole('button', { name: 'Confirm change' }).click()
   await page.waitForURL(`${base}/more/tasks`)
   await expect(page.getByRole('heading', { name: 'What needs doing?' })).toBeVisible()
   const queued = await page.evaluate(async () => {

@@ -4,7 +4,7 @@ import { db, type TripDb } from '@/data/db'
 import { save, saveMany, softDelete } from '@/data/repo'
 import type { ItineraryItem, Place, Trip, TripTask } from '@/data/types'
 import { stableId } from '@/lib/ids'
-import { isValidZone, normalizeLocal, toInstant } from '@/lib/time'
+import { findConflicts, formatInZone, isValidZone, normalizeLocal, toInstant } from '@/lib/time'
 import { briefSchema, ideasSchema, profileSchema, type Draft, type Profile } from './model'
 
 export const useProfiles = (tripId: string | undefined) => useLiveQuery(async () => tripId
@@ -70,8 +70,19 @@ export async function applyIdea(draftId: string, ideaIndex: number, trip: Trip, 
         const endLocal = DateTime.fromISO(local, { zone: 'utc' }).plus({ minutes: activity.durationMinutes }).toFormat("yyyy-MM-dd'T'HH:mm")
         const startAt = toInstant(local, trip.timezone), endAt = toInstant(endLocal, trip.timezone)
         if (Date.parse(endAt) <= Date.parse(startAt)) throw new Error('A draft time crosses a daylight-saving change. Adjust the draft before adding it.')
-        if (existing.some((r) => Date.parse(r.start_at) < Date.parse(endAt) && Date.parse(r.end_at ?? r.start_at) >= Date.parse(startAt)) || items.some((r) => Date.parse(r.start_at) < Date.parse(endAt) && Date.parse(r.end_at!) > Date.parse(startAt))) {
-          throw new Error(`“${activity.title}” overlaps another plan item. Refine the draft to use free time; existing plans are preserved.`)
+        const itemId = stableId(trip.id, 'ai-item', draft.id, String(ideaIndex), String(dayIndex), String(activityIndex))
+        const candidate = { id: itemId, start_at: startAt, end_at: endAt, kind: activity.kind }
+        // Use the calendar's rules: back-to-back items are allowed, stays and all-day
+        // entries do not block timed activities, and missing ends default to one hour.
+        const overlaps = (row: ItineraryItem) => findConflicts([candidate, row]).length > 0
+        const draftConflict = items.find(overlaps)
+        if (draftConflict) {
+          throw new Error(`“${activity.title}” overlaps “${draftConflict.title}” within this draft on ${date}. Nothing was added to your plan. Refine this idea to give the activities separate times.`)
+        }
+        const planConflict = existing.find(overlaps)
+        if (planConflict) {
+          const when = formatInZone(planConflict.start_at, trip.timezone, "ccc, d LLL yyyy 'at' HH:mm")
+          throw new Error(`“${activity.title}” overlaps “${planConflict.title}” already in your plan (${when}). Refine the draft to use free time; existing plans are preserved.`)
         }
         let placeId: string | null = null
         if (activity.existingPlaceId) {
@@ -88,7 +99,7 @@ export async function applyIdea(draftId: string, ideaIndex: number, trip: Trip, 
             createdPlaces.set(key, placeId)
           }
         }
-        items.push({ id: stableId(trip.id, 'ai-item', draft.id, String(ideaIndex), String(dayIndex), String(activityIndex)), trip_id: trip.id,
+        items.push({ id: itemId, trip_id: trip.id,
           title: activity.title, kind: activity.kind, place_id: placeId, to_place_id: null, all_day: false,
           start_local: local, start_tz: trip.timezone, end_local: endLocal, end_tz: trip.timezone, start_at: startAt, end_at: endAt,
           status: 'tentative', confirmation_code: null, attendee_ids: null, details: { ai_draft_id: draft.id },

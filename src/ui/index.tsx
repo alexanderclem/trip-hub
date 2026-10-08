@@ -1,28 +1,37 @@
 // Shared UI primitives, styled to match the adapted shadcn collection.
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import type { ComponentProps, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
+import { m, type HTMLMotionProps } from 'motion/react'
+import { useMotionPreference } from './MotionProvider'
+import { motionTiming } from './motion'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
+const MotionLink = m.create(Link)
 
 export function Button({
   variant = 'primary',
   className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost' }) {
+}: HTMLMotionProps<'button'> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost' }) {
+  const reducedMotion = useMotionPreference()
   return (
-    <button
+    <m.button
+      whileHover={!reducedMotion && !props.disabled ? { y: -1 } : undefined}
+      whileTap={!reducedMotion && !props.disabled ? { scale: 0.98 } : undefined}
+      transition={motionTiming.feedback}
       {...props}
       className={cx(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40',
-        variant === 'primary' && 'bg-brand-700 text-white shadow-sm hover:bg-brand-900 active:bg-brand-900',
-        variant === 'secondary' && 'border border-stone-300 bg-white text-stone-800 hover:bg-stone-50 active:bg-stone-100',
-        variant === 'danger' && 'border border-red-200 bg-white text-red-700 hover:bg-red-50 active:bg-red-100',
-        variant === 'ghost' && 'text-brand-700 hover:bg-brand-50 active:bg-brand-100',
+        'ui-button', `ui-button-${variant}`,
         className,
       )}
     />
   )
+}
+
+export function LinkButton({ variant = 'primary', className, ...props }: ComponentProps<typeof MotionLink> & { variant?: 'primary' | 'secondary' | 'ghost' }) {
+  const reducedMotion = useMotionPreference()
+  return <MotionLink whileHover={reducedMotion ? undefined : { y: -1 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={motionTiming.feedback} {...props} className={cx('ui-button', `ui-button-${variant}`, className)} />
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -52,21 +61,21 @@ export const Textarea = (props: TextareaHTMLAttributes<HTMLTextAreaElement>) => 
 )
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx('rounded-2xl border border-stone-200 bg-white p-4 shadow-sm', className)}>{children}</section>
+  return <section className={cx('ui-card', className)}>{children}</section>
 }
 
 export function PageHeader({ title, back, action }: { title: string; back?: string; action?: ReactNode }) {
   return (
-    <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-stone-50/95 backdrop-blur">
-      <div className="flex h-12 items-center gap-1 px-2">
+    <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas">
+      <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 lg:px-6">
         {back ? (
-          <Link to={back} className="flex size-10 items-center justify-center rounded-full active:bg-stone-200" aria-label="Back">
-            <ChevronLeft className="size-6" />
+          <Link to={back} className="ui-icon-button shrink-0" aria-label="Back">
+            <ChevronLeft aria-hidden="true" className="size-6" />
           </Link>
         ) : (
           <span className="w-2" />
         )}
-        <h1 className="min-w-0 flex-1 truncate text-lg font-semibold">{title}</h1>
+        <h1 className="min-w-0 flex-1 break-words text-xl font-semibold text-brand-900">{title}</h1>
         {action}
       </div>
     </header>

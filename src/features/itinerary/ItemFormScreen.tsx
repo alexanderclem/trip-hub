@@ -53,7 +53,7 @@ export function ItemFormScreen() {
   const places = loadedPlaces ?? []
   const members = useMembers(tripId) ?? []
   const existing = useItem(itemId)
-  const tripTz = trip?.timezone ?? 'America/Guatemala'
+  const tripTz = trip?.timezone ?? 'America/New_York'
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [f, setF] = useState<FormState | null>(null)
@@ -176,7 +176,7 @@ export function ItemFormScreen() {
           </Field>
         )}
         <Field label="Name">
-          <Input value={f.title} onChange={(e) => set('title', e.target.value)} maxLength={200} required placeholder={travel ? 'UA 1234 to Guatemala City' : 'Sunrise hike up Pacaya'} />
+          <Input value={f.title} onChange={(e) => set('title', e.target.value)} maxLength={200} required placeholder={travel ? 'UA 1234 to New York' : 'Walk along the High Line'} />
         </Field>
 
         <label className="flex min-h-11 items-center gap-2 text-sm">

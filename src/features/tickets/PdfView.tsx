@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { LoadingState } from '@/ui/LoadingState'
 
 /**
  * Renders every page of a PDF to canvases with pdf.js (loaded on demand; precached for offline).
@@ -46,7 +47,7 @@ export function PdfView({ blob, title }: { blob: Blob; title: string }) {
   return (
     <div>
       {state && 'error' in state && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-800">Couldn't show this PDF: {state.error}</p>}
-      {!state && <p className="p-4 text-center text-sm text-stone-500">Opening…</p>}
+      {!state && <LoadingState title="Opening your PDF…" description="Preparing the pages of your saved ticket." />}
       <div ref={host} className="space-y-3" />
     </div>
   )

@@ -17,3 +17,6 @@ playwright-report
 *.tsbuildinfo
 .wrangler/
 !public/packs/*.pmtiles
+
+# Supabase CLI local project cache
+supabase/.temp/

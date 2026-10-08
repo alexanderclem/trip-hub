@@ -1,3 +1,4 @@
+import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
@@ -20,6 +21,7 @@ import { onDay } from './layout'
 const city = (zone: string) => zone.split('/').pop()!.replace(/_/g, ' ')
 
 export function ItemDetailScreen() {
+  const confirm = useConfirm()
   const { tripId, itemId } = useParams() as { tripId: string; itemId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
@@ -178,7 +180,7 @@ export function ItemDetailScreen() {
           variant="danger"
           className="w-full"
           onClick={async () => {
-            if (!confirm(`Remove "${item.title}" from the plan for everyone?`)) return
+            if (!await confirm(`Remove "${item.title}" from the plan for everyone?`)) return
             await deleteItem(item.id, me)
             navigate(`/t/${tripId}/plan?day=${day}`, { replace: true })
           }}

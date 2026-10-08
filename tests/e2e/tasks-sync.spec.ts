@@ -137,8 +137,8 @@ test('shared tasks sync between two phones, survive offline edits, and stay priv
   // ── Remove: the tombstone reaches the server and the other phone ──
   await rowA.click()
   await pageA.waitForURL(/\/more\/tasks\/[0-9a-f-]{36}$/)
-  pageA.once('dialog', (dialog) => void dialog.accept())
   await pageA.getByRole('button', { name: 'Remove task' }).click()
+  await pageA.getByRole('button', { name: 'Confirm change' }).click()
   await pageA.waitForURL(`**${tripPath}/more/tasks`)
   await expect(pageA.getByRole('heading', { name: 'What needs doing?' })).toBeVisible()
   await expect(pageB.getByRole('heading', { name: 'What needs doing?' })).toBeVisible(SYNC)
