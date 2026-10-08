@@ -1,12 +1,18 @@
+import { m } from 'motion/react'
+import { usePoke } from './usePoke'
+
 /**
  * Shared, offline-ready Stowaway lockup. The mark is also the app icon source.
  * The wordmark is drawn, not typed: its path is the one in public/brand/stowaway-type.svg.
  */
 export function Brand({ className = '', variant = 'app' }: { className?: string; variant?: 'app' | 'website' }) {
+  const [mark, poke] = usePoke<HTMLSpanElement>(6)
   if (variant === 'website') return <img className={className} src="/brand/stowaway-wordmark.svg" alt="Stowaway" width="424" height="96" />
   return (
     <span className={`inline-flex items-center gap-2.5 text-brand-900 ${className}`}>
-      <img src="/brand/stowaway-mark.svg" alt="" width="44" height="44" className="size-11 shrink-0" />
+      <m.span ref={mark} initial={false} animate={poke} className="size-11 shrink-0 origin-[50%_90%]">
+        <img src="/brand/stowaway-mark.svg" alt="" width="44" height="44" className="size-11" />
+      </m.span>
       <span className="brand-wordmark inline-flex">
         <span className="sr-only">Stowaway</span>
         <svg viewBox="0 40 834 180" fill="none" aria-hidden="true" className="h-[0.9em] w-auto">

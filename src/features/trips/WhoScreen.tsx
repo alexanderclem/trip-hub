@@ -4,6 +4,7 @@ import { useMembers, useTrip } from '@/data/hooks'
 import { Avatar, Button, Card, ErrorNote, Input } from '@/ui'
 import { claimMember, createMemberAndClaim, MEMBER_COLORS, parseJoinTarget } from './actions'
 import { LoadingState } from '@/ui/LoadingState'
+import { afterEntry } from '@/features/onboarding/profile'
 
 /** "Who are you?" — ties this device to a person on the trip. */
 export function WhoScreen() {
@@ -20,7 +21,7 @@ export function WhoScreen() {
     setError(null)
     try {
       await fn()
-      navigate(`/t/${tripId}/${parseJoinTarget(location.search) ?? 'overview?joined=1'}`, { replace: true })
+      navigate(await afterEntry(`/t/${tripId}/${parseJoinTarget(location.search) ?? 'overview?joined=1'}`), { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
       setBusy(false)

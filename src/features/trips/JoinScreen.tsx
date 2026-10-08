@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { Button, ErrorNote, LinkButton } from '@/ui'
 import { Brand } from '@/ui/Brand'
 import { LoadingState } from '@/ui/LoadingState'
+import { afterEntry } from '@/features/onboarding/profile'
 import { joinedTripForToken, joinTargetQuery, joinTrip, parseJoinTarget, parseShareToken } from './actions'
 
 /** The token remains in memory for recovery after it is removed from browser history. */
@@ -24,7 +25,7 @@ export function JoinScreen() {
       const known = to ? await joinedTripForToken(token.current) : null
       if (known) { navigate(`/t/${known}/${to}`, { replace: true }); return }
       const { tripId, memberId } = await joinTrip(token.current)
-      navigate(memberId ? `/t/${tripId}/${to ?? 'overview?joined=1'}` : `/t/${tripId}/who${joinTargetQuery(to)}`, { replace: true })
+      navigate(memberId ? await afterEntry(`/t/${tripId}/${to ?? 'overview?joined=1'}`) : `/t/${tripId}/who${joinTargetQuery(to)}`, { replace: true })
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not join. Please try again.') }
     finally { setBusy(false) }
   }, [navigate])

@@ -100,7 +100,8 @@ preferences are kept.
 
 ### Quiz
 
-`QuizScreen` keeps its route, gate, scoring (`quiz.ts`) and saving (`profile.ts`). Only the
+`QuizScreen` keeps its route, scoring (`quiz.ts`) and saving (`profile.ts`). People are sent to it
+right after creating or joining a trip (`afterEntry`; see `docs/AI_PLANNING.md`). Only the
 presentation changed: Stowie asks each question, earlier answers scroll up as a transcript, and
 the radar is revealed at the end. It still needs no model and no connection once loaded.
 

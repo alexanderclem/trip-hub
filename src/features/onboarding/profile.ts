@@ -62,6 +62,15 @@ export async function quizStillNeeded(): Promise<boolean> {
 }
 
 /**
+ * Where to go right after creating or joining a trip: the quiz first for someone new, then on to
+ * `path`. Only asked at that moment, so opening a saved ticket or link later is never interrupted.
+ * Offline, the trip opens and the overview offers the quiz instead.
+ */
+export async function afterEntry(path: string): Promise<string> {
+  return navigator.onLine && (await quizStillNeeded()) ? `/quiz?next=${encodeURIComponent(path)}` : path
+}
+
+/**
  * Copies this device's profile into a trip that doesn't have one for this person yet. It waits
  * for a sync to finish after the trip opens, so a profile another phone already saved arrives
  * first and is never overwritten. Offline it simply waits.

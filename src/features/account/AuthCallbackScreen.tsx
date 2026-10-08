@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Brand } from '@/ui/Brand'
 import { ErrorNote } from '@/ui'
-import { finishSignIn, type SignInResult } from './account'
-import { takeConnectorReturn } from './connector'
-import { quizStillNeeded } from '@/features/onboarding/profile'
+import { finishSignIn, signedInDestination, type SignInResult } from './account'
 
-/** Where Google sends the phone back to. Finishes sign-in, restores trips, then goes home. */
+/** Where Google, or a link in a sign-in email, sends the phone back to. Finishes sign-in, restores trips, then goes home. */
 export function AuthCallbackScreen() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
@@ -18,9 +16,7 @@ export function AuthCallbackScreen() {
     finishSignIn(location.search)
       .then(async (r) => {
         if (cancelled) return
-        const connector = takeConnectorReturn()
-        // A first sign-in continues to the travel quiz, unless a restored trip already has this person's answers.
-        const destination = connector ?? ((await quizStillNeeded()) ? '/quiz?next=%2Fapp' : '/app')
+        const destination = await signedInDestination()
         setReturnPath(destination)
         if (r.notCarried > 0) setResult(r)
         else navigate(destination, { replace: true })

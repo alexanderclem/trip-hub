@@ -4,15 +4,15 @@ import type { OAuthAuthorizationDetails } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { useOnline } from '@/lib/useOnline'
 import { Brand } from '@/ui/Brand'
-import { Button, Card, ErrorNote } from '@/ui'
-import { startGoogleSignIn, useAccount, useGoogleEnabled } from './account'
+import { Button, Card, ErrorNote, LinkButton } from '@/ui'
+import { startGoogleSignIn, useAccount, useSignInMethods } from './account'
 import { chatgptRedirect, rememberConnectorReturn } from './connector'
 
 export function ConnectorConsentScreen() {
   const [params] = useSearchParams()
   const authorizationId = params.get('authorization_id')
   const account = useAccount()
-  const google = useGoogleEnabled()
+  const methods = useSignInMethods()
   const online = useOnline()
   const [details, setDetails] = useState<OAuthAuthorizationDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -73,9 +73,10 @@ export function ConnectorConsentScreen() {
         : account.kind === 'loading' ? <p role="status">Checking your account…</p>
         : account.kind === 'guest' ? <Card className="space-y-4">
           <h2 className="text-lg font-semibold">Sign in to connect your trips</h2>
-          <p className="text-sm leading-relaxed text-stone-600">Use the same Google account you use in Stowaway. After signing in, you can review and approve the connection.</p>
-          {google ? <Button onClick={() => void signIn()} disabled={busy || !online} className="w-full">{busy ? 'Opening Google…' : 'Sign in with Google'}</Button>
-            : <p className="text-sm text-stone-600">Google sign-in needs to be enabled for Stowaway before you can connect.</p>}
+          <p className="text-sm leading-relaxed text-stone-600">Use the same account you use in Stowaway. After signing in, you can review and approve the connection.</p>
+          {methods.google && <Button onClick={() => void signIn()} disabled={busy || !online} className="w-full">{busy ? 'Opening Google…' : 'Sign in with Google'}</Button>}
+          {methods.email && <LinkButton to="/signin" variant={methods.google ? 'secondary' : 'primary'} className="w-full" onClick={() => rememberConnectorReturn(`/oauth/consent?authorization_id=${authorizationId}`)}>{methods.google ? 'Use email instead' : 'Sign in with email'}</LinkButton>}
+          {!methods.google && !methods.email && <p className="text-sm text-stone-600">Sign-in needs to be enabled for Stowaway before you can connect.</p>}
         </Card>
         : details ? <Card className="space-y-4">
           <h2 className="break-words text-lg font-semibold">Allow {details.client.name} to read your trips?</h2>

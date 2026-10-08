@@ -41,19 +41,21 @@ test('opening sequence: welcome → create → quiz → trip; a friend joins, sk
   await expect(page.getByRole('img', { name: /Your travel style/ })).toBeVisible()
   await shot(page, '73-quiz-result')
   await page.getByRole('button', { name: 'Open the trip' }).click()
-  await page.waitForURL(/\/more\/settings$/)
-  await expect(page.getByRole('heading', { name: 'Invite the group' })).toBeVisible()
+  await page.waitForURL(/\/overview/)
+  await expect(page.getByRole('status', { name: 'Welcome from Stowie' })).toContainText('Your trip’s ready.')
+  await shot(page, '74-stowie-welcome-created')
   const link = (await page.locator('p.font-mono').textContent())!.trim()
-  const tripPath = new URL(page.url()).pathname.replace(/\/more\/settings$/, '')
+  const tripPath = new URL(page.url()).pathname.replace(/\/overview$/, '')
 
   // Not asked again, and the result is this trip's profile.
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Invite the group' })).toBeVisible()
+  await expect(page).toHaveURL(/\/overview$/)
+  await expect(page.locator('p.font-mono')).toBeVisible()
   await page.goto(`${tripPath}/more/ideas/manual`)
   await expect(page.getByRole('link', { name: 'Retake the quiz' })).toBeVisible()
   await expect(page.getByRole('checkbox', { name: 'Alex (you)' })).toBeEnabled()
 
-  // ── Sam: invite link → who → quiz (skipped) → map ──
+  // ── Sam: invite link → who → quiz (skipped) → overview ──
   const b = await browser.newContext(fresh)
   const pageB = await b.newPage()
   await pageB.goto(link.replace(/^https?:\/\/[^/]+/, ''))
@@ -61,9 +63,10 @@ test('opening sequence: welcome → create → quiz → trip; a friend joins, sk
   await pageB.getByRole('button', { name: 'Add me' }).click()
   await pageB.waitForURL(/\/quiz\?next=/)
   await pageB.getByRole('button', { name: 'Skip for now' }).click()
-  await pageB.waitForURL(/\/map$/)
+  await pageB.waitForURL(/\/overview/)
+  await expect(pageB.getByRole('status', { name: 'Welcome from Stowie' })).toContainText('You’re in.')
   await pageB.reload()
-  await expect(pageB).toHaveURL(/\/map$/)
+  await expect(pageB).toHaveURL(/\/overview$/)
 
   // Alex's quiz reached the server: Sam's phone lists Alex as having a profile.
   await pageB.goto(`${tripPath}/more/ideas/manual`)

@@ -14,6 +14,8 @@ import { usePolls } from '@/features/polls/data'
 import { ActivityList } from '@/features/activity/ActivityList'
 import { useActivity, useMarkActivitySeen } from '@/features/activity/data'
 import { votingEnded } from '@/features/polls/rank'
+import { Bubble } from '@/features/stowie/chat'
+import { Stowie } from '@/features/stowie/Stowie'
 import { InviteTripCard } from './InviteTripCard'
 
 export function TripOverviewScreen() {
@@ -60,7 +62,18 @@ export function TripOverviewScreen() {
         <div className="min-w-0 max-w-2xl"><p className="mb-2 text-sm font-medium text-muted">Trip overview</p><h1 className="travel-heading break-words text-4xl text-brand-900 sm:text-5xl">{trip.name}</h1><p className="mt-3 text-sm text-stone-600">{dates}{loadedMembers && <> · {members.length} {members.length === 1 ? 'traveler' : 'travelers'}</>}</p></div>
         <div className="flex flex-wrap gap-2"><LinkButton to={`${root}/more/vote`}><Vote aria-hidden="true" className="size-4" />Group votes</LinkButton><LinkButton to={`${root}/map`} variant="secondary">Map</LinkButton></div>
       </header>
-      {arrival && <p role="status" className="mb-6 flex items-start gap-2 rounded-xl bg-brand-50 p-4 text-sm text-brand-900"><CheckCircle2 aria-hidden="true" className="size-5 shrink-0" />{arrival === 'created' ? 'Trip created.' : 'You’ve joined the trip.'}</p>}
+      {arrival && <section role="status" aria-label="Welcome from Stowie" className="mb-6 flex items-start gap-3 rounded-2xl bg-brand-50 p-4">
+        <Stowie mood="delighted" size={48} />
+        <div className="min-w-0 flex-1 space-y-3">
+          <Bubble from="stowie">{arrival === 'created' ? 'Your trip’s ready. First, invite the group: the link is on this page. Then start a vote so everyone gets a say.' : 'You’re in. Start with the group votes, then have a look at the plan.'}</Bubble>
+          <div className="flex flex-wrap gap-2">
+            {arrival === 'created'
+              ? <><Button onClick={() => document.getElementById('invite-group')?.scrollIntoView({ block: 'nearest' })}><Users aria-hidden="true" className="size-4" />Invite travelers</Button><LinkButton to={`${root}/more/vote`} variant="secondary">Start a vote</LinkButton></>
+              : <><LinkButton to={`${root}/more/vote`}><Vote aria-hidden="true" className="size-4" />See the votes</LinkButton><LinkButton to={`${root}/plan`} variant="secondary">Open the plan</LinkButton></>}
+          </div>
+          <p className="text-sm text-stone-600">Stuck on anything? Tap me in the corner and ask.</p>
+        </div>
+      </section>}
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)]">
         <div className="min-w-0 space-y-6">
           <section aria-labelledby="group-votes-title" className="ui-card p-5 sm:p-6">

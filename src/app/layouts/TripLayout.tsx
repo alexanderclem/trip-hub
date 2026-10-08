@@ -23,7 +23,8 @@ const tabs = [
   { to: 'tickets', label: 'Tickets', Icon: Ticket },
   { to: 'more', label: 'More', Icon: MoreHorizontal },
 ]
-const desktopTabs = [{ to: 'overview', label: 'Overview', Icon: Home }, ...tabs, { to: 'money', label: 'Money', Icon: Wallet }]
+const tab = (to: string) => tabs.find((t) => t.to === to)!
+const desktopTabs = [{ to: 'overview', label: 'Overview', Icon: Home }, tab('more/vote'), tab('map'), { to: 'money', label: 'Money', Icon: Wallet }, tab('tickets'), tab('plan'), tab('more')]
 
 export function TripLayout() {
   const { tripId } = useParams() as { tripId: string }

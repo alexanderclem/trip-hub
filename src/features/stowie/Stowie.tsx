@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import { m, type TargetAndTransition } from 'motion/react'
 import { useMotionPreference } from '@/ui/MotionProvider'
+import { usePoke } from '@/ui/usePoke'
 import type { Mood } from './script'
 
 type Pose = TargetAndTransition
@@ -66,20 +67,22 @@ const EYES = [46.5, 63.75]
 
 /**
  * The Stowaway mark as a character: the same handle, body and peeking eyes, drawn as separate
- * parts so each can move. Decorative; whatever Stowie is doing is also said in text nearby.
+ * parts so each can move. A hover or a press makes it hop, whatever the mood. Decorative; whatever Stowie is doing is also said in text nearby.
  */
 export function Stowie({ mood = 'idle', size = 72, className = '' }: { mood?: Mood; size?: number; className?: string }) {
   const reducedMotion = useMotionPreference()
   const clip = useId()
+  const [svg, poke] = usePoke<SVGSVGElement>(12)
   const look = POSES[mood]
   const held = { duration: 0 }
   const body: Pose = reducedMotion ? { ...REST, rotate: look.still.rotate, transition: held } : look.body
   const handle: Pose = reducedMotion ? { y: 0, transition: held } : look.handle
   const eyes: Pose = reducedMotion ? { x: look.still.x, y: look.still.y, transition: held } : look.eyes
   return (
-    <svg aria-hidden="true" data-mood={mood} viewBox="0 0 96 100" width={size} height={size * (100 / 96)} className={`shrink-0 overflow-visible ${className}`}>
+    <svg ref={svg} aria-hidden="true" data-mood={mood} viewBox="0 0 96 100" width={size} height={size * (100 / 96)} className={`shrink-0 overflow-visible ${className}`}>
       <defs><clipPath id={clip}><rect x="22.5" y="39" width="51" height="20.25" rx="10.12" /></clipPath></defs>
       <ellipse cx="48" cy="93.5" rx="26" ry="3.5" fill={INK} opacity="0.12" />
+      <m.g initial={false} animate={poke} style={{ originX: 0.5, originY: 0.92 }}>
       <m.g initial={false} animate={body} style={{ originX: 0.5, originY: 0.92 }}>
         <m.path d={HANDLE} fill="var(--color-brand-accent, #ef9477)" initial={false} animate={handle} />
         <rect x="22" y="38.5" width="52" height="21.25" rx="10.5" fill={SLOT} />
@@ -98,6 +101,7 @@ export function Stowie({ mood = 'idle', size = 72, className = '' }: { mood?: Mo
           </m.g>
         </g>
         <path d={BODY} fill={INK} fillRule="evenodd" />
+      </m.g>
       </m.g>
     </svg>
   )
