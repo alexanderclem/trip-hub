@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { handleConnector, type ConnectorEnv } from './connector'
 import { handleScan } from './scan'
-import { AXES, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema } from '../src/features/discovery/model'
+import { AXES, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema, tidyIdea } from '../src/features/discovery/model'
 
 export interface Env extends ConnectorEnv {
   ASSETS: { fetch(request: Request): Promise<Response> }
@@ -83,9 +83,9 @@ export default {
       const schema = input.action === 'profile' ? inferredProfileSchema : input.action === 'chat' ? chatReplySchema : ideasSchema
       const instruction = input.action === 'chat' ? '' : input.action === 'profile'
         ? 'Infer only explicitly supported interests from this description. Use 50 for unknown preferences. Explain the inference and uncertainties in one short paragraph. Do not infer demographics or sensitive traits.'
-        : `Generate exactly one realistic trip idea, with exactly ${input.brief.days} days and two concise activities per day. Keep summaries and activity notes short. Score each idea's travel experience on the same axes. Explain why it fits and the group compromises. ${input.mode === 'everyone' ? 'Prioritize the weakest individual fit as well as the group average.' : 'Prioritize the group average.'} Required axes must score at least 65. Use the requested currency for all integer minor-unit costs (JPY has no decimal places; USD has two). Stay within the per-person trip budget when supplied; state what is excluded. If a destination is given, stay there. If refining a previous idea, preserve its destination unless explicitly asked to change it. Preserve all existing plan items; suggest additions only in free time. For known places, reuse supplied existingPlaceId; otherwise use null. Use local 24-hour times and a real destination IANA timezone. Tasks are unassigned planning reminders, not completed reservations.`
+        : `Generate exactly one realistic trip idea, with exactly ${input.brief.days} days and two concise activities per day. Within a day, list activities in time order and never let them overlap: each starts at or after the time the one before it ends. An activity title names the thing to do ("Walk the High Line"), never "Day 1". A day title is a short theme for that day, never "Day 1". A note adds one practical tip and never repeats the title; use an empty string when there is nothing to add. Keep summaries and activity notes short. Score each idea's travel experience on the same axes. Explain why it fits and the group compromises. ${input.mode === 'everyone' ? 'Prioritize the weakest individual fit as well as the group average.' : 'Prioritize the group average.'} Required axes must score at least 65. Use the requested currency for all integer minor-unit costs (JPY has no decimal places; USD has two). Stay within the per-person trip budget when supplied; state what is excluded. If a destination is given, stay there. If refining a previous idea, preserve its destination unless explicitly asked to change it. Preserve all existing plan items; suggest additions only in free time. For known places, reuse supplied existingPlaceId; otherwise use null. Use local 24-hour times and a real destination IANA timezone. Tasks are unassigned planning reminders, not completed reservations.`
       stage = 'inference'
-      const model = input.action === 'ideas' ? env.IDEAS_MODEL ?? '@cf/meta/llama-3.1-8b-instruct-fp8-fast' : env.AI_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+      const model = input.action === 'ideas' ? env.IDEAS_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast' : env.AI_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
       const result = await env.AI.run(model, {
         messages: [{ role: 'system', content: input.action === 'chat' ? STOWIE : `${SYSTEM}\n${instruction}` }, { role: 'user', content: JSON.stringify({ request: input, group: input.action === 'ideas' ? combine(input.profiles) : null }) }],
         response_format: { type: 'json_schema', json_schema: z.toJSONSchema(schema) },
@@ -96,12 +96,14 @@ export default {
       const validated = schema.safeParse(value)
       if (!validated.success) return json({ error: 'The planner returned an incomplete draft. Your current plan is safe; try again with a shorter brief.' }, 502)
       if (input.action === 'ideas') {
-        const output = ideasSchema.parse(validated.data)
+        // Small models overlap times and repeat themselves; mend that before the phone sees it.
+        const output = { ideas: ideasSchema.parse(validated.data).ideas.map(tidyIdea) }
         const valid = output.ideas.every((idea) => {
           try { new Intl.DateTimeFormat('en', { timeZone: idea.timezone }).format(); return idea.days.length === input.brief.days && idea.currency === input.brief.currency && input.requiredAxes.every((key) => idea.scores[key] >= 65) && (input.brief.budgetMinor === null || idea.estimatedCostMinor === null || idea.estimatedCostMinor <= input.brief.budgetMinor) }
           catch { return false }
         })
         if (!valid) return json({ error: 'The draft did not match your dates, budget, or filters. Try adjusting the brief.' }, 502)
+        return json(output)
       }
       return json(validated.data)
     } catch (error) {

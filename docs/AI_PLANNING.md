@@ -48,14 +48,14 @@ npx wrangler deploy --dry-run
 
 Workers AI references: [pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/), [bindings](https://developers.cloudflare.com/workers-ai/configuration/bindings/), [JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/), [rate limits](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/), [static asset routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/).
 
-## Lower-usage ideas generation
+## Ideas model
 
-Ideas use `@cf/meta/llama-3.1-8b-instruct-fp8-fast`, configured independently with
-`IDEAS_MODEL`. Profile inference and ticket scanning keep their existing model.
-Each ideas request asks for one complete draft with two concise activities per day,
-reducing generated tokens. Existing output validation remains required. No automatic
-retry or larger-model fallback consumes additional allowance. Smaller-model latency
-and itinerary quality need live verification after deployment.
+Ideas use `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, the same model as profile inference and
+Stowie's chat, configured independently with `IDEAS_MODEL`. The smaller
+`@cf/meta/llama-3.1-8b-instruct-fp8-fast` was tried to save allowance and dropped on 8 Oct 2026:
+its drafts overlapped times, titled activities "Day 1" and repeated titles as notes. Each request
+still asks for one draft with two concise activities per day, and `tidyIdea` repairs overlaps and
+echoed text before a draft reaches the phone. No automatic retry consumes additional allowance.
 
 Workers AI includes 10,000 neurons daily shared across the account. Workers Free
 stops serving AI when the allocation is exhausted; Workers Paid bills overage.

@@ -65,6 +65,42 @@ export const ideaSchema = z.object({
   tasks: z.array(z.string().min(1).max(200)).max(8),
 })
 export type Idea = z.infer<typeof ideaSchema>
+const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3))
+const clock = (total: number) => `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+const plain = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+const isDayNumber = (text: string) => /^day\s*\d+$/i.test(text.trim())
+
+/** "Day 2 · Markets and ruins", or just "Day 2" when the model gave the day no real title. */
+export const dayLabel = (index: number, title: string) => `Day ${index + 1}${isDayNumber(title) ? '' : ` · ${title}`}`
+
+/**
+ * Repairs the slips a small model makes, so a draft that reads fine can also be added to a plan:
+ * activities in time order with no overlaps, no activity called "Day 1", no note that only
+ * repeats its title. An earlier activity is cut short to make room; if that would leave it under
+ * half an hour, the later one starts when it ends, and is dropped if the day has run out.
+ */
+export function tidyIdea(idea: Idea): Idea {
+  return { ...idea, days: idea.days.map((day) => {
+    const kept: Idea['days'][number]['activities'] = []
+    for (const raw of [...day.activities].sort((a, b) => minutes(a.time) - minutes(b.time))) {
+      const named = isDayNumber(raw.title) || plain(raw.title) === plain(day.title)
+      const activity = named && raw.notes.trim() ? { ...raw, title: raw.notes.trim().slice(0, 160), notes: '' } : { ...raw }
+      if (plain(activity.notes) === plain(activity.title)) activity.notes = ''
+      const before = kept.at(-1)
+      if (before) {
+        const start = minutes(before.time), end = start + before.durationMinutes
+        if (end > minutes(activity.time)) {
+          if (minutes(activity.time) - start >= 30) before.durationMinutes = minutes(activity.time) - start
+          else if (end <= 23 * 60 + 30) activity.time = clock(end)
+          else continue
+        }
+      }
+      kept.push(activity)
+    }
+    return { ...day, activities: kept }
+  }) }
+}
+
 export const ideasSchema = z.object({ ideas: z.array(ideaSchema).min(1).max(3) })
 export type IdeaResult = z.infer<typeof ideasSchema>
 export const briefSchema = z.object({

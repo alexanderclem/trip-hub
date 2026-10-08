@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { m } from 'motion/react'
 import { db } from '@/data/db'
-import { classify, matchScore, type Profile, type Scores } from '@/features/discovery/model'
+import { classify, dayLabel, matchScore, type Profile, type Scores } from '@/features/discovery/model'
 import { RadarChart } from '@/features/discovery/RadarChart'
 import { formatMoney } from '@/lib/money'
 import { motionTiming } from '@/ui/motion'
@@ -72,12 +72,12 @@ export function DraftCard({ draftId, profiles, onLoad }: { draftId: string; prof
         <ol className="space-y-4 pb-2">
           {idea.days.map((day, i) => (
             <li key={i}>
-              <h4 className="font-semibold">Day {i + 1} · {day.title}</h4>
+              <h4 className="font-semibold">{dayLabel(i, day.title)}</h4>
               <ul className="mt-2 space-y-2">
                 {day.activities.map((a, j) => (
                   <li key={j} className="flex gap-3 text-sm">
                     <span className="shrink-0 tabular-nums text-stone-500">{activityTimeRange(a.time, a.durationMinutes)}</span>
-                    <div><p>{a.title}</p><p className="text-xs leading-relaxed text-stone-500">{a.notes}</p></div>
+                    <div><p>{a.title}</p>{a.notes && <p className="text-xs leading-relaxed text-stone-500">{a.notes}</p>}</div>
                   </li>
                 ))}
               </ul>
