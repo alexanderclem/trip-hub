@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { NEUTRAL, type ChatReply } from '@/features/discovery/model'
 import { MAX_MESSAGES, newThread, step, type Ctx, type Event, type Outcome, type Thread } from './script'
 
-const trip: Ctx = { tripName: 'Guatemala', hasProfile: true, travelers: 3, destination: 'Antigua, Lake Atitlán', maxDays: 9, currency: 'USD', online: true, latestDraft: null }
+const trip: Ctx = { tripName: 'Guatemala', hasProfile: true, travelers: 3, destination: 'Antigua, Lake Atitlán', maxDays: 9, currency: 'USD', online: true, latestDraft: null, screen: null, subject: null }
 const personal: Ctx = { ...trip, tripName: null, travelers: 1, destination: '', maxDays: 14 }
-const reply = (over: Partial<ChatReply> = {}): ChatReply => ({ intent: 'plan', reply: 'Street food and slow mornings, noted.', destination: null, days: null, budget: null, ...over })
+const reply = (over: Partial<ChatReply> = {}): ChatReply => ({ intent: 'plan', reply: 'Street food and slow mornings, noted.', destination: null, days: null, budget: null, topics: [], ...over })
 const chip = (thread: Thread, id: string): Event => ({ type: 'chip', chip: thread.chips.find((c) => c.id === id) ?? { id, label: id } })
 /** Plays events in order, returning the last outcome. */
 function play(ctx: Ctx, events: (Event | ((t: Thread) => Event))[], from = step(newThread('t'), { type: 'open' }, ctx)): Outcome {
@@ -165,4 +165,77 @@ it('caps the stored thread and ignores input while busy', () => {
   expect(new Set(out.thread.messages.map((m) => m.id)).size).toBe(MAX_MESSAGES)
   const waiting = step(out.thread, { type: 'text', text: 'Beaches' }, trip)
   expect(step(waiting.thread, { type: 'text', text: 'again' }, trip).thread).toBe(waiting.thread)
+})
+
+describe('questions about the trip', () => {
+  const onPlan: Ctx = { ...trip, screen: 'plan' }
+  const task = { kind: 'task', title: 'Book the shuttle', assigneeId: 'sam', assignee: 'Sam', dueDate: null } as const
+  it('offers suggestions that fit the screen, ahead of the usual ones', () => {
+    const ids = (ctx: Ctx) => step(newThread('t'), { type: 'open' }, ctx).thread.chips.map((c) => c.id)
+    expect(ids(onPlan).slice(0, 3)).toEqual(['ask:plan', 'starter:free', 'starter:food'])
+    expect(ids({ ...trip, screen: 'money' })[0]).toBe('ask:money')
+    expect(ids(trip)[0]).toBe('starter:food')
+    // A question Stowie asked gets its own answers only.
+    expect(play(onPlan, [(t) => chip(t, 'starter:food')]).thread.chips.map((c) => c.id)).toEqual(['days:3', 'days:5', 'days:7', 'days:9'])
+  })
+  it('swaps its suggestions when reopened over another screen, but not mid-question', () => {
+    const onPlanTab = step(newThread('t'), { type: 'open' }, onPlan).thread
+    const onMoney = step(onPlanTab, { type: 'arrive' }, { ...trip, screen: 'money' }).thread
+    expect(onMoney.chips[0]).toEqual({ id: 'ask:money', label: 'What do I owe?' })
+    expect(onMoney.messages).toEqual(onPlanTab.messages)
+    const asking = play(onPlan, [(t) => chip(t, 'starter:food')]).thread
+    expect(step(asking, { type: 'arrive' }, { ...trip, screen: 'money' }).thread).toBe(asking)
+  })
+  it('looks up only the topics a question needs, and returns to where it was', () => {
+    const asked = play(onPlan, [(t) => chip(t, 'ask:plan')])
+    expect(asked.effect).toEqual({ type: 'assist', text: 'What’s next?', topics: ['plan'] })
+    const out = play(onPlan, [{ type: 'assisted', reply: 'Lunch at 13:00.', proposal: null, link: 'plan' }], asked)
+    expect(last(out).text).toBe('Lunch at 13:00.')
+    expect(out.thread.step).toBe('imagine')
+    expect(out.thread.chips[0]).toEqual({ id: 'open:plan', label: 'Open the plan' })
+    expect(step(out.thread, chip(out.thread, 'open:plan'), onPlan)).toEqual({ thread: out.thread, effect: { type: 'go', to: 'plan' } })
+    const typed = play(trip, [{ type: 'text', text: 'who is bringing the speaker?' }, { type: 'interpreted', text: 'who is bringing the speaker?', reply: reply({ intent: 'ask', reply: 'Let me look.', topics: ['packing', 'people'] }) }])
+    expect(typed.effect).toEqual({ type: 'assist', text: 'who is bringing the speaker?', topics: ['packing', 'people'] })
+  })
+  it('names the place being viewed, and answers money on the phone even offline', () => {
+    const place: Ctx = { ...trip, screen: 'place', subject: 'Café Sky' }
+    expect(play(place, [(t) => chip(t, 'ask:places,plan')]).effect).toMatchObject({ text: 'What pairs well with Café Sky?' })
+    const offline: Ctx = { ...trip, screen: 'money', online: false }
+    expect(play(offline, [(t) => chip(t, 'ask:money')]).effect).toEqual({ type: 'tally' })
+    expect(play(offline, [(t) => chip(t, 'ask:plan')], step(newThread('t'), { type: 'open' }, { ...offline, screen: 'plan' })).effect).toBeUndefined()
+  })
+  it('does not pretend to know a trip outside one', () => {
+    const out = play(personal, [{ type: 'text', text: 'what time is dinner' }, { type: 'interpreted', text: 'what time is dinner', reply: reply({ intent: 'ask', topics: ['plan'] }) }])
+    expect(out.effect).toBeUndefined()
+    expect(last(out).text).toContain('inside a trip')
+  })
+  it('adds something only after a yes, then picks up where it left off', () => {
+    const offered = play(trip, [{ type: 'text', text: 'add a task for Sam to book the shuttle' }, { type: 'interpreted', text: 'x', reply: reply({ intent: 'ask', topics: ['tasks'] }) }, { type: 'assisted', reply: 'I can add that for Sam.', proposal: task, link: 'tasks' }])
+    expect(offered.effect).toBeUndefined()
+    expect(offered.thread.step).toBe('confirm')
+    expect(last(offered).card).toEqual({ kind: 'proposal', proposal: task, state: 'pending' })
+    expect(offered.thread.chips.map((c) => c.label)).toEqual(['Yes, add it', 'No thanks'])
+    const adding = play(trip, [(t) => chip(t, 'confirm')], offered)
+    expect(adding.effect).toEqual({ type: 'act', proposal: task })
+    const added = play(trip, [{ type: 'acted', summary: 'Added the task.', link: 'tasks' }], adding)
+    expect(added.thread.messages.find((m) => m.card?.kind === 'proposal')?.card).toMatchObject({ state: 'done' })
+    expect(added.thread.step).toBe('imagine')
+    expect(added.mood).toBe('delighted')
+    expect(added.thread.chips[0]!.id).toBe('open:tasks')
+    // A failed save leaves the offer open to try again.
+    const failed = play(trip, [{ type: 'failed', message: 'Choose someone who is still in this trip.' }], adding)
+    expect(failed.thread.step).toBe('confirm')
+    expect(failed.thread.chips.map((c) => c.id)).toEqual(['confirm', 'dismiss'])
+  })
+  it('drops the offer on a no, or when they say something else', () => {
+    const offered = play(trip, [{ type: 'text', text: 'x' }, { type: 'interpreted', text: 'x', reply: reply({ intent: 'ask', topics: ['tasks'] }) }, { type: 'assisted', reply: 'I can add that.', proposal: task, link: 'tasks' }])
+    const no = play(trip, [(t) => chip(t, 'dismiss')], offered)
+    expect(no.effect).toBeUndefined()
+    expect(no.thread.messages.find((m) => m.card?.kind === 'proposal')?.card).toMatchObject({ state: 'dismissed' })
+    expect(no.thread.step).toBe('imagine')
+    const moved = play(trip, [{ type: 'text', text: 'actually, what’s next?' }], offered)
+    expect(moved.thread.messages.find((m) => m.card?.kind === 'proposal')?.card).toMatchObject({ state: 'dismissed' })
+    expect(moved.effect).toEqual({ type: 'interpret', text: 'actually, what’s next?' })
+    expect(step(moved.thread, { type: 'chip', chip: { id: 'confirm', label: 'Yes, add it' } }, trip).effect).toBeUndefined()
+  })
 })

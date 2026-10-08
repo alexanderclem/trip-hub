@@ -8,9 +8,9 @@ companion on every trip tab. Decisions below were made with the owner on 8 Oct 2
 |---|---|
 | Conversation | **Hybrid.** Stowie leads with scripted lines and reply chips; free text is allowed everywhere. The model is called only to interpret free text and to generate or refine a trip. |
 | Scope | Replaces the Trip ideas page **and** hosts the opening quiz. The sliders, group radar and draft history stay as an "Edit by hand" view. |
-| Placement | A floating companion on every trip tab (phase 2). Phase 1 ships the dedicated screen. |
+| Placement | A dedicated screen, and a floating companion on every trip tab. |
 | Character | The existing mark, rigged as inline SVG with `motion`. Six moods. No new dependency, no new features on the face. |
-| Assistant | Answers questions about the trip and proposes a small set of writes, each confirmed with a tap (phase 2). |
+| Assistant | Answers questions about the trip and proposes a small set of writes, each confirmed with a tap. |
 | Thread | Private, one per trip per phone, stored locally. Never synced. |
 | Voice | Warm and curious. |
 | Quiz | The same 10 questions and scoring, asked by Stowie. |
@@ -19,8 +19,8 @@ companion on every trip tab. Decisions below were made with the owner on 8 Oct 2
 
 ## Phases
 
-1. **Character, chat, ideas and quiz** on Workers AI. Built; described below.
-2. **Companion and assistant.** Floating launcher, context starters, trip Q&A, confirmed actions.
+1. **Character, chat, ideas and quiz** on Workers AI. Built.
+2. **Companion and assistant.** Floating launcher, context starters, trip Q&A, confirmed actions. Built.
 3. **ChatGPT connection** and Luna.
 
 Each phase works without the next.
@@ -113,26 +113,79 @@ the radar is revealed at the end. It still needs no model and no connection once
 
 ## Phase 2: companion and assistant
 
-**Launcher.** A small Stowie fixed above the tab bar in `TripShell`, opening the same thread in a
-sheet (`role="dialog"`). Hidden on forms, the ticket viewer, the driver and medical cards, and
-while the map is being dragged. `StowieScreen` already takes its trip from props-compatible
-hooks, so the sheet reuses the chat body as is.
+Built. Stowie now rides along on trip tabs, answers questions from the trip, and offers to add
+things.
 
-**Context starters.** The route decides the opening chips: Plan → "Fill a free afternoon",
-a place page → "What pairs with this?", Map → "Ideas near here", Money → "What do I owe?".
+### Companion (`StowieCompanion.tsx`, `screen.ts`)
 
-**Answers.** A new `ask` intent. The phone builds a compact snapshot from Dexie, limited to what
-the question needs, and sends it with the question. Money questions with an exact answer (my
-balance, who owes whom) are computed on the phone from `money.ts` and never sent. Each answer
-links to the screen it came from.
+A small Stowie sits bottom-left on trip screens, opposite the add button, and opens the trip's
+conversation in a sheet (a native modal `<dialog>`: a bottom sheet on a phone, a centred panel on
+wider screens). It is the same thread as More → Trip ideas; `StowieChat` is the shared body.
 
-**Actions.** The model may propose one of: add a task, add a packing item, add a tentative plan
-item, start a vote. The proposal renders as a card; nothing is written until the person taps
-Confirm. Writes go through `save` in `repo.ts`, so they queue, sync and can be edited like any
-other row. Rows are validated against the same rules as the forms.
+`screenOf(pathname)` decides where it appears. It shows on overview, plan, map, places, tickets,
+money, tasks, packing and votes, and on plan-item and place detail pages. It stays away from every
+form, the ticket viewer, emergency and medical cards, settings, Wrapped and the chat's own page.
+On the map it fades out while the map is being dragged. Following a link from the chat closes
+the sheet.
 
-**Never sent:** `attachments` (tickets and their text), `confirmation_code`, `share_token`,
-`member_safety`, `trips.settings.emergency`.
+### Suggestions for the screen
+
+The first chips come from the screen underneath, ahead of the usual ones, and are refreshed each
+time the conversation is reopened (`arrive`):
+
+| Screen | Chips |
+|---|---|
+| Overview | What’s next? · What’s left to do? |
+| Plan | What’s next? · Fill a free afternoon |
+| Map, Places | What haven’t we planned yet? |
+| A place | What pairs with this? (sent with the place’s name) |
+| Tickets | What’s next? |
+| Money | What do I owe? |
+| Tasks | What’s left to do? · What’s mine? |
+| Packing | What am I missing? |
+| Votes | What needs my vote? |
+
+They appear only where anything can be said. A question Stowie has just asked (days, budget, a
+confirmation) keeps its own chips.
+
+### Answers
+
+`chat` gained the intent `ask` and a `topics` list (plan, places, tasks, packing, votes, people,
+money). The phone then builds a snapshot of just those topics from Dexie (`snapshot.ts`) and
+sends it with the question to a second Worker action, `assist`, which checks trip access, answers
+only from the snapshot, and is told never to guess.
+
+| Turn | Calls |
+|---|---|
+| A screen chip | `assist` only: the chip already names its topics |
+| A typed question | `chat`, then `assist` |
+| “What do I owe?”, or any question that is only about money | None. `moneySummary` adds it up on the phone, exactly, and works offline |
+
+The snapshot is plain text, capped per section. It leaves out, by construction: tickets and their
+text, confirmation codes, item notes, invitation links, emergency numbers, medical cards, other
+people’s personal packing lists, the idea pool (only picked places are listed), cancelled items
+and anything deleted. `snapshot.test.ts` checks this.
+
+### Actions (`proposal.ts`)
+
+`assist` may suggest at most one addition: a shared task, a packing item, a tentative plan item,
+or a vote. `toProposal` checks it against the trip first: an assignee must be a member, dates
+must be real, a plan item needs a date inside the trip, a vote needs two different options.
+Anything that fails is dropped and Stowie just answers.
+
+What survives is shown as a card with **Yes, add it** and **No thanks**. Nothing is written
+until the yes. Then `carryOut` calls the same functions the forms use (`saveTask`,
+`savePackingItem`, `saveItem`, `createPoll` + `addOption`), so the row queues, syncs and can be
+edited like any other. Typing something else instead of answering drops the offer. A failed save
+leaves it open to retry.
+
+### Known gaps in phase 2
+
+- Stowie adds; it does not edit, move or delete anything, and does not log expenses.
+- Plan items it adds are tentative activities with no place attached.
+- “Ideas near here” was dropped: the snapshot has no coordinates. The map chip asks what is
+  picked but not yet planned.
+- A typed question costs two model calls. Phase 3's free-form mode would make it one.
 
 ## Phase 3: ChatGPT connection
 
@@ -160,7 +213,7 @@ the no-card rule in `CLAUDE.md`.
 
 ```text
 npm run typecheck
-npm test                                        # script.test.ts, worker.test.ts
+npm test                                        # script, proposal, snapshot and worker tests
 npx playwright test tests/e2e/discovery.spec.ts # Stowie and the hand editor; mocked network, no live writes
 ```
 

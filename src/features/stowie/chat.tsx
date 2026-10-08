@@ -7,6 +7,7 @@ import { classify, dayLabel, matchScore, type Profile, type Scores } from '@/fea
 import { RadarChart } from '@/features/discovery/RadarChart'
 import { formatMoney } from '@/lib/money'
 import { motionTiming } from '@/ui/motion'
+import { describeProposal, type Proposal } from './proposal'
 import type { Chip } from './script'
 
 /** One line of the conversation. Stowie's sit left on the surface colour, the person's right in brand. */
@@ -40,6 +41,18 @@ export function ProfileCard({ scores }: { scores: Scores }) {
     <div className="max-w-md rounded-2xl border border-stone-200 bg-surface p-4">
       <p className="text-center font-medium text-brand-900">{classify(scores)}</p>
       <RadarChart scores={scores} label="Suggested travel style" />
+    </div>
+  )
+}
+
+/** What Stowie offers to add. The Yes and No are Stowie's chips; this shows what they apply to. */
+export function ProposalCard({ proposal, state }: { proposal: Proposal; state: 'pending' | 'done' | 'dismissed' }) {
+  const { heading, title, details } = describeProposal(proposal)
+  return (
+    <div className={`max-w-md rounded-2xl border border-stone-200 bg-surface p-4 ${state === 'dismissed' ? 'opacity-60' : ''}`}>
+      <p className="text-sm font-medium text-brand-700">{heading}{state === 'done' ? ' · Added' : state === 'dismissed' ? ' · Not added' : ''}</p>
+      <p className="mt-1 font-semibold text-brand-900">{title}</p>
+      <ul className="mt-1 text-sm text-stone-600">{details.map((line) => <li key={line}>{line}</li>)}</ul>
     </div>
   )
 }

@@ -14,10 +14,16 @@ const result: IdeaResult = { ideas: [{ title: 'Markets and coastal mornings', de
   days: [{ title: 'Gallery morning', activities: [{ title: 'Explore the museum', kind: 'activity', time: '11:00', durationMinutes: 90, placeName: null, existingPlaceId: null, notes: 'Verify hours.', costMinor: 2500 }] }], tasks: [],
 }] }
 
-// Stowie's reading of a typed line: a change to the draft, or a one-day plan in California.
-const chatReply = (text: string) => /downtime|slower/i.test(text)
-  ? { intent: 'refine', reply: 'More room to breathe, got it.', destination: null, days: null, budget: null }
-  : { intent: 'plan', reply: 'A slow day by the sea, noted.', destination: 'California', days: 1, budget: null }
+// Stowie's reading of a typed line: a request to add to the trip, a change to the draft, or a one-day plan in California.
+const chatReply = (text: string) => /task/i.test(text)
+  ? { intent: 'ask', reply: 'Let me look.', destination: null, days: null, budget: null, topics: ['tasks'] }
+  : /downtime|slower/i.test(text)
+    ? { intent: 'refine', reply: 'More room to breathe, got it.', destination: null, days: null, budget: null, topics: [] }
+    : { intent: 'plan', reply: 'A slow day by the sea, noted.', destination: 'California', days: 1, budget: null, topics: [] }
+const nothing = { action: 'none', title: null, date: null, time: null, durationMinutes: null, assignee: null, options: [] }
+const assistReply = (text: string) => /task/i.test(text)
+  ? { ...nothing, reply: 'I can add that for Sam. Shall I?', action: 'task', title: 'Book the shuttle', assignee: 'sam' }
+  : { ...nothing, reply: 'Nothing is on the plan yet.' }
 /** The hand editor sits behind Stowie's chat; getting there by links keeps both routes loaded for offline steps. */
 async function openEditor(page: Page) {
   await page.getByRole('link', { name: 'Explore trip ideas' }).click()
@@ -53,6 +59,7 @@ async function mockNetwork(page: Page, calls: AIRequest[]) {
     const revision = structuredClone(result)
     if (body.action === 'ideas' && body.tripId && body.previous) revision.ideas[0]!.days[0]!.activities[0]!.title = 'A slower food market morning'
     if (body.action === 'chat') { await route.fulfill({ json: chatReply(body.text) }); return }
+    if (body.action === 'assist') { await route.fulfill({ json: assistReply(body.text) }); return }
     await route.fulfill({ json: body.action === 'profile' ? { scores, explanation: 'Food and nature lead; nightlife is low.' } : revision })
   })
   await page.addInitScript(({ user }) => {
@@ -322,4 +329,56 @@ test('Stowie hosts the quiz and picks the conversation back up with the result',
   await expect(log.getByText(/^Stowie: Saved\. I’d call you a /)).toBeVisible()
   await expect(log.getByText('Now, what are you imagining?')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Surprise me' })).toBeVisible()
+})
+
+test('Stowie rides along on trip tabs, answers from the trip, and adds a task only after a yes', async ({ page }) => {
+  const calls: AIRequest[] = []
+  await mockNetwork(page, calls)
+  await page.goto('/inspire') // opens the current IndexedDB schema
+  await seedTrip(page, result)
+  await page.goto(`/t/${TRIP}/plan`)
+  await expect(page.getByRole('button', { name: 'Ask Stowie' })).toBeVisible()
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-9-launcher.png` })
+  await page.getByRole('button', { name: 'Ask Stowie' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Stowie' })
+  const log = sheet.getByRole('log', { name: 'Conversation with Stowie' })
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-7-companion.png` })
+
+  // The plan tab's own suggestion comes first, and sends only the plan.
+  await sheet.getByRole('button', { name: 'What’s next?' }).click()
+  await expect(log.getByText('Nothing is on the plan yet.')).toBeVisible()
+  const asked = calls.at(-1) as Extract<AIRequest, { action: 'assist' }>
+  expect(Object.keys(asked.snapshot)).toEqual(['plan'])
+  expect(asked.me).toBe('Alex')
+
+  await sheet.getByRole('textbox', { name: 'Message Stowie' }).fill('Add a task for Sam to book the shuttle')
+  await sheet.getByRole('button', { name: 'Send' }).click()
+  await expect(sheet.getByText('Add a shared task')).toBeVisible()
+  await expect(sheet.getByText('For Sam', { exact: true })).toBeVisible()
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-8-proposal.png` })
+  expect(await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
+    const count = await new Promise<number>((resolve) => { const req = database.transaction('trip_tasks').objectStore('trip_tasks').count(); req.onsuccess = () => resolve(req.result) })
+    database.close()
+    return count
+  })).toBe(0)
+  await sheet.getByRole('button', { name: 'Yes, add it' }).click()
+  await expect(log.getByText('Added the task “Book the shuttle” for Sam.')).toBeVisible()
+  await sheet.getByRole('button', { name: 'Open tasks' }).click()
+  await page.waitForURL(/\/more\/tasks$/)
+  await expect(sheet).toBeHidden()
+  await expect(page.getByRole('link', { name: /Book the shuttle/ })).toBeVisible()
+
+  // Money is added up on the phone, with no request at all.
+  const before = calls.length
+  await page.goto(`/t/${TRIP}/money`)
+  await page.getByRole('button', { name: 'Ask Stowie' }).click()
+  await sheet.getByRole('button', { name: 'What do I owe?' }).click()
+  await expect(log.getByText(/all square/)).toBeVisible()
+  expect(calls.length).toBe(before)
+
+  // Stowie stays out of forms.
+  await page.goto(`/t/${TRIP}/more/tasks/new`)
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Ask Stowie' })).toHaveCount(0)
 })

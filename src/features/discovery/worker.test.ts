@@ -23,15 +23,26 @@ describe('AI request boundary', () => {
     expect(env.AI.run).toHaveBeenCalledWith('@cf/meta/llama-3.3-70b-instruct-fp8-fast', expect.objectContaining({ max_tokens: 600 }))
   })
   it('answers a chat line in Stowie’s voice, sending no trip data and capping the reply', async () => {
-    const reply = { intent: 'plan', reply: 'Markets and slow mornings, noted.', destination: 'Oaxaca', days: 5, budget: null }
+    const reply = { intent: 'plan', reply: 'Markets and slow mornings, noted.', destination: 'Oaxaca', days: 5, budget: null, topics: [] }
     env.AI.run = vi.fn(async () => ({ response: JSON.stringify(reply) }))
-    const body: AIRequest = { action: 'chat', text: 'Five days of markets in Oaxaca', context: { hasProfile: true, draftTitle: null, destination: '', recent: [{ from: 'stowie', text: 'What are you imagining?' }] } }
+    const body: AIRequest = { action: 'chat', text: 'Five days of markets in Oaxaca', context: { hasProfile: true, draftTitle: null, destination: '', inTrip: false, recent: [{ from: 'stowie', text: 'What are you imagining?' }] } }
     const response = await worker.fetch(request(body), env)
     expect(await response.json()).toEqual(reply)
     expect(env.AI.run).toHaveBeenCalledWith('@cf/meta/llama-3.3-70b-instruct-fp8-fast', expect.objectContaining({ max_tokens: 300, messages: [expect.objectContaining({ content: expect.stringContaining('You are Stowie') }), expect.anything()] }))
     env.AI.run = vi.fn(async () => ({ response: { intent: 'book', reply: '' } }))
     expect((await worker.fetch(request(body), env)).status).toBe(502)
     expect((await worker.fetch(request({ ...body, text: 'x'.repeat(1001) }), env)).status).toBe(400)
+  })
+  it('answers a trip question only for someone in that trip, from the snapshot it was sent', async () => {
+    const body: AIRequest = { action: 'assist', tripId: user, text: 'What’s left to do?', me: 'Alex', today: 'Monday 15 March 2027, 09:00 (America/Guatemala)', snapshot: { tasks: '[open] Book shuttle | owner: Sam' } }
+    expect((await worker.fetch(request(body), env)).status).toBe(403)
+    expect(env.AI.run).not.toHaveBeenCalled()
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json(url.includes('/auth/') ? { id: user } : [{ id: user }])))
+    const reply = { reply: 'One thing: Sam still needs to book the shuttle.', action: 'none', title: null, date: null, time: null, durationMinutes: null, assignee: null, options: [] }
+    env.AI.run = vi.fn(async () => ({ response: reply }))
+    expect(await (await worker.fetch(request(body), env)).json()).toEqual(reply)
+    expect(env.AI.run).toHaveBeenCalledWith('@cf/meta/llama-3.3-70b-instruct-fp8-fast', expect.objectContaining({ max_tokens: 600, messages: [expect.objectContaining({ content: expect.stringContaining('Answer only from the snapshot') }), expect.objectContaining({ content: expect.stringContaining('Book shuttle') })] }))
+    expect((await worker.fetch(request({ ...body, snapshot: { tickets: 'boarding pass' } }), env)).status).toBe(400)
   })
   it('refuses trip planning for an unjoined device', async () => {
     const body: AIRequest = { action: 'ideas', tripId: user, brief: { prompt: 'A quiet trip', destination: '', days: 1, startDate: null, budgetMinor: null, currency: 'USD' }, profiles: [{ scores: NEUTRAL, description: '', constraints: '' }], mode: 'everyone', requiredAxes: [], previous: null, places: [], existingPlan: [] }

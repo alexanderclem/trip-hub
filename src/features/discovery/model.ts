@@ -109,13 +109,30 @@ export const briefSchema = z.object({
   budgetMinor: z.number().int().min(0).max(100000000).nullable(), currency: z.string().regex(/^[A-Z]{3}$/),
 })
 export type Brief = z.infer<typeof briefSchema>
+/** The parts of a trip Stowie may read to answer a question. Tickets, booking codes and safety cards are never among them. */
+export const TOPICS = ['plan', 'places', 'tasks', 'packing', 'votes', 'people', 'money'] as const
+export type Topic = typeof TOPICS[number]
 /** What Stowie makes of one free-text line: what the person wants, any details they stated, and a short reply. */
 export const chatReplySchema = z.object({
-  intent: z.enum(['plan', 'refine', 'preferences', 'other']), reply: z.string().min(1).max(400),
+  intent: z.enum(['plan', 'refine', 'preferences', 'ask', 'other']), reply: z.string().min(1).max(400),
   destination: z.string().max(160).nullable(), days: z.number().int().min(1).max(14).nullable(),
   budget: z.number().min(0).max(1000000).nullable(),
+  /** For `ask`: which parts of the trip the answer needs. */
+  topics: z.array(z.enum(TOPICS)).max(TOPICS.length),
 })
 export type ChatReply = z.infer<typeof chatReplySchema>
+/**
+ * An answer about the trip, and at most one thing Stowie offers to add. The fields are loose on
+ * purpose: the phone checks them against the trip before showing anything to confirm.
+ */
+export const assistReplySchema = z.object({
+  reply: z.string().min(1).max(700),
+  action: z.enum(['none', 'task', 'packing', 'item', 'vote']),
+  title: z.string().max(200).nullable(), date: z.string().max(40).nullable(), time: z.string().max(40).nullable(),
+  durationMinutes: z.number().int().min(15).max(720).nullable(), assignee: z.string().max(80).nullable(),
+  options: z.array(z.string().min(1).max(160)).max(6),
+})
+export type AssistReply = z.infer<typeof assistReplySchema>
 export const requestSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('profile'), description: z.string().min(1).max(2000) }),
   z.object({
@@ -131,7 +148,14 @@ export const requestSchema = z.discriminatedUnion('action', [
     context: z.object({
       hasProfile: z.boolean(), draftTitle: z.string().max(120).nullable(), destination: z.string().max(160),
       recent: z.array(z.object({ from: z.enum(['stowie', 'me']), text: z.string().max(500) })).max(6),
+      /** Inside a trip, so questions about it can be answered. */
+      inTrip: z.boolean(),
     }),
+  }),
+  z.object({
+    action: z.literal('assist'), tripId: z.string().uuid(), text: z.string().min(1).max(1000),
+    me: z.string().max(80), today: z.string().max(60),
+    snapshot: z.partialRecord(z.enum(TOPICS), z.string().max(9000)),
   }),
 ])
 export type AIRequest = z.infer<typeof requestSchema>

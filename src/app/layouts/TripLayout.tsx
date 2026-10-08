@@ -11,6 +11,7 @@ import { useAutoLegs } from '@/features/routing/requestLegs'
 import { useAttachmentSync } from '@/features/tickets/files'
 import { SyncStatusButton } from '@/features/sync/SyncStatus'
 import { useUnseenActivity } from '@/features/activity/data'
+import { StowieCompanion } from '@/features/stowie/StowieCompanion'
 import { Brand } from '@/ui/Brand'
 import { LoadingState } from '@/ui/LoadingState'
 import { PageTransition } from '@/ui/PageTransition'
@@ -103,6 +104,7 @@ function TripShell({ tripId }: { tripId: string }) {
         <nav aria-label="Trip navigation" className="pb-safe grid shrink-0 grid-cols-5 border-t border-stone-200 bg-surface lg:hidden">
           {tabs.map(({ to, label, Icon }) => <NavLink key={to} end={to === 'more'} to={`${root}/${to}`} className={({ isActive }) => `flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-xs ${isActive ? 'bg-brand-50 font-semibold text-brand-700' : 'text-stone-600'}`}><Icon className="size-5" aria-hidden="true" />{label}</NavLink>)}
         </nav>
+        <StowieCompanion tripId={tripId} />
       </div>
     </div>
   )
