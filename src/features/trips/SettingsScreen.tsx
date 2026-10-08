@@ -13,7 +13,7 @@ import { OfflineMapCard } from '@/features/map/offline/OfflineMapCard'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { NotificationsCard } from '@/features/notifications/NotificationsCard'
 import { save } from '@/data/repo'
-import { Avatar, Button, Card, ErrorNote, PageHeader } from '@/ui'
+import { Avatar, Button, Card, ErrorNote, LinkButton, PageHeader } from '@/ui'
 import { rotateShareToken } from './actions'
 
 export function SettingsScreen() {
@@ -76,9 +76,9 @@ export function SettingsScreen() {
               </li>
             ))}
           </ul>
-          <Button variant="ghost" className="mt-2 w-full text-sm" onClick={() => navigate(`/t/${tripId}/who`)}>
+          <LinkButton variant="ghost" className="mt-2 w-full text-sm" to={`/t/${tripId}/who`}>
             I'm not {members.find((m) => m.id === me)?.display_name ?? 'that person'}
-          </Button>
+          </LinkButton>
         </Card>
 
         <DestinationsCard trip={trip} me={me} />

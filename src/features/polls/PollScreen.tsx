@@ -8,7 +8,7 @@ import { useMembers, usePlaces, useTrip } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
 import { VOTE_SCORES, type Member, type Place, type Poll, type PollOption, type PollVote, type Trip, type VoteScore } from '@/data/types'
 import { useOnline } from '@/lib/useOnline'
-import { Avatar, Button, Card, ErrorNote, Field, Input, PageHeader } from '@/ui'
+import { Avatar, Button, Card, DateInput, ErrorNote, Field, Input, PageHeader } from '@/ui'
 import { PlaceCategoryIcon, PlaceStatusBadge } from '@/features/places/PlaceSummary'
 import { StarsSummary } from '@/features/ratings/Stars'
 import { CommentThread } from '@/features/comments/CommentThread'
@@ -334,8 +334,8 @@ function AddDatesCard({ poll, trip, me }: { poll: Poll; trip: Trip | undefined; 
       <h2 className="font-semibold">Add dates</h2>
       <form onSubmit={add} className="mt-2 space-y-3">
         <div className="grid grid-cols-2 gap-2">
-          <Field label="First day"><Input type="date" value={from} min={today} onChange={(e) => { setFrom(e.target.value); setError(null) }} required /></Field>
-          <Field label="Last day (optional)"><Input type="date" value={to} min={from || today} onChange={(e) => { setTo(e.target.value); setError(null) }} /></Field>
+          <Field label="First day"><DateInput value={from} min={today} onValue={(date) => { setFrom(date); setError(null) }} required /></Field>
+          <Field label="Last day (optional)"><DateInput value={to} min={from || today} onValue={(date) => { setTo(date); setError(null) }} /></Field>
         </div>
         <ErrorNote error={error} />
         <Button type="submit" variant="secondary" className="w-full" disabled={!from}>{from ? `Add ${dateRangeLabel(from, to || null)}` : 'Add these dates'}</Button>

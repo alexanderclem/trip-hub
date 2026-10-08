@@ -12,8 +12,9 @@ Anyone can set up a trip for any destination from their phone:
    towns at street level plus the wider region (`src/features/map/offline/savedArea.ts`). The
    "Ready for offline" button does this too. Each phone saves its own copy.
 
-It uses free, keyless services: Photon (search), Open-Meteo (time zone), public Overpass servers
-(places) and OpenFreeMap (tiles). What this path doesn't give you is typical boat or shuttle
+It uses free, keyless services: Photon (search), public Overpass servers
+(places) and OpenFreeMap (tiles). The time zone is looked up on the phone
+(`@photostructure/tz-lookup`), with no service involved. What this path doesn't give you is typical boat or shuttle
 times (the group can report those) and the smaller, sharper pack files below.
 
 ## A pack shipped with the app (scripts)

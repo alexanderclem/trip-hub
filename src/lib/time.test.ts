@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   checkLocalTime,
+  dateOrder,
   dayKey,
   findConflicts,
   formatInZone,
+  formatTypedDate,
+  parseTypedDate,
   toInstant,
   tripDays,
   type TimedItem,
@@ -81,6 +84,37 @@ describe('tripDays', () => {
       '2027-03-15',
       '2027-03-16',
     ])
+  })
+})
+
+describe('typed dates', () => {
+  it('reads the common ways of writing a date', () => {
+    expect(parseTypedDate('06/04/2027', 'MDY')).toBe('2027-06-04')
+    expect(parseTypedDate('6/4/27', 'MDY')).toBe('2027-06-04')
+    expect(parseTypedDate(' 2027-06-04 ', 'MDY')).toBe('2027-06-04')
+    expect(parseTypedDate('2027/6/4', 'DMY')).toBe('2027-06-04')
+    expect(parseTypedDate('Jun 4, 2027', 'MDY')).toBe('2027-06-04')
+    expect(parseTypedDate('4 June 2027', 'MDY')).toBe('2027-06-04')
+  })
+
+  it('follows the local order for all-number dates', () => {
+    expect(parseTypedDate('06/04/2027', 'DMY')).toBe('2027-04-06')
+    expect(parseTypedDate('04.06.2027', 'DMY')).toBe('2027-06-04')
+    expect(parseTypedDate('13/06/2027', 'MDY')).toBeNull()
+  })
+
+  it('rejects half-typed and impossible dates', () => {
+    for (const text of ['', '06/0', '06/04/202', '02/30/2027', '2027-13-01', 'soon']) expect(parseTypedDate(text, 'MDY')).toBeNull()
+  })
+
+  it('writes a date back in the same order', () => {
+    expect(formatTypedDate('2027-06-04', 'MDY')).toBe('06/04/2027')
+    expect(formatTypedDate('2027-06-04', 'DMY')).toBe('04/06/2027')
+    expect(formatTypedDate('2027-06-04', 'YMD')).toBe('2027-06-04')
+    expect(formatTypedDate('', 'MDY')).toBe('')
+    expect(dateOrder('en-US')).toBe('MDY')
+    expect(dateOrder('en-GB')).toBe('DMY')
+    expect(dateOrder('sv-SE')).toBe('YMD')
   })
 })
 

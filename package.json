@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.0",
+    "@photostructure/tz-lookup": "^11.7.0",
     "@protomaps/basemaps": "^5.7.2",
     "@supabase/supabase-js": "^2.117.2",
     "dexie": "^4.4.6",

@@ -7,7 +7,7 @@ import { ITEM_KINDS, ITEM_STATUSES, type ItemKind, type ItineraryItem, type Plac
 import { newId } from '@/lib/ids'
 import { minorUnits } from '@/lib/money'
 import { checkLocalTime, isValidZone, normalizeLocal } from '@/lib/time'
-import { Button, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Button, DateInput, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { PlacePicker } from '@/features/places/PlacePicker'
 import { saveItem, useItem } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
@@ -20,6 +20,21 @@ const ZONES = [
 
 const KIND_FOR_CATEGORY: Partial<Record<PlaceCategory, ItemKind>> = {
   lodging: 'lodging', food: 'meal', drink: 'meal', flight: 'flight', transport: 'transport', reservation: 'reservation',
+}
+
+const DATE_TIME_FIELDS = ['startDate', 'startTime', 'endDate', 'endTime']
+
+/** Why a field can't be saved, in words: "End time isn't valid. Finish typing it or clear it." */
+function fieldProblem(el: HTMLInputElement): string {
+  const what = el.getAttribute('aria-label') ?? 'This field'
+  if (el.validity.valueMissing) return `${what} is needed.`
+  if (el.validity.badInput) return `${what} isn't valid. Finish typing it or clear it.`
+  return el.validity.customError ? `${what} isn't valid. ${el.validationMessage}` : `${what} isn't valid.`
+}
+
+function FieldProblem({ invalid, names }: { invalid: { name: string; message: string } | null; names: string[] }) {
+  if (!invalid || !names.includes(invalid.name)) return null
+  return <p id={`${invalid.name}-problem`} role="alert" className="text-sm text-red-700">{invalid.message}</p>
 }
 
 interface FormState {
@@ -55,6 +70,7 @@ export function ItemFormScreen() {
   const existing = useItem(itemId)
   const tripTz = trip?.timezone ?? 'America/New_York'
   const [error, setError] = useState<string | null>(null)
+  const [invalid, setInvalid] = useState<{ name: string; message: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const savingRef = useRef(false)
   const [f, setF] = useState<FormState | null>(null)
@@ -104,10 +120,19 @@ export function ItemFormScreen() {
 
   if (!f) return <PageHeader title={itemId ? 'Edit' : 'Add to plan'} back={`/t/${tripId}/plan`} />
 
-  async function submit(e: FormEvent) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!f || !trip || savingRef.current) return
     if (!f.title.trim()) return setError('Give it a name.')
+    // The form checks its own fields (noValidate). The browser's message bubble doesn't show
+    // everywhere, and a half-typed time then made Save do nothing at all.
+    const bad = [...e.currentTarget.elements].find((el): el is HTMLInputElement => el instanceof HTMLInputElement && !el.validity.valid)
+    if (bad) {
+      setError(null)
+      setInvalid({ name: bad.name, message: fieldProblem(bad) })
+      bad.focus()
+      return
+    }
     if (![f.startTz, f.endTz].every(isValidZone)) return setError('Unknown time zone.')
     const start_local = `${f.startDate}T${f.allDay ? '00:00' : f.startTime || '00:00'}`
     const hasEnd = f.allDay ? f.endDate !== f.startDate : !!f.endTime
@@ -150,11 +175,12 @@ export function ItemFormScreen() {
     }
   }
 
+  const flag = (name: string) => (invalid?.name === name ? { 'aria-invalid': true, 'aria-describedby': `${name}-problem` } : {})
   const back = itemId ? `/t/${tripId}/plan/${itemId}` : `/t/${tripId}/plan?day=${f.startDate}`
   return (
     <div className="min-h-full pb-10">
       <PageHeader title={itemId ? 'Edit' : 'Add to plan'} back={back} />
-      <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4">
+      <form onSubmit={submit} noValidate onInput={() => setInvalid(null)} className="mx-auto max-w-md space-y-4 p-4">
         <div role="radiogroup" aria-label="Type" className="grid grid-cols-4 gap-1.5">
           {ITEM_KINDS.map((k) => {
             const s = KIND_STYLE[k]
@@ -188,9 +214,10 @@ export function ItemFormScreen() {
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium text-stone-700">{f.kind === 'lodging' ? 'Check in' : travel ? 'Departs' : 'Starts'}</legend>
           <div className="grid grid-cols-2 gap-2">
-            <Input type="date" aria-label="Start date" value={f.startDate} required onChange={(e) => setF((c) => c && { ...c, startDate: e.target.value, endDate: c.endDate < e.target.value ? e.target.value : c.endDate })} />
-            {!f.allDay && <Input type="time" aria-label="Start time" value={f.startTime} required onChange={(e) => set('startTime', e.target.value)} />}
+            <DateInput name="startDate" aria-label="Start date" value={f.startDate} required {...flag('startDate')} onValue={(date) => setF((c) => c && { ...c, startDate: date, endDate: c.endDate < date ? date : c.endDate })} />
+            {!f.allDay && <Input type="time" name="startTime" aria-label="Start time" value={f.startTime} required {...flag('startTime')} onChange={(e) => set('startTime', e.target.value)} />}
           </div>
+          <FieldProblem invalid={invalid} names={['startDate', 'startTime']} />
           {showZones && !f.allDay && (
             <Select aria-label="Start time zone" value={f.startTz} onChange={(e) => setF((c) => c && { ...c, startTz: e.target.value, endTz: c.endTz === c.startTz ? e.target.value : c.endTz })}>
               {[...new Set([tripTz, ...ZONES])].map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
@@ -200,9 +227,10 @@ export function ItemFormScreen() {
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium text-stone-700">{f.kind === 'lodging' ? 'Check out' : travel ? 'Arrives' : 'Ends'} <span className="font-normal text-stone-500">(optional)</span></legend>
           <div className="grid grid-cols-2 gap-2">
-            <Input type="date" aria-label="End date" value={f.endDate} min={f.startDate} onChange={(e) => set('endDate', e.target.value)} />
-            {!f.allDay && <Input type="time" aria-label="End time" value={f.endTime} onChange={(e) => set('endTime', e.target.value)} />}
+            <DateInput name="endDate" aria-label="End date" value={f.endDate} min={f.startDate} {...flag('endDate')} onValue={(date) => set('endDate', date)} />
+            {!f.allDay && <Input type="time" name="endTime" aria-label="End time" value={f.endTime} {...flag('endTime')} onChange={(e) => set('endTime', e.target.value)} />}
           </div>
+          <FieldProblem invalid={invalid} names={['endDate', 'endTime']} />
           {showZones && !f.allDay && (
             <Select aria-label="End time zone" value={f.endTz} onChange={(e) => set('endTz', e.target.value)}>
               {[...new Set([tripTz, ...ZONES])].map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
@@ -259,7 +287,7 @@ export function ItemFormScreen() {
           <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Meeting point, what to bring, who booked it…" />
         </Field>
 
-        <ErrorNote error={error} />
+        <ErrorNote error={error ?? (invalid && !DATE_TIME_FIELDS.includes(invalid.name) ? invalid.message : null)} />
         <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : 'Save'}</Button>
       </form>
     </div>

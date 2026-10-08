@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
-import { Button, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Button, DateInput, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { deleteTask, saveTask, useTask, type TaskFields } from './data'
 
 export function TaskFormScreen() {
@@ -45,7 +45,7 @@ function TaskEditor({ tripId, taskId, initial }: { tripId: string; taskId?: stri
       <fieldset disabled={busy} className="min-w-0 space-y-4">
         <Field label="Task"><Input required maxLength={200} value={fields.title} onChange={(e) => setFields({ ...fields, title: e.target.value })} placeholder="Book the airport shuttle" /></Field>
         <Field label="Assigned to"><Select value={fields.assignee_id ?? ''} onChange={(e) => setFields({ ...fields, assignee_id: e.target.value || null })}><option value="">Unassigned</option>{fields.assignee_id && !members.some((m) => m.id === fields.assignee_id) && <option value={fields.assignee_id}>Former member — choose someone else</option>}{members.map((m) => <option key={m.id} value={m.id}>{m.display_name}{m.id === me ? ' (you)' : ''}</option>)}</Select></Field>
-        <Field label="Due date" hint="Optional. Dates follow the trip’s local calendar."><Input type="date" value={fields.due_date ?? ''} onChange={(e) => setFields({ ...fields, due_date: e.target.value || null })} /></Field>
+        <Field label="Due date" hint="Optional. Dates follow the trip’s local calendar."><DateInput value={fields.due_date ?? ''} onValue={(date) => setFields({ ...fields, due_date: date || null })} /></Field>
         <Field label="Notes"><Textarea value={fields.notes ?? ''} onChange={(e) => setFields({ ...fields, notes: e.target.value })} placeholder="Booking link, headcount, or anything the owner needs" /></Field>
       </fieldset>
       <ErrorNote error={error} />

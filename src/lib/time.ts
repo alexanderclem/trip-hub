@@ -92,6 +92,49 @@ export function tripDays(startDate: string, endDate: string): string[] {
   return days
 }
 
+/** Which part comes first when people here write a date in numbers: 6/4/2027 is June 4 or 6 April. */
+export type DateOrder = 'MDY' | 'DMY' | 'YMD'
+
+export function dateOrder(locale?: string): DateOrder {
+  const parts = new Intl.DateTimeFormat(locale).formatToParts(new Date(2027, 10, 22)).map((p) => p.type).filter((t) => t === 'year' || t === 'month' || t === 'day')
+  return parts[0] === 'year' ? 'YMD' : parts[0] === 'day' ? 'DMY' : 'MDY'
+}
+
+const TYPED_FMT: Record<DateOrder, string> = { MDY: 'MM/dd/yyyy', DMY: 'dd/MM/yyyy', YMD: 'yyyy-MM-dd' }
+const NAMED_FMTS = ['LLL d yyyy', 'LLLL d yyyy', 'd LLL yyyy', 'd LLLL yyyy']
+
+/** A 'yyyy-MM-dd' date the way it's typed in this order; '' stays ''. */
+export function formatTypedDate(date: string, order: DateOrder): string {
+  const dt = DateTime.fromISO(date, { zone: 'utc' })
+  return date && dt.isValid ? dt.toFormat(TYPED_FMT[order]) : ''
+}
+
+/**
+ * Reads a typed or pasted date as 'yyyy-MM-dd', or null if it isn't one. Accepts 2027-06-04,
+ * 6/4/2027 (also with dots or dashes, and a two-digit year) and "Jun 4, 2027" / "4 June 2027".
+ */
+export function parseTypedDate(text: string, order: DateOrder): string | null {
+  const t = text.trim()
+  const valid = (year: number, month: number, day: number) => {
+    const dt = DateTime.fromObject({ year, month, day }, { zone: 'utc' })
+    return dt.isValid ? dt.toISODate() : null
+  }
+  const iso = t.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/)
+  if (iso) return valid(Number(iso[1]), Number(iso[2]), Number(iso[3]))
+  const numeric = t.match(/^(\d{1,2})[-/. ](\d{1,2})[-/. ](\d{4}|\d{2})$/)
+  if (numeric) {
+    const [a, b, y] = [Number(numeric[1]), Number(numeric[2]), Number(numeric[3])]
+    const year = numeric[3]!.length === 2 ? 2000 + y : y
+    return order === 'MDY' ? valid(year, a, b) : valid(year, b, a)
+  }
+  const named = t.replace(/[.,]/g, ' ').replace(/\s+/g, ' ')
+  for (const fmt of NAMED_FMTS) {
+    const dt = DateTime.fromFormat(named, fmt, { zone: 'utc', locale: 'en' })
+    if (dt.isValid) return dt.toISODate()
+  }
+  return null
+}
+
 export interface TimedItem {
   id: string
   start_at: string

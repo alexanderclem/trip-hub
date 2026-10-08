@@ -78,14 +78,17 @@ export async function searchDestinations(query: string, signal?: AbortSignal): P
   return toDestinations(((await res.json()) as { features: PhotonFeature[] }).features).slice(0, 7)
 }
 
-/** The IANA time zone at a point, or null if the lookup fails (the form keeps its current zone). */
-export async function lookupZone(lat: number, lng: number, signal?: AbortSignal): Promise<string | null> {
+/**
+ * The IANA time zone at a point, or null if it can't be worked out (the form keeps its current
+ * zone). Looked up on the phone from a table shipped with the app, loaded only when a
+ * destination is picked, so it never depends on a second service answering.
+ */
+export async function lookupZone(lat: number, lng: number): Promise<string | null> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?${new URLSearchParams({ latitude: String(lat), longitude: String(lng), current: 'temperature_2m', timezone: 'auto' })}`
-    const res = await fetch(url, { signal })
-    if (!res.ok) return null
-    const zone = ((await res.json()) as { timezone?: string }).timezone
-    return zone && zone !== 'GMT' ? zone : null
+    const { default: tzLookup } = await import('@photostructure/tz-lookup')
+    const zone = tzLookup(lat, lng)
+    // Open sea has no named zone, only a fixed offset.
+    return zone.startsWith('Etc/') ? null : zone
   } catch {
     return null
   }

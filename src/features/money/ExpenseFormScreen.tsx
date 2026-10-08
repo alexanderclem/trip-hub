@@ -11,7 +11,7 @@ import { EXPENSE_CATEGORIES, type ExpenseCategory, type ExpenseRow } from '@/dat
 import { rateFor } from '@/lib/fx'
 import { newId } from '@/lib/ids'
 import { computeShares, formatMoney, minorUnits, type SplitMethod } from '@/lib/money'
-import { Avatar, Button, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Avatar, Button, DateInput, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { buildExpense, parseMinor, type ExpenseDraft } from './build'
 import { deleteExpense, saveExpense, useExpense, useMoney } from './data'
 import { detailsAmountMinor } from '@/features/scan/client'
@@ -175,7 +175,7 @@ export function ExpenseFormScreen() {
         )}
         <div className="grid grid-cols-2 gap-2">
           <Field label="Date">
-            <Input type="date" value={d.spentOn} onChange={(e) => set('spentOn', e.target.value)} />
+            <DateInput value={d.spentOn} onValue={(date) => set('spentOn', date)} />
           </Field>
           <Field label="Category">
             <Select value={d.category} onChange={(e) => set('category', e.target.value as ExpenseCategory)}>

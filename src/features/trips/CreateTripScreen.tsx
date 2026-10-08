@@ -9,8 +9,9 @@ import { X } from 'lucide-react'
 import { DestinationSearch } from '@/features/destinations/DestinationSearch'
 import { currencyFor, lookupZone, MAX_AREAS, type Destination } from '@/features/destinations/destinations'
 import { isValidZone } from '@/lib/time'
-import { Button, ErrorNote, Field, Input, PageHeader, Select } from '@/ui'
+import { Button, DateInput, ErrorNote, Field, Input, PageHeader, Select } from '@/ui'
 import { createTrip } from './actions'
+import { afterEntry } from '@/features/onboarding/profile'
 import { LoadingState } from '@/ui/LoadingState'
 
 const COMMON_ZONES = [
@@ -106,7 +107,7 @@ export function CreateTripScreen() {
         navigate(`/t/${tripId}/plan`, { replace: true })
         return
       }
-      navigate(`/t/${tripId}/overview?created=1`, { replace: true })
+      navigate(await afterEntry(`/t/${tripId}/overview?created=1`), { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       setBusy(false)
@@ -128,10 +129,10 @@ export function CreateTripScreen() {
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Starts">
-            <Input type="date" required={!!draft} value={form.startDate} onChange={(e) => { const date = e.target.value; setForm((f) => ({ ...f, startDate: date, ...(draft && date ? { endDate: DateTime.fromISO(date).plus({ days: draft.result.ideas[ideaIndex]!.days.length - 1 }).toISODate()! } : {}) })) }} />
+            <DateInput required={!!draft} value={form.startDate} onValue={(date) => { setForm((f) => ({ ...f, startDate: date, ...(draft && date ? { endDate: DateTime.fromISO(date).plus({ days: draft.result.ideas[ideaIndex]!.days.length - 1 }).toISODate()! } : {}) })) }} />
           </Field>
           <Field label="Ends">
-            <Input type="date" value={form.endDate} onChange={set('endDate')} />
+            <DateInput value={form.endDate} onValue={(date) => setForm((f) => ({ ...f, endDate: date }))} />
           </Field>
         </div>
         <div>
