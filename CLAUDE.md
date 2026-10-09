@@ -21,7 +21,9 @@ Live at https://trip-hub.alexanderclem12.workers.dev. Repo: github.com/alexander
 - **Ratings:** no third-party star ratings. Google, Yelp and TripAdvisor all need a card or
   forbid offline caching. Use group ratings plus keyless deep links (`googleMapsUrl`,
   `tripadvisorUrl` in `src/lib/geo.ts`).
-- **Auto-suggest** (flights, hotels, restaurants) is cut from v1. Keep the seam: `places.source = 'suggestion'`.
+- **Auto-suggest** is on the phone only: `src/features/suggest` ranks the trip's own idea pool for the
+  free parts of a day (no network, no model). Suggesting flights, hotels or places from outside the
+  pool is still cut. Keep the seam: `places.source = 'suggestion'`.
 
 ## Stack
 
@@ -42,6 +44,7 @@ src/data/         types.ts (row types), db.ts (Dexie schema), repo.ts (save/save
 src/data/sync/    engine.ts (push/pull), remote.ts (Supabase adapter), controller.ts (timers, realtime)
 src/features/     onboarding/ (welcome, travel quiz) trips/ places/ map/ map/offline/ routing/ polls/ ratings/ itinerary/ money/ tickets/ offline/
                   packing/ notifications/ (push) emergency/ scan/ (photo → text) wrapped/ (trip recap)
+                  suggest/ (ideas for a free day, from the idea pool) activity/ (what's new, derived on the phone)
                   discovery/ (profiles, drafts, hand editor) stowie/ (the mascot chat over discovery; docs/STOWIE.md)
 src/ui/           index.tsx (Button, Field, Input, Card, PageHeader…), collection.tsx (adapted shadcn)
 supabase/migrations/          SQL, applied in filename order
@@ -236,7 +239,9 @@ The full plan is in `C:\Users\alexa\.claude\plans\plan-out-a-travel-giggly-falco
 
 | Shareable votes, comments, what's new | ✅ code, ⏳ migrations | Vote share links (`/join?to=vote/<id>#t=`), deadlines, date votes, `comments`, and a derived activity feed. See `docs/VOTING_AND_COMMENTS.md`; three `20261012…` migrations must be applied before the frontend deploys. |
 
-Possible next steps: setting the `ORS_API_KEY` secret, the real-iPhone airplane-mode and push check, and the auto-suggest seam.
+| Ideas for a day, fuller what's new | ✅ | **Ideas for this day** (Plan tab, `features/suggest`): places from the idea pool for free meals and free time, ranked by distance from where the group sleeps, the group's travel styles, group ratings, the shortlist and rain. **What's new** also reports tasks completed, payments, ratings and plan items confirmed or cancelled, with filter chips. Neither adds a table. See `docs/PLANNING_FEATURES.md`. |
+
+Possible next steps: setting the `ORS_API_KEY` secret, the real-iPhone airplane-mode and push check, and offering the day's ideas from Stowie's chat (a `suggest` effect over `features/suggest/rank.ts`).
 
 - **Map style switches:** effects that touch pin or line layers must check `layersLive` in
   `MapScreen.tsx`. Between `setStyle` and the next `style.load` those sources don't exist, and

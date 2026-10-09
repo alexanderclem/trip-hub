@@ -98,9 +98,11 @@ export function ItemFormScreen() {
     const place = places.find((p) => p.id === search.get('place'))
     const kind = (place && KIND_FOR_CATEGORY[place.category]) ?? 'activity'
     const lodging = kind === 'lodging'
+    const time = search.get('time')
+    const asked = time && /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : null
     setF({
       title: place?.name ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: false,
-      startDate: day, startTime: lodging ? '15:00' : kind === 'meal' ? '19:00' : '09:00',
+      startDate: day, startTime: asked ?? (lodging ? '15:00' : kind === 'meal' ? '19:00' : '09:00'),
       endDate: lodging ? DateTime.fromISO(day).plus({ days: 1 }).toISODate()! : day, endTime: lodging ? '11:00' : '',
       startTz: tripTz, endTz: tripTz, status: 'confirmed', code: '', everyone: true, attendees: [], notes: '', cost: '',
       costCurrency: trip.local_currency ?? trip.base_currency,

@@ -63,3 +63,41 @@ The migration must be live before the frontend, which would otherwise sync to a 
   horizontal page overflow. CSS zoom is a reflow check, not a physical iPhone zoom test.
 
 Real iPhone Safari and a screen reader still need a release check.
+
+## Ideas for this day
+
+The Plan tab offers places for the parts of a day nobody has planned yet. The card sits above the
+timeline, closed until tapped, and is not shown for days that have passed.
+
+Everything is worked out on the phone from rows it already has (`src/features/suggest/rank.ts`,
+pure and unit-tested). It makes no network request and calls no model, so it works offline and
+every phone shows the same list.
+
+- **Free parts of the day.** Breakfast (07–10), lunch (12–14) and dinner (18:30–21) are free when
+  no meal is planned then and at least 45 minutes of the window is clear. "Free time" needs two
+  clear hours between 09:00 and 18:00. Evening drinks are offered only when the group's nightlife
+  score is 60 or more.
+- **Candidates.** Places in the idea pool or on the shortlist that are not on the plan. Meals take
+  food places; free time takes sights, activities and shopping. A place is offered for one slot only.
+- **Where.** Distance is measured from where the day happens (`dayLocations`: where the group
+  sleeps, else the first stop). Places more than 4 km away are offered only when the pool has
+  nothing nearer, and places with no pin are skipped once the day has a location.
+- **Ranking.** Nearness (up to 45 points), fit with the group's mean travel style through a small
+  tag/category table (up to 30), group stars (±12), the shortlist (+10), and on a day with a 50%
+  or higher chance of rain, outdoor places lose 20 and indoor ones gain 8. Ties are settled by a
+  hash of the day and the place, so different days don't repeat the same picks.
+- **Actions.** "Add to plan" opens the usual form with the place, day and a start time
+  (`plan/new?day=&place=&time=`). "Shortlist" and "Not for us" set the place's status, which
+  syncs like any other edit; a place marked "Not for us" is not suggested to anyone again.
+
+Opening hours are not read, so an idea can be closed at that time.
+
+## What's new: more than additions
+
+`src/features/activity/feed.ts` also reports a task being completed, a payment between two people,
+a group rating, and a plan item confirmed or cancelled after it was added. There is still no
+activity table: each entry is derived from the row and timed by its last edit, so editing a
+completed task later moves its entry up. The screen has filter chips (Votes, Plan, Places, Money,
+Tasks, Tickets, Comments) for the kinds of news the trip has.
+
+`tests/e2e/suggestions.spec.ts` covers both with local-only fixtures.

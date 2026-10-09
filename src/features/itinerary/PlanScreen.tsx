@@ -22,6 +22,8 @@ import { describeCode, formatTemp } from '@/lib/weather'
 import { useDevice } from '@/data/device'
 import { dayLocations, useWeather, useWeatherRefresh, weatherFor } from './weather'
 import { WeatherGlyph, WeatherLine } from './WeatherLine'
+import { useDaySuggestions } from '@/features/suggest/data'
+import { SuggestionsCard } from '@/features/suggest/SuggestionsCard'
 
 const HOUR_PX = 60
 const GUTTER = '3.25rem'
@@ -54,6 +56,7 @@ export function PlanScreen() {
   const locs = useMemo(() => (trip ? dayLocations(days, items ?? [], places, trip, trip.timezone) : {}), [days, items, places, trip])
   useWeatherRefresh(items ? trip : undefined, JSON.stringify(locs))
   const weatherOf = (d: string) => weatherFor(weatherRows, d, locs[d])
+  const ideas = useDaySuggestions({ tripId, day, places, items: items ?? [], layout, anchor: locs[day] ?? null, rainPct: weatherOf(day)?.weather.rainPct ?? null })
 
   // Keep the selected day visible in the strip.
   const stripRef = useRef<HTMLDivElement>(null)
@@ -152,6 +155,8 @@ export function PlanScreen() {
           </p>
         )}
         <TravelWarnings tripId={tripId} transfers={transfers.filter((t) => dayKey(t.to.start_at, zone) === day)} />
+        {/* A day that has passed has nothing left to fill. */}
+        {day >= today && ideas && <SuggestionsCard tripId={tripId} day={day} suggestions={ideas} me={me} />}
 
         {items && layout.blocks.length === 0 && layout.allDay.length === 0 && layout.stays.length === 0 ? (
           <Empty>

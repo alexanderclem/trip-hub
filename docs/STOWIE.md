@@ -184,8 +184,10 @@ leaves it open to retry.
 
 - Stowie adds; it does not edit, move or delete anything, and does not log expenses.
 - Plan items it adds are tentative activities with no place attached.
-- “Ideas near here” was dropped: the snapshot has no coordinates. The map chip asks what is
-  picked but not yet planned.
+- “Ideas near here” was dropped from the chat: the snapshot has no coordinates. The map chip asks
+  what is picked but not yet planned. The Plan tab now has its own “Ideas for this day” card
+  (`src/features/suggest`), worked out on the phone; a `suggest` effect that reuses its `rank.ts`
+  would bring the same answer into the chat, offline, with no model call.
 - A typed question costs two model calls. Phase 3's free-form mode would make it one.
 
 ## Phase 3: ChatGPT connection
