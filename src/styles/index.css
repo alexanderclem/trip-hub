@@ -68,13 +68,52 @@ body {
   .ui-icon-button { display: inline-flex; min-height: 44px; min-width: 44px; align-items: center; justify-content: center; border-radius: var(--stowaway-radius-control); }
   .ui-icon-button:hover { background: var(--color-brand-50); }
   .ui-card { border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); padding: 1rem; }
-  /* A tappable row in a list of destinations (More, settings). Surfaces are bordered, not shadowed. */
+  /* Rows live in one bordered group, separated by rules. Surfaces are bordered, not shadowed. */
+  .ui-row-group { overflow: hidden; border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); }
+  .ui-row-group > li + li { border-top: 1px solid var(--stowaway-border); }
   .ui-row {
     display: flex; min-height: 3.5rem; align-items: center; gap: .75rem; padding: .75rem 1rem;
-    border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface);
+    transition: background-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease);
+  }
+  a.ui-row:hover, a.ui-row:active, button.ui-row:hover, button.ui-row:active { background: var(--color-brand-50); }
+  /* A quiet inline action: text weight, full touch height. */
+  .ui-link { display: inline-flex; min-height: 44px; align-items: center; gap: .375rem; border-radius: var(--stowaway-radius-control); font-size: .875rem; font-weight: 600; color: var(--stowaway-action); }
+  .ui-link:hover { text-decoration: underline; }
+  .ui-chip {
+    display: inline-flex; min-height: 44px; flex-shrink: 0; align-items: center; gap: .375rem; white-space: nowrap;
+    border: 1px solid var(--stowaway-border); border-radius: 999px; background: var(--stowaway-surface); padding: 0 .875rem;
+    font-size: .875rem; font-weight: 500; color: var(--stowaway-ink);
     transition: background-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), border-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease);
   }
-  .ui-row:hover, .ui-row:active { background: var(--color-brand-50); border-color: var(--color-brand-500); }
+  .ui-chip:hover { background: var(--color-brand-50); }
+  .ui-chip[aria-pressed='true'], .ui-chip[aria-current] { border-color: var(--stowaway-action); background: var(--stowaway-action); color: white; }
+  .ui-segmented { display: grid; gap: .25rem; border-radius: var(--stowaway-radius-control); background: var(--color-stone-100); padding: .25rem; font-size: .875rem; }
+  .ui-segmented > button, .ui-segmented > label { display: flex; min-height: 36px; align-items: center; justify-content: center; border-radius: 8px; padding: 0 .75rem; text-align: center; color: var(--color-stone-600); cursor: pointer; }
+  .ui-segmented > [aria-checked='true'], .ui-segmented > [aria-selected='true'], .ui-segmented > label:has(:checked) { background: white; font-weight: 600; color: var(--stowaway-ink); box-shadow: 0 1px 2px #183e4b26; }
+  .ui-fab {
+    position: fixed; right: 1rem; bottom: calc(env(safe-area-inset-bottom) + 5rem); z-index: 20;
+    display: flex; width: 3.5rem; height: 3.5rem; align-items: center; justify-content: center;
+    border-radius: var(--stowaway-radius-surface); background: var(--stowaway-action); color: white; box-shadow: 0 8px 24px #183e4b40;
+    transition: background-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), transform var(--stowaway-feedback-duration) var(--stowaway-feedback-ease);
+  }
+  .ui-fab:hover { background: var(--stowaway-ink); }
+  .ui-fab:active { transform: scale(.96); }
+  /* A bottom tab: the current one is marked by colour, weight and a short bar, not a filled block. */
+  .trip-tab { position: relative; display: flex; min-height: 3.5rem; flex-direction: column; align-items: center; justify-content: center; gap: .125rem; padding: .375rem 0; font-size: .75rem; transition: color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
+  .trip-tab[aria-current='page']::before { content: ''; position: absolute; top: 0; width: 2rem; height: 3px; border-radius: 0 0 3px 3px; background: var(--stowaway-action); }
+  .trip-tab:active { background: var(--color-brand-50); }
+  .plan-day { position: relative; display: flex; min-height: 3.5rem; min-width: 3rem; flex-shrink: 0; flex-direction: column; align-items: center; justify-content: center; border-radius: var(--stowaway-radius-control); padding: .25rem .5rem; }
+  /* A tick, a vote or a star gives a little under the finger, then settles. */
+  .ui-press { transition: transform var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), background-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), border-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
+  .ui-press:active:not(:disabled) { transform: scale(.94); }
+  .ui-check { width: 1.25rem; height: 1.25rem; flex-shrink: 0; accent-color: var(--color-brand-600); transition: transform var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
+  .ui-check:active:not(:disabled) { transform: scale(.85); }
+  /* A form's one submit button stays in reach however long the form is. */
+  .ui-form-actions { position: sticky; bottom: 0; z-index: 5; margin-inline: -1rem; display: grid; gap: .5rem; border-top: 1px solid var(--stowaway-border); background: var(--stowaway-canvas); padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom)); }
+  .ui-disclosure > summary { display: flex; min-height: 44px; cursor: pointer; list-style: none; align-items: center; gap: .5rem; font-size: .875rem; font-weight: 600; color: var(--stowaway-action); }
+  .ui-disclosure > summary::-webkit-details-marker { display: none; }
+  .ui-disclosure-chevron { transition: transform var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
+  .ui-disclosure[open] .ui-disclosure-chevron { transform: rotate(180deg); }
   /* Text roles for trip screens: one page title, one section title, one small label. */
   .ui-page-title { font-size: 1.25rem; font-weight: 600; line-height: 1.4; color: var(--stowaway-ink); }
   .ui-section-title { font-size: 1.125rem; font-weight: 600; line-height: 1.4; color: var(--stowaway-ink); }
@@ -107,12 +146,14 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; }
-  .ui-button, .ui-icon-button, .ui-row { transition-duration: 0s; }
+  .ui-button, .ui-icon-button, .ui-row, .ui-chip, .ui-fab, .ui-disclosure-chevron, .ui-press, .ui-check { transition-duration: 0s; }
+  .ui-press:active:not(:disabled), .ui-check:active:not(:disabled) { transform: none; }
+  .ui-fab:active { transform: none; }
 }
 
-/* Map controls sit below the category chips and idea-pool buttons. */
+/* Map controls sit below the row of chips. */
 .maplibregl-map .maplibregl-ctrl-top-right {
-  top: calc(env(safe-area-inset-top) + 7.5rem);
+  top: calc(env(safe-area-inset-top) + 4.25rem);
 }
 
 /* A consistent keyboard indicator across links and shared controls. */
@@ -126,6 +167,7 @@ body {
 .trip-skip { position: fixed; inset-inline-start: 1rem; top: -10rem; z-index: 100; padding: .75rem 1rem; background: var(--stowaway-surface); color: var(--stowaway-ink); border: 2px solid var(--stowaway-action); border-radius: var(--stowaway-radius-control); }
 .trip-skip:focus { top: 1rem; }
 @media (min-width: 1024px) {
+  .ui-fab { bottom: 1.5rem; right: 1.5rem; }
   .trip-shell > aside { overflow-y: auto; }
   .trip-shell .trip-page { max-width: 76rem; margin-inline: auto; }
   .trip-shell .trip-page-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem); gap: 1.5rem; align-items: start; max-width: 72rem; }

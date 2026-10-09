@@ -99,7 +99,7 @@ export function AccountCard() {
       <ErrorNote error={error} />
       {methods.google && <Button className="mt-4 w-full" disabled={busy || !online} onClick={() => void signIn()}>{busy ? 'Opening Google…' : 'Sign in with Google'}</Button>}
       {methods.email && <LinkButton to="/signin" variant={methods.google ? 'secondary' : 'primary'} className={`w-full ${methods.google ? 'mt-2' : 'mt-4'}`}>{methods.google ? 'Use email instead' : 'Sign in with email'}</LinkButton>}
-      {!online && <p className="mt-2 text-xs text-stone-500">You need signal to sign in.</p>}
+      {!online && <p className="mt-2 text-xs text-stone-600">You need signal to sign in.</p>}
     </Card>
   )
 }

@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { use, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { GeolocateControl, LngLatBounds, Map as MlMap, setWorkerUrl, type GeoJSONSource, type MapGeoJSONFeature } from 'maplibre-gl'
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import type { FeatureCollection, LineString, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { CalendarDays, List, MapPinPlus, Ruler, X } from 'lucide-react'
+import { CalendarDays, List, MapPinPlus, Ruler, SlidersHorizontal, X } from 'lucide-react'
 import { useDevice } from '@/data/device'
 import { useLegContext, usePlaces, useTrip } from '@/data/hooks'
 import { useOnline } from '@/lib/useOnline'
@@ -16,7 +16,7 @@ import { onDay } from '@/features/itinerary/layout'
 import { DateTime } from 'luxon'
 import { PLACE_CATEGORIES, type Place, type PlaceCategory } from '@/data/types'
 import type { LatLng } from '@/lib/geo'
-import { Button } from '@/ui'
+import { Button, Chip, HeaderTools } from '@/ui'
 import { CATEGORY_STYLE } from '@/features/places/categories'
 import { addPinImages } from './pinImages'
 import { ME_ID, PlaceSheet, Sheet, type OriginChoice } from './PlaceSheet'
@@ -472,6 +472,8 @@ export default function MapScreen() {
     }
   }, [ready, selected])
 
+  const tools = use(HeaderTools)
+  const [filtering, setFiltering] = useState(false)
   const toggle = (c: PlaceCategory) =>
     setHidden((h) => {
       const next = new Set(h)
@@ -486,53 +488,52 @@ export default function MapScreen() {
         <div ref={container} className="h-full w-full" />
       </div>
 
-      {/* Filters */}
+      {/* One row of controls over the map; the category filters open beneath it only when asked for. */}
       <div className="pt-safe pointer-events-none absolute inset-x-0 top-0 z-10">
-        <div className="pointer-events-auto flex gap-2 overflow-x-auto px-3 pt-3 pr-14 pb-2">
-          {PLACE_CATEGORIES.map((c) => {
-            const { label, color, Icon } = CATEGORY_STYLE[c]
-            const on = !hidden.has(c)
-            return (
-              <button
-                key={c}
-                onClick={() => toggle(c)}
-                className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-sm shadow-sm ${on ? 'text-white' : 'bg-white/90 text-stone-500 line-through'}`}
-                style={on ? { background: color } : undefined}
-              >
-                <Icon className="size-4" /> {label}
-              </button>
-            )
-          })}
+        <div className="flex items-start gap-2 px-3 pt-3">
+          <div className="pointer-events-auto flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+            <Chip aria-expanded={filtering} aria-controls="map-filters" pressed={filtering || hidden.size > 0} onClick={() => setFiltering((v) => !v)} className="shadow-sm">
+              <SlidersHorizontal aria-hidden="true" className="size-4" /> Filters{hidden.size > 0 && <span className="sr-only">,</span>}{hidden.size > 0 && ` · ${PLACE_CATEGORIES.length - hidden.size} of ${PLACE_CATEGORIES.length}`}
+            </Chip>
+            {poolTotal > 0 && !day && (
+              <Chip pressed={showPool} onClick={() => setShowPool((v) => !v)} className="shadow-sm">
+                {showPool ? 'Hide' : 'Show'} idea pool ({poolTotal})
+              </Chip>
+            )}
+            <Link to="../more/places" className="ui-chip shadow-sm">
+              <List aria-hidden="true" className="size-4" /> List
+            </Link>
+            {day && (
+              <span className="ui-chip shadow-sm" aria-current="true">
+                <CalendarDays aria-hidden="true" className="size-4" />
+                {DateTime.fromISO(day).toFormat('ccc d LLL')} · {dayStops?.length ?? 0} stops
+                <button type="button" onClick={() => setQuery({ day: null })} aria-label="Show all places" className="-mr-2.5 flex size-9 items-center justify-center rounded-full hover:bg-white/20">
+                  <X aria-hidden="true" className="size-4" />
+                </button>
+              </span>
+            )}
+            {wantOffline && <span className="ui-chip shadow-sm">Offline map</span>}
+          </div>
+          <div className="pointer-events-auto flex shrink-0 rounded-full border border-stone-200 bg-surface shadow-sm">{tools}</div>
         </div>
-        <div className="pointer-events-auto flex items-center gap-2 px-3">
-          {poolTotal > 0 && !day && (
-            <button
-              onClick={() => setShowPool((v) => !v)}
-              className={`rounded-full px-3 py-1.5 text-sm shadow-sm ${showPool ? 'bg-stone-800 text-white' : 'bg-white/90 text-stone-700'}`}
-            >
-              {showPool ? 'Hide' : 'Show'} idea pool ({poolTotal})
-            </button>
-          )}
-          <Link to="../more/places" className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-sm text-stone-700 shadow-sm">
-            <List className="size-4" /> List
-          </Link>
-          {day && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-700 py-1 pr-1 pl-3 text-sm whitespace-nowrap text-white shadow-sm">
-              <CalendarDays aria-hidden="true" className="size-4" />
-              {DateTime.fromISO(day).toFormat('ccc d LLL')} · {dayStops?.length ?? 0} stops
-              <button onClick={() => setQuery({ day: null })} aria-label="Show all places" className="flex size-7 items-center justify-center rounded-full hover:bg-white/20">
-                <X aria-hidden="true" className="size-4" />
-              </button>
-            </span>
-          )}
-          {wantOffline && <span className="rounded-full bg-stone-900/80 px-3 py-1.5 text-sm text-white">Offline map</span>}
-        </div>
-        {mapError && <p className="mx-3 mt-2 rounded-xl bg-amber-100 px-3 py-2 text-sm text-amber-900">{mapError}</p>}
+        {filtering && (
+          <div id="map-filters" role="group" aria-label="Show these kinds of place" className="pointer-events-auto mx-3 mt-1 flex flex-wrap gap-2 rounded-2xl border border-stone-200 bg-surface p-3 shadow-md">
+            {PLACE_CATEGORIES.map((c) => {
+              const { label, color, Icon } = CATEGORY_STYLE[c]
+              return (
+                <Chip key={c} pressed={!hidden.has(c)} onClick={() => toggle(c)}>
+                  <Icon aria-hidden="true" className="size-4" style={hidden.has(c) ? { color } : undefined} /> {label}
+                </Chip>
+              )
+            })}
+          </div>
+        )}
+        {mapError && <p className="pointer-events-auto mx-3 mt-2 rounded-xl bg-amber-100 px-3 py-2 text-sm text-amber-900">{mapError}</p>}
       </div>
 
       {places && picks.length === 0 && !selected && !pending && !measuring && (
         <div className="absolute inset-x-0 bottom-6 z-10 p-3">
-          <div className="mx-auto max-w-md rounded-3xl bg-white/95 p-4 text-sm text-stone-600 shadow-lg">
+          <div className="mx-auto max-w-md rounded-2xl bg-surface p-4 text-sm text-stone-600 shadow-lg">
             {poolTotal > 0
               ? 'No shortlisted places yet. Turn on the idea pool and tap a pin to shortlist it, or long-press the map to add your own.'
               : 'Long-press anywhere on the map to add a place, or import starter places in Trip settings.'}
@@ -542,7 +543,7 @@ export default function MapScreen() {
 
       {measuring && (
         <div className="absolute inset-x-0 bottom-6 z-20 p-3">
-          <div className="mx-auto flex max-w-md items-center gap-3 rounded-3xl bg-stone-900 p-4 text-white shadow-xl">
+          <div className="mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-brand-900 p-4 text-white shadow-lg">
             <Ruler className="size-5 shrink-0" />
             <p className="flex-1 text-sm">Tap another place to see travel times from <b>{measuring.name}</b></p>
             <button onClick={() => setMeasuring(null)} aria-label="Cancel measuring" className="rounded-full p-1 active:bg-white/10">
@@ -570,8 +571,8 @@ export default function MapScreen() {
 
       {pending && (
         <Sheet onClose={() => setPending(null)}>
-          <h2 className="font-semibold">Add a place here?</h2>
-          <p className="text-sm text-stone-500">
+          <h2 className="ui-section-title">Add a place here?</h2>
+          <p className="text-sm text-stone-600">
             {pending.lat.toFixed(5)}, {pending.lng.toFixed(5)}
           </p>
           <Button

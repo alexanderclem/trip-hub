@@ -32,7 +32,7 @@ export function SuggestionsCard({ tripId, day, suggestions, me }: { tripId: stri
 
   return (
     <Card>
-      <h2 className="text-lg font-semibold text-brand-900">
+      <h2 className="ui-section-title">
         <button aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex min-h-11 w-full items-center gap-2 text-left">
           <Lightbulb aria-hidden="true" className="size-5 shrink-0" />
           <span className="flex-1">Ideas for this day</span>

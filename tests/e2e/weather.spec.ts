@@ -39,7 +39,7 @@ async function seed(page: Page, now: string) {
     return route.abort()
   })
   await page.clock.install({ time: new Date(now) })
-  await page.goto('/inspire') // opens the local database, so the stores below exist
+  await page.goto('/inspire/manual') // opens the local database, so the stores below exist
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ trip, alex, hotel }) => {
     const request = indexedDB.open('trip-hub')

@@ -8,7 +8,7 @@ const shots = process.env.SHOTS_DIR ?? 'test-results'
 test('trip recap: story slides with the group’s numbers, tap to move, share as a picture', async ({ page }) => {
   await page.route('https://**/*', (route) => route.abort())
   await page.clock.install({ time: new Date('2027-03-20T18:00:00Z') })
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ trip, ana, ben }) => {
     const request = indexedDB.open('trip-hub')

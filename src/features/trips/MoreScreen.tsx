@@ -1,42 +1,35 @@
 import { Link, useParams } from 'react-router'
-import { Backpack, ChevronRight, ClipboardCheck, Compass, Home, MapPin, Settings, ShieldPlus, Sparkles, Vote, Wallet } from 'lucide-react'
+import { Backpack, ClipboardCheck, Compass, MapPin, Settings, ShieldPlus, Sparkles, Ticket, Wallet } from 'lucide-react'
 import { useTrip } from '@/data/hooks'
-import { PageHeader } from '@/ui'
-import { Brand } from '@/ui/Brand'
+import { PageHeader, Row, RowGroup } from '@/ui'
 import { isRecapTime } from '@/features/wrapped/stats'
 
+/** Everything that isn't a tab, grouped by when it's needed. Home, Plan, Map and Vote are tabs, so they aren't repeated here. */
 export function MoreScreen() {
   const { tripId } = useParams() as { tripId: string }
   const trip = useTrip(tripId)
-  const items = [
-    { to: `/t/${tripId}/overview`, label: 'Trip overview', Icon: Home, note: null },
-    { to: `/t/${tripId}/money`, label: 'Shared expenses', Icon: Wallet, note: null },
-    { to: 'ideas', label: 'Trip ideas & travel preferences', Icon: Compass, note: null },
-    { to: 'tasks', label: 'Tasks', Icon: ClipboardCheck, note: null },
-    { to: 'packing', label: 'Packing list', Icon: Backpack, note: null },
-    { to: 'emergency', label: 'Emergency info', Icon: ShieldPlus, note: null },
-    { to: 'places', label: 'Places', Icon: MapPin, note: null },
-    { to: 'vote', label: 'Votes', Icon: Vote, note: null },
-    { to: 'settings', label: 'Trip settings & sharing', Icon: Settings, note: null },
-    { to: `/t/${tripId}/wrapped`, label: 'Trip recap', Icon: Sparkles, note: trip && isRecapTime(trip, Date.now()) ? 'Ready' : 'Preview' },
-  ]
+  const root = `/t/${tripId}`
+  const icon = (Icon: typeof Ticket) => <Icon aria-hidden="true" className="size-5" />
   return (
-    <div>
-      <PageHeader title={trip?.name ?? 'More'} back="/app" />
-      <ul className="mx-auto max-w-md space-y-2 p-4">
-        {items.map(({ to, label, Icon, note }) => (
-          <li key={to}>
-            <Link to={to} className="ui-row">
-              <Icon aria-hidden="true" className="size-5 shrink-0 text-brand-700" />
-              <span className="min-w-0 flex-1 font-medium text-brand-900">{label}</span>
-              {note && <span className="text-xs font-medium text-stone-600">{note}</span>}
-              <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-stone-500" />
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <div className="mx-auto max-w-md px-4 py-6 text-center">
-        <Link to="/app" aria-label="Stowaway — your trips" className="inline-flex min-h-11"><Brand /></Link>
+    <div className="pb-10">
+      <PageHeader title="More" />
+      <div className="mx-auto max-w-md space-y-6 p-4">
+        <RowGroup label="On the trip">
+          <Row to={`${root}/tickets`} icon={icon(Ticket)} title="Tickets" />
+          <Row to={`${root}/money`} icon={icon(Wallet)} title="Shared expenses" />
+          <Row to="places" icon={icon(MapPin)} title="Places" />
+          <Row to="emergency" icon={icon(ShieldPlus)} title="Emergency info" />
+        </RowGroup>
+        <RowGroup label="Getting ready">
+          <Row to="tasks" icon={icon(ClipboardCheck)} title="Tasks" />
+          <Row to="packing" icon={icon(Backpack)} title="Packing list" />
+          <Row to="ideas" icon={icon(Compass)} title="Trip ideas & travel preferences" />
+        </RowGroup>
+        <RowGroup label="This trip">
+          <Row to="settings" icon={icon(Settings)} title="Trip settings & sharing" />
+          <Row to={`${root}/wrapped`} icon={icon(Sparkles)} title="Trip recap" trailing={trip && isRecapTime(trip, Date.now()) ? 'Ready' : 'Preview'} />
+        </RowGroup>
+        <p className="text-center"><Link to="/app" className="ui-link lg:hidden">All trips</Link></p>
       </div>
     </div>
   )

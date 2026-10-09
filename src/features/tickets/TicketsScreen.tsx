@@ -9,7 +9,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collectio
 import { useDisplayZone, useItems } from '@/features/itinerary/data'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { useAttachments } from './files'
-import { Input, LinkButton } from '@/ui'
+import { Fab, Input, LinkButton, PageHeader } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { Stowie } from '@/features/stowie/Stowie'
 
@@ -53,22 +53,16 @@ export function TicketsScreen() {
 
   return (
     <div className="min-h-full pb-28">
-      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas/95 backdrop-blur">
-        <div className="px-4 py-3">
-          <p className="truncate text-xs font-medium text-stone-600">{trip?.name}</p>
-          <h1 className="ui-page-title">Tickets</h1>
-        </div>
-      </header>
-      <div className="mx-auto max-w-lg space-y-4 p-4 lg:max-w-5xl lg:p-6">
+      <PageHeader title="Tickets" back={`/t/${tripId}/more`} below={rows.length > 0 && (
+        <label className="relative block px-4 pb-3 lg:px-6">
+          <span className="sr-only">Search tickets, documents and receipts</span>
+          <Search aria-hidden="true" className="pointer-events-none absolute top-3.5 left-7 size-4 text-stone-600 lg:left-9" />
+          <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search names, codes and text" className="w-full pl-9" />
+        </label>
+      )} />
+      <div className="mx-auto max-w-lg space-y-4 p-4 lg:p-6">
         {trip && <OfflineReadyCard trip={trip} compact />}
-        {rows && rows.length > 0 && (
-          <label className="relative block">
-            <span className="sr-only">Search tickets, documents and receipts</span>
-            <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" />
-            <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search names, codes and text" className="w-full pl-9" />
-          </label>
-        )}
-        {query && groups.length === 0 && <p className="py-6 text-center text-sm text-stone-500">Nothing matches “{q.trim()}”.</p>}
+        {query && groups.length === 0 && <p className="py-6 text-center text-sm text-stone-600">Nothing matches “{q.trim()}”.</p>}
 
         {rows && rows.length === 0 ? (
           <Empty>
@@ -92,9 +86,7 @@ export function TicketsScreen() {
           ))
         )}
       </div>
-      <Link to="new" aria-label="Add ticket" className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-20 flex size-14 items-center justify-center rounded-2xl bg-brand-700 text-white shadow-lg hover:bg-brand-900">
-        <Plus aria-hidden="true" className="size-7" />
-      </Link>
+      {rows.length > 0 && <Fab to="new" label="Add ticket" />}
     </div>
   )
 }
@@ -103,16 +95,16 @@ function TicketCard({ att, onPhone, item, zone }: { att: Attachment; onPhone: bo
   const Icon = att.mime === 'application/pdf' ? FileText : ImageIcon
   const status = onPhone
     ? att.uploaded_at
-      ? { text: 'On this phone', Icon: CheckCircle2, cls: 'text-green-700' }
+      ? { text: 'On this phone', Icon: CheckCircle2, cls: 'text-stone-600' }
       : { text: 'Waiting to upload', Icon: CloudUpload, cls: 'text-amber-700' }
-    : { text: 'Not downloaded yet', Icon: Download, cls: 'text-stone-500' }
+    : { text: 'Not downloaded yet', Icon: Download, cls: 'text-stone-600' }
   return (
     <li>
       <Link to={att.id} className="block rounded-2xl border border-stone-200 bg-surface p-4 hover:border-brand-600">
         <div className="flex items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Icon aria-hidden="true" className="size-5" /></span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-stone-500">{KIND_LABEL[att.kind]}{item && !item.all_day ? ` · ${formatInZone(item.start_at, zone)}` : ''}</p>
+            <p className="text-xs font-medium text-stone-600">{KIND_LABEL[att.kind]}{item && !item.all_day ? ` · ${formatInZone(item.start_at, zone)}` : ''}</p>
             <p className="truncate font-semibold">{att.title}</p>
             {item && item.title !== att.title && <p className="truncate text-sm text-stone-600">{item.title}</p>}
           </div>

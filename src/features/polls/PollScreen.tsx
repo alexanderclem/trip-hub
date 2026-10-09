@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { CalendarCheck, CalendarPlus, Clock, Lock, LockOpen, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
+import { Stowie } from '@/features/stowie/Stowie'
 import { useMyMemberId } from '@/data/device'
 import { useMembers, usePlaces, useTrip } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
@@ -70,7 +71,7 @@ export function PollScreen() {
     return (
       <div>
         <PageHeader title="Vote" back={`/t/${tripId}/more/vote`} />
-        <p className="p-5 text-stone-500">This vote was deleted.</p>
+        <p className="p-5 text-stone-600">This vote was deleted.</p>
       </div>
     )
   }
@@ -118,7 +119,7 @@ export function PollScreen() {
 
         {winner && (
           <Card className="border-brand-200 bg-brand-50">
-            <p className="flex items-center gap-2 text-sm font-medium text-brand-900"><Trophy aria-hidden="true" className="size-4" />Decided</p>
+            <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-medium text-brand-900"><Trophy aria-hidden="true" className="size-4" />Decided</p><Stowie mood="delighted" size={36} /></div>
             <p className="mt-1 text-lg font-semibold">{winner.label}</p>
             <div className="mt-3">
               {winner.starts_on && trip ? (
@@ -154,7 +155,7 @@ export function PollScreen() {
             {options.map((o) => (
               <OptionVoteCard key={o.id} option={o} place={placeOf(o)} rating={o.place_id ? ratings?.get(o.place_id) : undefined} score={myScore(o)} closed={closed} me={me} labels={labels} />
             ))}
-            {options.length === 0 && <p className="text-sm text-stone-500">No options yet. Add the first one below.</p>}
+            {options.length === 0 && <p className="text-sm text-stone-600">No options yet. Add the first one below.</p>}
           </ul>
         ) : (
           <Results ranked={ranked} votes={votes} members={members} groupSize={members.length} winnerId={winnerId} placeOf={placeOf} labels={labels} dates={poll.kind === 'dates'} />
@@ -225,14 +226,14 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
           ) : (
             <p className="break-words font-semibold">{option.label}</p>
           )}
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-stone-500">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-stone-600">
             {place?.area && <span>{place.area}</span>}
             <StarsSummary summary={rating} />
           </div>
           {option.description && <p className="mt-1 text-sm text-stone-600">{option.description}</p>}
         </div>
         {!closed && (
-          <button onClick={async () => { if (await confirm(`Remove “${option.label}” from this vote?`)) await softDelete('poll_options', option.id, me) }} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-500 hover:bg-stone-100" aria-label={`Remove ${option.label}`}>
+          <button onClick={async () => { if (await confirm(`Remove “${option.label}” from this vote?`)) await softDelete('poll_options', option.id, me) }} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-600 hover:bg-stone-100" aria-label={`Remove ${option.label}`}>
             <Trash2 aria-hidden="true" className="size-4" />
           </button>
         )}
@@ -244,7 +245,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
             disabled={closed || saving}
             aria-pressed={score === s}
             onClick={() => void castVote(score === s ? null : s)}
-            className={`min-h-11 rounded-xl border px-1 text-sm font-medium transition-colors disabled:opacity-50 ${score === s ? SCORE_STYLE[s] : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'}`}
+            className={`ui-press min-h-11 rounded-xl border px-1 text-sm font-medium disabled:opacity-50 ${score === s ? SCORE_STYLE[s] : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'}`}
           >
             {labels[s]}
           </button>
@@ -263,7 +264,7 @@ function Results({ ranked, votes, members, groupSize, winnerId, placeOf, labels,
   labels: Record<VoteScore, string>; dates: boolean
 }) {
   const top = leader(ranked)
-  if (!ranked.length) return <p className="text-sm text-stone-500">No options yet.</p>
+  if (!ranked.length) return <p className="text-sm text-stone-600">No options yet.</p>
   return (
     <ol className="space-y-3">
       {ranked.map((r, i) => {
@@ -275,7 +276,7 @@ function Results({ ranked, votes, members, groupSize, winnerId, placeOf, labels,
               <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${isTop ? 'bg-brand-700 text-white' : 'bg-stone-100 text-stone-600'}`}>{i + 1}</span>
               <div className="min-w-0 flex-1">
                 <p className="break-words font-semibold">{r.option.label}</p>
-                {place?.area && <p className="text-xs text-stone-500">{place.area}</p>}
+                {place?.area && <p className="text-xs text-stone-600">{place.area}</p>}
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100" aria-hidden="true">
                   <div className="h-full rounded-full bg-brand-600" style={{ width: `${((r.mean ?? 0) / 3) * 100}%` }} />
                 </div>
@@ -332,7 +333,7 @@ function AddDatesCard({ poll, trip, me }: { poll: Poll; trip: Trip | undefined; 
 
   return (
     <Card>
-      <h2 className="font-semibold">Add dates</h2>
+      <h2 className="ui-section-title">Add dates</h2>
       <form onSubmit={add} className="mt-2 space-y-3">
         <div className="grid grid-cols-2 gap-2">
           <Field label="First day"><DateInput value={from} min={today} onValue={(date) => { setFrom(date); setError(null) }} required /></Field>
@@ -369,20 +370,20 @@ function AddOptionCard({ poll, options, places, me }: { poll: Poll; options: Pol
 
   return (
     <Card>
-      <h2 className="font-semibold">Add an option</h2>
+      <h2 className="ui-section-title">Add an option</h2>
       <form onSubmit={addText} className="mt-2">
         <div className="relative">
-          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-400" />
+          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-500" />
           <Input value={q} onChange={(e) => { setQ(e.target.value); setError(null) }} placeholder="Search places, or type any option" className="pl-10" aria-label="Option" />
         </div>
         {matches.length > 0 && (
-          <ul className="mt-2 divide-y divide-stone-100 rounded-xl border border-stone-200">
+          <ul className="mt-2 divide-y divide-stone-200 rounded-xl border border-stone-200">
             {matches.map((p) => (
               <li key={p.id}>
                 <button type="button" onClick={() => { void addOption(poll, { label: p.name, placeId: p.id }, me); setQ('') }} className="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-stone-50">
                   <Plus aria-hidden="true" className="size-4 shrink-0 text-brand-700" />
                   <span className="min-w-0 flex-1 truncate">{p.name}</span>
-                  <span className="shrink-0 text-xs text-stone-500">{p.area}</span>
+                  <span className="shrink-0 text-xs text-stone-600">{p.area}</span>
                 </button>
               </li>
             ))}

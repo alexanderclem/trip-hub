@@ -123,7 +123,7 @@ export function QuizScreen() {
         <Button variant="ghost" className="-ml-4" onClick={() => { setMood('talking'); setStep(step === 0 ? 'intro' : step - 1) }}>
           <ArrowLeft aria-hidden="true" className="size-4" />Back
         </Button>
-        <span className="text-sm tabular-nums text-stone-500">{step + 1} of {QUESTIONS.length}</span>
+        <span className="text-sm tabular-nums text-stone-600">{step + 1} of {QUESTIONS.length}</span>
         <Button variant="ghost" className="-mr-4" onClick={skip}>{retake ? 'Not now' : 'Skip for now'}</Button>
       </div>
       <div role="progressbar" aria-label="Quiz progress" aria-valuemin={1} aria-valuemax={QUESTIONS.length} aria-valuenow={step + 1} className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200">

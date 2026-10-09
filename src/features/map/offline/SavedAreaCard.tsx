@@ -35,12 +35,12 @@ export function SavedAreaCard({ trip }: { trip: Trip }) {
   const stale = !!saved && !sameAreas(saved.areas, areas)
   return (
     <Card>
-      <h2 className="font-semibold">Offline map</h2>
+      <h2 className="ui-section-title">Offline map</h2>
       {areas.length === 0 ? (
-        <p className="mt-1 text-sm text-stone-500">Add a destination above, then save its map here to use with no signal.</p>
+        <p className="mt-1 text-sm text-stone-600">Add a destination above, then save its map here to use with no signal.</p>
       ) : (
         <>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 text-sm text-stone-600">
             Street-level map of {areas.map((a) => a.name).join(', ')}, plus the wider region. When you lose signal the map switches to it by itself.
           </p>
           {saved && (
@@ -54,14 +54,14 @@ export function SavedAreaCard({ trip }: { trip: Trip }) {
               <div className="h-2 overflow-hidden rounded-full bg-stone-200">
                 <div className="h-full bg-brand-600 transition-[width]" style={{ width: `${Math.round((progress[0] / progress[1]) * 100)}%` }} />
               </div>
-              <p className="mt-1 text-xs text-stone-500">Saving map: {progress[0]} of {progress[1]} pieces</p>
+              <p className="mt-1 text-xs text-stone-600">Saving map: {progress[0]} of {progress[1]} pieces</p>
             </div>
           ) : (!saved || stale) && (
             <Button className="mt-3 w-full" disabled={!online} onClick={() => void download()}>
               <Download aria-hidden="true" className="size-4" /> {saved ? 'Save the map again' : `Save map for offline (about ${mb(estimateBytes(areas))})`}
             </Button>
           )}
-          {!online && !saved && <p className="mt-2 text-xs text-stone-500">Saving the map needs signal.</p>}
+          {!online && !saved && <p className="mt-2 text-xs text-stone-600">Saving the map needs signal.</p>}
           {saved && !progress && (
             <Button variant="ghost" className="mt-2 w-full text-sm" onClick={() => void removeSavedMap(trip.id).then(refresh)}>
               <Trash2 aria-hidden="true" className="size-4" /> Remove from this phone

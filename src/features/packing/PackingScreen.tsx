@@ -68,7 +68,7 @@ export function PackingScreen() {
       <PageHeader title="Packing" back={`/t/${tripId}/more`} action={<Link to="new" className="inline-flex min-h-11 items-center gap-1 rounded-xl px-3 font-medium text-brand-700 hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add item</Link>} />
       <div className="mx-auto max-w-2xl space-y-4 p-4">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Pack together</h2>
+          <h2 className="ui-section-title">Pack together</h2>
           <p className="mt-1 text-sm text-stone-600">Tick what you’ve packed, claim the shared gear, and keep your own list. Works offline.</p>
         </div>
         {!me && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Choose who you are in this trip to tick items off.</p>}
@@ -87,7 +87,7 @@ export function PackingScreen() {
         <ErrorNote error={error} />
         {note && <p role="status" className="rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{note}</p>}
 
-        {data === undefined ? <p role="status" className="py-8 text-center text-stone-500">Loading packing list…</p> : items.length === 0 ? (
+        {data === undefined ? <p role="status" className="py-8 text-center text-stone-600">Loading packing list…</p> : items.length === 0 ? (
           <Empty>
             <Backpack aria-hidden="true" className="size-8 text-brand-700" />
             <EmptyHeader>
@@ -103,7 +103,7 @@ export function PackingScreen() {
                 const t = tally(i.id, checks, memberIds)
                 const state = myState(i.id)
                 return (
-                  <li key={i.id} className="border-b border-stone-100 py-1 last:border-0">
+                  <li key={i.id} className="border-b border-stone-200 py-1 last:border-0">
                     <div className="flex items-center gap-1">
                       <Tick checked={state === 'packed'} disabled={!me || state === 'skip'} label={i.title} onChange={(v) => void act(() => setMyCheck(tripId, i.id, me!, v ? 'packed' : null))} />
                       <Title item={i} tripId={tripId} skipped={state === 'skip'} />
@@ -131,7 +131,7 @@ export function PackingScreen() {
 
             <Section id="pack-group" title="Group gear" hint="One person brings it for everyone." count={show.group.length}>
               {show.group.map((i) => (
-                <li key={i.id} className="flex items-center gap-1 border-b border-stone-100 py-1 last:border-0">
+                <li key={i.id} className="flex items-center gap-1 border-b border-stone-200 py-1 last:border-0">
                   <Tick checked={i.packed} disabled={!me || i.owner_id !== me} label={i.title} onChange={(v) => void act(() => setPacked(i.id, v, me))} />
                   <Title item={i} tripId={tripId} sub={i.owner_id ? `${name(i.owner_id)}${i.owner_id === me ? ' (you)' : ''} is bringing it${i.packed ? ' · packed' : ''}` : 'Nobody yet'} />
                   {me && (i.owner_id === me
@@ -143,7 +143,7 @@ export function PackingScreen() {
 
             <Section id="pack-mine" title="My items" hint="Only you see these here (they still sync with the trip, so they aren’t secret)." count={show.mine.length}>
               {show.mine.map((i) => (
-                <li key={i.id} className="flex items-center gap-1 border-b border-stone-100 py-1 last:border-0">
+                <li key={i.id} className="flex items-center gap-1 border-b border-stone-200 py-1 last:border-0">
                   <Tick checked={i.packed} label={i.title} onChange={(v) => void act(() => setPacked(i.id, v, me))} />
                   <Title item={i} tripId={tripId} />
                 </li>
@@ -164,7 +164,7 @@ function Section({ id, title, hint, count, children }: { id: string; title: stri
   return (
     <section aria-labelledby={id}>
       <h2 id={id} className="text-sm font-semibold text-stone-700">{title} · {count}</h2>
-      <p className="mb-2 text-xs text-stone-500">{hint}</p>
+      <p className="mb-2 text-xs text-stone-600">{hint}</p>
       {count ? <ul className="rounded-2xl border border-stone-200 bg-surface px-2">{children}</ul> : <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Nothing here.</p>}
     </section>
   )
@@ -173,7 +173,7 @@ function Section({ id, title, hint, count, children }: { id: string; title: stri
 function Tick({ checked, disabled, label, onChange }: { checked: boolean; disabled?: boolean; label: string; onChange: (v: boolean) => void }) {
   return (
     <label className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl hover:bg-stone-50">
-      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} aria-label={`Packed ${label}`} className="size-5 accent-brand-700" />
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} aria-label={`Packed ${label}`} className="ui-check" />
     </label>
   )
 }
@@ -182,8 +182,8 @@ function Title({ item, tripId, sub, skipped }: { item: PackingItem; tripId: stri
   const done = item.kind === 'everyone' ? skipped : item.packed
   return (
     <Link to={`/t/${tripId}/more/packing/${item.id}`} className="min-h-11 min-w-0 flex-1 rounded-xl px-2 py-1.5 hover:bg-stone-50">
-      <p className={`break-words font-medium ${done ? 'text-stone-500 line-through' : 'text-stone-900'}`}>{item.title}{item.quantity && item.quantity > 1 ? ` ×${item.quantity}` : ''}</p>
-      {(sub || item.category || skipped) && <p className="text-xs text-stone-500">{[skipped ? 'Not needed' : null, sub, item.category].filter(Boolean).join(' · ')}</p>}
+      <p className={`break-words font-medium ${done ? 'text-stone-600 line-through' : 'text-stone-900'}`}>{item.title}{item.quantity && item.quantity > 1 ? ` ×${item.quantity}` : ''}</p>
+      {(sub || item.category || skipped) && <p className="text-xs text-stone-600">{[skipped ? 'Not needed' : null, sub, item.category].filter(Boolean).join(' · ')}</p>}
     </Link>
   )
 }

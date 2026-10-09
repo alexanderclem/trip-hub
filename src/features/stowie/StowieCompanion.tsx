@@ -6,28 +6,10 @@ import { screenOf } from './screen'
 import { Stowie } from './Stowie'
 import { StowieChat } from './StowieChat'
 
-/** True while a finger or the mouse is down on the map, so Stowie can step aside for the drag. */
-function useMapDrag(active: boolean) {
-  const [dragging, setDragging] = useState(false)
-  useEffect(() => {
-    if (!active) { setDragging(false); return }
-    const down = (e: PointerEvent) => { if (e.target instanceof Element && e.target.closest('.maplibregl-canvas-container')) setDragging(true) }
-    const up = () => setDragging(false)
-    document.addEventListener('pointerdown', down)
-    document.addEventListener('pointerup', up)
-    document.addEventListener('pointercancel', up)
-    return () => {
-      document.removeEventListener('pointerdown', down)
-      document.removeEventListener('pointerup', up)
-      document.removeEventListener('pointercancel', up)
-    }
-  }, [active])
-  return dragging
-}
-
 /**
- * Stowie on every trip tab: a small button in the corner that opens the trip's conversation in a
- * sheet, with suggestions that fit the screen underneath. It is the same thread as More → Trip ideas.
+ * Stowie on every trip screen: a small button in the screen's header that opens the trip's
+ * conversation in a sheet, with suggestions that fit the screen underneath. It is the same thread
+ * as More → Trip ideas. Nothing floats over the screen's content.
  */
 export function StowieCompanion({ tripId }: { tripId: string }) {
   const { pathname } = useLocation()
@@ -35,7 +17,6 @@ export function StowieCompanion({ tripId }: { tripId: string }) {
   const place = usePlace(here?.placeId)
   const [open, setOpen] = useState(false)
   const dialog = useRef<HTMLDialogElement>(null)
-  const dragging = useMapDrag(here?.screen === 'map')
 
   // Following a link from the chat goes to that screen, so the sheet gets out of the way.
   useEffect(() => setOpen(false), [pathname])
@@ -50,14 +31,9 @@ export function StowieCompanion({ tripId }: { tripId: string }) {
   if (!here) return null
   return (
     <>
-      {!open && (
-        <button
-          type="button" aria-label="Ask Stowie" onClick={() => setOpen(true)}
-          className={`fixed left-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-10 flex size-14 items-center justify-center rounded-2xl border border-stone-200 bg-surface shadow-md transition-opacity duration-150 hover:bg-brand-50 lg:left-[17rem] lg:bottom-6 ${dragging ? 'pointer-events-none opacity-0' : ''}`}
-        >
-          <Stowie size={38} />
-        </button>
-      )}
+      <button type="button" aria-label="Ask Stowie" aria-haspopup="dialog" onClick={() => setOpen(true)} className="ui-icon-button shrink-0">
+        <Stowie size={28} />
+      </button>
       <dialog ref={dialog} aria-label="Stowie" className="stowie-sheet" onCancel={() => setOpen(false)} onClose={() => { if (!dialog.current?.open) setOpen(false) }}>
         {open && (
           <StowieChat tripId={tripId} screen={here.screen} subject={place?.name ?? null} sheet header={(restart) => (

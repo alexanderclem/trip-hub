@@ -96,15 +96,22 @@ export function SyncCard({ tripId }: { tripId: string }) {
   return <Card><h2 className="mb-4 text-lg font-semibold">Sync & saved changes</h2><SyncDetails tripId={tripId} /></Card>
 }
 
-export function SyncStatusButton({ tripId, className = '' }: { tripId: string; className?: string }) {
+/**
+ * Sync state in a screen header. Quiet when all is well (an icon); it names the state when the
+ * phone is offline or something needs attention. `full` always shows the words (the sidebar).
+ */
+export function SyncStatusButton({ tripId, full = false, className = '' }: { tripId: string; full?: boolean; className?: string }) {
   const [open, setOpen] = useState(false)
   const online = useOnline()
   const sync = useSyncStatus()
   const details = useSyncDetails(tripId)
   const label = syncLabel(online, sync.phase, details?.pending.length ?? 0, details?.rejected.length ?? 0)
-  const Icon = !online || sync.phase === 'offline' ? CloudOff : sync.phase === 'error' || details?.rejected.length ? TriangleAlert : sync.phase === 'syncing' || details?.pending.length ? CloudUpload : CheckCircle2
+  const offline = !online || sync.phase === 'offline'
+  const trouble = !offline && (sync.phase === 'error' || !!details?.rejected.length)
+  const Icon = offline ? CloudOff : trouble ? TriangleAlert : sync.phase === 'syncing' || details?.pending.length ? CloudUpload : CheckCircle2
+  const worded = full || offline || trouble
   return <>
-    <button type="button" aria-haspopup="dialog" onClick={() => setOpen(true)} className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-surface px-3 text-sm font-medium text-brand-900 hover:bg-brand-50 ${className}`}><Icon aria-hidden="true" className="size-4 shrink-0" /><span aria-live="polite">{label}</span><span className="sr-only">. View sync details</span></button>
+    <button type="button" aria-haspopup="dialog" onClick={() => setOpen(true)} className={`${worded ? `inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-medium hover:bg-brand-50 ${trouble ? 'bg-red-50 text-red-800' : offline ? 'bg-amber-100 text-amber-900' : 'text-brand-900'}` : 'ui-icon-button text-stone-600'} shrink-0 ${className}`}><Icon aria-hidden="true" className={worded ? 'size-4 shrink-0' : 'size-5'} /><span aria-live="polite" className={worded ? '' : 'sr-only'}>{label}</span><span className="sr-only">. View sync details</span></button>
     <Dialog open={open} onClose={() => setOpen(false)} title="Sync & saved changes"><SyncDetails tripId={tripId} /></Dialog>
   </>
 }

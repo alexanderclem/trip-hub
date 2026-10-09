@@ -125,7 +125,7 @@ export function EmergencyNumbersScreen() {
               <div key={i} className="flex items-end gap-2">
                 <div className="min-w-0 flex-1"><Field label={i === 0 ? 'What' : ''}><Input aria-label={`Number ${i + 1} name`} value={n.label} placeholder="Police" maxLength={60} onChange={(e) => setInfo({ ...info, numbers: info.numbers.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })} /></Field></div>
                 <div className="w-32"><Field label={i === 0 ? 'Number' : ''}><Input aria-label={`Number ${i + 1} phone`} type="tel" value={n.phone} placeholder="110" maxLength={40} onChange={(e) => setInfo({ ...info, numbers: info.numbers.map((x, j) => (j === i ? { ...x, phone: e.target.value } : x)) })} /></Field></div>
-                <button type="button" aria-label={`Remove number ${i + 1}`} onClick={() => setInfo({ ...info, numbers: info.numbers.filter((_, j) => j !== i) })} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-500 hover:bg-stone-100"><Trash2 aria-hidden="true" className="size-4" /></button>
+                <button type="button" aria-label={`Remove number ${i + 1}`} onClick={() => setInfo({ ...info, numbers: info.numbers.filter((_, j) => j !== i) })} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-600 hover:bg-stone-100"><Trash2 aria-hidden="true" className="size-4" /></button>
               </div>
             ))}
             <button type="button" onClick={() => setInfo({ ...info, numbers: [...info.numbers, { label: '', phone: '' }] })} className="inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add a number</button>

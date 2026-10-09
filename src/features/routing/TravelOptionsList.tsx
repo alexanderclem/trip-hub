@@ -8,7 +8,7 @@ import { Button, ErrorNote, Input, Select } from '@/ui'
 import { formatRange, MODE_LABEL, pairKey, SOURCE_LABEL, type TravelOption } from './legs'
 
 export function TravelOptionsList({ options, compact = false }: { options: TravelOption[]; compact?: boolean }) {
-  if (!options.length) return <p className="text-sm text-stone-500">No travel time yet.</p>
+  if (!options.length) return <p className="text-sm text-stone-600">No travel time yet.</p>
   return (
     <ul className="space-y-1.5">
       {options.map((o) => {
@@ -34,7 +34,7 @@ export function TravelOptionsList({ options, compact = false }: { options: Trave
         options
           .filter((o) => o.note)
           .map((o) => (
-            <li key={`note-${o.mode}`} className="pl-6 text-xs text-stone-500">
+            <li key={`note-${o.mode}`} className="pl-6 text-xs text-stone-600">
               {MODE_LABEL[o.mode].emoji} {o.note}
             </li>
           ))}
@@ -85,7 +85,7 @@ export function ReportTimeForm({ from, to, onDone }: { from: Place; to: Place; o
         <Input inputMode="numeric" value={lo} onChange={(e) => setLo(e.target.value)} placeholder="min" className="w-16 px-2" aria-label="Minimum minutes" />
         <span>–</span>
         <Input inputMode="numeric" value={hi} onChange={(e) => setHi(e.target.value)} placeholder="max" className="w-16 px-2" aria-label="Maximum minutes" />
-        <span className="text-sm text-stone-500">min</span>
+        <span className="text-sm text-stone-600">min</span>
       </div>
       <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (optional), e.g. last boat 5 pm" maxLength={140} />
       <ErrorNote error={error} />

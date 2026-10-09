@@ -40,7 +40,7 @@ export function TravelerScreen() {
     <PageHeader title={member?.display_name ?? 'Traveler'} back={`${root}/overview`} />
     <div className="mx-auto max-w-2xl space-y-4 p-4">
       {!members ? <ListSkeleton label="Loading traveler…" /> : !member ? <p>This traveler is no longer in the trip.</p> : <>
-        <Card><div className="flex items-center gap-3"><Avatar name={member.display_name} color={member.color} photo={member.avatar_url} /><div className="min-w-0"><h2 className="break-words text-xl font-semibold">{member.display_name}{memberId === me ? ' (you)' : ''}</h2><p className="text-sm text-stone-600">Events and responsibilities for this trip</p></div></div>
+        <Card><div className="flex items-center gap-3"><Avatar name={member.display_name} color={member.color} photo={member.avatar_url} /><div className="min-w-0"><h2 className="break-words ui-section-title">{member.display_name}{memberId === me ? ' (you)' : ''}</h2><p className="text-sm text-stone-600">Events and responsibilities for this trip</p></div></div>
           {member.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(member.venmo_username)}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center rounded-lg px-2 font-medium text-brand-700 hover:bg-brand-50">Open Venmo · @{member.venmo_username}</a>}
         </Card>
         <ProfileEditor key={member.id} member={member} me={me} />
@@ -63,10 +63,10 @@ export function TravelerScreen() {
 }
 
 function Assignment({ to, title, detail }: { to: string; title: string; detail: string }) {
-  return <li className="border-b border-stone-100 last:border-0"><Link to={to} className="block min-h-11 rounded-lg py-3 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-brand-700"><p className="break-words font-medium text-brand-700">{title}</p><p className="break-words text-sm text-stone-600">{detail}</p></Link></li>
+  return <li className="border-b border-stone-200 last:border-0"><Link to={to} className="block min-h-11 rounded-lg py-3 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-brand-700"><p className="break-words font-medium text-brand-700">{title}</p><p className="break-words text-sm text-stone-600">{detail}</p></Link></li>
 }
 function Assignments({ title, loading, empty, action, children }: { title: string; loading: boolean; empty: string; action: ReactNode; children: ReactNode[] | undefined }) {
-  return <Card><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-semibold">{title}</h2>{action}</div>{loading ? <ListSkeleton label="Loading…" rows={2} className="py-3" /> : children?.length ? <ul>{children}</ul> : <p className="py-3 text-sm text-stone-600">{empty}</p>}</Card>
+  return <Card><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="ui-section-title">{title}</h2>{action}</div>{loading ? <ListSkeleton label="Loading…" rows={2} className="py-3" /> : children?.length ? <ul>{children}</ul> : <p className="py-3 text-sm text-stone-600">{empty}</p>}</Card>
 }
 function ProfileEditor({ member, me }: { member: Member; me: string | null }) {
   const [name, setName] = useState(member.display_name)

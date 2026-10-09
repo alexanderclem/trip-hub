@@ -63,7 +63,7 @@ export function PlaceSheet({ place, origins, origin, onOrigin, onMeasure, legCtx
       <div className="flex items-start gap-3 pr-10">
         <PlaceCategoryIcon category={place.category} />
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-medium text-stone-500">{[label, place.area].filter(Boolean).join(' · ')}</p>
+          <p className="mb-1 text-xs font-medium text-stone-600">{[label, place.area].filter(Boolean).join(' · ')}</p>
           <h2 className="break-words text-xl font-semibold leading-snug tracking-tight">{place.name}</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2"><PlaceStatusBadge status={place.status} /><StarsSummary summary={rating} /></div>
         </div>

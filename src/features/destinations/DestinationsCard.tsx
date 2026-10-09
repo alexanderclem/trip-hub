@@ -41,8 +41,8 @@ export function DestinationsCard({ trip, me }: { trip: Trip; me: string | null }
 
   return (
     <Card>
-      <h2 className="font-semibold">Destinations</h2>
-      <p className="mt-1 text-sm text-stone-500">
+      <h2 className="ui-section-title">Destinations</h2>
+      <p className="mt-1 text-sm text-stone-600">
         The towns this trip covers. Stowaway can fill the idea pool with their restaurants, stays and sights from OpenStreetMap, and save their map for offline use.
       </p>
       {areas.length > 0 && (
@@ -50,13 +50,13 @@ export function DestinationsCard({ trip, me }: { trip: Trip; me: string | null }
           {areas.map((a) => (
             <li key={a.name} className="flex min-h-11 items-center gap-2 rounded-xl bg-stone-50 pl-3">
               <span className="min-w-0 flex-1 truncate font-medium">{a.name}</span>
-              <span className="text-xs text-stone-500">{counts?.get(a.name) ? `${counts.get(a.name)} places` : 'no places yet'}</span>
+              <span className="text-xs text-stone-600">{counts?.get(a.name) ? `${counts.get(a.name)} places` : 'no places yet'}</span>
               <button
                 type="button"
                 aria-label={`Remove ${a.name}`}
                 disabled={!!busy}
                 onClick={() => void setAreas(areas.filter((x) => x.name !== a.name))}
-                className="flex size-11 items-center justify-center rounded-xl text-stone-500 hover:bg-stone-100"
+                className="flex size-11 items-center justify-center rounded-xl text-stone-600 hover:bg-stone-100"
               >
                 <X aria-hidden="true" className="size-4" />
               </button>
@@ -75,14 +75,14 @@ export function DestinationsCard({ trip, me }: { trip: Trip; me: string | null }
           />
         </div>
       ) : (
-        <p className="mt-3 text-xs text-stone-500">That's the most destinations one trip can have ({MAX_AREAS}).</p>
+        <p className="mt-3 text-xs text-stone-600">That's the most destinations one trip can have ({MAX_AREAS}).</p>
       )}
       {areas.length > 0 && (
         <Button className="mt-3 w-full" disabled={!!busy || !online} onClick={() => void load()}>
           <Download aria-hidden="true" className="size-4" /> {busy ?? 'Load places for these destinations'}
         </Button>
       )}
-      {!online && areas.length > 0 && <p className="mt-2 text-xs text-stone-500">Loading places needs signal.</p>}
+      {!online && areas.length > 0 && <p className="mt-2 text-xs text-stone-600">Loading places needs signal.</p>}
       {msg && <p role="status" className="mt-3 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{msg}</p>}
       <div className="mt-2"><ErrorNote error={error} /></div>
       <p className="mt-3 text-xs text-stone-600">Places © OpenStreetMap contributors.</p>

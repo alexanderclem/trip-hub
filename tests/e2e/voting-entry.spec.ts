@@ -3,7 +3,7 @@ const base = '/t/00000000-0000-4000-8000-000000000901'
 test.beforeEach(async ({ page, baseURL }) => {
   await page.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL!).origin, route => route.abort())
   await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async () => {
     const tripId = '00000000-0000-4000-8000-000000000901'
@@ -29,7 +29,7 @@ test('voting leads navigation, persists offline and appears in the overview', as
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   await page.goto(`${base}/overview`)
-  await expect(page.getByRole('heading', { name: 'Group votes' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   const nav = page.getByRole('navigation', { name: 'Trip navigation' }).filter({ visible: true })
   await nav.getByRole('link', { name: 'Vote', exact: true }).click()
   await page.getByLabel('What are we deciding?').fill('Where should we eat?')
@@ -45,7 +45,9 @@ test('voting leads navigation, persists offline and appears in the overview', as
   await expect(page.getByText('3.0 avg · 1 of 1 voted')).toBeVisible()
   await page.goto(`${base}/overview`)
   await expect(page.getByText('You’re all caught up')).toBeVisible()
-  await page.getByRole('region', { name: 'Group votes' }).getByRole('link', { name: /Where should we eat/ }).click()
+  // A vote you've finished no longer asks for you on Home; it is one tap away on the Vote tab.
+  await nav.getByRole('link', { name: 'Vote', exact: true }).click()
+  await page.getByRole('link', { name: /Where should we eat/ }).click()
   await page.getByRole('button', { name: 'Close voting and pick the winner' }).click()
   await expect(page.getByText('Decided', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Reopen voting' }).click()
@@ -78,7 +80,7 @@ test('overview loads when Safari member-index cursors stall', async ({ page }) =
     }
   })
   await page.goto(`${base}/overview`)
-  await expect(page.getByRole('heading', { name: 'Group votes' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(page.getByText('Alex (you)', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Opening your trip…' })).toHaveCount(0)
 })

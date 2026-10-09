@@ -137,7 +137,7 @@ export function CreateTripScreen() {
         </div>
         <div>
           <p className="text-sm font-medium text-stone-700">Where are you going?</p>
-          <p className="mt-1 text-xs text-stone-500">Optional. Destinations set the time zone and currency.</p>
+          <p className="mt-1 text-xs text-stone-600">Optional. Destinations set the time zone and currency.</p>
           {areas.length > 0 && (
             <ul aria-label="Destinations" className="mt-2 flex flex-wrap gap-2">
               {areas.map((a) => (

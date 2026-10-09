@@ -10,7 +10,7 @@ import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatMoney } from '@/lib/money'
 import { formatInZone } from '@/lib/time'
-import { Button, Card, PageHeader } from '@/ui'
+import { Button, Card, LinkButton, PageHeader, SectionTitle } from '@/ui'
 import { PlaceCategoryIcon } from '@/features/places/PlaceSummary'
 import { travelOptions } from '@/features/routing/legs'
 import { TravelOptionsList } from '@/features/routing/TravelOptionsList'
@@ -41,7 +41,7 @@ export function ItemDetailScreen() {
     return (
       <div>
         <PageHeader title="Plan" back={`/t/${tripId}/plan`} />
-        {item?.deleted_at && <p className="p-5 text-stone-500">This was removed from the plan.</p>}
+        {item?.deleted_at && <p className="p-5 text-stone-600">This was removed from the plan.</p>}
       </div>
     )
   }
@@ -71,14 +71,14 @@ export function ItemDetailScreen() {
       <PageHeader
         title={item.title}
         back={`/t/${tripId}/plan?day=${day}`}
-        action={<Link to="edit" aria-label="Edit" className="flex size-11 items-center justify-center rounded-full text-brand-700 active:bg-brand-50"><Pencil aria-hidden="true" className="size-5" /></Link>}
+        action={<Link to="edit" aria-label="Edit" className="ui-icon-button text-brand-700"><Pencil aria-hidden="true" className="size-5" /></Link>}
       />
       <div className="mx-auto max-w-md space-y-4 p-4">
         <div className="flex items-start gap-3">
           <span className={`flex size-12 shrink-0 items-center justify-center rounded-xl border-l-4 ${k.bg} ${k.border} ${k.text}`}><k.Icon aria-hidden="true" className="size-6" /></span>
           <div className="min-w-0">
-            <p className="text-sm text-stone-500">{k.label} · {STATUS_TEXT[item.status]}</p>
-            <h2 className="break-words text-xl font-semibold tracking-tight">{item.title}</h2>
+            <p className="font-medium text-brand-900">{k.label}</p>
+            <p className="text-sm text-stone-600">{STATUS_TEXT[item.status]}</p>
           </div>
         </div>
 
@@ -92,7 +92,7 @@ export function ItemDetailScreen() {
                 {startLocal.toFormat('HH:mm')}
                 {endLocal && <> → {endLocal.toFormat(endLocal.toISODate() !== startLocal.toISODate() ? 'ccc HH:mm' : 'HH:mm')}</>}
               </p>
-              <p className="text-sm text-stone-500">
+              <p className="text-sm text-stone-600">
                 {crossesZones ? `${city(item.start_tz)} time → ${city(item.end_tz!)} time` : `${city(item.start_tz)} time`}
               </p>
               {notDisplayZone && (
@@ -112,7 +112,7 @@ export function ItemDetailScreen() {
               <button
                 onClick={async () => { await navigator.clipboard.writeText(item.confirmation_code!); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
                 aria-label="Copy confirmation code"
-                className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 hover:bg-stone-50"
+                className="ui-icon-button shrink-0 border border-stone-200"
               >
                 {copied ? <Check aria-hidden="true" className="size-5 text-brand-700" /> : <Copy aria-hidden="true" className="size-5" />}
               </button>
@@ -126,11 +126,11 @@ export function ItemDetailScreen() {
               <Link key={p.id} to={`/t/${tripId}/more/places/${p.id}`} className="flex items-center gap-3 rounded-xl p-1 hover:bg-stone-50">
                 <PlaceCategoryIcon category={p.category} />
                 <div className="min-w-0 flex-1">
-                  {to && <p className="text-xs text-stone-500">{i === 0 ? 'From' : 'To'}</p>}
+                  {to && <p className="text-xs text-stone-600">{i === 0 ? 'From' : 'To'}</p>}
                   <p className="truncate font-medium">{p.name}</p>
-                  {p.area && <p className="text-xs text-stone-500">{p.area}</p>}
+                  {p.area && <p className="text-xs text-stone-600">{p.area}</p>}
                 </div>
-                <MapPin aria-hidden="true" className="size-4 text-stone-400" />
+                <MapPin aria-hidden="true" className="size-4 text-stone-500" />
               </Link>
             ))}
           </Card>
@@ -139,19 +139,19 @@ export function ItemDetailScreen() {
         {prev && prevPlace && options.length > 0 && (
           <Card>
             <h3 className="text-sm font-semibold">Getting here from {prev.title}</h3>
-            <p className="mb-2 text-xs text-stone-500">Previous stop, ends {prev.end_at ? formatInZone(prev.end_at, zone) : formatInZone(prev.start_at, zone)}</p>
+            <p className="mb-2 text-xs text-stone-600">Previous stop, ends {prev.end_at ? formatInZone(prev.end_at, zone) : formatInZone(prev.start_at, zone)}</p>
             <TravelOptionsList options={options} />
           </Card>
         )}
 
         <Card>
-          <div className="flex flex-wrap items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-stone-500" />{!going && <span>Everyone</span>}{(going ?? members).map((m) => <TravelerLink key={m.id} member={m} />)}{going?.length === 0 && <span>Nobody yet</span>}</div>
+          <div className="flex flex-wrap items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-stone-600" />{!going && <span>Everyone</span>}{(going ?? members).map((m) => <TravelerLink key={m.id} member={m} />)}{going?.length === 0 && <span>Nobody yet</span>}</div>
           {item.est_cost_minor != null && item.est_cost_currency && <p className="mt-2 text-sm text-stone-600">Estimated cost: {formatMoney(item.est_cost_minor, item.est_cost_currency)}</p>}
           {item.notes && <p className="mt-2 text-sm whitespace-pre-wrap text-stone-700">{item.notes}</p>}
         </Card>
 
         <Card>
-          <h3 className="mb-2 text-sm font-semibold">Tickets</h3>
+          <SectionTitle className="mb-1">Tickets</SectionTitle>
           {tickets.length > 0 && (
             <ul className="mb-2 space-y-1">
               {tickets.map(({ att, onPhone }) => (
@@ -159,30 +159,31 @@ export function ItemDetailScreen() {
                   <Link to={`/t/${tripId}/tickets/${att.id}`} className="flex min-h-11 items-center gap-2 rounded-xl px-1 text-sm hover:bg-stone-50">
                     <FileText aria-hidden="true" className="size-4 text-brand-700" />
                     <span className="min-w-0 flex-1 truncate font-medium">{att.title}</span>
-                    <span className="text-xs text-stone-500">{onPhone ? 'on this phone' : 'not downloaded'}</span>
+                    <span className="text-xs text-stone-600">{onPhone ? 'on this phone' : 'not downloaded'}</span>
                   </Link>
                 </li>
               ))}
             </ul>
           )}
-          <Link to={`/t/${tripId}/tickets/new?item=${item.id}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand-700">
+          <Link to={`/t/${tripId}/tickets/new?item=${item.id}`} className="ui-link">
             <Plus aria-hidden="true" className="size-4" /> Add a ticket or confirmation
           </Link>
         </Card>
 
-        <Link to={`/t/${tripId}/money/new?item=${item.id}`} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 font-medium text-stone-800 hover:bg-stone-50">
-          <Receipt aria-hidden="true" className="size-4" /> Log what it cost
-        </Link>
-
-        <Button variant="secondary" className="w-full" onClick={() => void shareCalendar(item.title, planIcs([item], places, members, item.title, location.origin))}>
-          <CalendarPlus aria-hidden="true" className="size-4" /> Add to calendar
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <LinkButton variant="secondary" to={`/t/${tripId}/money/new?item=${item.id}`}>
+            <Receipt aria-hidden="true" className="size-4" /> Log what it cost
+          </LinkButton>
+          <Button variant="secondary" onClick={() => void shareCalendar(item.title, planIcs([item], places, members, item.title, location.origin))}>
+            <CalendarPlus aria-hidden="true" className="size-4" /> Add to calendar
+          </Button>
+        </div>
 
         <CommentThread tripId={tripId} type="item" subjectId={item.id} me={me} />
 
         <Button
           variant="danger"
-          className="w-full"
+          className="mx-auto flex"
           onClick={async () => {
             if (!await confirm(`Remove "${item.title}" from the plan for everyone?`)) return
             await deleteItem(item.id, me)

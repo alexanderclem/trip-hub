@@ -111,8 +111,12 @@ disclosure feedback are immediate. Motion follows the shared behavior below.
 
 Trip screens follow the same surface and type rules as the website: bordered
 `bg-surface` cards without shadows, sentence-case labels, one page title per
-screen, and shared `Button`/`LinkButton` actions. The roles are listed in
-`docs/UI_COMPONENTS.md`. Unknown addresses show the website-styled not-found page.
+screen, and shared `Button`/`LinkButton` actions. Each screen has one header, at
+most one filled button, and nothing floating over its content except a single
+add button; Stowie and sync status sit in the header. The tabs are Home, Plan,
+Map, Vote and More on every width. The roles and the rules for keeping screens
+uncluttered are listed in `docs/UI_COMPONENTS.md`. Unknown addresses show the
+website-styled not-found page.
 The "How it works" section pairs its steps with three labelled, local examples
 (an invite, a vote, a ticket and a shared cost); they name no people.
 

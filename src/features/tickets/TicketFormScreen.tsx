@@ -121,7 +121,7 @@ export function TicketFormScreen() {
         </Field>
         <ErrorNote error={error} />
         <Button type="submit" className="w-full" disabled={saving || !file}>{saving ? 'Saving…' : forExpense && kind === 'receipt' ? 'Save and log the expense' : 'Save'}</Button>
-        <p className="text-center text-xs text-stone-500">Saved on this phone right away, then shared with the group when there's signal.</p>
+        <p className="text-center text-xs text-stone-600">Saved on this phone right away, then shared with the group when there's signal.</p>
       </form>
     </div>
   )

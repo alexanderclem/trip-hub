@@ -5,7 +5,7 @@ import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
 import { DateTime } from 'luxon'
 import type { PollKind } from '@/data/types'
-import { Button, Card, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Button, Card, Disclosure, ErrorNote, Field, Input, PageHeader, SectionTitle, Select, Textarea } from '@/ui'
 import { useCommentCounts } from '@/features/comments/data'
 import { createPoll, usePolls } from './data'
 import { deadlineFor, tonightAvailable, type DeadlineChoice } from './deadline'
@@ -48,29 +48,25 @@ export function PollsScreen() {
     <div className="min-h-full pb-8">
       <PageHeader
         title="Votes"
-        back={`/t/${tripId}/more`}
-        action={
-          <button onClick={() => setCreating((v) => !v)} className="flex size-11 items-center justify-center rounded-full text-brand-700 active:bg-brand-50" aria-label="New vote" aria-expanded={creating}>
+        action={!!polls?.length && (
+          <button type="button" onClick={() => setCreating((v) => !v)} className="ui-icon-button text-brand-700" aria-label="New vote" aria-expanded={creating}>
             <Plus aria-hidden="true" className="size-6" />
           </button>
-        }
+        )}
       />
       <div className="mx-auto max-w-2xl space-y-4 p-4">
         {(creating || polls?.length === 0) && (
           <Card>
             <form onSubmit={submit} className="space-y-3">
-              <h2 className="font-semibold">New vote</h2>
+              <SectionTitle>New vote</SectionTitle>
               <Field label="What are we deciding?">
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder="Where do we stay at the lake?" required />
               </Field>
-              <Field label="Details (optional)">
-                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Budget, dates, anything that matters" />
-              </Field>
               <fieldset>
                 <legend className="text-sm font-medium text-stone-700">What are the choices?</legend>
-                <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1 text-sm">
+                <div className="ui-segmented mt-2 grid-cols-2">
                   {([['options', 'Places or ideas'], ['dates', 'Dates that work']] as const).map(([value, label]) => (
-                    <label key={value} className={`flex min-h-11 cursor-pointer items-center justify-center rounded-lg px-2 text-center has-focus-visible:outline-2 has-focus-visible:outline-brand-700 ${kind === value ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}>
+                    <label key={value} className="min-h-11 has-focus-visible:outline-2 has-focus-visible:outline-brand-700">
                       <input type="radio" name="vote-kind" value={value} checked={kind === value} onChange={() => setKind(value)} className="sr-only" />
                       {label}
                     </label>
@@ -91,13 +87,18 @@ export function PollsScreen() {
                   <Input type="datetime-local" value={customDeadline} onChange={(e) => setCustomDeadline(e.target.value)} required />
                 </Field>
               )}
+              <Disclosure summary="Add details">
+                <Field label="Details (optional)">
+                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Budget, dates, anything that matters" />
+                </Field>
+              </Disclosure>
               <ErrorNote error={error} />
               <Button type="submit" className="w-full" disabled={busy || !title.trim()}>{busy ? 'Creating vote…' : kind === 'dates' ? 'Create and add dates' : 'Create and add options'}</Button>
             </form>
           </Card>
         )}
 
-        <ul className="space-y-3">
+        <ul className={polls?.length ? 'ui-row-group' : undefined}>
           {polls?.map(({ poll, options, votes }) => {
             const ranked = rankOptions(options, votes, groupSize)
             const top = leader(ranked)
@@ -108,17 +109,17 @@ export function PollsScreen() {
             const winner = poll.status === 'closed' ? live.find((o) => o.id === poll.winner_option_id) : ended ? top?.option : null
             return (
               <li key={poll.id}>
-                <Link to={poll.id} className="block rounded-2xl border border-stone-200 bg-surface p-4 transition-colors hover:border-brand-600 active:bg-brand-50">
-                  <div className="flex items-start gap-3">
+                <Link to={poll.id} className="ui-row">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-stone-500">{ended ? (winner ? 'Decided' : 'Voting ended') : `${live.length} option${live.length === 1 ? '' : 's'} · you voted on ${myVotes}${poll.closes_at ? ` · closes ${closesLabel(poll.closes_at, Date.now(), zone)}` : ''}`}{comments > 0 && ` · ${comments} ${comments === 1 ? 'comment' : 'comments'}`}</p>
-                      <h2 className="mt-1 break-words text-lg font-semibold tracking-tight">{poll.title}</h2>
-                      <p className="mt-1 flex items-start gap-1.5 text-sm text-stone-600">
+                      <p className="text-xs font-medium text-stone-600">{ended ? (winner ? 'Decided' : 'Voting ended') : `${live.length} option${live.length === 1 ? '' : 's'} · you voted on ${myVotes}${poll.closes_at ? ` · closes ${closesLabel(poll.closes_at, Date.now(), zone)}` : ''}`}{comments > 0 && ` · ${comments} ${comments === 1 ? 'comment' : 'comments'}`}</p>
+                      <h2 className="break-words font-semibold text-brand-900">{poll.title}</h2>
+                      <p className="flex items-start gap-1.5 text-sm text-stone-600">
                         {winner && <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand-700" />}
                         {winner ? winner.label : top ? `Leading: ${top.option.label}` : live.length ? 'Not enough votes yet' : 'No options yet'}
                       </p>
                     </div>
-                    <ChevronRight aria-hidden="true" className="mt-1 size-5 shrink-0 text-stone-400" />
+                    <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-stone-600" />
                   </div>
                 </Link>
               </li>

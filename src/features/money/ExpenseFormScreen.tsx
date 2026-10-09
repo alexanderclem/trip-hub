@@ -11,7 +11,7 @@ import { EXPENSE_CATEGORIES, type ExpenseCategory, type ExpenseRow } from '@/dat
 import { rateFor } from '@/lib/fx'
 import { newId } from '@/lib/ids'
 import { computeShares, formatMoney, minorUnits, type SplitMethod } from '@/lib/money'
-import { Avatar, Button, DateInput, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Avatar, Button, DateInput, Disclosure, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { buildExpense, parseMinor, type ExpenseDraft } from './build'
 import { deleteExpense, saveExpense, useExpense, useMoney } from './data'
 import { detailsAmountMinor } from '@/features/scan/client'
@@ -44,6 +44,7 @@ export function ExpenseFormScreen() {
   const [d, setD] = useState<Draft | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [more, setMore] = useState<boolean | null>(null)
   const loaded = useRef(false)
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((c) => (c ? { ...c, [k]: v } : c))
 
@@ -145,9 +146,9 @@ export function ExpenseFormScreen() {
   const name = (id: string) => members.find((m) => m.id === id)?.display_name ?? '?'
 
   return (
-    <div className="min-h-full pb-10">
+    <div className="min-h-full">
       <PageHeader title={expenseId ? 'Edit expense' : 'Add expense'} back={`/t/${tripId}/money`} />
-      <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4">
+      <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4 pb-0">
         <Field label="What for?">
           <Input value={d.description} onChange={(e) => set('description', e.target.value)} maxLength={200} placeholder="Dinner at Café Sky" />
         </Field>
@@ -167,23 +168,12 @@ export function ExpenseFormScreen() {
             <Input inputMode="decimal" aria-label="Exchange rate" value={d.rateEdited ? d.rateText : rate.value ? String(Number(rate.value.toFixed(4))) : ''}
               onChange={(e) => setD((c) => c && { ...c, rateText: e.target.value, rateEdited: true })} className="w-24 px-2 py-1.5" />
             <span>{d.currency}</span>
-            <span className="text-xs text-stone-500">
+            <span className="text-xs text-stone-600">
               {rate.source === 'manual' ? 'your rate' : rate.source === 'fallback' ? 'approximate (offline)' : `rates from ${rate.asOf}`}
               {amountMinor > 0 && result && 'expense' in result && ` · ≈ ${formatMoney(result.expense.base_amount_minor, base)}`}
             </span>
           </div>
         )}
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="Date">
-            <DateInput value={d.spentOn} onValue={(date) => set('spentOn', date)} />
-          </Field>
-          <Field label="Category">
-            <Select value={d.category} onChange={(e) => set('category', e.target.value as ExpenseCategory)}>
-              {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
-            </Select>
-          </Field>
-        </div>
-
         <fieldset>
           <legend className="text-sm font-medium text-stone-700">Paid by</legend>
           {!d.multiPay ? (
@@ -213,21 +203,21 @@ export function ExpenseFormScreen() {
 
         <fieldset>
           <legend className="text-sm font-medium text-stone-700">Split</legend>
-          <div role="radiogroup" aria-label="Split method" className="mt-1 grid grid-cols-4 gap-1 rounded-xl bg-stone-100 p-1 text-sm">
+          <div role="radiogroup" aria-label="Split method" className="ui-segmented mt-1 grid-cols-4">
             {METHODS.map((m) => (
               <button key={m.id} type="button" role="radio" aria-checked={d.splitMethod === m.id} onClick={() => set('splitMethod', m.id)}
-                className={`min-h-10 rounded-lg ${d.splitMethod === m.id ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}>{m.label}</button>
+                className="min-h-10">{m.label}</button>
             ))}
           </div>
-          <ul className="mt-2 divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-surface">
+          <ul className="mt-2 divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-surface">
             {d.rows.map((r, i) => {
               const m = members.find((x) => x.id === r.memberId)!
               const share = shares?.get(r.memberId)?.owed
               return (
                 <li key={r.memberId} className="flex min-h-12 items-center gap-2 px-3 py-1.5">
-                  <input type="checkbox" checked={r.included} onChange={(e) => setRow(i, { included: e.target.checked })} aria-label={`Include ${m.display_name}`} className="size-5 accent-brand-600" />
+                  <input type="checkbox" checked={r.included} onChange={(e) => setRow(i, { included: e.target.checked })} aria-label={`Include ${m.display_name}`} className="ui-check" />
                   <Avatar name={m.display_name} color={m.color} photo={m.avatar_url} size="sm" />
-                  <span className={`min-w-0 flex-1 truncate text-sm ${r.included ? '' : 'text-stone-500 line-through'}`}>{m.display_name}</span>
+                  <span className={`min-w-0 flex-1 truncate text-sm ${r.included ? '' : 'text-stone-600 line-through'}`}>{m.display_name}</span>
                   {r.included && d.splitMethod !== 'equal' && (
                     <Input inputMode="decimal" aria-label={`${m.display_name} ${d.splitMethod}`} value={r.value} onChange={(e) => setRow(i, { value: e.target.value })}
                       placeholder={d.splitMethod === 'shares' ? '1' : d.splitMethod === 'percent' ? '%' : '0.00'} className="w-20 px-2 py-1.5 text-right" />
@@ -245,26 +235,39 @@ export function ExpenseFormScreen() {
           )}
         </fieldset>
 
-        <Field label="Notes">
-          <Textarea value={d.notes} onChange={(e) => set('notes', e.target.value)} rows={2} placeholder="Optional" />
-        </Field>
+        {/* Today and the usual category suit most expenses; an existing or scanned one shows what it holds. */}
+        <Disclosure summary="Date, category and notes" open={more ?? (!!d.notes || !!expenseId || !!receiptId)} onToggle={setMore}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Date">
+                <DateInput value={d.spentOn} onValue={(date) => set('spentOn', date)} />
+              </Field>
+              <Field label="Category">
+                <Select value={d.category} onChange={(e) => set('category', e.target.value as ExpenseCategory)}>
+                  {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
+                </Select>
+              </Field>
+            </div>
+            <Field label="Notes">
+              <Textarea value={d.notes} onChange={(e) => set('notes', e.target.value)} rows={2} placeholder="Optional" />
+            </Field>
+          </div>
+        </Disclosure>
         {receiptId && <p className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900"><Receipt aria-hidden="true" className="size-4 shrink-0" />The receipt photo will be attached to this expense.</p>}
         {expenseId && (
           <section aria-label="Receipts" className="space-y-2">
             {(receipts ?? []).map((r) => (
-              <Link key={r.id} to={`/t/${tripId}/tickets/${r.id}`} className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm hover:bg-stone-50">
-                <Receipt aria-hidden="true" className="size-4 shrink-0 text-brand-700" /><span className="min-w-0 flex-1 truncate font-medium">{r.title}</span><span className="text-xs text-stone-500">View</span>
+              <Link key={r.id} to={`/t/${tripId}/tickets/${r.id}`} className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-surface px-3 py-2 text-sm hover:bg-brand-50">
+                <Receipt aria-hidden="true" className="size-4 shrink-0 text-brand-700" /><span className="min-w-0 flex-1 truncate font-medium">{r.title}</span><span className="text-xs text-stone-600">View</span>
               </Link>
             ))}
-            <Link to={`/t/${tripId}/tickets/new?kind=receipt&for_expense=${expenseId}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">
+            <Link to={`/t/${tripId}/tickets/new?kind=receipt&for_expense=${expenseId}`} className="ui-link">
               <Camera aria-hidden="true" className="size-4" />{receipts?.length ? 'Add another receipt photo' : 'Add a receipt photo'}
             </Link>
           </section>
         )}
-        <ErrorNote error={error} />
-        <Button type="submit" className="w-full" disabled={saving}>{saving ? 'Saving…' : 'Save expense'}</Button>
         {existing && (
-          <Button type="button" variant="danger" className="w-full" onClick={async () => {
+          <Button type="button" variant="danger" className="mx-auto flex" onClick={async () => {
             if (!await confirm(`Delete "${existing.description}" for everyone?`)) return
             await deleteExpense(existing.id, me)
             navigate(`/t/${tripId}/money`, { replace: true })
@@ -272,6 +275,10 @@ export function ExpenseFormScreen() {
             <Trash2 aria-hidden="true" className="size-4" /> Delete expense
           </Button>
         )}
+        <div className="ui-form-actions">
+          <ErrorNote error={error} />
+          <Button type="submit" className="w-full" disabled={saving}>{saving ? 'Saving…' : 'Save expense'}</Button>
+        </div>
       </form>
     </div>
   )

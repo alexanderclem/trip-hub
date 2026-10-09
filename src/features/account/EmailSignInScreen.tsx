@@ -123,7 +123,7 @@ export function EmailSignInScreen() {
                 <Button type="button" variant="ghost" className="w-full" disabled={busy || !online || !address} onClick={() => void sendCode()}>Forgot it? Email me a code instead</Button>
               </>
             )}
-            {!online && <p className="text-xs text-stone-500">You need signal to sign in.</p>}
+            {!online && <p className="text-xs text-stone-600">You need signal to sign in.</p>}
           </>
         )}
       </form>

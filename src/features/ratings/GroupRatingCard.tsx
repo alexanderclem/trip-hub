@@ -28,10 +28,10 @@ export function GroupRatingCard({ place, memberId }: { place: Place; memberId: s
   return (
     <Card>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-semibold">Group rating</h2>
+        <h2 className="ui-section-title">Group rating</h2>
         <StarsSummary summary={summary} />
       </div>
-      <p className="mt-1 text-sm text-stone-500">{place.status === 'visited' ? 'How was it?' : 'Been here or heard about it? Rate it for the group.'}</p>
+      <p className="mt-1 text-sm text-stone-600">{place.status === 'visited' ? 'How was it?' : 'Been here or heard about it? Rate it for the group.'}</p>
       <div className="mt-3">
         <StarsInput value={mine?.stars ?? null} onChange={(stars) => rate(place.trip_id, place.id, memberId, stars, note)} />
       </div>
@@ -50,7 +50,7 @@ export function GroupRatingCard({ place, memberId }: { place: Place; memberId: s
         className="mt-2"
       />
       {others.length > 0 && (
-        <ul className="mt-4 space-y-3 border-t border-stone-100 pt-3">
+        <ul className="mt-4 space-y-3 border-t border-stone-200 pt-3">
           {others.map((r) => {
             const m = name(r.member_id)
             return (

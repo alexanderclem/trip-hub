@@ -4,8 +4,8 @@ const trip = '00000000-0000-4000-8000-000000000701'
 const ana = '00000000-0000-4000-8000-000000000702'
 const ben = '00000000-0000-4000-8000-000000000703'
 
-test('traveler links, assignments, Venmo, and profile photos work offline', async ({ page }) => {
-  await page.route('https://**/*', (route) => route.abort())
+test('traveler links, assignments, Venmo, and profile photos work offline', async ({ page, baseURL }) => {
+  await page.route((url) => url.protocol === 'https:' && url.origin !== new URL(baseURL!).origin, (route) => route.abort())
   await page.goto('/inspire')
   await expect(page.getByRole('heading', { name: 'Stowie', exact: true })).toBeVisible()
   await page.evaluate(async ({ trip, ana, ben }) => {

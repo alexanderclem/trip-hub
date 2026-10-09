@@ -7,7 +7,7 @@ import { ITEM_KINDS, ITEM_STATUSES, type ItemKind, type ItineraryItem, type Plac
 import { newId } from '@/lib/ids'
 import { minorUnits } from '@/lib/money'
 import { checkLocalTime, isValidZone, normalizeLocal } from '@/lib/time'
-import { Button, DateInput, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Button, DateInput, Disclosure, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { PlacePicker } from '@/features/places/PlacePicker'
 import { saveItem, useItem } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
@@ -72,6 +72,7 @@ export function ItemFormScreen() {
   const [error, setError] = useState<string | null>(null)
   const [invalid, setInvalid] = useState<{ name: string; message: string } | null>(null)
   const [saving, setSaving] = useState(false)
+  const [more, setMore] = useState<boolean | null>(null)
   const savingRef = useRef(false)
   const [f, setF] = useState<FormState | null>(null)
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((cur) => (cur ? { ...cur, [k]: v } : cur))
@@ -181,17 +182,19 @@ export function ItemFormScreen() {
   }
 
   const flag = (name: string) => (invalid?.name === name ? { 'aria-invalid': true, 'aria-describedby': `${name}-problem` } : {})
+  // Who's going, cost and notes are optional: closed for a new item, open when any of them is already filled in.
+  const hasOptional = !f.everyone || !!f.cost || !!f.notes
   const back = itemId ? `/t/${tripId}/plan/${itemId}` : `/t/${tripId}/plan?day=${f.startDate}`
   return (
-    <div className="min-h-full pb-10">
+    <div className="min-h-full">
       <PageHeader title={itemId ? 'Edit' : 'Add to plan'} back={back} />
-      <form onSubmit={submit} noValidate onInput={() => setInvalid(null)} className="mx-auto max-w-md space-y-4 p-4">
+      <form onSubmit={submit} noValidate onInput={() => setInvalid(null)} className="mx-auto max-w-md space-y-4 p-4 pb-0">
         <div role="radiogroup" aria-label="Type" className="grid grid-cols-4 gap-1.5">
           {ITEM_KINDS.map((k) => {
             const s = KIND_STYLE[k]
             return (
               <button key={k} type="button" role="radio" aria-checked={f.kind === k} onClick={() => set('kind', k)}
-                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border text-xs ${f.kind === k ? `${s.bg} ${s.border} ${s.text} font-semibold` : 'border-stone-200 bg-white text-stone-600'}`}>
+                className={`ui-press flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border text-xs ${f.kind === k ? `${s.bg} ${s.border} ${s.text} font-semibold` : 'border-stone-200 bg-surface text-stone-600'}`}>
                 <s.Icon aria-hidden="true" className="size-4" />{s.label}
               </button>
             )
@@ -214,7 +217,7 @@ export function ItemFormScreen() {
         </Field>
 
         <label className="flex min-h-11 items-center gap-2 text-sm">
-          <input type="checkbox" checked={f.allDay} onChange={(e) => set('allDay', e.target.checked)} className="size-5 accent-brand-600" /> All day
+          <input type="checkbox" checked={f.allDay} onChange={(e) => set('allDay', e.target.checked)} className="ui-check" /> All day
         </label>
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium text-stone-700">{f.kind === 'lodging' ? 'Check in' : travel ? 'Departs' : 'Starts'}</legend>
@@ -230,7 +233,7 @@ export function ItemFormScreen() {
           )}
         </fieldset>
         <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-stone-700">{f.kind === 'lodging' ? 'Check out' : travel ? 'Arrives' : 'Ends'} <span className="font-normal text-stone-500">(optional)</span></legend>
+          <legend className="text-sm font-medium text-stone-700">{f.kind === 'lodging' ? 'Check out' : travel ? 'Arrives' : 'Ends'} <span className="font-normal text-stone-600">(optional)</span></legend>
           <div className="grid grid-cols-2 gap-2">
             <DateInput name="endDate" aria-label="End date" value={f.endDate} min={f.startDate} {...flag('endDate')} onValue={(date) => set('endDate', date)} />
             {!f.allDay && <Input type="time" name="endTime" aria-label="End time" value={f.endTime} {...flag('endTime')} onChange={(e) => set('endTime', e.target.value)} />}
@@ -243,7 +246,7 @@ export function ItemFormScreen() {
           )}
         </fieldset>
         {!showZones && !f.allDay && (
-          <button type="button" onClick={() => set('startTz', f.startTz === tripTz ? 'America/New_York' : f.startTz)} className="min-h-11 text-sm text-brand-700 underline underline-offset-4">
+          <button type="button" onClick={() => set('startTz', f.startTz === tripTz ? 'America/New_York' : f.startTz)} className="ui-link">
             Happens in a different time zone?
           </button>
         )}
@@ -260,40 +263,46 @@ export function ItemFormScreen() {
           </Field>
         </div>
 
-        <fieldset>
-          <legend className="text-sm font-medium text-stone-700">Who's going</legend>
-          <label className="mt-1 flex min-h-11 items-center gap-2 text-sm">
-            <input type="checkbox" checked={f.everyone} onChange={(e) => set('everyone', e.target.checked)} className="size-5 accent-brand-600" /> Everyone
-          </label>
-          {!f.everyone && (
-            <div className="grid grid-cols-2 gap-1">
-              {members.map((m) => (
-                <label key={m.id} className="flex min-h-11 items-center gap-2 text-sm">
-                  <input type="checkbox" checked={f.attendees.includes(m.id)} className="size-5 accent-brand-600"
-                    onChange={(e) => set('attendees', e.target.checked ? [...f.attendees, m.id] : f.attendees.filter((x) => x !== m.id))} />
-                  {m.display_name}
-                </label>
-              ))}
-            </div>
-          )}
-        </fieldset>
+        <Disclosure summary="More options" open={more ?? hasOptional} onToggle={setMore}>
+          <div className="space-y-4">
+          <fieldset>
+            <legend className="text-sm font-medium text-stone-700">Who's going</legend>
+            <label className="mt-1 flex min-h-11 items-center gap-2 text-sm">
+              <input type="checkbox" checked={f.everyone} onChange={(e) => set('everyone', e.target.checked)} className="ui-check" /> Everyone
+            </label>
+            {!f.everyone && (
+              <div className="grid grid-cols-2 gap-1">
+                {members.map((m) => (
+                  <label key={m.id} className="flex min-h-11 items-center gap-2 text-sm">
+                    <input type="checkbox" checked={f.attendees.includes(m.id)} className="ui-check"
+                      onChange={(e) => set('attendees', e.target.checked ? [...f.attendees, m.id] : f.attendees.filter((x) => x !== m.id))} />
+                    {m.display_name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </fieldset>
 
-        <div className="grid grid-cols-[1fr_6rem] gap-2">
-          <Field label="Estimated cost (per group)">
-            <Input inputMode="decimal" value={f.cost} onChange={(e) => set('cost', e.target.value)} placeholder="0.00" />
+          <div className="grid grid-cols-[1fr_6rem] gap-2">
+            <Field label="Estimated cost (per group)">
+              <Input inputMode="decimal" value={f.cost} onChange={(e) => set('cost', e.target.value)} placeholder="0.00" />
+            </Field>
+            <Field label="Currency">
+              <Select value={f.costCurrency} onChange={(e) => set('costCurrency', e.target.value)}>
+                {[...new Set([trip?.local_currency, trip?.base_currency].filter(Boolean) as string[])].map((c) => <option key={c} value={c}>{c}</option>)}
+              </Select>
+            </Field>
+          </div>
+          <Field label="Notes">
+            <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Meeting point, what to bring, who booked it…" />
           </Field>
-          <Field label="Currency">
-            <Select value={f.costCurrency} onChange={(e) => set('costCurrency', e.target.value)}>
-              {[...new Set([trip?.local_currency, trip?.base_currency].filter(Boolean) as string[])].map((c) => <option key={c} value={c}>{c}</option>)}
-            </Select>
-          </Field>
+          </div>
+        </Disclosure>
+
+        <div className="ui-form-actions">
+          <ErrorNote error={error ?? (invalid && !DATE_TIME_FIELDS.includes(invalid.name) ? invalid.message : null)} />
+          <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : 'Save'}</Button>
         </div>
-        <Field label="Notes">
-          <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Meeting point, what to bring, who booked it…" />
-        </Field>
-
-        <ErrorNote error={error ?? (invalid && !DATE_TIME_FIELDS.includes(invalid.name) ? invalid.message : null)} />
-        <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : 'Save'}</Button>
       </form>
     </div>
   )

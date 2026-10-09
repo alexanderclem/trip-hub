@@ -1,9 +1,9 @@
 // Shared UI primitives, styled to match the adapted shadcn collection.
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import type { ComponentProps, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router'
 import { travelerInitials } from '@/features/trips/traveler'
-import { CalendarDays, ChevronLeft } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { dateOrder, formatTypedDate, parseTypedDate } from '@/lib/time'
 import { m, type HTMLMotionProps } from 'motion/react'
 import { useMotionPreference } from './MotionProvider'
@@ -142,10 +142,18 @@ export function Card({ children, className }: { children: ReactNode; className?:
   return <section className={cx('ui-card', className)}>{children}</section>
 }
 
-export function PageHeader({ title, eyebrow, back, action }: { title: string; eyebrow?: string; back?: string; action?: ReactNode }) {
+/** What the trip shell adds to the end of every screen header (sync status, Stowie). Empty outside a trip. */
+export const HeaderTools = createContext<ReactNode>(null)
+
+/**
+ * The one header a screen has: back, title, the screen's own action, then the shell's tools.
+ * `below` holds a control that belongs to the whole screen (a day strip, a search field).
+ */
+export function PageHeader({ title, eyebrow, back, action, below }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode }) {
+  const tools = useContext(HeaderTools)
   return (
     <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas">
-      <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 lg:px-6">
+      <div className="flex min-h-14 items-center gap-1 px-3 py-1.5 lg:px-6">
         {back ? (
           <Link to={back} className="ui-icon-button shrink-0" aria-label="Back">
             <ChevronLeft aria-hidden="true" className="size-6" />
@@ -158,8 +166,82 @@ export function PageHeader({ title, eyebrow, back, action }: { title: string; ey
           <h1 className="ui-page-title break-words">{title}</h1>
         </div>
         {action}
+        {tools}
       </div>
+      {below}
     </header>
+  )
+}
+
+/** A card or section heading. One style everywhere. */
+export function SectionTitle({ className, ...props }: ComponentProps<'h2'>) {
+  return <h2 {...props} className={cx('ui-section-title', className)} />
+}
+
+/** A two-to-four way switch. One selected value, shown as a radio group. */
+export function Segmented<T extends string>({ label, value, options, onChange, className }: {
+  label: string; value: T; options: readonly { value: T; label: ReactNode; title?: string }[]; onChange: (value: T) => void; className?: string
+}) {
+  return (
+    <div role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+      {options.map((o) => (
+        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} title={o.title} onClick={() => onChange(o.value)}>{o.label}</button>
+      ))}
+    </div>
+  )
+}
+
+/** A filter or toggle pill. `pressed` makes it a toggle; without it, it is a plain action. */
+export function Chip({ pressed, className, ...props }: ComponentProps<'button'> & { pressed?: boolean }) {
+  return <button type="button" aria-pressed={pressed} {...props} className={cx('ui-chip', className)} />
+}
+
+/** A list of destinations or records in one bordered group, divided by rules instead of a card each. */
+export function RowGroup({ label, children, className }: { label?: string; children: ReactNode; className?: string }) {
+  return (
+    <section className={className}>
+      {label && <h2 className="ui-label mb-2 px-1">{label}</h2>}
+      <ul className="ui-row-group">{children}</ul>
+    </section>
+  )
+}
+
+/** One row of a RowGroup. With `to` the whole row is a link and shows a chevron. */
+export function Row({ to, icon, title, detail, trailing, onClick }: {
+  to?: string; icon?: ReactNode; title: ReactNode; detail?: ReactNode; trailing?: ReactNode; onClick?: () => void
+}) {
+  const body = (
+    <>
+      {icon && <span className="flex shrink-0 text-brand-700">{icon}</span>}
+      <span className="min-w-0 flex-1">
+        <span className="block break-words font-medium text-brand-900">{title}</span>
+        {detail && <span className="block break-words text-sm text-stone-600">{detail}</span>}
+      </span>
+      {trailing && <span className="shrink-0 text-sm text-stone-600">{trailing}</span>}
+      {to && <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-stone-500" />}
+    </>
+  )
+  return <li>{to ? <Link to={to} onClick={onClick} className="ui-row">{body}</Link> : <div className="ui-row">{body}</div>}</li>
+}
+
+/** The single floating action on a screen: add the thing this screen lists. */
+export function Fab({ to, label }: { to: string; label: string }) {
+  return (
+    <Link to={to} aria-label={label} className="ui-fab">
+      <Plus aria-hidden="true" className="size-7" />
+    </Link>
+  )
+}
+
+/** Rarely needed content, one level down. The summary says what is inside. Pass `open` to control it. */
+export function Disclosure({ summary, children, className, defaultOpen, open, onToggle }: {
+  summary: ReactNode; children: ReactNode; className?: string; defaultOpen?: boolean; open?: boolean; onToggle?: (open: boolean) => void
+}) {
+  return (
+    <details className={cx('ui-disclosure', className)} open={open ?? defaultOpen} onToggle={onToggle && ((e) => onToggle(e.currentTarget.open))}>
+      <summary><span className="min-w-0 flex-1">{summary}</span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
+      <div className="pt-2">{children}</div>
+    </details>
   )
 }
 

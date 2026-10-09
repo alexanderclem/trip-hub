@@ -23,7 +23,7 @@ function CallButton({ label, phone }: { label: string; phone: string }) {
 function ContactCard({ icon: Icon, title, c }: { icon: typeof Hospital; title: string; c: Contact }) {
   return (
     <Card>
-      <h2 className="flex items-center gap-2 text-sm font-medium text-stone-500"><Icon aria-hidden="true" className="size-4" />{title}</h2>
+      <h2 className="flex items-center gap-2 text-sm font-medium text-stone-600"><Icon aria-hidden="true" className="size-4" />{title}</h2>
       <p className="mt-1 font-semibold">{c.name}</p>
       {c.address && <p className="text-sm text-stone-600">{c.address}</p>}
       <div className="mt-2 flex flex-wrap gap-2">
@@ -50,7 +50,7 @@ function PersonCard({ member, safety, mine }: { member: Member; safety?: MemberS
         {mine && <Link to="edit" className="inline-flex min-h-11 items-center gap-1 rounded-xl px-3 text-sm font-medium text-brand-700 hover:bg-brand-50"><Pencil aria-hidden="true" className="size-4" />{empty ? 'Fill in' : 'Edit'}</Link>}
       </div>
       {empty ? (
-        <p className="mt-1 text-sm text-stone-500">{mine ? 'Add who to call and anything a doctor should know.' : 'Hasn’t filled in their card yet.'}</p>
+        <p className="mt-1 text-sm text-stone-600">{mine ? 'Add who to call and anything a doctor should know.' : 'Hasn’t filled in their card yet.'}</p>
       ) : (
         <dl className="mt-2 space-y-1 text-sm">
           {s!.emergency_name && (
@@ -99,7 +99,7 @@ export function EmergencyScreen() {
 
         <section aria-labelledby="people">
           <h2 id="people" className="flex items-center gap-2 font-semibold"><ShieldPlus aria-hidden="true" className="size-5 text-brand-700" />Everyone’s emergency card</h2>
-          <p className="mb-2 mt-1 text-xs text-stone-500">Visible to everyone on this trip, and saved on every phone so it works without signal. Only you can change your own card.</p>
+          <p className="mb-2 mt-1 text-xs text-stone-600">Visible to everyone on this trip, and saved on every phone so it works without signal. Only you can change your own card.</p>
           <ul className="space-y-2">{ordered.map((m) => <PersonCard key={m.id} member={m} mine={m.id === me} safety={safety.find((s) => s.member_id === m.id)} />)}</ul>
         </section>
       </div>
@@ -162,7 +162,7 @@ export function MedicalScreen() {
         <p className="mt-1 text-3xl font-bold">{name ?? 'Choose who you are first'}</p>
         <dl className="mt-6 space-y-5">
           {rows.map(([label, v]) => (
-            <div key={label}><dt className="text-sm font-medium text-stone-500">{label}</dt><dd className="whitespace-pre-line break-words text-2xl">{v || '—'}</dd></div>
+            <div key={label}><dt className="text-sm font-medium text-stone-600">{label}</dt><dd className="whitespace-pre-line break-words text-2xl">{v || '—'}</dd></div>
           ))}
         </dl>
         {s?.emergency_phone && <a href={tel(s.emergency_phone)} className="mt-8 flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-red-700 font-semibold text-white"><Phone aria-hidden="true" className="size-5" />Call {s.emergency_name ?? 'emergency contact'}</a>}

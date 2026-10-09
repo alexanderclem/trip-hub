@@ -17,7 +17,7 @@ type Rows = Record<string, Record<string, unknown>[]>
 async function seed(page: Page, baseURL: string, opts: { offline: boolean; rows?: Rows }) {
   await page.route((url) => url.protocol === 'https:' && url.origin !== new URL(baseURL).origin, (route) => route.abort())
   if (opts.offline) await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ tripId, alex, sam, token, rows }) => {
     const request = indexedDB.open('trip-hub')

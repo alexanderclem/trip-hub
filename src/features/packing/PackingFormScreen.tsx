@@ -18,7 +18,7 @@ export function PackingFormScreen() {
   const item = usePackingItem(itemId)
   const back = `/t/${tripId}/more/packing`
   return <div className="min-h-full pb-24"><PageHeader title={itemId ? 'Edit item' : 'Add to packing'} back={back} />
-    {itemId && item === undefined ? <p role="status" className="p-4 text-stone-500">Loading item…</p>
+    {itemId && item === undefined ? <p role="status" className="p-4 text-stone-600">Loading item…</p>
       : (itemId && item === null) || item?.deleted_at || (item && item.trip_id !== tripId) ? <p className="p-4 text-stone-600">This item is no longer on the list.</p>
         : <PackingEditor key={itemId ?? 'new'} tripId={tripId} itemId={itemId} initial={item ?? { title: '', kind: 'everyone', category: null, owner_id: null, quantity: null, notes: null }} />}
   </div>
@@ -57,7 +57,7 @@ function PackingEditor({ tripId, itemId, initial }: { tripId: string; itemId?: s
           {KINDS.map((k) => (
             <label key={k.value} className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 ${fields.kind === k.value ? 'border-brand-700 bg-brand-50' : 'border-stone-200 bg-white'}`}>
               <input type="radio" name="kind" value={k.value} checked={fields.kind === k.value} onChange={() => setFields({ ...fields, kind: k.value })} className="size-4 accent-brand-700" />
-              <span><span className="block font-medium">{k.label}</span><span className="block text-xs text-stone-500">{k.hint}</span></span>
+              <span><span className="block font-medium">{k.label}</span><span className="block text-xs text-stone-600">{k.hint}</span></span>
             </label>
           ))}
         </fieldset>

@@ -7,7 +7,7 @@ const shots = process.env.SHOTS_DIR ?? 'test-results'
 
 test('money: what the trip costs me, from logged expenses and plan estimates', async ({ page }) => {
   await page.route('https://**/*', (route) => route.abort())
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ trip, ana, ben }) => {
     const request = indexedDB.open('trip-hub')

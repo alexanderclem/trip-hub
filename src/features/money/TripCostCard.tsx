@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { DateTime } from 'luxon'
-import { ChevronDown, Wallet } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import type { ExpenseRow, Trip } from '@/data/types'
 import { useItems } from '@/features/itinerary/data'
 import type { RateTable } from '@/lib/fx'
-import { Card } from '@/ui'
+import { Card, SectionTitle } from '@/ui'
 import { forecast } from './forecast'
 
 /** "What will this trip cost me?": spent so far plus my share of planned estimates. */
@@ -26,7 +26,7 @@ export function TripCostCard({ trip, me, memberIds, expenses, snapshot, fmt }: {
 
   return (
     <Card>
-      <h2 className="flex items-center gap-2 font-semibold"><Wallet aria-hidden="true" className="size-5 text-brand-700" />What this trip costs you</h2>
+      <SectionTitle>What this trip costs you</SectionTitle>
       <dl className="mt-3 space-y-1 text-sm">
         <div className="flex items-baseline justify-between gap-3 px-1"><dt className="text-stone-600">Spent so far</dt><dd className="font-semibold tabular-nums">{fmt(f.spentMinor)}</dd></div>
         <div className="flex items-baseline justify-between gap-3 px-1"><dt className="text-stone-600">Still planned</dt><dd className="font-semibold tabular-nums">{approx(f.plannedMinor)}</dd></div>
@@ -39,13 +39,13 @@ export function TripCostCard({ trip, me, memberIds, expenses, snapshot, fmt }: {
             <ChevronDown aria-hidden="true" className={`size-4 transition ${open ? 'rotate-180' : ''}`} />
           </button>
           {open && (
-            <ul id="planned-costs" className="divide-y divide-stone-100 text-sm">
+            <ul id="planned-costs" className="divide-y divide-stone-200 text-sm">
               {f.planned.map((p) => (
                 <li key={p.item.id}>
                   <Link to={`/t/${trip.id}/plan/${p.item.id}`} className="flex min-h-11 items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-stone-50">
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{p.item.title}</span>
-                      <span className="block text-xs text-stone-500">{DateTime.fromISO(p.item.start_at, { zone: trip.timezone }).toFormat('ccc d LLL')} · {fmt(p.totalMinor)} ÷ {p.people}</span>
+                      <span className="block text-xs text-stone-600">{DateTime.fromISO(p.item.start_at, { zone: trip.timezone }).toFormat('ccc d LLL')} · {fmt(p.totalMinor)} ÷ {p.people}</span>
                     </span>
                     <span className="font-semibold tabular-nums">{approx(p.shareMinor)}</span>
                   </Link>
@@ -60,7 +60,7 @@ export function TripCostCard({ trip, me, memberIds, expenses, snapshot, fmt }: {
           {f.missingEstimates} of your plans {f.missingEstimates > 1 ? 'have' : 'has'} no cost estimate yet. <Link to={`/t/${trip.id}/plan`} className="font-medium text-brand-700 underline">Add {f.missingEstimates > 1 ? 'them' : 'it'} on the Plan tab</Link>.
         </p>
       )}
-      <p className="mt-2 text-xs text-stone-500">Estimates come from plan items and are split among the people going. Once someone logs the expense, the real amount replaces the estimate.</p>
+      {open && <p className="mt-2 text-xs text-stone-600">Estimates come from plan items and are split among the people going. Once someone logs the expense, the real amount replaces the estimate.</p>}
     </Card>
   )
 }

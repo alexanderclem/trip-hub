@@ -79,7 +79,7 @@ export function DraftCard({ draftId, profiles, onLoad }: { draftId: string; prof
       <p className="mt-3 text-sm leading-relaxed text-stone-700">{idea.summary}</p>
       <p className="mt-3 text-sm"><strong>Why it fits:</strong> {idea.why}</p>
       {idea.tradeoffs && <p className="mt-2 text-sm text-stone-600"><strong>Tradeoffs:</strong> {idea.tradeoffs}</p>}
-      <p className="mt-3 text-sm font-medium">{idea.days.length} {idea.days.length === 1 ? 'day' : 'days'}{idea.estimatedCostMinor !== null ? ` · About ${formatMoney(idea.estimatedCostMinor, idea.currency)} per person` : ''}<span className="font-normal text-stone-500"> · Estimate, verify before booking</span></p>
+      <p className="mt-3 text-sm font-medium">{idea.days.length} {idea.days.length === 1 ? 'day' : 'days'}{idea.estimatedCostMinor !== null ? ` · About ${formatMoney(idea.estimatedCostMinor, idea.currency)} per person` : ''}<span className="font-normal text-stone-600"> · Estimate, verify before booking</span></p>
       <details className="mt-3 border-t border-stone-200">
         <summary className="min-h-11 cursor-pointer py-3 font-medium text-brand-700">Preview daily itinerary</summary>
         <ol className="space-y-4 pb-2">
@@ -89,8 +89,8 @@ export function DraftCard({ draftId, profiles, onLoad }: { draftId: string; prof
               <ul className="mt-2 space-y-2">
                 {day.activities.map((a, j) => (
                   <li key={j} className="flex gap-3 text-sm">
-                    <span className="shrink-0 tabular-nums text-stone-500">{activityTimeRange(a.time, a.durationMinutes)}</span>
-                    <div><p>{a.title}</p>{a.notes && <p className="text-xs leading-relaxed text-stone-500">{a.notes}</p>}</div>
+                    <span className="shrink-0 tabular-nums text-stone-600">{activityTimeRange(a.time, a.durationMinutes)}</span>
+                    <div><p>{a.title}</p>{a.notes && <p className="text-xs leading-relaxed text-stone-600">{a.notes}</p>}</div>
                   </li>
                 ))}
               </ul>

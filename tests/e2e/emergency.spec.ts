@@ -90,7 +90,7 @@ test('show the driver and my medical card work offline', async ({ page }) => {
   const ana = '00000000-0000-4000-8000-000000000502'
   await page.route('https://**/*', (route) => route.abort())
   await page.clock.install({ time: new Date('2027-03-14T22:00:00Z') })
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ trip, ana }) => {
     const request = indexedDB.open('trip-hub')

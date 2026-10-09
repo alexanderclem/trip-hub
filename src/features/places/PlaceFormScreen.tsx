@@ -7,7 +7,7 @@ import { save } from '@/data/repo'
 import { PLACE_CATEGORIES, PLACE_STATUSES, type Place } from '@/data/types'
 import { parseCoordinates } from '@/lib/geo'
 import { newId } from '@/lib/ids'
-import { Button, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Button, ErrorNote, Field, Input, PageHeader, Select, Textarea, Disclosure } from '@/ui'
 import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
 
 const blank = (tripId: string): Place => ({
@@ -76,7 +76,7 @@ export function PlaceFormScreen() {
   return (
     <div className="min-h-full">
       <PageHeader title={placeId ? 'Edit place' : 'Add place'} back={placeId ? `/t/${tripId}/more/places/${placeId}` : fromMap ? `/t/${tripId}/map` : `/t/${tripId}/more/places`} />
-      <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-5">
+      <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4 pb-0">
         <Field label="Name">
           <Input required maxLength={200} {...text('name')} placeholder="Café Sky" />
         </Field>
@@ -108,25 +108,29 @@ export function PlaceFormScreen() {
           }
         >
           <div className="relative">
-            <MapPinned aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-400" />
+            <MapPinned aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-500" />
             <Input value={coordsText} onChange={(e) => setCoordsText(e.target.value)} className="pl-10" placeholder="https://www.google.com/maps/place/… or 14.5586, -90.7295" />
           </div>
         </Field>
         <Field label="Notes">
           <Textarea {...text('notes')} />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Phone">
-            <Input type="tel" {...text('phone')} />
-          </Field>
-          <Field label="Website">
-            <Input type="url" {...text('website')} placeholder="https://" />
-          </Field>
+        <Disclosure summary="Phone and website" defaultOpen={!!p.phone || !!p.website}>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Phone">
+              <Input type="tel" {...text('phone')} />
+            </Field>
+            <Field label="Website">
+              <Input type="url" {...text('website')} placeholder="https://" />
+            </Field>
+          </div>
+        </Disclosure>
+        <div className="ui-form-actions">
+          <ErrorNote error={error} />
+          <Button type="submit" className="w-full" disabled={!p.name.trim()}>
+            Save
+          </Button>
         </div>
-        <ErrorNote error={error} />
-        <Button type="submit" className="w-full" disabled={!p.name.trim()}>
-          Save
-        </Button>
       </form>
     </div>
   )

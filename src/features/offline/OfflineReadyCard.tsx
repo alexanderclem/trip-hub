@@ -140,6 +140,9 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
     }
   }
 
+  if (compact && !steps && ready) {
+    return <p className="flex items-center gap-2 px-1 text-sm text-stone-600"><CheckCircle2 aria-hidden="true" className="size-4 shrink-0 text-brand-700" />Ready for offline · checked {DateTime.fromISO(lastReady!).toRelative()}</p>
+  }
   if (compact && !steps) {
     return (
       <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${ready ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
@@ -151,15 +154,15 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
               ? `${missingTickets} ticket${missingTickets > 1 ? 's' : ''} not on this phone yet`
               : 'Not checked for offline use yet'}
         </p>
-        {!ready && <Button className="min-h-9 px-3 text-sm" onClick={run}>Download all</Button>}
+        {!ready && <Button variant="secondary" className="px-3 text-sm" onClick={run}>Download all</Button>}
       </div>
     )
   }
 
   return (
     <Card>
-      <h2 className="font-semibold">Ready for offline</h2>
-      <p className="mt-1 text-sm text-stone-500">One tap puts everything on this phone (trip data, every ticket, the offline map, exchange rates and weather) so it all works in airplane mode.</p>
+      <h2 className="ui-section-title">Ready for offline</h2>
+      <p className="mt-1 text-sm text-stone-600">One tap puts everything on this phone (trip data, every ticket, the offline map, exchange rates and weather) so it all works in airplane mode.</p>
       {isIOS() && !isStandalone() && (
         <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
           First add Stowaway to your Home Screen (Share → Add to Home Screen) and open it from there. Safari can clear offline data for websites, and the Home Screen app keeps its own copy.
@@ -172,10 +175,10 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
               {s.state === 'done' ? <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-green-700" />
                 : s.state === 'running' ? <Loader2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 animate-spin text-brand-700" />
                 : s.state === 'failed' ? <XCircle aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-red-700" />
-                : <CircleDashed aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-stone-400" />}
+                : <CircleDashed aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-stone-500" />}
               <span>
                 {s.label}
-                {s.detail && <span className="block text-xs text-stone-500">{s.detail}</span>}
+                {s.detail && <span className="block text-xs text-stone-600">{s.detail}</span>}
               </span>
             </li>
           ))}
@@ -186,7 +189,7 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
           <Download aria-hidden="true" className="size-4" /> {lastReady ? 'Check again and download anything new' : 'Download everything for offline'}
         </Button>
       )}
-      <p className="mt-3 text-xs text-stone-500">
+      <p className="mt-3 text-xs text-stone-600">
         {ready ? `Ready for offline · checked ${DateTime.fromISO(lastReady!).toRelative()}` : lastReady ? `Last checked ${DateTime.fromISO(lastReady).toRelative()}` : 'Not checked yet'}
         {persisted != null && ` · storage ${persisted ? 'protected' : 'not protected yet'}`}
       </p>

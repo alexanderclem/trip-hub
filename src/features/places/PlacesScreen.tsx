@@ -48,7 +48,7 @@ export function PlacesScreen() {
       />
       <div className="mx-auto max-w-4xl space-y-4 p-4 sm:p-6">
         <div className="relative">
-          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-400" />
+          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-500" />
           <Input aria-label="Search places" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search places" className="pl-10" />
         </div>
         <div aria-label="Filter places by category" className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1">
@@ -75,7 +75,7 @@ export function PlacesScreen() {
               <option value="rating">Best rated</option>
             </select>
           </label>
-          <p role="status" className="text-xs text-stone-500">{places ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}` : 'Loading places…'}</p>
+          <p role="status" className="text-xs text-stone-600">{places ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}` : 'Loading places…'}</p>
         </div>
         {!places && <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl border border-stone-200 bg-surface p-4"><Skeleton className="h-10 w-10" /><Skeleton className="mt-4 h-5 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></div>)}</div>}
         {places && filtered.length === 0 && (
@@ -96,13 +96,13 @@ export function PlacesScreen() {
               <li key={p.id} className="flex min-w-0 flex-col rounded-2xl border border-stone-200 bg-surface">
                 <Link to={p.id} className="group flex-1 rounded-t-2xl p-4 transition-colors hover:bg-stone-50">
                   <div className="mb-4 flex items-center justify-between gap-2"><PlaceCategoryIcon category={p.category} /><span className="flex items-center gap-2"><StarsSummary summary={ratings?.get(p.id)} compact /><PlaceStatusBadge status={p.status} /></span></div>
-                  <p className="mb-1 text-xs font-medium text-stone-500">{CATEGORY_STYLE[p.category].label}</p>
-                  <h3 className="flex items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight group-hover:text-brand-700"><span className="min-w-0 break-words">{p.name}</span><ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-stone-400" /></h3>
+                  <p className="mb-1 text-xs font-medium text-stone-600">{CATEGORY_STYLE[p.category].label}</p>
+                  <h3 className="flex items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight group-hover:text-brand-700"><span className="min-w-0 break-words">{p.name}</span><ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-stone-500" /></h3>
                   {(p.area || p.address) && <p className="mt-2 flex items-start gap-1.5 text-sm text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{p.address || p.area}</span></p>}
                   {p.notes && <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-stone-600">{p.notes}</p>}
                   {!at && <p className="mt-3 text-xs text-amber-800">No map pin yet</p>}
                 </Link>
-                <div className="mx-4 flex flex-wrap gap-2 border-t border-stone-100 py-3">
+                <div className="mx-4 flex flex-wrap gap-2 border-t border-stone-200 py-3">
                   {at && <Link to={`/t/${tripId}/map?place=${encodeURIComponent(p.id)}`} className={placeActionClass}><MapPin aria-hidden="true" className="size-4" />On map</Link>}
                   <a href={googleMapsUrl(p.name, p.area, at)} target="_blank" rel="noreferrer" className={placeActionClass}><Navigation aria-hidden="true" className="size-4" />Google Maps<span className="sr-only"> (opens in a new tab)</span></a>
                 </div>

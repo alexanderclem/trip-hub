@@ -23,7 +23,7 @@ export function ActivityList({ tripId, events, members, me, since }: {
               {!author && name ? <Avatar name={name} color={null} size="sm" /> : !author ? <span aria-hidden="true" className="size-7 shrink-0 rounded-full bg-brand-100" /> : null}
               <span className="min-w-0 flex-1 text-sm break-words text-stone-800">
                 {!author && name && <span className="font-medium">{name} </span>}{e.text}
-                <span className="block text-xs text-stone-500">{ago(e.at, now)}</span>
+                <span className="block text-xs text-stone-600">{ago(e.at, now)}</span>
               </span>
               {fresh && <span className="mt-1 shrink-0 rounded-full bg-brand-700 px-2 py-0.5 text-xs font-medium text-white">New</span>}
             </Link>

@@ -53,7 +53,7 @@ test('self-serve setup: pick a destination, load its places, save its map, use i
   // ── No network: the saved map still draws ──
   await context.setOffline(true)
   await page.goto(`${tripPath}/map`)
-  await expect(page.getByText("Offline: changes will sync when you're back online"), `page errors: ${errors.join(' | ')}`).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Offline\. View sync details/ }), `page errors: ${errors.join(' | ')}`).toBeVisible()
   await page.waitForTimeout(6000) // style switch, tiles decode, glyphs
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/73-destination-map-offline.png` })
   const colours = await page.evaluate(() => {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Check, Vote } from 'lucide-react'
+import { Check } from 'lucide-react'
 import type { Place } from '@/data/types'
 import { Button, Card, Select } from '@/ui'
 import { addOption, createPoll, usePollsForPlace } from './data'
@@ -16,7 +16,7 @@ export function AddToPollCard({ place, memberId }: { place: Place; memberId: str
 
   return (
     <Card>
-      <h2 className="flex items-center gap-2 font-semibold"><Vote aria-hidden="true" className="size-5 text-brand-700" />Group vote</h2>
+      <h2 className="ui-section-title">Group vote</h2>
       {included.length > 0 && (
         <ul className="mt-2 space-y-1">
           {included.map(({ poll }) => (

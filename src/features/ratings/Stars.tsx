@@ -14,7 +14,7 @@ export function StarsInput({ value, onChange, label = 'Your rating' }: { value: 
             onClick={() => onChange(value === n ? null : n)}
             aria-pressed={value === n}
             aria-label={`${n} star${n > 1 ? 's' : ''}`}
-            className="flex size-11 items-center justify-center rounded-xl hover:bg-amber-50 active:bg-amber-100"
+            className="ui-press flex size-11 items-center justify-center rounded-xl hover:bg-amber-50 active:bg-amber-100"
           >
             <Star aria-hidden="true" className={`size-7 ${on ? 'fill-amber-400 text-amber-500' : 'text-stone-300'}`} />
           </button>
@@ -32,7 +32,7 @@ export function StarsSummary({ summary, compact = false }: { summary: RatingSumm
     <span className="inline-flex items-center gap-1 text-sm text-stone-700" aria-label={`Group rating ${text} out of 5 from ${summary.count} ${summary.count === 1 ? 'person' : 'people'}`}>
       <Star aria-hidden="true" className="size-4 fill-amber-400 text-amber-500" />
       <span className="font-medium tabular-nums">{text}</span>
-      {!compact && <span className="text-stone-500">· {summary.count}</span>}
+      {!compact && <span className="text-stone-600">· {summary.count}</span>}
     </span>
   )
 }

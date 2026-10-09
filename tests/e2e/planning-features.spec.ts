@@ -13,7 +13,7 @@ async function seed(page: Page) {
   await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false, configurable: true }))
   await page.route('https://**/*', (route) => route.abort())
   await page.clock.install({ time: new Date('2027-03-15T15:30:00Z') })
-  await page.goto('/inspire') // opens the local database, so the stores below exist
+  await page.goto('/inspire/manual') // opens the local database, so the stores below exist
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ trip, alex, sam, cafe, tour }) => {
     const request = indexedDB.open('trip-hub')

@@ -17,11 +17,11 @@ function TripCard({ trip }: { trip: Trip }) {
     <Link to={`/t/${trip.id}`} className="group block rounded-2xl border border-stone-200 bg-surface p-5 transition-colors hover:border-brand-600 active:bg-brand-50">
       <div className="flex items-start justify-between gap-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Compass aria-hidden="true" className="size-5" /></span>
-        <ArrowRight aria-hidden="true" className="mt-2 size-5 shrink-0 text-stone-500 group-hover:text-brand-700" />
+        <ArrowRight aria-hidden="true" className="mt-2 size-5 shrink-0 text-stone-600 group-hover:text-brand-700" />
       </div>
       <h3 className="mt-5 break-words text-xl font-semibold tracking-tight group-hover:text-brand-700">{trip.name}</h3>
       <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-stone-600"><CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0" />{dates}</p>
-      <div className="mt-5 border-t border-stone-100 pt-3 text-sm font-medium text-brand-700">Open trip</div>
+      <div className="mt-5 border-t border-stone-200 pt-3 text-sm font-medium text-brand-700">Open trip</div>
     </Link>
   )
 }
@@ -48,7 +48,7 @@ export function HomeScreen() {
         <section aria-labelledby="saved-trips" aria-busy={trips === undefined}>
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 id="saved-trips" className="text-sm font-semibold text-stone-700">Saved on this device</h2>
-            {trips !== undefined && <span className="text-xs tabular-nums text-stone-500">{visibleTrips.length} {visibleTrips.length === 1 ? 'trip' : 'trips'}</span>}
+            {trips !== undefined && <span className="text-xs tabular-nums text-stone-600">{visibleTrips.length} {visibleTrips.length === 1 ? 'trip' : 'trips'}</span>}
           </div>
           {trips === undefined ? (
             <div role="status">

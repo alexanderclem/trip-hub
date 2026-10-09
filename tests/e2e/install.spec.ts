@@ -80,7 +80,7 @@ test('dismissal still works when session storage is unavailable', async ({ page 
 
 test('trip settings keep destination and offline tools without the import section', async ({ page }) => {
   // This screen opens the app database before the local fixture writes its records.
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async () => {
     const tripId = '00000000-0000-4000-8000-000000000901'

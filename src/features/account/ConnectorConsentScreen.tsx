@@ -72,14 +72,14 @@ export function ConnectorConsentScreen() {
       {!validId ? <ErrorNote error="This connection request is missing or invalid. Start again from ChatGPT." />
         : account.kind === 'loading' ? <p role="status">Checking your account…</p>
         : account.kind === 'guest' ? <Card className="space-y-4">
-          <h2 className="text-lg font-semibold">Sign in to connect your trips</h2>
+          <h2 className="ui-section-title">Sign in to connect your trips</h2>
           <p className="text-sm leading-relaxed text-stone-600">Use the same account you use in Stowaway. After signing in, you can review and approve the connection.</p>
           {methods.google && <Button onClick={() => void signIn()} disabled={busy || !online} className="w-full">{busy ? 'Opening Google…' : 'Sign in with Google'}</Button>}
           {methods.email && <LinkButton to="/signin" variant={methods.google ? 'secondary' : 'primary'} className="w-full" onClick={() => rememberConnectorReturn(`/oauth/consent?authorization_id=${authorizationId}`)}>{methods.google ? 'Use email instead' : 'Sign in with email'}</LinkButton>}
           {!methods.google && !methods.email && <p className="text-sm text-stone-600">Sign-in needs to be enabled for Stowaway before you can connect.</p>}
         </Card>
         : details ? <Card className="space-y-4">
-          <h2 className="break-words text-lg font-semibold">Allow {details.client.name} to read your trips?</h2>
+          <h2 className="break-words ui-section-title">Allow {details.client.name} to read your trips?</h2>
           <p className="break-words text-sm text-stone-600">Signed in as {account.email ?? details.user.email}</p>
           <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-stone-700">
             <li>Read names, dates, timezones and currencies for trips you have joined.</li>

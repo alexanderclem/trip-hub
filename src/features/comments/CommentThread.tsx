@@ -1,6 +1,6 @@
 import { TravelerLink } from '@/features/trips/TravelerLink'
 import { useState, type FormEvent } from 'react'
-import { MessageCircle, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useMembers } from '@/data/hooks'
 import type { CommentSubject } from '@/data/types'
 import { Avatar, Button, Card, ErrorNote, Textarea } from '@/ui'
@@ -36,10 +36,7 @@ export function CommentThread({ tripId, type, subjectId, me, prompt = 'Add a com
   return (
     <Card>
       <section aria-labelledby={titleId}>
-        <h2 id={titleId} className="flex items-center gap-2 font-semibold">
-          <MessageCircle aria-hidden="true" className="size-4 text-brand-700" />
-          Comments{comments?.length ? ` (${comments.length})` : ''}
-        </h2>
+        <h2 id={titleId} className="ui-section-title">Comments{comments?.length ? ` (${comments.length})` : ''}</h2>
         {comments?.length === 0 && <p className="mt-2 text-sm text-stone-600">Nothing yet. Say what you think.</p>}
         {!!comments?.length && (
           <ul className="mt-3 space-y-4">
@@ -50,11 +47,11 @@ export function CommentThread({ tripId, type, subjectId, me, prompt = 'Add a com
                 <li key={c.id} className="flex items-start gap-3">
                   <Avatar name={name} color={author?.color ?? null} photo={author?.avatar_url} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm"><span className="font-medium">{author ? <TravelerLink member={author} you={c.member_id === me} avatar={false} /> : name}</span> <span className="text-xs text-stone-500">· {ago(c.created_at, now)}</span></p>
+                    <p className="text-sm"><span className="font-medium">{author ? <TravelerLink member={author} you={c.member_id === me} avatar={false} /> : name}</span> <span className="text-xs text-stone-600">· {ago(c.created_at, now)}</span></p>
                     <p className="mt-0.5 text-sm break-words whitespace-pre-wrap text-stone-800">{c.body}</p>
                   </div>
                   {c.member_id === me && (
-                    <button onClick={async () => { if (await confirm('Remove your comment? This can’t be undone.')) await removeComment(c, me) }} className="-my-2 flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-500 hover:bg-stone-100" aria-label={`Remove your comment: ${c.body.slice(0, 40)}`}>
+                    <button onClick={async () => { if (await confirm('Remove your comment? This can’t be undone.')) await removeComment(c, me) }} className="-my-2 flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-600 hover:bg-stone-100" aria-label={`Remove your comment: ${c.body.slice(0, 40)}`}>
                       <Trash2 aria-hidden="true" className="size-4" />
                     </button>
                   )}

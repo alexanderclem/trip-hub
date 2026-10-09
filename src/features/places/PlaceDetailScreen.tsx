@@ -8,7 +8,7 @@ import { save, softDelete } from '@/data/repo'
 import { LINK_KINDS, type Link as TripLink, type LinkKind } from '@/data/types'
 import { googleMapsUrl, tripadvisorUrl } from '@/lib/geo'
 import { newId } from '@/lib/ids'
-import { Button, Card, ErrorNote, Input, LinkButton, PageHeader, Select } from '@/ui'
+import { Button, Card, Disclosure, ErrorNote, Input, LinkButton, PageHeader, SectionTitle, Select } from '@/ui'
 import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
 import { TravelTimesCard } from '@/features/routing/TravelTimesCard'
 import { GroupRatingCard } from '@/features/ratings/GroupRatingCard'
@@ -31,7 +31,7 @@ export function PlaceDetailScreen() {
     return (
       <div>
         <PageHeader title="Deleted" back={`/t/${tripId}/more/places`} />
-        <p className="p-5 text-stone-500">This place was deleted.</p>
+        <p className="p-5 text-stone-600">This place was deleted.</p>
       </div>
     )
   }
@@ -46,23 +46,23 @@ export function PlaceDetailScreen() {
         title={place.name}
         back={`/t/${tripId}/more/places`}
         action={
-          <Link to="edit" className="flex size-10 items-center justify-center rounded-full text-brand-700 active:bg-brand-50" aria-label="Edit">
-            <Pencil className="size-5" />
+          <Link to="edit" className="ui-icon-button text-brand-700" aria-label="Edit">
+            <Pencil aria-hidden="true" className="size-5" />
           </Link>
         }
       />
       <div className="mx-auto max-w-md space-y-4 p-4">
         <div className="flex items-center gap-3">
           <span className="flex size-12 items-center justify-center rounded-full text-white" style={{ background: color }}>
-            <Icon className="size-6" />
+            <Icon aria-hidden="true" className="size-6" />
           </span>
           <div>
             <div className="font-medium">{label}{place.area && ` · ${place.area}`}</div>
-            <div className="text-sm text-stone-500">{STATUS_LABEL[place.status]}</div>
+            <div className="text-sm text-stone-600">{STATUS_LABEL[place.status]}</div>
           </div>
         </div>
 
-        {place.notes && <Card><p className="whitespace-pre-wrap">{place.notes}</p></Card>}
+        {place.notes && <p className="whitespace-pre-wrap break-words px-1 text-stone-800">{place.notes}</p>}
 
         <LinkButton to={`/t/${tripId}/plan/new?place=${place.id}`} className="w-full">
           <CalendarPlus aria-hidden="true" className="size-4" /> Add to the plan
@@ -70,39 +70,36 @@ export function PlaceDetailScreen() {
 
         {me && <GroupRatingCard place={place} memberId={me} />}
 
-        <Card className="space-y-1">
-          <h2 className="mb-2 font-semibold">Reviews &amp; directions</h2>
-          <ExtLink href={googleMapsUrl(place.name, place.area, at)} label="Open in Google Maps" />
-          <ExtLink href={tripadvisorUrl(place.name, place.area)} label="Search on TripAdvisor" />
-          {place.website && <ExtLink href={place.website} label="Website" Icon={Globe} />}
-          {place.phone && <ExtLink href={`tel:${place.phone}`} label={place.phone} Icon={Phone} />}
-          {!at && <p className="pt-1 text-sm text-amber-700">No map pin yet. Edit to add a location.</p>}
-        </Card>
-
         {at && allPlaces && legCtx && <TravelTimesCard place={place} places={allPlaces} ctx={legCtx} />}
 
         {me && <AddToPollCard place={place} memberId={me} />}
 
         <CommentThread tripId={tripId} type="place" subjectId={place.id} me={me} />
 
+        {/* Everything that leaves the app, in one place: directions, reviews, and the links the group saved. */}
         <Card>
-          <h2 className="mb-2 font-semibold">Links</h2>
-          {links.length === 0 && <p className="text-sm text-stone-500">Booking pages, menus, blog posts…</p>}
-          <ul className="space-y-1">
+          <SectionTitle>Links &amp; directions</SectionTitle>
+          <div className="mt-1">
+            <ExtLink href={googleMapsUrl(place.name, place.area, at)} label="Open in Google Maps" />
+            <ExtLink href={tripadvisorUrl(place.name, place.area)} label="Search on TripAdvisor" />
+            {place.website && <ExtLink href={place.website} label="Website" Icon={Globe} />}
+            {place.phone && <ExtLink href={`tel:${place.phone}`} label={place.phone} Icon={Phone} />}
             {links.map((l) => (
-              <li key={l.id} className="flex items-center gap-2">
-                <a href={l.url} target="_blank" rel="noreferrer" className="flex min-w-0 flex-1 items-center gap-2 rounded-lg py-2 text-brand-700 active:bg-brand-50">
-                  <ExternalLink className="size-4 shrink-0" />
+              <div key={l.id} className="flex items-center gap-2">
+                <a href={l.url} target="_blank" rel="noreferrer" className="ui-link min-w-0 flex-1">
+                  <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
                   <span className="truncate">{l.label || l.url}</span>
-                  <span className="shrink-0 rounded bg-stone-100 px-1.5 text-xs text-stone-600">{l.kind}</span>
+                  <span className="shrink-0 text-xs font-normal text-stone-600">{l.kind}</span>
+                  <span className="sr-only"> (opens in a new tab)</span>
                 </a>
-                <button onClick={() => softDelete('links', l.id, me)} className="p-2 text-stone-500" aria-label="Remove link">
-                  <Trash2 className="size-4" />
+                <button type="button" onClick={() => softDelete('links', l.id, me)} className="ui-icon-button -mr-2 text-stone-600" aria-label="Remove link">
+                  <Trash2 aria-hidden="true" className="size-4" />
                 </button>
-              </li>
+              </div>
             ))}
-          </ul>
-          <AddLink tripId={tripId} placeId={placeId} me={me} />
+          </div>
+          {!at && <p className="pt-1 text-sm text-amber-800">No map pin yet. Edit to add a location.</p>}
+          <Disclosure summary="Add a link" className="mt-1 border-t border-stone-200 pt-1"><AddLink tripId={tripId} placeId={placeId} me={me} /></Disclosure>
         </Card>
 
         <p className="text-center text-xs text-stone-600">
@@ -112,14 +109,14 @@ export function PlaceDetailScreen() {
 
         <Button
           variant="danger"
-          className="flex w-full items-center justify-center gap-2"
+          className="mx-auto flex"
           onClick={async () => {
             if (!await confirm(`Delete "${place.name}" for everyone?`)) return
             await softDelete('places', place.id, me)
             navigate(`/t/${tripId}/more/places`, { replace: true })
           }}
         >
-          <Trash2 className="size-4" /> Delete place
+          <Trash2 aria-hidden="true" className="size-4" /> Delete place
         </Button>
       </div>
     </div>
@@ -128,8 +125,8 @@ export function PlaceDetailScreen() {
 
 function ExtLink({ href, label, Icon = ExternalLink }: { href: string; label: string; Icon?: typeof ExternalLink }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg py-2 text-brand-700 active:bg-brand-50">
-      <Icon className="size-4" /> {label}
+    <a href={href} target="_blank" rel="noreferrer" className="ui-link flex">
+      <Icon aria-hidden="true" className="size-4 shrink-0" /> <span className="min-w-0 break-words">{label}</span>{!href.startsWith('tel:') && <span className="sr-only"> (opens in a new tab)</span>}
     </a>
   )
 }
@@ -152,7 +149,7 @@ function AddLink({ tripId, placeId, me }: { tripId: string; placeId: string; me:
   }
 
   return (
-    <form onSubmit={add} className="mt-3 space-y-2 border-t border-stone-100 pt-3">
+    <form onSubmit={add} className="space-y-2">
       <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" type="url" />
       <div className="flex gap-2">
         <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label (optional)" className="min-w-0 flex-1" />
@@ -162,7 +159,7 @@ function AddLink({ tripId, placeId, me }: { tripId: string; placeId: string; me:
       </div>
       <ErrorNote error={error} />
       <Button type="submit" variant="secondary" disabled={!url.trim()} className="flex w-full items-center justify-center gap-1">
-        <Plus className="size-4" /> Add link
+        <Plus aria-hidden="true" className="size-4" /> Add link
       </Button>
     </form>
   )

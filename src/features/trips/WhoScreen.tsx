@@ -66,7 +66,7 @@ export function WhoScreen() {
       </div>
 
       <Card className="mt-5">
-        <h2 className="font-semibold">{members.length ? 'Not on the list?' : 'What should we call you?'}</h2>
+        <h2 className="ui-section-title">{members.length ? 'Not on the list?' : 'What should we call you?'}</h2>
         <form
           className="mt-3 flex gap-2"
           onSubmit={(e) => {

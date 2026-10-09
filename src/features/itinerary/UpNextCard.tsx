@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { ArrowRight, MapPin, Ticket, Users } from 'lucide-react'
+import { ChevronRight, MapPin, Ticket, Users } from 'lucide-react'
 import { DateTime } from 'luxon'
 import type { ItineraryItem, Member, Place } from '@/data/types'
 import { useAttachments } from '@/features/tickets/files'
@@ -8,9 +8,10 @@ import { formatRange, MODE_LABEL, SOURCE_LABEL } from '@/features/routing/legs'
 import { formatInZone } from '@/lib/time'
 import { nextItem, type Transfer } from './travel'
 
-export function UpNextCard({ tripId, items, places, members, me, zone, transfers }: {
+/** The next thing on this person's plan. `withinHours` shows it only once it is that close (the Plan tab), since Home always has it. */
+export function UpNextCard({ tripId, items, places, members, me, zone, transfers, withinHours }: {
   tripId: string; items: ItineraryItem[]; places: Place[]; members: Member[]
-  me: string | null; zone: string; transfers: Transfer[]
+  me: string | null; zone: string; transfers: Transfer[]; withinHours?: number
 }) {
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
@@ -21,7 +22,7 @@ export function UpNextCard({ tripId, items, places, members, me, zone, transfers
   }, [])
   const attachments = useAttachments(tripId)
   const item = nextItem(items, me, now)
-  if (!item) return null
+  if (!item || (withinHours != null && Date.parse(item.start_at) - now > withinHours * 3_600_000)) return null
   const place = places.find((p) => p.id === item.place_id)
   const transfer = transfers.find((t) => t.to.id === item.id && (me ? t.memberIds.includes(me) : true))
   const ticket = attachments?.find((t) => t.att.item_id === item.id)
@@ -29,13 +30,13 @@ export function UpNextCard({ tripId, items, places, members, me, zone, transfers
   const date = DateTime.fromISO(item.start_at).setZone(zone)
   const going = item.attendee_ids === null ? 'Everyone' : item.attendee_ids.map((id) => members.find((m) => m.id === id)?.display_name ?? 'Trip member').join(', ')
   return (
-    <section aria-labelledby="up-next-title" className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
+    <section aria-labelledby="up-next-title" className="rounded-2xl bg-brand-50 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-brand-900">
         <h2 id="up-next-title" className="font-semibold">Up next for you</h2>
         <span>{date.toISODate() === today ? 'Today' : date.toFormat('ccc, d LLL')} · {date.toFormat('HH:mm')}</span>
       </div>
       <Link to={`/t/${tripId}/plan/${item.id}`} className="mt-1 flex min-h-11 items-center justify-between gap-3 text-lg font-semibold text-brand-900 hover:underline">
-        <span className="min-w-0 break-words">{item.title}</span><ArrowRight aria-hidden="true" className="size-5 shrink-0" />
+        <span className="min-w-0 break-words">{item.title}</span><ChevronRight aria-hidden="true" className="size-5 shrink-0" />
       </Link>
       {item.status !== 'confirmed' && <p className="text-sm text-stone-600">{item.status === 'idea' ? 'Idea — not confirmed' : 'Tentative'}</p>}
       <p className="mt-1 flex items-start gap-2 text-sm text-stone-700"><Users aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="break-words">{going}</span></p>
@@ -48,8 +49,8 @@ export function UpNextCard({ tripId, items, places, members, me, zone, transfers
       )}
       {!transfer && <p className="mt-2 text-sm text-stone-600">{place ? `At ${place.name}. Departure time needs a previous stop with travel information.` : 'Add a place to this plan for travel guidance.'}</p>}
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-        {place && <Link to={`/t/${tripId}/map?place=${place.id}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand-900 hover:underline"><MapPin aria-hidden="true" className="size-4" />View on map</Link>}
-        {ticket && <Link to={`/t/${tripId}/tickets/${ticket.att.id}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand-900 hover:underline"><Ticket aria-hidden="true" className="size-4" />Open ticket</Link>}
+        {place && <Link to={`/t/${tripId}/map?place=${place.id}`} className="ui-link"><MapPin aria-hidden="true" className="size-4" />View on map</Link>}
+        {ticket && <Link to={`/t/${tripId}/tickets/${ticket.att.id}`} className="ui-link"><Ticket aria-hidden="true" className="size-4" />Open ticket</Link>}
       </div>
     </section>
   )

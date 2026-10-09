@@ -24,9 +24,14 @@ const nothing = { action: 'none', title: null, date: null, time: null, durationM
 const assistReply = (text: string) => /task/i.test(text)
   ? { ...nothing, reply: 'I can add that for Sam. Shall I?', action: 'task', title: 'Book the shuttle', assignee: 'sam' }
   : { ...nothing, reply: 'Nothing is on the plan yet.' }
+/** Trip ideas live under More. Going by links (not a fresh load) keeps the routes loaded for offline steps. */
+async function openIdeas(page: Page) {
+  await page.getByRole('navigation', { name: 'Trip navigation' }).filter({ visible: true }).getByRole('link', { name: 'More', exact: true }).click()
+  await page.getByRole('link', { name: 'Trip ideas & travel preferences' }).click()
+}
 /** The hand editor sits behind Stowie's chat; getting there by links keeps both routes loaded for offline steps. */
 async function openEditor(page: Page) {
-  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  await openIdeas(page)
   await page.getByRole('link', { name: 'Edit by hand' }).click()
   await page.waitForURL(/\/more\/ideas\/manual$/)
 }
@@ -127,7 +132,7 @@ test('preferences become a radar profile, generate ideas, filter, refine and sur
   await page.getByLabel('Starts', { exact: true }).fill('2027-03-14')
   await page.getByRole('button', { name: 'Create trip', exact: true }).click()
   await page.waitForURL(/\/plan$/)
-  await expect(page.getByRole('link', { name: 'Visit the food market', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: /^Visit the food market, / })).toBeVisible()
 })
 
 test('a failed score suggestion shows feedback beside the button and can be retried', async ({ page }) => {
@@ -177,7 +182,7 @@ test('group radar excludes missing profiles, updates membership and applies and 
   await expect(page.getByText(/Added 1 tentative items/)).toBeVisible()
   await page.getByRole('link', { name: 'Open plan' }).click()
   await page.waitForURL(/\/plan$/)
-  await expect(page.getByRole('link', { name: 'Visit the food market', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: /^Visit the food market, / })).toBeVisible()
   await openEditor(page)
   await context.setOffline(false)
   await page.locator('section').filter({ has: page.getByRole('heading', { name: result.ideas[0]!.title }) }).last().getByRole('button', { name: 'Refine this idea' }).click()
@@ -190,7 +195,7 @@ test('group radar excludes missing profiles, updates membership and applies and 
   await expect(page.getByText(/Added 1 tentative items/)).toBeVisible()
   await page.getByRole('link', { name: 'Open plan' }).click()
   await page.waitForURL(/\/plan$/)
-  await expect(page.getByRole('link', { name: 'A slower food market morning', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: /^A slower food market morning, / })).toBeVisible()
   await expect(page.getByText('Visit the food market', { exact: true })).toHaveCount(0)
   await openEditor(page)
   await context.setOffline(true)
@@ -234,7 +239,7 @@ test('an overlapping draft explains the empty plan and can be refined and added'
   await page.locator('section').filter({ has: page.getByRole('heading', { name: result.ideas[0]!.title }) }).last().getByRole('button', { name: 'Add draft to plan' }).click()
   await expect(page.getByText(/Added 1 tentative items/)).toBeVisible()
   await page.getByRole('link', { name: 'Open plan' }).click()
-  await expect(page.getByRole('link', { name: 'A slower food market morning', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: /^A slower food market morning, / })).toBeVisible()
 })
 
 const SHOTS = process.env.SHOTS_DIR
@@ -288,7 +293,7 @@ test('Stowie adds a saved draft to the trip offline, and says so when it cannot 
   await seedTrip(page, result)
   // Load the plan and chat routes before going offline.
   await page.goto(`/t/${TRIP}/plan`)
-  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  await openIdeas(page)
   const log = page.getByRole('log', { name: 'Conversation with Stowie' })
   await expect(log.getByText(/I have travel styles for 2 of you/)).toBeVisible()
   await context.setOffline(true)
@@ -302,8 +307,8 @@ test('Stowie adds a saved draft to the trip offline, and says so when it cannot 
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-4-applied.png` })
   await page.getByRole('button', { name: 'Open the plan' }).click()
   await page.waitForURL(/\/plan$/)
-  await expect(page.getByRole('link', { name: 'Visit the food market', exact: true })).toBeVisible()
-  await page.getByRole('link', { name: 'Explore trip ideas' }).click()
+  await expect(page.getByRole('link', { name: /^Visit the food market, / })).toBeVisible()
+  await openIdeas(page)
   await page.getByRole('button', { name: 'Undo that' }).click()
   await expect(log.getByText(/Removed 3 generated entries/)).toBeVisible()
 })

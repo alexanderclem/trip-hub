@@ -42,7 +42,7 @@ test('offline: download the map pack, cut the network, reload — app, data and 
   await context.setOffline(true)
   await page.goto(`${tripPath}/map?place=${placeId}`)
 
-  await expect(page.getByText("Offline: changes will sync when you're back online")).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Offline\. View sync details/ })).toBeVisible()
   await expect(page.getByText('Offline map', { exact: true })).toBeVisible({ timeout: 20_000 })
   await expect(page.getByRole('heading', { name: '12 Onzas' })).toBeVisible()
   // The local edit survives the offline reload (status badge on the place card).

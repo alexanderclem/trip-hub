@@ -46,7 +46,7 @@ export function ConnectedAppsScreen() {
     {account.kind === 'guest' ? <p className="text-sm text-stone-600">Sign in from your trips page to manage connected apps.</p>
       : !online ? <p role="status">Connect to the internet to manage apps.</p>
       : grants ? grants.length ? grants.map((grant) => <Card key={grant.client.id} className="space-y-3">
-        <h2 className="break-words text-lg font-semibold">{grant.client.name}</h2>
+        <h2 className="break-words ui-section-title">{grant.client.name}</h2>
         <p className="text-sm text-stone-600">Disconnecting stops this app from refreshing its access. Existing access expires within five minutes. It does not remove information already shared.</p>
         <Button variant="danger" disabled={busy !== null} onClick={() => void disconnect(grant.client.id)}>{busy === grant.client.id ? 'Disconnecting…' : 'Disconnect'}</Button>
       </Card>) : <p role="status" className="text-sm text-stone-600">You have no connected apps.</p>

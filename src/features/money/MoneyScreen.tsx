@@ -11,7 +11,7 @@ import { PAYMENT_METHODS, type Member, type SettlementRow } from '@/data/types'
 import { convertMinor, FX_ATTRIBUTION, rateFor } from '@/lib/fx'
 import { newId } from '@/lib/ids'
 import { balances, computeShares, formatMoney, minorUnits, simplifyDebts, toBaseMinor, type Transfer } from '@/lib/money'
-import { Avatar, Button, Card, ErrorNote, Input, LinkButton, Select } from '@/ui'
+import { Avatar, Button, Card, Disclosure, ErrorNote, Fab, Input, LinkButton, PageHeader, SectionTitle, Segmented, Select } from '@/ui'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { parseMinor } from './build'
 import { deleteSettlement, saveSettlement, useFxRefresh, useMoney } from './data'
@@ -51,33 +51,15 @@ export function MoneyScreen() {
   }, [money])
 
   if (!trip || !money) return <LoadingState fullScreen title="Loading shared expenses…" />
+  const empty = money.expenses.length === 0 && money.settlements.length === 0
+  const scan = `/t/${tripId}/tickets/new?kind=receipt&expense=1`
 
   return (
     <div className="min-h-full pb-28">
-      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas/95 backdrop-blur">
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-stone-600">{trip?.name}</p>
-            <h1 className="ui-page-title">Money</h1>
-          </div>
-          {local && local !== base && (
-            <div role="radiogroup" aria-label="Show amounts in" className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1 text-sm">
-              {([['base', base], ['local', `≈ ${local}`]] as const).map(([v, label]) => (
-                <button key={v} role="radio" aria-checked={(v === 'local') === showLocal} onClick={() => setMoneyView(v)}
-                  className={`min-h-9 rounded-lg px-3 ${(v === 'local') === showLocal ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </header>
+      <PageHeader title="Money" back={`/t/${tripId}/more`} />
 
-      <div className="mx-auto max-w-lg space-y-4 p-4 lg:max-w-4xl lg:p-6">
-        {trip && me && money && (
-          <TripCostCard trip={trip} me={me} memberIds={members.map((m) => m.id)} expenses={money.expenses} snapshot={money.snapshot} fmt={(v) => fmt(v)} />
-        )}
-        {money && money.expenses.length === 0 && money.settlements.length === 0 ? (
+      <div className="mx-auto max-w-lg space-y-6 p-4 lg:p-6">
+        {empty ? (
           <Empty>
             <Stowie size={64} />
             <EmptyHeader>
@@ -86,36 +68,40 @@ export function MoneyScreen() {
             </EmptyHeader>
             <div className="flex flex-wrap justify-center gap-2">
               <LinkButton to="new"><Plus aria-hidden="true" className="size-4" />Add an expense</LinkButton>
-              <LinkButton to={`/t/${tripId}/tickets/new?kind=receipt&expense=1`} variant="secondary"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</LinkButton>
+              <LinkButton to={scan} variant="secondary"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</LinkButton>
             </div>
           </Empty>
         ) : (
           <>
-            <Card>
-              <p className="text-sm text-stone-500">Your balance</p>
-              <p className={`mt-1 text-3xl font-semibold tabular-nums ${mine > 0 ? 'text-green-700' : mine < 0 ? 'text-red-700' : 'text-stone-900'}`}>
+            {/* The one number people open this screen for, without a box around it. */}
+            <section aria-label="Your balance" className="px-1">
+              <div className="flex min-h-11 items-center justify-between gap-3">
+                <p className="ui-label">Your balance</p>
+                {local && local !== base && <Segmented label="Show amounts in" value={showLocal ? 'local' : 'base'} onChange={setMoneyView} options={[{ value: 'base', label: base }, { value: 'local', label: `≈ ${local}` }]} />}
+              </div>
+              <p className={`text-3xl font-semibold tabular-nums ${mine > 0 ? 'text-green-700' : mine < 0 ? 'text-red-700' : 'text-brand-900'}`}>
                 {mine === 0 ? 'All settled' : `${mine > 0 ? "You're owed" : 'You owe'} ${fmt(Math.abs(mine))}`}
               </p>
-              <p className="mt-1 text-sm text-stone-500">Group spending so far: {fmt(total)}</p>
-            </Card>
+              <p className="mt-1 text-sm text-stone-600">Group spending so far: {fmt(total)}</p>
+            </section>
 
             <Card>
-              <h2 className="flex items-center gap-2 font-semibold"><HandCoins aria-hidden="true" className="size-5 text-brand-700" />Settle up</h2>
+              <SectionTitle>Settle up</SectionTitle>
               {transfers.length === 0 ? (
                 <p className="mt-2 flex items-center gap-2 text-sm text-green-800"><Check aria-hidden="true" className="size-4" />Everyone is square.</p>
               ) : (
-                <ul className="mt-3 space-y-2">
+                <ul className="mt-2 divide-y divide-stone-200">
                   {transfers.map((t) => (
-                    <li key={`${t.from}-${t.to}`}>
+                    <li key={`${t.from}-${t.to}`} className="py-2">
                       <div className="flex items-center gap-2">
                         <Avatar name={name(t.from)} color={memberOf(t.from)?.color ?? null} photo={memberOf(t.from)?.avatar_url} size="sm" />
                         <span className="min-w-0 flex-1 text-sm">
                           <Link to={`/t/${tripId}/travelers/${t.from}`} className="font-semibold text-brand-700 underline">{t.from === me ? 'You' : name(t.from)}</Link> pay{t.from === me ? '' : 's'} <Link to={`/t/${tripId}/travelers/${t.to}`} className="font-semibold text-brand-700 underline">{t.to === me ? 'you' : name(t.to)}</Link>
                         </span>
                         <span className="font-semibold tabular-nums">{fmt(t.amount_minor)}</span>
-                        <Button variant="secondary" className="min-h-9 px-3 text-sm" onClick={() => setRecording(t)} aria-label={`Record ${name(t.from)} paying ${name(t.to)}`}>Record</Button>
+                        <Button variant="secondary" className="px-3 text-sm" onClick={() => setRecording(t)} aria-label={`Record ${name(t.from)} paying ${name(t.to)}`}>Record</Button>
                       </div>
-                      {memberOf(t.to)?.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(memberOf(t.to)!.venmo_username!)}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Pay {name(t.to)} on Venmo</a>}
+                      {memberOf(t.to)?.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(memberOf(t.to)!.venmo_username!)}`} target="_blank" rel="noopener noreferrer" className="ui-link">Pay {name(t.to)} on Venmo<span className="sr-only"> (opens in a new tab)</span></a>}
                       {recording === t && trip && (
                         <RecordPayment transfer={t} base={base} local={local} snapshot={money?.snapshot ?? null} me={me} tripId={tripId} onDone={() => setRecording(null)} />
                       )}
@@ -123,58 +109,63 @@ export function MoneyScreen() {
                   ))}
                 </ul>
               )}
-              <p className="mt-3 text-xs text-stone-500">The fewest payments that clear everyone's balance.</p>
+              <Disclosure summary="Everyone’s balances" className="mt-1 border-t border-stone-200 pt-1">
+                <ul className="space-y-2 pb-1">
+                  {members.map((m) => <BalanceRow key={m.id} member={m} value={net.get(m.id) ?? 0} max={Math.max(1, ...[...net.values()].map(Math.abs))} fmt={fmt} you={m.id === me} />)}
+                </ul>
+                <p className="mt-2 text-xs text-stone-600">Settle up suggests the fewest payments that clear everyone's balance.</p>
+              </Disclosure>
             </Card>
-
-            <Card>
-              <h2 className="mb-3 font-semibold">Balances</h2>
-              <ul className="space-y-2">
-                {members.map((m) => <BalanceRow key={m.id} member={m} value={net.get(m.id) ?? 0} max={Math.max(1, ...[...net.values()].map(Math.abs))} fmt={fmt} you={m.id === me} />)}
-              </ul>
-            </Card>
-
-            <section aria-label="History" className="space-y-4">
-              {history.map(([day, rows]) => (
-                <div key={day}>
-                  <h3 className="ui-label mb-2">{DateTime.fromISO(day).toFormat('cccc d LLLL')}</h3>
-                  <ul className="divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200 bg-surface">
-                    {rows.map((r) =>
-                      r.kind === 'expense' ? (
-                        <li key={r.e.id}>
-                          <Link to={r.e.id} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-stone-50">
-                            <Receipt aria-hidden="true" className="size-5 shrink-0 text-stone-400" />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate font-medium">{r.e.description}</p>
-                              <p className="truncate text-xs text-stone-500">
-                                {r.e.payers.map((p) => (p.member_id === me ? 'You' : name(p.member_id))).join(' & ')} paid
-                                {me && computeShares(r.e).get(me)?.owed ? ` · your share ${fmt(computeShares(r.e).get(me)!.owed)}` : ''}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold tabular-nums">{formatMoney(r.e.amount_minor, r.e.currency)}</p>
-                              {r.e.currency !== base && <p className="text-xs text-stone-500 tabular-nums">≈ {formatMoney(r.e.base_amount_minor, base)}</p>}
-                            </div>
-                          </Link>
-                        </li>
-                      ) : (
-                        <li key={r.s.id} className="flex min-h-14 items-center gap-3 px-4 py-3">
-                          <HandCoins aria-hidden="true" className="size-5 shrink-0 text-green-700" />
-                          <p className="min-w-0 flex-1 text-sm">
-                            <b>{r.s.from_member_id === me ? 'You' : name(r.s.from_member_id)}</b> paid <b>{r.s.to_member_id === me ? 'you' : name(r.s.to_member_id)}</b>
-                            <span className="text-stone-500"> · {r.s.method}</span>
-                          </p>
-                          <span className="font-semibold tabular-nums">{formatMoney(r.s.amount_minor, r.s.currency)}</span>
-                          <button onClick={async () => { if (await confirm('Undo this payment?')) await deleteSettlement(r.s.id, me) }} aria-label="Undo payment" className="flex size-11 items-center justify-center rounded-xl text-stone-500 hover:bg-stone-100">
-                            <Undo2 aria-hidden="true" className="size-4" />
-                          </button>
-                        </li>
-                      ),
-                    )}
-                  </ul>
-                </div>
-              ))}
-            </section>
           </>
+        )}
+
+        {trip && me && money && (
+          <TripCostCard trip={trip} me={me} memberIds={members.map((m) => m.id)} expenses={money.expenses} snapshot={money.snapshot} fmt={(v) => fmt(v)} />
+        )}
+
+        {!empty && (
+          <section aria-label="History" className="space-y-4">
+            {history.map(([day, rows]) => (
+              <div key={day}>
+                <h3 className="ui-label mb-2 px-1">{DateTime.fromISO(day).toFormat('cccc d LLLL')}</h3>
+                <ul className="ui-row-group">
+                  {rows.map((r) =>
+                    r.kind === 'expense' ? (
+                      <li key={r.e.id}>
+                        <Link to={r.e.id} className="ui-row">
+                          <Receipt aria-hidden="true" className="size-5 shrink-0 text-stone-600" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-brand-900">{r.e.description}</p>
+                            <p className="truncate text-sm text-stone-600">
+                              {r.e.payers.map((p) => (p.member_id === me ? 'You' : name(p.member_id))).join(' & ')} paid
+                              {me && computeShares(r.e).get(me)?.owed ? ` · your share ${fmt(computeShares(r.e).get(me)!.owed)}` : ''}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold tabular-nums">{formatMoney(r.e.amount_minor, r.e.currency)}</p>
+                            {r.e.currency !== base && <p className="text-xs text-stone-600 tabular-nums">≈ {formatMoney(r.e.base_amount_minor, base)}</p>}
+                          </div>
+                        </Link>
+                      </li>
+                    ) : (
+                      <li key={r.s.id} className="ui-row">
+                        <HandCoins aria-hidden="true" className="size-5 shrink-0 text-green-700" />
+                        <p className="min-w-0 flex-1 text-sm">
+                          <b>{r.s.from_member_id === me ? 'You' : name(r.s.from_member_id)}</b> paid <b>{r.s.to_member_id === me ? 'you' : name(r.s.to_member_id)}</b>
+                          <span className="text-stone-600"> · {r.s.method}</span>
+                        </p>
+                        <span className="font-semibold tabular-nums">{formatMoney(r.s.amount_minor, r.s.currency)}</span>
+                        <button type="button" onClick={async () => { if (await confirm('Undo this payment?')) await deleteSettlement(r.s.id, me) }} aria-label="Undo payment" className="ui-icon-button -mr-2 text-stone-600">
+                          <Undo2 aria-hidden="true" className="size-4" />
+                        </button>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            ))}
+            <Link to={scan} className="ui-link px-1"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</Link>
+          </section>
         )}
 
         <p className="pt-2 text-center text-xs text-stone-600">
@@ -183,12 +174,7 @@ export function MoneyScreen() {
         </p>
       </div>
 
-      <Link to={`/t/${tripId}/tickets/new?kind=receipt&expense=1`} aria-label="Scan a receipt" className="fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+9.5rem)] z-20 flex size-12 items-center justify-center rounded-2xl border border-stone-200 bg-surface text-brand-700 shadow-md hover:bg-stone-50">
-        <ScanLine aria-hidden="true" className="size-6" />
-      </Link>
-      <Link to="new" aria-label="Add expense" className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-20 flex size-14 items-center justify-center rounded-2xl bg-brand-700 text-white shadow-lg hover:bg-brand-900">
-        <Plus aria-hidden="true" className="size-7" />
-      </Link>
+      {!empty && <Fab to="new" label="Add expense" />}
     </div>
   )
 }
@@ -201,7 +187,7 @@ function BalanceRow({ member, value, max, fmt, you }: { member: Member; value: n
       <div className="relative h-2 flex-1 rounded-full bg-stone-100" aria-hidden="true">
         <div className={`absolute top-0 h-2 rounded-full ${value >= 0 ? 'left-1/2 bg-green-500' : 'right-1/2 bg-red-400'}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className={`w-24 shrink-0 text-right text-sm font-medium tabular-nums ${value > 0 ? 'text-green-700' : value < 0 ? 'text-red-700' : 'text-stone-500'}`}>
+      <span className={`w-24 shrink-0 text-right text-sm font-medium tabular-nums ${value > 0 ? 'text-green-700' : value < 0 ? 'text-red-700' : 'text-stone-600'}`}>
         {value === 0 ? 'settled' : fmt(value, { signed: true })}
       </span>
     </li>
@@ -251,7 +237,7 @@ function RecordPayment({ transfer, base, local, snapshot, me, tripId, onDone }: 
           {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
         </Select>
       </div>
-      {currency !== base && rate && <p className="text-xs text-stone-500">Converted at 1 {base} = {rate.rate.toFixed(2)} {currency}{rate.source === 'fallback' ? ' (approximate)' : ''}</p>}
+      {currency !== base && rate && <p className="text-xs text-stone-600">Converted at 1 {base} = {rate.rate.toFixed(2)} {currency}{rate.source === 'fallback' ? ' (approximate)' : ''}</p>}
       <ErrorNote error={error} />
       <div className="flex gap-2">
         <Button type="submit" className="flex-1"><ArrowRight aria-hidden="true" className="size-4" />Mark as paid</Button>

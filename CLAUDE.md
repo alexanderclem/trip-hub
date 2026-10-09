@@ -213,6 +213,8 @@ name "travel app" and runs every spec.
   - Icons get `aria-hidden`; sheets are labelled `role="dialog"`; external links get an
     sr-only "(opens in a new tab)".
   - Use the existing brand (teal) and stone tokens in `src/styles/index.css`.
+  - Follow "Keeping screens uncluttered" in `docs/UI_COMPONENTS.md`: one header, one filled button, one
+    floating add button, no link that repeats a tab. Tabs are Home · Plan · Map · Vote · More.
 - **Verify UI with Playwright screenshots** (`SHOTS_DIR=<scratchpad>`), not just assertions.
   A blank map once passed every assertion.
 

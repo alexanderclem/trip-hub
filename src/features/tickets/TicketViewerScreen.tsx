@@ -45,7 +45,7 @@ export function TicketViewerScreen() {
     return (
       <div>
         <PageHeader title="Ticket" back={`/t/${tripId}/tickets`} />
-        {att?.deleted_at && <p className="p-5 text-stone-500">This ticket was removed.</p>}
+        {att?.deleted_at && <p className="p-5 text-stone-600">This ticket was removed.</p>}
       </div>
     )
   }

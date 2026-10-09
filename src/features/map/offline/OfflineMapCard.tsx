@@ -53,8 +53,8 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
 
   return (
     <Card>
-      <h2 className="font-semibold">Offline map</h2>
-      <p className="mt-1 text-sm text-stone-500">{pack.label}. Works with no signal at all.</p>
+      <h2 className="ui-section-title">Offline map</h2>
+      <p className="mt-1 text-sm text-stone-600">{pack.label}. Works with no signal at all.</p>
 
       {isIOS() && !isStandalone() && (
         <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
@@ -88,7 +88,7 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 text-xs text-stone-600">
               Auto uses the online map (more detail everywhere) and switches to the offline one when you lose signal. Use
               Offline to save roaming data.
             </p>
@@ -112,7 +112,7 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
               <div className="h-2 overflow-hidden rounded-full bg-stone-200">
                 <div className="h-full bg-brand-600 transition-[width]" style={{ width: `${Math.round((progress / total) * 100)}%` }} />
               </div>
-              <p className="mt-1 text-xs text-stone-500">
+              <p className="mt-1 text-xs text-stone-600">
                 {mb(progress)} of {mb(total)}
               </p>
             </div>
@@ -127,7 +127,7 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
         <ErrorNote error={error} />
       </div>
       {storage && (
-        <p className="mt-3 text-xs text-stone-400">
+        <p className="mt-3 text-xs text-stone-500">
           Storage protected from clean-up: {storage.persisted ? 'yes' : storage.persisted === false ? 'no' : 'unknown'}
           {storage.usage != null && ` · this app uses ${mb(storage.usage)}`}
         </p>

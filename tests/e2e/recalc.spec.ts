@@ -9,6 +9,7 @@ test('travel times: recalculate shows progress and the result in the card', asyn
   await page.getByRole('button', { name: 'Create trip' }).click()
   await page.waitForURL(/\/more\/settings$/)
 
+  await page.getByText('Advanced', { exact: true }).click()
   const card = page.locator('section, div').filter({ has: page.getByRole('heading', { name: 'Travel times' }) }).last()
   await card.getByRole('button', { name: /Recalculate now/ }).click()
   await expect(card.getByRole('status')).toContainText(/Calculated \d+ travel times/, { timeout: 60_000 })

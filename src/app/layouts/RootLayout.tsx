@@ -15,6 +15,7 @@ export function RootLayout() {
   const { pathname, hash } = useLocation()
   const navigation = useNavigation()
   const reducedMotion = useMotionPreference()
+  const inTrip = pathname.startsWith('/t/') && !pathname.endsWith('/who')
 
   useEffect(() => {
     if (!['/', '/privacy', '/terms'].includes(pathname)) prepareOfflineApp()
@@ -33,7 +34,8 @@ export function RootLayout() {
   }, [pathname, hash])
   return (
     <ConfirmProvider><div className="flex h-full flex-col">
-      {!online && (
+      {/* Inside a trip the screen header's sync button says this, in the same place every time. */}
+      {!online && !inTrip && (
         <div className="pt-safe bg-amber-100 px-4 py-1.5 text-center text-sm text-amber-900">
           Offline: changes will sync when you're back online
         </div>

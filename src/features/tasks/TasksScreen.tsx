@@ -38,13 +38,13 @@ export function TasksScreen() {
     const assignedMember = members?.find((m) => m.id === task.assignee_id)
     const owner = task.assignee_id ? assignedMember?.display_name ?? 'Former member' : 'Unassigned'
     return (
-      <li key={task.id} className="flex items-start gap-1 border-b border-stone-100 py-2 last:border-0">
+      <li key={task.id} className="flex items-start gap-1 border-b border-stone-200 py-2 last:border-0">
         <label className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl hover:bg-stone-50">
-          <input type="checkbox" checked={task.completed} disabled={pending.includes(task.id)} onChange={() => void toggle(task)} aria-label={`Mark ${task.title} ${task.completed ? 'incomplete' : 'complete'}`} className="size-5 accent-brand-700" />
+          <input type="checkbox" checked={task.completed} disabled={pending.includes(task.id)} onChange={() => void toggle(task)} aria-label={`Mark ${task.title} ${task.completed ? 'incomplete' : 'complete'}`} className="ui-check" />
         </label>
         <div className="min-w-0 flex-1"><Link to={`/t/${tripId}/more/tasks/${task.id}`} className="block min-h-11 min-w-0 rounded-xl px-2 py-2 hover:bg-stone-50">
-          <p className={`break-words font-medium ${task.completed ? 'text-stone-500 line-through' : 'text-stone-900'}`}>{task.title}</p>
-          {task.due_date && <p className={`mt-1 text-xs ${overdue ? 'font-medium text-red-700' : 'text-stone-500'}`}>{overdue ? 'Overdue · ' : task.due_date === today ? 'Due today · ' : 'Due '}{DateTime.fromISO(task.due_date).toFormat('d LLL yyyy')}</p>}
+          <p className={`break-words font-medium ${task.completed ? 'text-stone-600 line-through' : 'text-stone-900'}`}>{task.title}</p>
+          {task.due_date && <p className={`mt-1 text-xs ${overdue ? 'font-medium text-red-700' : 'text-stone-600'}`}>{overdue ? 'Overdue · ' : task.due_date === today ? 'Due today · ' : 'Due '}{DateTime.fromISO(task.due_date).toFormat('d LLL yyyy')}</p>}
         </Link><div className="px-2 text-sm">{assignedMember ? <TravelerLink member={assignedMember} avatar={false} you={task.assignee_id === me} /> : owner}</div></div>
       </li>
     )

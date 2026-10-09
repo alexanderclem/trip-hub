@@ -31,7 +31,7 @@ export function ProfileEditor({ initial, onSave }: { initial: Profile | null; on
     <ErrorNote error={error} />
     <p role="status" className="text-sm leading-relaxed text-brand-900">{busy === 'infer' ? 'Reading your description and updating the chart…' : message}</p>
     <div className="grid items-start gap-5 md:grid-cols-2">
-      <div><RadarChart scores={profile.scores} /><p className="mt-2 text-center font-medium text-brand-900">{classify(profile.scores)}</p><p className="mt-1 text-center text-xs text-stone-500">A description of your interests, yours to change.</p></div>
+      <div><RadarChart scores={profile.scores} /><p className="mt-2 text-center font-medium text-brand-900">{classify(profile.scores)}</p><p className="mt-1 text-center text-xs text-stone-600">A description of your interests, yours to change.</p></div>
       <div className="space-y-2">{AXES.map(({ key, label, hint }) => <label key={key} className="block rounded-xl border border-stone-200 px-3 py-2">
         <span className="flex justify-between gap-3 text-sm font-medium"><span>{label}{key === 'budget' ? ' consciousness' : ''}</span><output className="tabular-nums text-brand-700">{profile.scores[key]}</output></span>
         <span className="block text-xs text-stone-600">{hint}</span>

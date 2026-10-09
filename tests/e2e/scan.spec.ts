@@ -23,7 +23,7 @@ test('scan a receipt: text read on the phone, details pulled out, logged as an e
     return route.abort()
   })
 
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ trip, ana }) => {
     const request = indexedDB.open('trip-hub')

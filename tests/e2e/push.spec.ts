@@ -8,7 +8,7 @@ const shots = process.env.SHOTS_DIR ?? 'test-results'
 
 async function seed(page: Page) {
   await page.route('https://**/*', (route) => route.abort())
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ trip, alex }) => {
     const request = indexedDB.open('trip-hub')

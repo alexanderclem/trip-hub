@@ -48,7 +48,7 @@ export function AttachmentText({ att, blob }: { att: Attachment; blob: Blob | nu
   return (
     <section aria-label="Text" className="space-y-2 rounded-2xl border border-stone-200 bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 font-semibold"><ScanText aria-hidden="true" className="size-4 text-brand-700" />Text</h2>
+        <h2 className="ui-section-title flex items-center gap-2"><ScanText aria-hidden="true" className="size-4 text-brand-700" />Text</h2>
         {text && editing === null && (
           <div className="flex gap-1">
             <button onClick={() => { void navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }) }} className="inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">
@@ -96,7 +96,7 @@ export function AttachmentText({ att, blob }: { att: Attachment; blob: Blob | nu
           <Sparkles aria-hidden="true" className="size-4" />{busy === 'details' ? 'Reading details…' : d ? 'Pull out details again' : 'Pull out details'}
         </Button>
       )}
-      {!online && editing === null && <p className="text-xs text-stone-500">Pulling out details needs signal.</p>}
+      {!online && editing === null && <p className="text-xs text-stone-600">Pulling out details needs signal.</p>}
       {att.kind === 'receipt' && !att.expense_id && (
         <LinkButton to={`/t/${att.trip_id}/money/new?receipt=${att.id}`} className="w-full">
           <Wallet aria-hidden="true" className="size-4" />Log as an expense

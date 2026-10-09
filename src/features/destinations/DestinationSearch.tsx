@@ -51,9 +51,9 @@ export function DestinationSearch({ onPick, placeholder = 'Search for a town or 
       {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
       {results && (
         results.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-500">No places found for “{query.trim()}”.</p>
+          <p className="mt-2 text-sm text-stone-600">No places found for “{query.trim()}”.</p>
         ) : (
-          <ul aria-label="Search results" className="mt-2 divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200 bg-white">
+          <ul aria-label="Search results" className="mt-2 divide-y divide-stone-200 overflow-hidden rounded-xl border border-stone-200 bg-white">
             {results.map((d) => (
               <li key={d.label}>
                 <button

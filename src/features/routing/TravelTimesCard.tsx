@@ -27,8 +27,8 @@ export function TravelTimesCard({ place, places, ctx }: { place: Place; places: 
 
   return (
     <Card>
-      <h2 className="font-semibold">Travel times</h2>
-      <p className="mb-3 text-xs text-stone-500">To the group's other places. Planning times include a buffer; check traffic for a fresh driving estimate.</p>
+      <h2 className="ui-section-title">Travel times</h2>
+      <p className="mb-3 text-xs text-stone-600">To the group's other places. Planning times include a buffer; check traffic for a fresh driving estimate.</p>
       <ul className="space-y-3">
         {shown.map(({ p, options }) => {
           const { Icon, color } = CATEGORY_STYLE[p.category]

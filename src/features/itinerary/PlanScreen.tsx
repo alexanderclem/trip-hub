@@ -6,7 +6,7 @@ import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatInZone } from '@/lib/time'
-import { Card, LinkButton, Textarea } from '@/ui'
+import { Fab, LinkButton, PageHeader, SectionTitle, Textarea } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { itemsFor, planIcs, shareCalendar } from './calendar'
@@ -65,18 +65,12 @@ export function PlanScreen() {
   }, [day])
 
   if (!trip || !items) return <LoadingState fullScreen title="Loading your itinerary…" />
+  const empty = layout.blocks.length === 0 && layout.allDay.length === 0 && layout.stays.length === 0
 
   return (
     <div className="min-h-full pb-28">
-      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas/95 backdrop-blur">
-        <div className="flex items-center justify-between gap-3 px-4 pt-3">
-          <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-stone-600">{trip?.name}</p>
-            <h1 className="ui-page-title">Plan</h1>
-          </div>
-          <TimeToggle trip={trip} />
-        </div>
-        <div ref={stripRef} role="tablist" aria-label="Days" className="flex gap-1.5 overflow-x-auto px-4 pt-3 pb-3">
+      <PageHeader title="Plan" below={
+        <div ref={stripRef} role="tablist" aria-label="Days" className="flex gap-1.5 overflow-x-auto px-4 pb-3 pt-1 lg:px-6">
           {days.map((d) => {
             const dt = DateTime.fromISO(d)
             const on = d === day
@@ -87,47 +81,30 @@ export function PlanScreen() {
                 role="tab"
                 aria-selected={on}
                 aria-current={on ? 'date' : undefined}
-                aria-label={`${dt.toFormat('cccc d LLLL')}, ${perDay[d]?.count ?? 0} items${perDay[d]?.conflict ? ', has overlaps' : ''}${w ? `, ${describeCode(w.weather.code).label}, high ${formatTemp(w.weather.hi, tempUnit)}` : ''}`}
+                aria-label={`${dt.toFormat('cccc d LLLL')}${d === today ? ', today' : ''}, ${perDay[d]?.count ?? 0} items${perDay[d]?.conflict ? ', has overlaps' : ''}${w ? `, ${describeCode(w.weather.code).label}, high ${formatTemp(w.weather.hi, tempUnit)}` : ''}`}
                 onClick={() => setParams({ day: d }, { replace: true })}
-                className={`relative flex min-h-14 min-w-12 shrink-0 flex-col items-center justify-center rounded-xl px-2 ${on ? 'bg-brand-700 text-white' : 'border border-stone-200 bg-white text-stone-700'}`}
+                className={`plan-day ${on ? 'bg-brand-700 text-white' : `bg-surface text-stone-700 ${d === today ? 'border-2 border-brand-700' : 'border border-stone-200'}`}`}
               >
-                <span className="text-[11px] uppercase">{dt.toFormat('ccc')}</span>
+                <span className="text-xs">{dt.toFormat('ccc')}</span>
                 <span className="text-base font-semibold tabular-nums">{dt.toFormat('d')}</span>
                 {w && (
-                  <span aria-hidden="true" className={`flex items-center gap-0.5 text-[10px] tabular-nums ${on ? 'text-white' : 'text-stone-600'}`}>
-                    <WeatherGlyph code={w.weather.code} className="size-3" />{formatTemp(w.weather.hi, tempUnit)}
+                  <span aria-hidden="true" className={`flex items-center gap-0.5 text-xs tabular-nums ${on ? 'text-white' : 'text-stone-600'}`}>
+                    <WeatherGlyph code={w.weather.code} className="size-3.5" />{formatTemp(w.weather.hi, tempUnit)}
                   </span>
                 )}
                 {(perDay[d]?.count ?? 0) > 0 && <span aria-hidden="true" className={`absolute top-1.5 right-1.5 size-1.5 rounded-full ${perDay[d]?.conflict ? 'bg-red-500' : on ? 'bg-white' : 'bg-brand-600'}`} />}
-                {d === today && !on && <span aria-hidden="true" className="absolute -top-1 rounded bg-brand-100 px-1 text-[9px] font-semibold text-brand-900">TODAY</span>}
               </button>
             )
           })}
         </div>
-      </header>
+      } />
 
-      <div className="trip-page-grid mx-auto max-w-2xl p-4 lg:p-6">
-        <aside className="trip-side mb-4 space-y-4 lg:mb-0" aria-label="Trip planning context">
-          <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} />
-          <Card className="hidden lg:block"><h2 className="text-lg font-semibold text-brand-900">This day at a glance</h2><p className="mt-2 text-sm text-stone-600">{perDay[day]?.count ?? 0} planned items · {conflicts} overlaps</p><p className="mt-3 text-sm leading-relaxed text-stone-600">Time zone: {zone.replaceAll('_', ' ')}</p><Link to={`/t/${tripId}/overview`} className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to trip overview</Link></Card>
-        </aside>
-        <div className="trip-main space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-3">
-          <Link to={`/t/${tripId}/more/ideas`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Explore trip ideas →</Link>
-          <Link to={`/t/${tripId}/more/tasks`} className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Shared tasks →</Link>
-          {mine.length > 0 && (
-            <button
-              onClick={() => void shareCalendar(trip?.name ?? 'Trip', planIcs(mine, places, members, trip?.name ?? 'Trip', location.origin))}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50"
-            >
-              <CalendarPlus aria-hidden="true" className="size-4" /> Add my plan to calendar
-            </button>
-          )}
-        </div>
+      <div className="mx-auto max-w-2xl space-y-3 p-4 lg:p-6">
+        <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} withinHours={24} />
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</h2>
+          <SectionTitle>{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</SectionTitle>
           {layout.blocks.some((b) => b.item.place_id) && (
-            <Link to={`/t/${tripId}/map?day=${day}`} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 text-sm font-medium text-stone-700 hover:bg-stone-50">
+            <Link to={`/t/${tripId}/map?day=${day}`} className="ui-link shrink-0">
               <Map aria-hidden="true" className="size-4" /> On map
             </Link>
           )}
@@ -137,16 +114,16 @@ export function PlanScreen() {
         <DayNoteEditor tripId={tripId} day={day} />
 
         {layout.stays.map((s) => (
-          <Link key={s.id} to={`/t/${tripId}/plan/${s.id}`} className="flex min-h-11 items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-sm text-violet-900">
+          <Link key={s.id} to={`/t/${tripId}/plan/${s.id}`} className="flex min-h-11 items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">
             <BedDouble aria-hidden="true" className="size-4 shrink-0" />
             <span className="min-w-0 truncate">Staying at <b>{placeOf(s.place_id)?.name ?? s.title}</b></span>
           </Link>
         ))}
         {layout.allDay.map((i) => (
-          <Link key={i.id} to={`/t/${tripId}/plan/${i.id}`} className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
+          <Link key={i.id} to={`/t/${tripId}/plan/${i.id}`} className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-surface px-3 py-2 text-sm">
             <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-brand-700" />
             <span className="min-w-0 truncate font-medium">{i.title}</span>
-            <span className="ml-auto text-xs text-stone-500">All day</span>
+            <span className="ml-auto text-xs text-stone-600">All day</span>
           </Link>
         ))}
         {conflicts > 0 && (
@@ -158,7 +135,7 @@ export function PlanScreen() {
         {/* A day that has passed has nothing left to fill. */}
         {day >= today && ideas && <SuggestionsCard tripId={tripId} day={day} suggestions={ideas} me={me} />}
 
-        {items && layout.blocks.length === 0 && layout.allDay.length === 0 && layout.stays.length === 0 ? (
+        {empty ? (
           <Empty>
             <CalendarDays aria-hidden="true" className="size-8 text-brand-700" />
             <EmptyHeader>
@@ -172,16 +149,20 @@ export function PlanScreen() {
         ) : (
           <Timeline blocks={layout.blocks} fromHour={layout.fromHour} toHour={layout.toHour} zone={zone} day={day} tripId={tripId} placeOf={placeOf} />
         )}
+
+        {/* Things about the whole plan, not this day, sit after it. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-stone-200 pt-3">
+          <TimeToggle trip={trip} />
+          {mine.length > 0 && (
+            <button type="button" className="ui-link" onClick={() => void shareCalendar(trip?.name ?? 'Trip', planIcs(mine, places, members, trip?.name ?? 'Trip', location.origin))}>
+              <CalendarPlus aria-hidden="true" className="size-4" /> Add my plan to calendar
+            </button>
+          )}
         </div>
       </div>
 
-      <Link
-        to={`/t/${tripId}/plan/new?day=${day}`}
-        aria-label="Add to plan"
-        className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-20 flex size-14 items-center justify-center rounded-2xl bg-brand-700 text-white shadow-lg hover:bg-brand-900"
-      >
-        <Plus aria-hidden="true" className="size-7" />
-      </Link>
+      {/* An empty day already offers the same action in the middle of the screen. */}
+      {!empty && <Fab to={`/t/${tripId}/plan/new?day=${day}`} label="Add to plan" />}
     </div>
   )
 }
@@ -198,7 +179,7 @@ function Timeline({ blocks, fromHour, toHour, zone, day, tripId, placeOf }: {
     <div className="relative" style={{ height: hours.length * HOUR_PX }} aria-label="Timeline">
       {hours.map((h) => (
         <div key={h} className="absolute inset-x-0 border-t border-stone-200" style={{ top: (h - fromHour) * HOUR_PX }}>
-          <span className="absolute -top-2.5 left-0 bg-stone-50 pr-1 text-xs tabular-nums text-stone-500">{String(h).padStart(2, '0')}:00</span>
+          <span className="absolute -top-2.5 left-0 bg-canvas pr-1 text-xs tabular-nums text-stone-600">{String(h).padStart(2, '0')}:00</span>
         </div>
       ))}
       {nowMin != null && nowMin >= fromHour * 60 && nowMin <= toHour * 60 && (
@@ -227,7 +208,7 @@ function BlockCard({ block, top, height, zone, tripId, place, to }: { block: Blo
       <Link
         to={`/t/${tripId}/plan/${item.id}`}
         aria-label={`${item.title}, ${time}${where ? `, ${where}` : ''}${conflict ? ', overlaps another item' : ''}`}
-        className={`flex h-full flex-col overflow-hidden rounded-xl border-l-4 px-2 py-1 text-left shadow-sm ${k.bg} ${k.border} ${k.text} ${dashed ? 'border-dashed opacity-80' : ''} ${conflict ? 'ring-2 ring-red-500' : ''}`}
+        className={`flex h-full flex-col overflow-hidden rounded-xl border-l-4 px-2 py-1 text-left ${k.bg} ${k.border} ${k.text} ${dashed ? 'border-dashed opacity-80' : ''} ${conflict ? 'ring-2 ring-red-500' : ''}`}
       >
         <span className="flex items-center gap-1 text-xs font-medium opacity-80">
           <k.Icon aria-hidden="true" className="size-3.5 shrink-0" />
@@ -235,7 +216,7 @@ function BlockCard({ block, top, height, zone, tripId, place, to }: { block: Blo
         </span>
         <span className="truncate text-sm font-semibold">{item.title}</span>
         {where && height > 54 && <span className="truncate text-xs opacity-80">{where}</span>}
-        {conflict && height > 72 && <span className="mt-auto text-[11px] font-semibold text-red-700">Overlaps</span>}
+        {conflict && height > 72 && <span className="mt-auto text-xs font-semibold text-red-700">Overlaps</span>}
       </Link>
     </li>
   )
@@ -254,7 +235,7 @@ function DayNoteEditor({ tripId, day }: { tripId: string; day: string }) {
 
   if (!open && !saved) {
     return (
-      <button onClick={() => setOpen(true)} className="inline-flex min-h-11 items-center gap-1.5 text-sm text-brand-700">
+      <button type="button" onClick={() => setOpen(true)} className="ui-link">
         <StickyNote aria-hidden="true" className="size-4" /> Add a note for this day
       </button>
     )

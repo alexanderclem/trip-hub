@@ -63,7 +63,7 @@ export function InstallAppDialog() {
         <p className="mt-5 text-base leading-relaxed text-stone-700">Open your browser’s menu and choose <strong>Install app</strong> or <strong>Add to Home screen</strong>. If that option is missing, open this page in Chrome.</p>
       ) : null}
 
-      <p className="mt-4 text-sm leading-relaxed text-stone-500">Before you travel, use “Ready for offline” in your trip settings to save your essentials.</p>
+      <p className="mt-4 text-sm leading-relaxed text-stone-600">Before you travel, use “Ready for offline” in your trip settings to save your essentials.</p>
       <div className="mt-4"><ErrorNote error={error} /></div>
       <div className="mt-5 flex flex-col gap-2">
         {platform !== 'ios' && (prompt || busy) && <Button type="button" onClick={() => void install()} disabled={busy} className="w-full">{busy ? 'Opening installation…' : 'Install Stowaway'}</Button>}
