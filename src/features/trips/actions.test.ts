@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ ensureSession: vi.fn(), rpc: vi.fn(), setMember: vi.fn(), pull: vi.fn() }))
+const mocks = vi.hoisted(() => ({ ensureSession: vi.fn(), rpc: vi.fn(), setMember: vi.fn(), pull: vi.fn(), tripGet: vi.fn() }))
+vi.mock('@/data/db', () => ({ db: { trips: { get: mocks.tripGet } } }))
 vi.mock('@/lib/supabase', () => ({ ensureSession: mocks.ensureSession, supabase: { rpc: mocks.rpc } }))
 vi.mock('@/data/device', () => ({ useDevice: { getState: () => ({ setMember: mocks.setMember }) } }))
 vi.mock('@/data/sync/engine', () => ({ pull: mocks.pull }))
@@ -38,6 +39,22 @@ describe('claiming a trip identity', () => {
     await expect(createMemberAndClaim('trip-id', 'Alex', '#295361')).rejects.toThrow('permission denied')
     expect(mocks.setMember).not.toHaveBeenCalled()
     expect(mocks.pull).not.toHaveBeenCalled()
+  })
+  it('joins again with the saved invite and retries when the server no longer knows this phone', async () => {
+    mocks.tripGet.mockResolvedValue({ share_token: 'savedInviteToken0001' })
+    mocks.rpc.mockResolvedValueOnce({ error: { message: 'No access to this trip', code: '42501' } })
+    await createMemberAndClaim('trip-id', 'Christian', '#295361')
+    expect(mocks.rpc.mock.calls.map((c) => c[0])).toEqual(['create_member_and_claim', 'join_trip', 'create_member_and_claim'])
+    expect(mocks.rpc).toHaveBeenCalledWith('join_trip', { p_token: 'savedInviteToken0001' })
+    expect(mocks.setMember).toHaveBeenCalledOnce()
+  })
+  it('reports the problem when the saved invite no longer works', async () => {
+    mocks.tripGet.mockResolvedValue({ share_token: 'savedInviteToken0001' })
+    mocks.rpc
+      .mockResolvedValueOnce({ error: { message: 'No access to this trip', code: '42501' } })
+      .mockResolvedValueOnce({ error: { message: 'This trip link is invalid or has been replaced' } })
+    await expect(claimMember('trip-id', 'member-id')).rejects.toThrow('invalid or has been replaced')
+    expect(mocks.setMember).not.toHaveBeenCalled()
   })
 })
 

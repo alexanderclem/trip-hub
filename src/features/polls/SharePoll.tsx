@@ -27,7 +27,9 @@ export function useSharePoll(trip: Trip | undefined, poll: Poll | undefined, opt
     if (!ready) return
     setError(null)
     if (!navigator.share) return copy()
-    try { await navigator.share({ title: poll!.title, ...message() }) }
+    const { text, url } = message()
+    // The link rides inside `text`, not `url`: with both, the iPhone share sheet's Copy pastes the link twice.
+    try { await navigator.share({ title: poll!.title, text: `${text}\n${url}` }) }
     catch (e) { if (!(e instanceof Error && e.name === 'AbortError')) setError('Could not open sharing. Try Copy instead.') }
   }
   return { share, copy, copied, error, ready }

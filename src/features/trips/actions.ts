@@ -112,23 +112,39 @@ export async function joinTrip(token: string): Promise<{ tripId: string; memberI
   return { tripId, memberId }
 }
 
+/**
+ * Runs a "Who are you?" RPC. The trip can be on this phone while the server no longer knows the
+ * phone (its sign-in was replaced by a fresh one, or by an account), which the server reports as
+ * no access. The saved invite token is what grants access, so join again with it and retry once.
+ */
+async function withTripAccess(tripId: string, call: () => PromiseLike<{ error: { message: string; code?: string } | null }>) {
+  let { error } = await call()
+  if (error?.code === '42501') {
+    const token = (await db.trips.get(tripId))?.share_token
+    if (token) {
+      const rejoin = await supabase.rpc('join_trip', { p_token: token })
+      if (rejoin.error) throw new Error(rejoin.error.message)
+      ;({ error } = await call())
+    }
+  }
+  if (error) throw new Error(error.message)
+}
+
 export async function claimMember(tripId: string, memberId: string) {
   await ensureSession()
-  const { error } = await supabase.rpc('claim_member', { p_trip_id: tripId, p_member_id: memberId })
-  if (error) throw new Error(error.message)
+  await withTripAccess(tripId, () => supabase.rpc('claim_member', { p_trip_id: tripId, p_member_id: memberId }))
   useDevice.getState().setMember(tripId, memberId)
 }
 
 export async function createMemberAndClaim(tripId: string, name: string, color: string) {
   await ensureSession()
   const memberId = newId()
-  const { error } = await supabase.rpc('create_member_and_claim', {
+  await withTripAccess(tripId, () => supabase.rpc('create_member_and_claim', {
     p_trip_id: tripId,
     p_member_id: memberId,
     p_name: name.trim(),
     p_color: color,
-  })
-  if (error) throw new Error(error.message)
+  }))
   useDevice.getState().setMember(tripId, memberId)
   await initialPull(tripId)
 }

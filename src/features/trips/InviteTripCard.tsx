@@ -23,7 +23,8 @@ export function InviteTripCard({ trip }: { trip: Trip }) {
         await navigator.clipboard.writeText(link)
         setCopied(true)
       } else {
-        await navigator.share({ title: trip.name, text: `Join “${trip.name}” on Stowaway`, url: link })
+        // The link goes in one field only: with both `text` and `url`, the iPhone share sheet's Copy pastes the link twice.
+        await navigator.share({ title: `Join “${trip.name}” on Stowaway`, url: link })
       }
     } catch (e) {
       if (!(method === 'share' && e instanceof Error && e.name === 'AbortError')) {
