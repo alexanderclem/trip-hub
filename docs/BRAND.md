@@ -2,8 +2,26 @@
 
 Domain: `joinstowaway.app` · Tagline: **The whole trip, tucked away.**
 
-Stowaway is a shared, offline-first trip planner. The voice is friendly, practical,
-and lightly adventurous. Keep action labels literal: Create a trip, Join trip, Open trip.
+Stowaway helps a trip with friends actually happen, from the first idea to the flight
+home. It is a shared, offline-first trip planner. Lead with **Get the trip out of the
+group chat.** Explain the product with **Plan your trip together.** Keep the tagline
+as a supporting line, not the only explanation of what the app does.
+
+The voice is warm, social, and quietly organized: the organized friend who makes
+room for everyone’s ideas. Use real moments—saving a restaurant, picking a beach,
+booking a flight—rather than feature jargon. Describe the benefits as “Know what’s
+next,” “Keep every ticket handy,” and “See who owes what.” Keep navigation and
+action labels literal: Plan, Tickets, Money, Create a trip, Join trip, Open trip.
+
+Use **Stowaway** as the product name and **joinstowaway.app** as its address.
+Invitations introduce the actual trip: its name, saved destinations, dates, and
+travelers. Never invent an organizer or destination when those details are missing.
+The first group steps are invite friends → save an idea → start a vote.
+
+Stowie, the suitcase character, is curious, helpful, and slightly mischievous. Speak
+briefly, give one useful next step, and celebrate progress without promising that a
+booking or decision happened before it did. Use the character sparingly in welcome
+moments, empty states, and confirmations; keep ordinary forms and navigation clear.
 
 The mark is "Carry-on": a suitcase with a slot in it and two eyes looking out, the
 stowaway. The bag is ocean ink, the handle is coral, and the slot and the eye

@@ -103,12 +103,12 @@ export function PlaceFormScreen() {
           label="Location"
           hint={
             parsed
-              ? `📍 ${parsed.lat.toFixed(5)}, ${parsed.lng.toFixed(5)}`
+              ? `Pinned at ${parsed.lat.toFixed(5)}, ${parsed.lng.toFixed(5)}`
               : 'Paste the full Google Maps address-bar link (short maps.app.goo.gl links have no coordinates), an Apple/OSM link, or "lat, lng".'
           }
         >
           <div className="relative">
-            <MapPinned className="absolute top-3 left-3 size-5 text-stone-400" />
+            <MapPinned aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-400" />
             <Input value={coordsText} onChange={(e) => setCoordsText(e.target.value)} className="pl-10" placeholder="https://www.google.com/maps/place/… or 14.5586, -90.7295" />
           </div>
         </Field>

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ComponentProps, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router'
+import { travelerInitials } from '@/features/trips/traveler'
 import { CalendarDays, ChevronLeft } from 'lucide-react'
 import { dateOrder, formatTypedDate, parseTypedDate } from '@/lib/time'
 import { m, type HTMLMotionProps } from 'motion/react'
@@ -50,7 +51,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 // in the stylesheet, where w-full would win.
 const fieldCls = (className?: string) => cx(/(^|\s)w-/.test(className ?? '') ? '' : 'w-full', inputCls, className)
 const inputCls =
-  'rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-60 aria-invalid:border-red-500'
+  'ui-field rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base focus:border-brand-700 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-60 aria-invalid:border-red-500'
 
 export const Input = (props: InputHTMLAttributes<HTMLInputElement>) => (
   <input {...props} className={fieldCls(props.className)} />
@@ -141,7 +142,7 @@ export function Card({ children, className }: { children: ReactNode; className?:
   return <section className={cx('ui-card', className)}>{children}</section>
 }
 
-export function PageHeader({ title, back, action }: { title: string; back?: string; action?: ReactNode }) {
+export function PageHeader({ title, eyebrow, back, action }: { title: string; eyebrow?: string; back?: string; action?: ReactNode }) {
   return (
     <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas">
       <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 lg:px-6">
@@ -152,7 +153,10 @@ export function PageHeader({ title, back, action }: { title: string; back?: stri
         ) : (
           <span className="w-2" />
         )}
-        <h1 className="min-w-0 flex-1 break-words text-xl font-semibold text-brand-900">{title}</h1>
+        <div className="min-w-0 flex-1">
+          {eyebrow && <p className="truncate text-xs font-medium text-stone-600">{eyebrow}</p>}
+          <h1 className="ui-page-title break-words">{title}</h1>
+        </div>
         {action}
       </div>
     </header>
@@ -164,17 +168,19 @@ export function ErrorNote({ error }: { error: string | null }) {
   return <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
 }
 
-export function Avatar({ name, color, size = 'md' }: { name: string; color: string | null; size?: 'sm' | 'md' }) {
-  const initials = name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase()
+export function Avatar({ name, color, photo, size = 'md' }: { name: string; color: string | null; photo?: string | null; size?: 'sm' | 'md' }) {
+  const [failed, setFailed] = useState(false)
+  useEffect(() => setFailed(false), [photo])
+  const initials = travelerInitials(name)
   return (
     <span
       className={cx(
-        'inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white',
+        'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white',
         size === 'md' ? 'size-10 text-sm' : 'size-7 text-xs',
       )}
       style={{ background: color ?? '#78716c' }}
     >
-      {initials}
+      {photo && !failed ? <img src={photo} alt="" className="size-full object-cover" onError={() => setFailed(true)} /> : initials}
     </span>
   )
 }

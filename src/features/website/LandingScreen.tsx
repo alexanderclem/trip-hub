@@ -1,7 +1,8 @@
-import { CalendarDays, Ticket, Users, Vote } from 'lucide-react'
+import { CalendarDays, Receipt, Ticket, Vote } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
 import { Brand } from '@/ui/Brand'
 import { TripPreview } from './TripPreview'
+import { StepExamples } from './StepExamples'
 import './website.css'
 
 function WebsiteLogo() {
@@ -17,6 +18,7 @@ export function LandingScreen() {
   return (
     <div className="website">
       <a className="website-skip" href="#main-content">Skip to content</a>
+      <div className="website-topbar">
       <header className="website-header website-container">
         <Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link>
         <nav aria-label="Main navigation">
@@ -25,18 +27,19 @@ export function LandingScreen() {
           <Link to="/app" className="website-button website-button-outline">Open app</Link>
         </nav>
       </header>
+      </div>
 
       <main id="main-content" tabIndex={-1}>
         <section className="website-hero website-container" aria-labelledby="hero-title">
           <div className="website-hero-copy">
-            <p className="website-eyebrow">A shared trip planner</p>
-            <h1 id="hero-title">The whole trip,<br />tucked away.</h1>
-            <p className="website-intro">Vote on the possibilities and build a trip everyone wants to take. Keep your group’s decisions, daily plan, tickets, and shared expenses together.</p>
+            <p className="website-eyebrow">Plan your trip together</p>
+            <h1 id="hero-title">Get the trip out of the group chat.</h1>
+            <p className="website-intro">Choose places, decide together, and keep the plan, tickets, and shared costs in one place. Stowaway helps your group’s trip take shape, from the first “where should we go?” to the flight home.</p>
             <div className="website-actions">
               <Link to="/new" className="website-button website-button-primary">Create a trip</Link>
               <Link to="/app#join" className="website-text-link">Join your group</Link>
             </div>
-            <p className="website-hero-note">Start in your browser. Take it along on your phone.</p>
+            <p className="website-hero-note">Start in your browser. Bring your friends. Take it along on your phone.</p>
           </div>
           <TripPreview />
         </section>
@@ -44,18 +47,18 @@ export function LandingScreen() {
         <div className="website-capabilities">
           <ul className="website-container" aria-label="Trip essentials">
             <li><Vote size={19} aria-hidden="true" /> Decide together</li>
-            <li><CalendarDays size={19} aria-hidden="true" /> A plan for each day</li>
-            <li><Ticket size={19} aria-hidden="true" /> Tickets within reach</li>
-            <li><Users size={19} aria-hidden="true" /> Shared with your group</li>
+            <li><CalendarDays size={19} aria-hidden="true" /> Know what’s next</li>
+            <li><Ticket size={19} aria-hidden="true" /> Keep every ticket handy</li>
+            <li><Receipt size={19} aria-hidden="true" /> See who owes what</li>
           </ul>
         </div>
 
         <section id="how-it-works" className="website-how website-container" aria-labelledby="how-title">
-          <div className="website-section-heading"><h2 id="how-title">From a group idea<br />to a shared plan.</h2></div>
+          <div className="website-section-heading"><h2 id="how-title">From “we should go”<br />to “we’re going.”</h2><StepExamples /></div>
           <ol className="website-steps">
-            <li><div><h3>Bring your people aboard.</h3><p>Create a trip and share an invite link. Everyone gets a shared space to add ideas and help shape the plan.</p></div></li>
-            <li><div><h3>Make room for everyone’s favorites.</h3><p>Save places on the map, vote on the possibilities, and build your days around the things your group wants to do.</p></div></li>
-            <li><div><h3>Keep the details close.</h3><p>Find the day’s plan, pull up your tickets, and track shared expenses. Prepare your trip for offline access before you head out.</p></div></li>
+            <li><div><h3>Give the idea a place to land.</h3><p>That weekend away you keep talking about? Create a trip and invite your friends. Pick a destination now, or figure it out together.</p></div></li>
+            <li><div><h3>Find something everyone’s excited about.</h3><p>Save the restaurant someone sent, the beach you spotted, or a place to stay. Start a vote and turn the group’s favorites into a plan.</p></div></li>
+            <li><div><h3>Booked the flight? Bring the details.</h3><p>Add the confirmation, see what’s next, and keep shared costs clear. Download your trip’s essentials before you leave so they’re handy when the signal isn’t.</p></div></li>
           </ol>
         </section>
 
@@ -76,10 +79,10 @@ export function LandingScreen() {
           </div>
         </section>
 
-        <section className="website-closing website-container" aria-labelledby="closing-title"><div><h2 id="closing-title">Your next adventure starts here.</h2></div><Link to="/new" className="website-button website-button-primary">Start planning</Link></section>
+        <section className="website-closing website-container" aria-labelledby="closing-title"><div><h2 id="closing-title">Make that “someday” trip happen.</h2></div><Link to="/new" className="website-button website-button-primary">Start planning</Link></section>
       </main>
 
-      <footer className="website-footer website-container"><Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link><p>Made for the way you go together. <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link></p><Link to="/app">Open app</Link></footer>
+      <footer className="website-footer website-container"><Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link><p>The whole trip, tucked away. <a href="#how-it-works">How it works</a> · <a href="#questions">Questions</a> · <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link></p><Link to="/app">Open app</Link></footer>
     </div>
   )
 }

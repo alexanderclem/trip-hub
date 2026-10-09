@@ -44,7 +44,7 @@ function PersonCard({ member, safety, mine }: { member: Member; safety?: MemberS
   const s = safety
   const empty = !s || ![s.emergency_name, s.emergency_phone, s.allergies, s.medical, s.blood_type, s.insurance_provider, s.notes].some(Boolean)
   return (
-    <li className="rounded-2xl border border-stone-200 bg-white p-4">
+    <li className="rounded-2xl border border-stone-200 bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-semibold">{member.display_name}{mine ? ' (you)' : ''}</h3>
         {mine && <Link to="edit" className="inline-flex min-h-11 items-center gap-1 rounded-xl px-3 text-sm font-medium text-brand-700 hover:bg-brand-50"><Pencil aria-hidden="true" className="size-4" />{empty ? 'Fill in' : 'Edit'}</Link>}
@@ -90,8 +90,8 @@ export function EmergencyScreen() {
         </section>
 
         <div className="grid grid-cols-2 gap-2">
-          <Link to="driver" className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-stone-200 bg-white p-3 text-center font-medium hover:bg-stone-50"><Car aria-hidden="true" className="size-6 text-brand-700" />Show the driver</Link>
-          <Link to="me" className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-stone-200 bg-white p-3 text-center font-medium hover:bg-stone-50"><HeartPulse aria-hidden="true" className="size-6 text-red-700" />My medical card</Link>
+          <Link to="driver" className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-stone-200 bg-surface p-3 text-center font-medium hover:bg-stone-50"><Car aria-hidden="true" className="size-6 text-brand-700" />Show the driver</Link>
+          <Link to="me" className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-stone-200 bg-surface p-3 text-center font-medium hover:bg-stone-50"><HeartPulse aria-hidden="true" className="size-6 text-red-700" />My medical card</Link>
         </div>
 
         {info.hospital && <ContactCard icon={Hospital} title="Hospital" c={info.hospital} />}
@@ -126,7 +126,7 @@ export function DriverScreen() {
       ) : (
         <div className="m-auto w-full max-w-lg text-center">
           <BedDouble aria-hidden="true" className="mx-auto size-10 text-brand-700" />
-          <p className="mt-2 text-sm font-medium uppercase tracking-wide text-stone-500">{stay.tonight ? 'Staying tonight' : 'Next stay'}</p>
+          <p className="ui-label mt-2">{stay.tonight ? 'Staying tonight' : 'Next stay'}</p>
           <p className="mt-3 break-words text-4xl font-bold leading-tight">{name}</p>
           {stay.place?.address && <p className="mt-4 break-words text-2xl leading-snug text-stone-800">{stay.place.address}</p>}
           {stay.place?.area && <p className="mt-2 text-xl text-stone-600">{stay.place.area}</p>}
@@ -158,7 +158,7 @@ export function MedicalScreen() {
     <div role="dialog" aria-modal="true" aria-label="My medical card" className="fixed inset-0 z-50 overflow-y-auto bg-white p-6 pt-safe">
       <button onClick={() => navigate(-1)} aria-label="Close" className="ml-auto flex size-11 items-center justify-center rounded-full bg-stone-100"><X aria-hidden="true" className="size-6" /></button>
       <div className="mx-auto max-w-lg">
-        <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-red-700"><HeartPulse aria-hidden="true" className="size-5" />Medical information</p>
+        <p className="flex items-center gap-2 text-sm font-semibold text-red-700"><HeartPulse aria-hidden="true" className="size-5" />Medical information</p>
         <p className="mt-1 text-3xl font-bold">{name ?? 'Choose who you are first'}</p>
         <dl className="mt-6 space-y-5">
           {rows.map(([label, v]) => (

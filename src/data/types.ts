@@ -38,6 +38,8 @@ export interface Member extends SyncColumns {
   trip_id: string
   display_name: string
   color: string | null
+  avatar_url?: string | null
+  venmo_username?: string | null
   avatar_emoji: string | null
   home_timezone: string | null
 }

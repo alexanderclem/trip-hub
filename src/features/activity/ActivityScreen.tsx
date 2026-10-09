@@ -6,6 +6,7 @@ import { PageHeader } from '@/ui'
 import { ActivityList } from './ActivityList'
 import { useActivity, useMarkActivitySeen } from './data'
 import { GROUPS, groupOf, type ActivityGroup } from './feed'
+import { ListSkeleton } from '@/ui/collection'
 
 const LABEL: Record<ActivityGroup, string> = { votes: 'Votes', plan: 'Plan', places: 'Places', money: 'Money', tasks: 'Tasks', tickets: 'Tickets', comments: 'Comments' }
 const CHIP = 'min-h-11 shrink-0 rounded-xl border px-3 text-sm font-medium'
@@ -32,7 +33,7 @@ export function ActivityScreen() {
             {groups.map((g) => <button key={g} aria-pressed={active === g} onClick={() => setFilter(g)} className={chip(active === g)}>{LABEL[g]}</button>)}
           </div>
         )}
-        {shown === undefined ? <p role="status" className="text-sm text-stone-600">Loading…</p>
+        {shown === undefined ? <ListSkeleton label="Loading…" rows={5} />
           : shown.length === 0 ? <p className="text-sm text-stone-600">Nothing yet. What the group adds will show up here.</p>
           : <ActivityList tripId={tripId} events={shown} members={members} me={me} since={since} />}
       </div>

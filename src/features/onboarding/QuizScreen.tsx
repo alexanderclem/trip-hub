@@ -75,7 +75,7 @@ export function QuizScreen() {
     return (
       <Screen mood="delighted">
         <Bubble from="stowie">That’s all I need. Here’s how you travel.</Bubble>
-        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">Your travel style</p>
+        <p className="ui-label mt-5">Your travel style</p>
         <h1 ref={heading} tabIndex={-1} className="travel-heading mt-2 text-4xl text-brand-900 outline-none">{classify(scores)}</h1>
         <p className="mt-3 leading-relaxed text-stone-600">
           This is your radar. The group’s trip ideas balance everyone’s, and you can fine-tune yours any time by asking me in More → Trip ideas.
@@ -152,7 +152,7 @@ export function QuizScreen() {
             role="radio"
             aria-checked={picked === i}
             onClick={() => void answer(step, i)}
-            className={`flex min-h-14 w-full items-center rounded-2xl border px-4 py-3 text-left font-medium shadow-sm transition-colors active:bg-brand-50 ${picked === i ? 'border-brand-700 bg-brand-50 text-brand-900' : 'border-stone-200 bg-white text-stone-800 hover:border-brand-600'}`}
+            className={`flex min-h-14 w-full items-center rounded-2xl border px-4 py-3 text-left font-medium transition-colors active:bg-brand-50 ${picked === i ? 'border-brand-700 bg-brand-50 text-brand-900' : 'border-stone-200 bg-surface text-stone-800 hover:border-brand-600'}`}
           >
             {o.label}
           </button>

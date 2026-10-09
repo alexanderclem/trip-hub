@@ -7,7 +7,7 @@ import type { Attachment } from '@/data/types'
 import { updateAttachment } from '@/features/tickets/files'
 import { formatMoney } from '@/lib/money'
 import { useOnline } from '@/lib/useOnline'
-import { Button, ErrorNote, Textarea } from '@/ui'
+import { Button, ErrorNote, LinkButton, Textarea } from '@/ui'
 import { detailsAmountMinor, requestDetails } from './client'
 import { extractText, ocrLangs } from './text'
 
@@ -46,7 +46,7 @@ export function AttachmentText({ att, blob }: { att: Attachment; blob: Blob | nu
   })
 
   return (
-    <section aria-label="Text" className="space-y-2 rounded-2xl bg-white p-4 shadow-sm">
+    <section aria-label="Text" className="space-y-2 rounded-2xl border border-stone-200 bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 font-semibold"><ScanText aria-hidden="true" className="size-4 text-brand-700" />Text</h2>
         {text && editing === null && (
@@ -98,9 +98,9 @@ export function AttachmentText({ att, blob }: { att: Attachment; blob: Blob | nu
       )}
       {!online && editing === null && <p className="text-xs text-stone-500">Pulling out details needs signal.</p>}
       {att.kind === 'receipt' && !att.expense_id && (
-        <Link to={`/t/${att.trip_id}/money/new?receipt=${att.id}`} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white">
+        <LinkButton to={`/t/${att.trip_id}/money/new?receipt=${att.id}`} className="w-full">
           <Wallet aria-hidden="true" className="size-4" />Log as an expense
-        </Link>
+        </LinkButton>
       )}
       {att.expense_id && (
         <Link to={`/t/${att.trip_id}/money/${att.expense_id}`} className="block min-h-11 rounded-xl px-1 py-2.5 text-sm font-medium text-brand-700">Logged as an expense →</Link>

@@ -38,7 +38,7 @@ export function TimeToggle({ trip }: { trip: Trip | undefined }) {
           className={`min-h-9 rounded-lg px-3 ${view === v ? 'bg-white font-medium text-stone-900 shadow-sm' : 'text-stone-600'}`}
         >
           {text}
-          <span className="ml-1 text-stone-400">{zoneLabel(v === 'trip' ? tripZone : phoneZone, now)}</span>
+          <span className="ml-1 text-stone-500">{zoneLabel(v === 'trip' ? tripZone : phoneZone, now)}</span>
         </button>
       ))}
     </div>

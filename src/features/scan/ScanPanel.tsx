@@ -60,7 +60,7 @@ export function ScanPanel({ file, mime, kind, langs, value, onChange, onDetails 
   }
 
   return (
-    <section aria-label="Text from the file" className="space-y-2 rounded-2xl border border-stone-200 bg-white p-3">
+    <section aria-label="Text from the file" className="space-y-2 rounded-2xl border border-stone-200 bg-surface p-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-sm font-semibold"><ScanText aria-hidden="true" className="size-4 text-brand-700" />Text</h2>
         {reading !== null && <span role="status" className="text-xs text-stone-500">Reading text… {Math.round(reading * 100)}%</span>}

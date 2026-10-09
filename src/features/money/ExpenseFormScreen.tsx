@@ -219,15 +219,15 @@ export function ExpenseFormScreen() {
                 className={`min-h-10 rounded-lg ${d.splitMethod === m.id ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}>{m.label}</button>
             ))}
           </div>
-          <ul className="mt-2 divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white">
+          <ul className="mt-2 divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-surface">
             {d.rows.map((r, i) => {
               const m = members.find((x) => x.id === r.memberId)!
               const share = shares?.get(r.memberId)?.owed
               return (
                 <li key={r.memberId} className="flex min-h-12 items-center gap-2 px-3 py-1.5">
                   <input type="checkbox" checked={r.included} onChange={(e) => setRow(i, { included: e.target.checked })} aria-label={`Include ${m.display_name}`} className="size-5 accent-brand-600" />
-                  <Avatar name={m.display_name} color={m.color} size="sm" />
-                  <span className={`min-w-0 flex-1 truncate text-sm ${r.included ? '' : 'text-stone-400 line-through'}`}>{m.display_name}</span>
+                  <Avatar name={m.display_name} color={m.color} photo={m.avatar_url} size="sm" />
+                  <span className={`min-w-0 flex-1 truncate text-sm ${r.included ? '' : 'text-stone-500 line-through'}`}>{m.display_name}</span>
                   {r.included && d.splitMethod !== 'equal' && (
                     <Input inputMode="decimal" aria-label={`${m.display_name} ${d.splitMethod}`} value={r.value} onChange={(e) => setRow(i, { value: e.target.value })}
                       placeholder={d.splitMethod === 'shares' ? '1' : d.splitMethod === 'percent' ? '%' : '0.00'} className="w-20 px-2 py-1.5 text-right" />

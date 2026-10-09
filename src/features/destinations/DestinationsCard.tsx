@@ -85,7 +85,7 @@ export function DestinationsCard({ trip, me }: { trip: Trip; me: string | null }
       {!online && areas.length > 0 && <p className="mt-2 text-xs text-stone-500">Loading places needs signal.</p>}
       {msg && <p role="status" className="mt-3 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{msg}</p>}
       <div className="mt-2"><ErrorNote error={error} /></div>
-      <p className="mt-3 text-xs text-stone-400">Places © OpenStreetMap contributors.</p>
+      <p className="mt-3 text-xs text-stone-600">Places © OpenStreetMap contributors.</p>
     </Card>
   )
 }

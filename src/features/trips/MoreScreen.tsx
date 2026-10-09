@@ -18,7 +18,7 @@ export function MoreScreen() {
     { to: 'places', label: 'Places', Icon: MapPin, note: null },
     { to: 'vote', label: 'Votes', Icon: Vote, note: null },
     { to: 'settings', label: 'Trip settings & sharing', Icon: Settings, note: null },
-    { to: `/t/${tripId}/wrapped`, label: 'Trip recap', Icon: Sparkles, note: trip && isRecapTime(trip, Date.now()) ? 'Ready!' : 'Preview' },
+    { to: `/t/${tripId}/wrapped`, label: 'Trip recap', Icon: Sparkles, note: trip && isRecapTime(trip, Date.now()) ? 'Ready' : 'Preview' },
   ]
   return (
     <div>
@@ -26,11 +26,11 @@ export function MoreScreen() {
       <ul className="mx-auto max-w-md space-y-2 p-4">
         {items.map(({ to, label, Icon, note }) => (
           <li key={to}>
-            <Link to={to} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm active:bg-stone-50">
-              <Icon className="size-5 text-brand-700" />
-              <span className="flex-1 font-medium">{label}</span>
-              {note && <span className="text-xs text-stone-400">{note}</span>}
-              <ChevronRight className="size-5 text-stone-400" />
+            <Link to={to} className="ui-row">
+              <Icon aria-hidden="true" className="size-5 shrink-0 text-brand-700" />
+              <span className="min-w-0 flex-1 font-medium text-brand-900">{label}</span>
+              {note && <span className="text-xs font-medium text-stone-600">{note}</span>}
+              <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-stone-500" />
             </Link>
           </li>
         ))}

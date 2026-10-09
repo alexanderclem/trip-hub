@@ -1,3 +1,4 @@
+import { TravelerLink } from '@/features/trips/TravelerLink'
 import { useEffect, useRef, useState } from 'react'
 import { useMembers } from '@/data/hooks'
 import type { Place } from '@/data/types'
@@ -54,10 +55,10 @@ export function GroupRatingCard({ place, memberId }: { place: Place; memberId: s
             const m = name(r.member_id)
             return (
               <li key={r.id} className="flex gap-3">
-                <Avatar name={m?.display_name ?? '?'} color={m?.color ?? null} size="sm" />
+                <Avatar name={m?.display_name ?? '?'} color={m?.color ?? null} photo={m?.avatar_url} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">
-                    {m?.display_name ?? 'Someone'}
+                    {m ? <TravelerLink member={m} avatar={false} /> : 'Someone'}
                     {r.stars != null && <span className="ml-2 text-amber-600" aria-label={`${r.stars} stars`}>{'★'.repeat(r.stars)}</span>}
                   </p>
                   {r.note && <p className="text-sm break-words whitespace-pre-wrap text-stone-600">{r.note}</p>}

@@ -94,6 +94,9 @@ export function ItemFormScreen() {
       return
     }
     if (search.get('place') && !loadedPlaces) return // wait for places so the form can be prefilled
+    const attendee = search.get('attendee')
+    if (attendee && !members.length) return
+    const selectedAttendee = members.find((m) => m.id === attendee)
     const day = search.get('day') ?? trip.start_date ?? DateTime.now().toISODate()!
     const place = places.find((p) => p.id === search.get('place'))
     const kind = (place && KIND_FOR_CATEGORY[place.category]) ?? 'activity'
@@ -104,10 +107,10 @@ export function ItemFormScreen() {
       title: place?.name ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: false,
       startDate: day, startTime: asked ?? (lodging ? '15:00' : kind === 'meal' ? '19:00' : '09:00'),
       endDate: lodging ? DateTime.fromISO(day).plus({ days: 1 }).toISODate()! : day, endTime: lodging ? '11:00' : '',
-      startTz: tripTz, endTz: tripTz, status: 'confirmed', code: '', everyone: true, attendees: [], notes: '', cost: '',
+      startTz: tripTz, endTz: tripTz, status: 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: '', cost: '',
       costCurrency: trip.local_currency ?? trip.base_currency,
     })
-  }, [f, trip, itemId, existing, search, places, loadedPlaces, tripTz])
+  }, [f, trip, itemId, existing, search, places, loadedPlaces, tripTz, members])
 
   const travel = f?.kind === 'flight' || f?.kind === 'transport'
   const showZones = travel || (f && (f.startTz !== tripTz || f.endTz !== tripTz))

@@ -187,7 +187,7 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
         </Button>
       )}
       <p className="mt-3 text-xs text-stone-500">
-        {ready ? `✓ Ready for offline · checked ${DateTime.fromISO(lastReady!).toRelative()}` : lastReady ? `Last checked ${DateTime.fromISO(lastReady).toRelative()}` : 'Not checked yet'}
+        {ready ? `Ready for offline · checked ${DateTime.fromISO(lastReady!).toRelative()}` : lastReady ? `Last checked ${DateTime.fromISO(lastReady).toRelative()}` : 'Not checked yet'}
         {persisted != null && ` · storage ${persisted ? 'protected' : 'not protected yet'}`}
       </p>
       <p className="mt-1 text-xs text-red-700">Deleting Stowaway from your Home Screen deletes everything saved offline.</p>

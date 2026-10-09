@@ -107,6 +107,15 @@ line-height stays at the locked 1.8. All clickable navigation and CTA labels
 remain on one line; FAQ questions may wrap to stay fully readable. Focus and
 disclosure feedback are immediate. Motion follows the shared behavior below.
 
+## App screens
+
+Trip screens follow the same surface and type rules as the website: bordered
+`bg-surface` cards without shadows, sentence-case labels, one page title per
+screen, and shared `Button`/`LinkButton` actions. The roles are listed in
+`docs/UI_COMPONENTS.md`. Unknown addresses show the website-styled not-found page.
+The "How it works" section pairs its steps with three labelled, local examples
+(an invite, a vote, a ticket and a shared cost); they name no people.
+
 ## Motion
 
 Use `motion/react` through the shared `MotionProvider` with the lightweight

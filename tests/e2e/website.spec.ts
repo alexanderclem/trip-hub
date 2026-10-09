@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 
 test('the website introduces Stowaway, then opens the app and create flow', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'The whole trip, tucked away.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Get the trip out of the group chat.' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toHaveCount(0)
   const logos = page.getByRole('img', { name: 'Stowaway', exact: true })
   await expect(logos).toHaveCount(2)
@@ -90,12 +90,13 @@ test('keyboard users can skip the header and open FAQ disclosures', async ({ pag
 test('returning travelers get the website at root and their workspace in the app', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('trip-hub-device', JSON.stringify({
-      state: { quizSeen: true, trips: { 'website-local-only': { tripId: 'website-local-only', memberId: null, joinedAt: '2026-10-06T12:00:00Z' } } },
+      // Use a post-reset trip: re-seeding an old one on every reload repeats alpha cleanup.
+      state: { quizSeen: true, trips: { 'website-local-only': { tripId: 'website-local-only', memberId: null, joinedAt: '2026-10-09T00:08:00Z' } } },
       version: 1,
     }))
   })
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'The whole trip, tucked away.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Get the trip out of the group chat.' })).toBeVisible()
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Your trips, all aboard.' })).toBeVisible()
 })

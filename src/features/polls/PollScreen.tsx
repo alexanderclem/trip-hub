@@ -1,3 +1,4 @@
+import { TravelerLink } from '@/features/trips/TravelerLink'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
@@ -8,7 +9,7 @@ import { useMembers, usePlaces, useTrip } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
 import { VOTE_SCORES, type Member, type Place, type Poll, type PollOption, type PollVote, type Trip, type VoteScore } from '@/data/types'
 import { useOnline } from '@/lib/useOnline'
-import { Avatar, Button, Card, DateInput, ErrorNote, Field, Input, PageHeader } from '@/ui'
+import { Button, Card, DateInput, ErrorNote, Field, Input, LinkButton, PageHeader } from '@/ui'
 import { PlaceCategoryIcon, PlaceStatusBadge } from '@/features/places/PlaceSummary'
 import { StarsSummary } from '@/features/ratings/Stars'
 import { CommentThread } from '@/features/comments/CommentThread'
@@ -125,9 +126,9 @@ export function PollScreen() {
               ) : winnerPlace && !['catalog', 'shortlist'].includes(winnerPlace.status) ? (
                 <p className="flex items-center gap-2 text-sm text-brand-900">On the plan: <PlaceStatusBadge status={winnerPlace.status} /></p>
               ) : (
-                <Link to={`/t/${poll.trip_id}/plan/new?${winnerPlace ? `place=${winnerPlace.id}` : `title=${encodeURIComponent(winner.label)}`}`} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white hover:bg-brand-900">
+                <LinkButton to={`/t/${poll.trip_id}/plan/new?${winnerPlace ? `place=${winnerPlace.id}` : `title=${encodeURIComponent(winner.label)}`}`} className="w-full">
                   <CalendarPlus aria-hidden="true" className="size-4" />Add to the plan
-                </Link>
+                </LinkButton>
               )}
             </div>
           </Card>
@@ -213,7 +214,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
     }
   }
   return (
-    <li className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+    <li className="rounded-2xl border border-stone-200 bg-surface p-4">
       <div className="flex items-start gap-3">
         {place && <PlaceCategoryIcon category={place.category} />}
         <div className="min-w-0 flex-1">
@@ -231,7 +232,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
           {option.description && <p className="mt-1 text-sm text-stone-600">{option.description}</p>}
         </div>
         {!closed && (
-          <button onClick={async () => { if (await confirm(`Remove “${option.label}” from this vote?`)) await softDelete('poll_options', option.id, me) }} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-400 hover:bg-stone-100" aria-label={`Remove ${option.label}`}>
+          <button onClick={async () => { if (await confirm(`Remove “${option.label}” from this vote?`)) await softDelete('poll_options', option.id, me) }} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-500 hover:bg-stone-100" aria-label={`Remove ${option.label}`}>
             <Trash2 aria-hidden="true" className="size-4" />
           </button>
         )}
@@ -269,7 +270,7 @@ function Results({ ranked, votes, members, groupSize, winnerId, placeOf, labels,
         const isTop = r.option.id === (winnerId ?? top?.option.id)
         const place = placeOf(r.option)
         return (
-          <li key={r.option.id} className={`rounded-2xl border bg-white p-4 shadow-sm ${isTop ? 'border-brand-500' : 'border-stone-200'}`}>
+          <li key={r.option.id} className={`rounded-2xl border bg-surface p-4 ${isTop ? 'border-brand-500' : 'border-stone-200'}`}>
             <div className="flex items-start gap-3">
               <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${isTop ? 'bg-brand-700 text-white' : 'bg-stone-100 text-stone-600'}`}>{i + 1}</span>
               <div className="min-w-0 flex-1">
@@ -305,7 +306,7 @@ function WhoVoted({ optionId, votes, members, labels }: { optionId: string; vote
         <li key={s} className="flex flex-wrap items-center gap-1.5 text-xs text-stone-600">
           <span className="w-16 shrink-0 font-medium">{labels[s]}</span>
           {who.map((m) => (
-            <span key={m.id} className="inline-flex items-center gap-1"><Avatar name={m.display_name} color={m.color} size="sm" />{m.display_name}</span>
+            <TravelerLink key={m.id} member={m} />
           ))}
         </li>
       ))}

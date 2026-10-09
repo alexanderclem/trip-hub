@@ -1,19 +1,21 @@
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState, type FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
 import { Button, DateInput, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { deleteTask, saveTask, useTask, type TaskFields } from './data'
+import { ListSkeleton } from '@/ui/collection'
 
 export function TaskFormScreen() {
   const { tripId, taskId } = useParams() as { tripId: string; taskId?: string }
+  const [query] = useSearchParams()
   const task = useTask(taskId)
   const back = `/t/${tripId}/more/tasks`
   return <div className="min-h-full pb-24"><PageHeader title={taskId ? 'Edit task' : 'Add task'} back={back} />
-    {taskId && task === undefined ? <p role="status" className="p-4 text-stone-500">Loading task…</p>
+    {taskId && task === undefined ? <ListSkeleton label="Loading task…" className="p-4" />
       : (taskId && task === null) || task?.deleted_at || (task && task.trip_id !== tripId) ? <p className="p-4 text-stone-600">This task is no longer available.</p>
-        : <TaskEditor key={taskId ?? 'new'} tripId={tripId} taskId={taskId} initial={task ?? { title: '', assignee_id: null, due_date: null, notes: null }} />}
+        : <TaskEditor key={taskId ?? 'new'} tripId={tripId} taskId={taskId} initial={task ?? { title: '', assignee_id: query.get('assignee'), due_date: null, notes: null }} />}
   </div>
 }
 

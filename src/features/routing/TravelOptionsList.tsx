@@ -22,7 +22,7 @@ export function TravelOptionsList({ options, compact = false }: { options: Trave
               {formatRange(o.minS, o.maxS)}
             </span>
             {!compact && (
-              <span className="min-w-0 truncate text-xs text-stone-400">
+              <span className="min-w-0 truncate text-xs text-stone-600">
                 {SOURCE_LABEL[o.source]}
                 {o.distanceM != null && o.source !== 'estimate' ? ` · ${formatDistance(o.distanceM)}` : ''}
               </span>

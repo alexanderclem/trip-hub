@@ -1,3 +1,4 @@
+import { TravelerLink } from './TravelerLink'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
@@ -13,7 +14,7 @@ import { OfflineMapCard } from '@/features/map/offline/OfflineMapCard'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { NotificationsCard } from '@/features/notifications/NotificationsCard'
 import { save } from '@/data/repo'
-import { Avatar, Button, Card, ErrorNote, LinkButton, PageHeader } from '@/ui'
+import { Button, Card, ErrorNote, LinkButton, PageHeader } from '@/ui'
 import { rotateShareToken } from './actions'
 
 export function SettingsScreen() {
@@ -70,9 +71,7 @@ export function SettingsScreen() {
           <ul className="space-y-2">
             {members.map((m) => (
               <li key={m.id} className="flex items-center gap-3">
-                <Avatar name={m.display_name} color={m.color} size="sm" />
-                <span className="flex-1">{m.display_name}</span>
-                {m.id === me && <span className="text-xs text-stone-500">you</span>}
+                <TravelerLink member={m} you={m.id === me} />
               </li>
             ))}
           </ul>

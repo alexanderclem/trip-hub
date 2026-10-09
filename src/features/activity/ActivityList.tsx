@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import type { Member } from '@/data/types'
 import { Avatar } from '@/ui'
+import { TravelerLink } from '@/features/trips/TravelerLink'
 import { ago } from '@/features/comments/data'
 import { isNew, type ActivityEvent } from './feed'
 
@@ -16,11 +17,12 @@ export function ActivityList({ tripId, events, members, me, since }: {
         const name = e.by === null ? null : author ? (author.id === me ? 'You' : author.display_name) : 'Someone'
         const fresh = isNew(e, since, me)
         return (
-          <li key={e.id}>
-            <Link to={`/t/${tripId}/${e.to}`} className="flex min-h-11 items-start gap-3 rounded-lg py-3 hover:bg-brand-50">
-              {name ? <Avatar name={name} color={author?.color ?? null} size="sm" /> : <span aria-hidden="true" className="size-7 shrink-0 rounded-full bg-brand-100" />}
+          <li key={e.id} className="flex items-start gap-2">
+            {author && <div className="max-w-[40%] pt-2 text-sm"><TravelerLink member={author} you={author.id === me} /></div>}
+            <Link to={`/t/${tripId}/${e.to}`} className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-lg py-3 hover:bg-brand-50">
+              {!author && name ? <Avatar name={name} color={null} size="sm" /> : !author ? <span aria-hidden="true" className="size-7 shrink-0 rounded-full bg-brand-100" /> : null}
               <span className="min-w-0 flex-1 text-sm break-words text-stone-800">
-                {name && <span className="font-medium">{name} </span>}{e.text}
+                {!author && name && <span className="font-medium">{name} </span>}{e.text}
                 <span className="block text-xs text-stone-500">{ago(e.at, now)}</span>
               </span>
               {fresh && <span className="mt-1 shrink-0 rounded-full bg-brand-700 px-2 py-0.5 text-xs font-medium text-white">New</span>}

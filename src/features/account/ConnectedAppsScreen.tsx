@@ -5,6 +5,7 @@ import { useOnline } from '@/lib/useOnline'
 import { Brand } from '@/ui/Brand'
 import { Button, Card, ErrorNote } from '@/ui'
 import { useAccount } from './account'
+import { ListSkeleton } from '@/ui/collection'
 
 type Grants = NonNullable<Awaited<ReturnType<typeof supabase.auth.oauth.listGrants>>['data']>
 
@@ -49,7 +50,7 @@ export function ConnectedAppsScreen() {
         <p className="text-sm text-stone-600">Disconnecting stops this app from refreshing its access. Existing access expires within five minutes. It does not remove information already shared.</p>
         <Button variant="danger" disabled={busy !== null} onClick={() => void disconnect(grant.client.id)}>{busy === grant.client.id ? 'Disconnecting…' : 'Disconnect'}</Button>
       </Card>) : <p role="status" className="text-sm text-stone-600">You have no connected apps.</p>
-      : !error ? <p role="status">Loading connected apps…</p> : null}
+      : !error ? <ListSkeleton label="Loading connected apps…" /> : null}
     {error && <div className="space-y-3"><ErrorNote error={error} /><Button variant="secondary" disabled={!online} onClick={() => setRetry((value) => value + 1)}>Try again</Button></div>}
     <Link to="/app" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to your trips</Link>
   </main>

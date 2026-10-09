@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { CheckCircle2, CloudUpload, Download, FileText, Image as ImageIcon, Plus, Search, Ticket } from 'lucide-react'
+import { CheckCircle2, CloudUpload, Download, FileText, Image as ImageIcon, Plus, Search } from 'lucide-react'
 import { useTrip } from '@/data/hooks'
 import type { Attachment, ItineraryItem } from '@/data/types'
 import { formatInZone } from '@/lib/time'
@@ -9,8 +9,9 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collectio
 import { useDisplayZone, useItems } from '@/features/itinerary/data'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { useAttachments } from './files'
-import { Input } from '@/ui'
+import { Input, LinkButton } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
+import { Stowie } from '@/features/stowie/Stowie'
 
 /** Lower-case text to search: title, code, the read text and any pulled-out details. */
 const haystack = (a: Attachment) => [a.title, a.confirmation_code, a.text, a.details?.merchant, a.details?.flight, a.details?.confirmation_code].filter(Boolean).join(' ').toLowerCase()
@@ -52,10 +53,10 @@ export function TicketsScreen() {
 
   return (
     <div className="min-h-full pb-28">
-      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-stone-50/95 backdrop-blur">
+      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas/95 backdrop-blur">
         <div className="px-4 py-3">
-          <p className="truncate text-xs font-medium text-stone-500">{trip?.name}</p>
-          <h1 className="text-xl font-semibold tracking-tight">Tickets</h1>
+          <p className="truncate text-xs font-medium text-stone-600">{trip?.name}</p>
+          <h1 className="ui-page-title">Tickets</h1>
         </div>
       </header>
       <div className="mx-auto max-w-lg space-y-4 p-4 lg:max-w-5xl lg:p-6">
@@ -71,17 +72,17 @@ export function TicketsScreen() {
 
         {rows && rows.length === 0 ? (
           <Empty>
-            <Ticket aria-hidden="true" className="size-8 text-brand-700" />
+            <Stowie size={64} />
             <EmptyHeader>
-              <EmptyTitle>No tickets yet</EmptyTitle>
-              <EmptyDescription>Add boarding passes, hotel confirmations and tour vouchers (PDFs or photos). They're saved on every phone in the group, so they open with no signal.</EmptyDescription>
+              <EmptyTitle>Keep every ticket handy</EmptyTitle>
+              <EmptyDescription>Booked something? Add the boarding pass, stay confirmation, or tour ticket as a PDF or photo. Download your tickets before you leave so they’re ready without signal.</EmptyDescription>
             </EmptyHeader>
-            <Link to="new" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white"><Plus aria-hidden="true" className="size-4" />Add a ticket</Link>
+            <LinkButton to="new"><Plus aria-hidden="true" className="size-4" />Add a ticket</LinkButton>
           </Empty>
         ) : (
           groups.map(([day, list]) => (
             <section key={day} aria-label={day === 'other' ? 'Not on the plan' : day === 'receipts' ? 'Receipts' : day}>
-              <h2 className="mb-2 text-xs font-semibold tracking-wide text-stone-500 uppercase">
+              <h2 className="ui-label mb-2">
                 {day === 'other' ? 'Not linked to the plan' : day === 'receipts' ? 'Receipts' : DateTime.fromISO(day).toFormat('cccc d LLLL')}
               </h2>
               <ul className="space-y-2">
@@ -107,7 +108,7 @@ function TicketCard({ att, onPhone, item, zone }: { att: Attachment; onPhone: bo
     : { text: 'Not downloaded yet', Icon: Download, cls: 'text-stone-500' }
   return (
     <li>
-      <Link to={att.id} className="block rounded-2xl border border-stone-200 bg-white p-4 shadow-sm hover:border-brand-600">
+      <Link to={att.id} className="block rounded-2xl border border-stone-200 bg-surface p-4 hover:border-brand-600">
         <div className="flex items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Icon aria-hidden="true" className="size-5" /></span>
           <div className="min-w-0 flex-1">

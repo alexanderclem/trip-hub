@@ -9,7 +9,7 @@ const root = `/t/${tripId}`
 async function seed(page: Page, baseURL: string, offline = true) {
   await page.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL).origin, route => route.abort())
   if (offline) await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
-  await page.goto('/inspire')
+  await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
   await page.evaluate(async ({ tripId, memberId, pollId }) => {
     const req = indexedDB.open('trip-hub')
@@ -21,7 +21,7 @@ async function seed(page: Page, baseURL: string, offline = true) {
     tx.objectStore('poll_options').put({ id: '00000000-0000-4000-8000-000000000b04', trip_id: tripId, poll_id: pollId, label: 'Central Park', place_id: null, deleted_at: null })
     await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error) })
     db.close()
-    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { quizSeen: true, trips: { [tripId]: { tripId, memberId, joinedAt: '2026-10-08T12:00:00Z' } } }, version: 1 }))
+    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { quizSeen: true, trips: { [tripId]: { tripId, memberId, joinedAt: '2026-10-09T12:00:00Z' } } }, version: 1 }))
     sessionStorage.setItem('stowaway-install-dismissed', '1')
   }, { tripId, memberId, pollId })
 }
@@ -126,7 +126,7 @@ test('invite copying locks duplicate actions, reports failure, and permits retry
   await card.getByRole('button', { name: 'Copy', exact: true }).click()
   await page.evaluate(() => (window as unknown as { finishCopy: () => void }).finishCopy())
   await expect(card.getByRole('button', { name: 'Copied' })).toBeEnabled()
-  await expect(card.getByRole('status')).toContainText('Invite link copied')
+  await expect(card.getByRole('status')).toContainText('Invite copied')
   await expect(card.getByRole('alert')).toHaveCount(0)
 })
 

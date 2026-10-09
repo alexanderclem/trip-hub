@@ -26,7 +26,7 @@ export function WeatherLine({ day }: { day: DayWeather | null }) {
         <span className="flex items-center gap-1.5 font-medium">
           <WeatherGlyph code={w.code} className="size-5 text-brand-700" />
           {label}
-          {typical && <span className="rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold uppercase text-stone-600">Typical</span>}
+          {typical && <span className="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-stone-600">Typical</span>}
         </span>
         <span className="tabular-nums"><b>{formatTemp(w.hi, unit)}</b> / {formatTemp(w.lo, unit)}</span>
         {w.rainPct != null && (

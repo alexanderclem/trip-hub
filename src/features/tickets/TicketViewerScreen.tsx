@@ -55,13 +55,13 @@ export function TicketViewerScreen() {
       <PageHeader title={att.title} back={`/t/${tripId}/tickets`} />
       <div className="mx-auto max-w-2xl space-y-3 p-3">
         {att.confirmation_code && (
-          <div className="rounded-2xl bg-white p-4 text-center shadow-sm">
-            <p className="text-xs font-medium tracking-wide text-stone-500 uppercase">Confirmation</p>
+          <div className="rounded-2xl border border-stone-200 bg-surface p-4 text-center">
+            <p className="ui-label">Confirmation</p>
             <p className="font-mono text-3xl font-semibold tracking-wider break-all select-all">{att.confirmation_code}</p>
           </div>
         )}
         {item && (
-          <Link to={`/t/${tripId}/plan/${item.id}`} className="block rounded-xl bg-white px-4 py-3 text-sm text-brand-700 shadow-sm">For: {item.title}</Link>
+          <Link to={`/t/${tripId}/plan/${item.id}`} className="block rounded-xl border border-stone-200 bg-surface px-4 py-3 text-sm text-brand-700">For: {item.title}</Link>
         )}
         <ErrorNote error={error} />
         {/* touch-action lets people pinch-zoom a barcode for the scanner. */}

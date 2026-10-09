@@ -1,3 +1,4 @@
+import { TravelerLink } from '@/features/trips/TravelerLink'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -105,7 +106,7 @@ export function ItemDetailScreen() {
 
         {item.confirmation_code && (
           <Card>
-            <p className="text-xs font-medium tracking-wide text-stone-500 uppercase">Confirmation</p>
+            <p className="ui-label">Confirmation</p>
             <div className="mt-1 flex items-center justify-between gap-2">
               <p className="font-mono text-3xl font-semibold tracking-wider break-all select-all">{item.confirmation_code}</p>
               <button
@@ -144,7 +145,7 @@ export function ItemDetailScreen() {
         )}
 
         <Card>
-          <p className="flex items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-stone-500" />{going ? going.map((m) => m.display_name).join(', ') || 'Nobody yet' : 'Everyone'}</p>
+          <div className="flex flex-wrap items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-stone-500" />{!going && <span>Everyone</span>}{(going ?? members).map((m) => <TravelerLink key={m.id} member={m} />)}{going?.length === 0 && <span>Nobody yet</span>}</div>
           {item.est_cost_minor != null && item.est_cost_currency && <p className="mt-2 text-sm text-stone-600">Estimated cost: {formatMoney(item.est_cost_minor, item.est_cost_currency)}</p>}
           {item.notes && <p className="mt-2 text-sm whitespace-pre-wrap text-stone-700">{item.notes}</p>}
         </Card>

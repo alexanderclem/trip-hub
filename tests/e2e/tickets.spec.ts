@@ -91,7 +91,7 @@ test('tickets: attach a PDF to a flight, it syncs to a second phone, opens with 
   await pageA.goto(`${tripPath}/more/settings`)
   await pageA.getByRole('button', { name: 'Download everything for offline' }).click()
   const card = pageA.locator('section', { has: pageA.getByRole('heading', { name: 'Ready for offline' }) })
-  await expect(card.getByText(/✓ Ready for offline/)).toBeVisible({ timeout: 60_000 })
+  await expect(card.getByText(/Ready for offline · checked/)).toBeVisible({ timeout: 60_000 })
   await shot(pageA, '63-master-download')
   expect(ticketPath).toContain('/tickets/')
 

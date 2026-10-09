@@ -13,6 +13,7 @@ import { SyncStatusButton } from '@/features/sync/SyncStatus'
 import { useUnseenActivity } from '@/features/activity/data'
 import { StowieCompanion } from '@/features/stowie/StowieCompanion'
 import { Brand } from '@/ui/Brand'
+import { dateRange } from '@/lib/time'
 import { LoadingState } from '@/ui/LoadingState'
 import { PageTransition } from '@/ui/PageTransition'
 
@@ -76,12 +77,11 @@ function TripShell({ tripId }: { tripId: string }) {
       <aside className="hidden w-64 shrink-0 flex-col border-r border-stone-200 bg-surface p-5 lg:flex" aria-label="Trip workspace">
         <Link to="/app" aria-label="Stowaway — your trips" className="mb-6"><Brand /></Link>
         <label className="text-xs font-semibold text-stone-600" htmlFor="trip-switcher">Your trips</label>
-        <select id="trip-switcher" className="mt-2 min-h-11 w-full min-w-0 rounded-xl border border-stone-300 bg-white px-3 text-sm" value={tripId} onChange={(event) => navigate(`/t/${event.target.value}/overview`)}>
+        <select id="trip-switcher" className="ui-field mt-2 min-h-11 w-full min-w-0 rounded-xl border border-stone-300 bg-white px-3 font-semibold text-brand-900" value={tripId} onChange={(event) => navigate(`/t/${event.target.value}/overview`)}>
           {!trips?.some((t) => t?.id === tripId) && <option value={tripId}>{trip?.name ?? 'Loading trip…'}</option>}
           {trips?.filter((t) => t && !t.deleted_at).map((t) => <option key={t!.id} value={t!.id}>{t!.name}</option>)}
         </select>
-        <p className="mt-4 break-words text-xl font-semibold leading-snug text-brand-900">{trip?.name ?? 'Your trip'}</p>
-        <p className="mt-1 text-xs text-stone-600">{trip?.start_date ? `${trip.start_date}${trip.end_date ? ` – ${trip.end_date}` : ''}` : 'Dates to be decided'}</p>
+        <p className="mt-2 text-sm text-stone-600">{dateRange(trip?.start_date, trip?.end_date)}</p>
         <nav aria-label="Trip navigation" className="mt-6 space-y-1">
           {desktopTabs.map(({ to, label, Icon }) => <NavLink key={to} end={to === 'more'} to={`${root}/${to}`} className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium ${isActive ? 'bg-brand-100 text-brand-900' : 'text-stone-600 hover:bg-brand-50 hover:text-brand-900'}`}><Icon aria-hidden="true" className="size-5 shrink-0" /><span className="flex-1">{label}</span>{to === 'overview' && news}</NavLink>)}
         </nav>

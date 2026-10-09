@@ -6,6 +6,18 @@ Source registry: https://ui.shadcn.com/r/styles/new-york-v4/{empty,skeleton,card
 
 Adaptations: existing stone/teal tokens, semantic headings, reduced-motion-aware skeletons, existing Card padding/API, and simple class composition instead of extra dependencies. Trip cards and the page composition are app-specific code. No hosted runtime or 21st account is required.
 
+## Shared roles for trip screens
+
+Use these before writing new class strings (`src/styles/index.css`, `src/ui`):
+
+- Actions: `Button` and `LinkButton`. A link that looks like a button is a `LinkButton`, never a hand-styled `Link`.
+- Surfaces: `Card` / `.ui-card`, and `.ui-row` for a tappable row in a list of destinations. Surfaces are `bg-surface` with a border; shadows are only for things that float (dialogs, sheets, map chips, the selected segment of a toggle).
+- Text: `.ui-page-title` (one per screen, also inside `PageHeader`, which takes an optional `eyebrow`), `.ui-section-title` (card headings), `.ui-label` (small sentence-case labels; no all-caps tracked labels). `.travel-heading` is for the Georgia display titles on Home, Welcome and the trip overview.
+- Dates: `formatDate` and `dateRange` in `src/lib/time.ts`; never show a stored `yyyy-MM-dd`.
+- Loading: `ListSkeleton` (from `collection.tsx`) inside a screen, `LoadingState` for a whole screen.
+- Text colour: `text-stone-600` or darker for words; `text-stone-500` at the lightest for icons that can be tapped.
+- Stowie in an empty state: Tickets, Money and Tasks only. Other empties keep a plain icon.
+
 Upstream license follows.
 
 MIT License

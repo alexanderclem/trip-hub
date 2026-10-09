@@ -1,3 +1,5 @@
+import { useMyMemberId } from '@/data/device'
+import { retrySavedProfile } from '@/features/trips/retryProfile'
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { CheckCircle2, CloudOff, CloudUpload, RefreshCw, TriangleAlert } from 'lucide-react'
@@ -29,6 +31,7 @@ function syncLabel(online: boolean, phase: string, pending: number, rejected: nu
 
 /** Shared by the shell and settings: queue counts explicitly describe this device. */
 export function SyncDetails({ tripId }: { tripId: string }) {
+  const me = useMyMemberId(tripId)
   const online = useOnline()
   const sync = useSyncStatus()
   const details = useSyncDetails(tripId)
@@ -73,7 +76,12 @@ export function SyncDetails({ tripId }: { tripId: string }) {
       {rejected.length > 0 && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">
         <p className="font-semibold">{rejected.length} {rejected.length === 1 ? 'change needs' : 'changes need'} review</p>
         <p className="mt-1 leading-relaxed">The server rejected these edits. Their attempted values are kept here; the current trip may show the server’s version. Review the affected item before editing again.</p>
-        <ul className="mt-3 max-h-48 space-y-2 overflow-auto">{rejected.map((entry) => <li key={entry.id} className="break-words"><strong>{nameOf(entry)}</strong><details><summary className="min-h-11 cursor-pointer content-center">Rejection details</summary><p className="break-words">{entry.error}</p><pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all text-xs">{JSON.stringify(entry.payload, null, 2)}</pre></details></li>)}</ul>
+        <ul className="mt-3 max-h-48 space-y-2 overflow-auto">{rejected.map((entry) => <li key={entry.id} className="break-words"><strong>{nameOf(entry)}</strong>{entry.table === 'members' && entry.id != null && (Object.hasOwn(entry.payload, 'avatar_url') || Object.hasOwn(entry.payload, 'venmo_username')) && <Button variant="secondary" className="mt-2 block" disabled={retrying} onClick={async () => {
+          setRetrying(true); setError(null)
+          try { await retrySavedProfile(entry.id!, tripId, me); if (online) await retrySync(tripId) }
+          catch (e) { setError(e instanceof Error ? e.message : 'Could not restore the saved profile. Try again.') }
+          finally { setRetrying(false) }
+        }}>Retry saved profile</Button>}<details><summary className="min-h-11 cursor-pointer content-center">Rejection details</summary><p className="break-words">{entry.error}</p><pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all text-xs">{JSON.stringify(entry.payload, null, 2)}</pre></details></li>)}</ul>
         <Button variant="secondary" className="mt-3" onClick={downloadRejected}>Save a copy of rejected changes</Button>
       </div>}
       {sync.lastError && sync.phase === 'error' && <details className="text-sm"><summary className="min-h-11 cursor-pointer content-center">Connection details</summary><p className="break-words text-stone-600">{sync.lastError}</p></details>}

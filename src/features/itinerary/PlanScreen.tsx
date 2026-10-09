@@ -6,7 +6,7 @@ import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatInZone } from '@/lib/time'
-import { Card, Textarea } from '@/ui'
+import { Card, LinkButton, Textarea } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { itemsFor, planIcs, shareCalendar } from './calendar'
@@ -68,11 +68,11 @@ export function PlanScreen() {
 
   return (
     <div className="min-h-full pb-28">
-      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-stone-50/95 backdrop-blur">
+      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas/95 backdrop-blur">
         <div className="flex items-center justify-between gap-3 px-4 pt-3">
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-stone-500">{trip?.name}</p>
-            <h1 className="text-xl font-semibold tracking-tight">Plan</h1>
+            <p className="truncate text-xs font-medium text-stone-600">{trip?.name}</p>
+            <h1 className="ui-page-title">Plan</h1>
           </div>
           <TimeToggle trip={trip} />
         </div>
@@ -162,12 +162,12 @@ export function PlanScreen() {
           <Empty>
             <CalendarDays aria-hidden="true" className="size-8 text-brand-700" />
             <EmptyHeader>
-              <EmptyTitle>Nothing planned yet</EmptyTitle>
-              <EmptyDescription>Add flights, tours, meals and stays. Everyone sees the same plan, even offline.</EmptyDescription>
+              <EmptyTitle>Know what’s next</EmptyTitle>
+              <EmptyDescription>Start with the flight you booked, a dinner everyone picked, or a day you want to explore. Add it to the plan so your friends can follow along, even offline.</EmptyDescription>
             </EmptyHeader>
-            <Link to={`/t/${tripId}/plan/new?day=${day}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white">
+            <LinkButton to={`/t/${tripId}/plan/new?day=${day}`}>
               <Plus aria-hidden="true" className="size-4" /> Add to this day
-            </Link>
+            </LinkButton>
           </Empty>
         ) : (
           <Timeline blocks={layout.blocks} fromHour={layout.fromHour} toHour={layout.toHour} zone={zone} day={day} tripId={tripId} placeOf={placeOf} />
@@ -198,7 +198,7 @@ function Timeline({ blocks, fromHour, toHour, zone, day, tripId, placeOf }: {
     <div className="relative" style={{ height: hours.length * HOUR_PX }} aria-label="Timeline">
       {hours.map((h) => (
         <div key={h} className="absolute inset-x-0 border-t border-stone-200" style={{ top: (h - fromHour) * HOUR_PX }}>
-          <span className="absolute -top-2.5 left-0 bg-stone-50 pr-1 text-xs tabular-nums text-stone-400">{String(h).padStart(2, '0')}:00</span>
+          <span className="absolute -top-2.5 left-0 bg-stone-50 pr-1 text-xs tabular-nums text-stone-500">{String(h).padStart(2, '0')}:00</span>
         </div>
       ))}
       {nowMin != null && nowMin >= fromHour * 60 && nowMin <= toHour * 60 && (

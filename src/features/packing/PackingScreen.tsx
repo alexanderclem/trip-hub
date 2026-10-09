@@ -73,7 +73,7 @@ export function PackingScreen() {
         </div>
         {!me && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Choose who you are in this trip to tick items off.</p>}
         {me && myJobs.length > 0 && (
-          <div className="rounded-2xl border border-stone-200 bg-white p-3">
+          <div className="rounded-2xl border border-stone-200 bg-surface p-3">
             <p className="text-sm font-medium">You’ve packed {myDone} of {myJobs.length}</p>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100" role="progressbar" aria-label="Your packing" aria-valuemin={0} aria-valuemax={myJobs.length} aria-valuenow={myDone}>
               <div className="h-full rounded-full bg-brand-600" style={{ width: `${(100 * myDone) / myJobs.length}%` }} />
@@ -165,7 +165,7 @@ function Section({ id, title, hint, count, children }: { id: string; title: stri
     <section aria-labelledby={id}>
       <h2 id={id} className="text-sm font-semibold text-stone-700">{title} · {count}</h2>
       <p className="mb-2 text-xs text-stone-500">{hint}</p>
-      {count ? <ul className="rounded-2xl border border-stone-200 bg-white px-2">{children}</ul> : <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Nothing here.</p>}
+      {count ? <ul className="rounded-2xl border border-stone-200 bg-surface px-2">{children}</ul> : <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Nothing here.</p>}
     </section>
   )
 }

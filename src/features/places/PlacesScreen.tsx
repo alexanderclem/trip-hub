@@ -77,13 +77,13 @@ export function PlacesScreen() {
           </label>
           <p role="status" className="text-xs text-stone-500">{places ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}` : 'Loading places…'}</p>
         </div>
-        {!places && <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl border border-stone-200 bg-white p-4"><Skeleton className="h-10 w-10" /><Skeleton className="mt-4 h-5 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></div>)}</div>}
+        {!places && <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl border border-stone-200 bg-surface p-4"><Skeleton className="h-10 w-10" /><Skeleton className="mt-4 h-5 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></div>)}</div>}
         {places && filtered.length === 0 && (
           <Empty>
             <MapPin aria-hidden="true" className="size-8 text-brand-700" />
             <EmptyHeader>
               <EmptyTitle>{places.length ? 'No places in this view' : 'Where should we go?'}</EmptyTitle>
-              <EmptyDescription>{places.length ? 'Try another search or category, or include the idea pool.' : 'Save a place to eat, stay, or explore. Everyone on the trip can help plan.'}</EmptyDescription>
+              <EmptyDescription>{places.length ? 'Try another search or category, or include the idea pool.' : 'That restaurant from the group chat? The beach you can’t stop thinking about? Save it here and let your friends add their favorites.'}</EmptyDescription>
             </EmptyHeader>
             {places.length ? <button className={placeActionClass} onClick={() => { setQ(''); setCat(null); setShowPool(true) }}>Show all places</button> : <Link to="new" className={placeActionClass}><Plus aria-hidden="true" className="size-4" />Add a place</Link>}
           </Empty>
@@ -93,7 +93,7 @@ export function PlacesScreen() {
           {filtered.map((p) => {
             const at = p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : null
             return (
-              <li key={p.id} className="flex min-w-0 flex-col rounded-2xl border border-stone-200 bg-white shadow-sm">
+              <li key={p.id} className="flex min-w-0 flex-col rounded-2xl border border-stone-200 bg-surface">
                 <Link to={p.id} className="group flex-1 rounded-t-2xl p-4 transition-colors hover:bg-stone-50">
                   <div className="mb-4 flex items-center justify-between gap-2"><PlaceCategoryIcon category={p.category} /><span className="flex items-center gap-2"><StarsSummary summary={ratings?.get(p.id)} compact /><PlaceStatusBadge status={p.status} /></span></div>
                   <p className="mb-1 text-xs font-medium text-stone-500">{CATEGORY_STYLE[p.category].label}</p>

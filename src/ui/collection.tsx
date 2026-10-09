@@ -21,6 +21,18 @@ export function Skeleton({ className = '', ...props }: ComponentProps<'div'>) {
   return <div data-slot="skeleton" className={`rounded-md bg-stone-200 motion-safe:animate-pulse ${className}`} {...props} />
 }
 
+/** Placeholder rows while a list loads from the phone, in place of a line of "Loading…" text. */
+export function ListSkeleton({ label, rows = 3, className = '' }: { label: string; rows?: number; className?: string }) {
+  return (
+    <div role="status" className={className}>
+      <span className="sr-only">{label}</span>
+      <div aria-hidden="true" className="space-y-3">
+        {Array.from({ length: rows }, (_, i) => <Skeleton key={i} className={`h-5 ${i % 2 ? 'w-1/2' : 'w-3/4'}`} />)}
+      </div>
+    </div>
+  )
+}
+
 export function CardHeader(props: ComponentProps<'div'>) {
   return <div data-slot="card-header" {...props} className={`grid gap-2 ${props.className ?? ''}`} />
 }

@@ -92,6 +92,18 @@ export function tripDays(startDate: string, endDate: string): string[] {
   return days
 }
 
+/** A stored 'yyyy-MM-dd' as people read it ("Mar 13, 2027"); text that isn't a date is shown as it is. */
+export function formatDate(date: string): string {
+  const d = DateTime.fromISO(date)
+  return d.isValid ? d.toLocaleString(DateTime.DATE_MED) : date
+}
+
+/** A trip's dates as one label, for headers and cards. */
+export function dateRange(start: string | null | undefined, end: string | null | undefined): string {
+  if (start) return `${formatDate(start)}${end ? ` – ${formatDate(end)}` : ''}`
+  return end ? `Until ${formatDate(end)}` : 'Dates to be decided'
+}
+
 /** Which part comes first when people here write a date in numbers: 6/4/2027 is June 4 or 6 April. */
 export type DateOrder = 'MDY' | 'DMY' | 'YMD'
 

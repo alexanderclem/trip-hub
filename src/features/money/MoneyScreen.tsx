@@ -1,3 +1,4 @@
+import { TravelerLink } from '@/features/trips/TravelerLink'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { LoadingState } from '@/ui/LoadingState'
 import { useMemo, useState, type FormEvent } from 'react'
@@ -10,12 +11,13 @@ import { PAYMENT_METHODS, type Member, type SettlementRow } from '@/data/types'
 import { convertMinor, FX_ATTRIBUTION, rateFor } from '@/lib/fx'
 import { newId } from '@/lib/ids'
 import { balances, computeShares, formatMoney, minorUnits, simplifyDebts, toBaseMinor, type Transfer } from '@/lib/money'
-import { Avatar, Button, Card, ErrorNote, Input, Select } from '@/ui'
+import { Avatar, Button, Card, ErrorNote, Input, LinkButton, Select } from '@/ui'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { parseMinor } from './build'
 import { deleteSettlement, saveSettlement, useFxRefresh, useMoney } from './data'
 import { useMoneyFormat } from './format'
 import { TripCostCard } from './TripCostCard'
+import { Stowie } from '@/features/stowie/Stowie'
 
 export function MoneyScreen() {
   const confirm = useConfirm()
@@ -52,11 +54,11 @@ export function MoneyScreen() {
 
   return (
     <div className="min-h-full pb-28">
-      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-stone-50/95 backdrop-blur">
+      <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas/95 backdrop-blur">
         <div className="flex items-center justify-between gap-3 px-4 py-3">
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-stone-500">{trip?.name}</p>
-            <h1 className="text-xl font-semibold tracking-tight">Money</h1>
+            <p className="truncate text-xs font-medium text-stone-600">{trip?.name}</p>
+            <h1 className="ui-page-title">Money</h1>
           </div>
           {local && local !== base && (
             <div role="radiogroup" aria-label="Show amounts in" className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1 text-sm">
@@ -77,14 +79,14 @@ export function MoneyScreen() {
         )}
         {money && money.expenses.length === 0 && money.settlements.length === 0 ? (
           <Empty>
-            <Receipt aria-hidden="true" className="size-8 text-brand-700" />
+            <Stowie size={64} />
             <EmptyHeader>
-              <EmptyTitle>No expenses yet</EmptyTitle>
-              <EmptyDescription>Log who paid for what, in quetzales or dollars. Stowaway works out who owes whom with the fewest payments.</EmptyDescription>
+              <EmptyTitle>See who owes what</EmptyTitle>
+              <EmptyDescription>Someone picked up dinner or booked the stay? Add what they paid and who’s sharing it. Stowaway works out everyone’s share and helps you settle up.</EmptyDescription>
             </EmptyHeader>
             <div className="flex flex-wrap justify-center gap-2">
-              <Link to="new" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white"><Plus aria-hidden="true" className="size-4" />Add an expense</Link>
-              <Link to={`/t/${tripId}/tickets/new?kind=receipt&expense=1`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 font-medium text-brand-700"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</Link>
+              <LinkButton to="new"><Plus aria-hidden="true" className="size-4" />Add an expense</LinkButton>
+              <LinkButton to={`/t/${tripId}/tickets/new?kind=receipt&expense=1`} variant="secondary"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</LinkButton>
             </div>
           </Empty>
         ) : (
@@ -106,13 +108,14 @@ export function MoneyScreen() {
                   {transfers.map((t) => (
                     <li key={`${t.from}-${t.to}`}>
                       <div className="flex items-center gap-2">
-                        <Avatar name={name(t.from)} color={memberOf(t.from)?.color ?? null} size="sm" />
+                        <Avatar name={name(t.from)} color={memberOf(t.from)?.color ?? null} photo={memberOf(t.from)?.avatar_url} size="sm" />
                         <span className="min-w-0 flex-1 text-sm">
-                          <b>{t.from === me ? 'You' : name(t.from)}</b> pay{t.from === me ? '' : 's'} <b>{t.to === me ? 'you' : name(t.to)}</b>
+                          <Link to={`/t/${tripId}/travelers/${t.from}`} className="font-semibold text-brand-700 underline">{t.from === me ? 'You' : name(t.from)}</Link> pay{t.from === me ? '' : 's'} <Link to={`/t/${tripId}/travelers/${t.to}`} className="font-semibold text-brand-700 underline">{t.to === me ? 'you' : name(t.to)}</Link>
                         </span>
                         <span className="font-semibold tabular-nums">{fmt(t.amount_minor)}</span>
                         <Button variant="secondary" className="min-h-9 px-3 text-sm" onClick={() => setRecording(t)} aria-label={`Record ${name(t.from)} paying ${name(t.to)}`}>Record</Button>
                       </div>
+                      {memberOf(t.to)?.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(memberOf(t.to)!.venmo_username!)}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">Pay {name(t.to)} on Venmo</a>}
                       {recording === t && trip && (
                         <RecordPayment transfer={t} base={base} local={local} snapshot={money?.snapshot ?? null} me={me} tripId={tripId} onDone={() => setRecording(null)} />
                       )}
@@ -133,8 +136,8 @@ export function MoneyScreen() {
             <section aria-label="History" className="space-y-4">
               {history.map(([day, rows]) => (
                 <div key={day}>
-                  <h3 className="mb-2 text-xs font-semibold tracking-wide text-stone-500 uppercase">{DateTime.fromISO(day).toFormat('cccc d LLLL')}</h3>
-                  <ul className="divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200 bg-white">
+                  <h3 className="ui-label mb-2">{DateTime.fromISO(day).toFormat('cccc d LLLL')}</h3>
+                  <ul className="divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200 bg-surface">
                     {rows.map((r) =>
                       r.kind === 'expense' ? (
                         <li key={r.e.id}>
@@ -161,7 +164,7 @@ export function MoneyScreen() {
                             <span className="text-stone-500"> · {r.s.method}</span>
                           </p>
                           <span className="font-semibold tabular-nums">{formatMoney(r.s.amount_minor, r.s.currency)}</span>
-                          <button onClick={async () => { if (await confirm('Undo this payment?')) await deleteSettlement(r.s.id, me) }} aria-label="Undo payment" className="flex size-11 items-center justify-center rounded-xl text-stone-400 hover:bg-stone-100">
+                          <button onClick={async () => { if (await confirm('Undo this payment?')) await deleteSettlement(r.s.id, me) }} aria-label="Undo payment" className="flex size-11 items-center justify-center rounded-xl text-stone-500 hover:bg-stone-100">
                             <Undo2 aria-hidden="true" className="size-4" />
                           </button>
                         </li>
@@ -174,13 +177,13 @@ export function MoneyScreen() {
           </>
         )}
 
-        <p className="pt-2 text-center text-xs text-stone-400">
+        <p className="pt-2 text-center text-xs text-stone-600">
           {money?.snapshot ? `Exchange rates from ${DateTime.fromISO(money.snapshot.as_of).toFormat('d LLL yyyy')}. ` : 'Using approximate built-in exchange rates until online. '}
           <a href={FX_ATTRIBUTION.url} target="_blank" rel="noreferrer" className="underline">{FX_ATTRIBUTION.text}</a>
         </p>
       </div>
 
-      <Link to={`/t/${tripId}/tickets/new?kind=receipt&expense=1`} aria-label="Scan a receipt" className="fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+9.5rem)] z-20 flex size-12 items-center justify-center rounded-2xl border border-stone-200 bg-white text-brand-700 shadow-md hover:bg-stone-50">
+      <Link to={`/t/${tripId}/tickets/new?kind=receipt&expense=1`} aria-label="Scan a receipt" className="fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+9.5rem)] z-20 flex size-12 items-center justify-center rounded-2xl border border-stone-200 bg-surface text-brand-700 shadow-md hover:bg-stone-50">
         <ScanLine aria-hidden="true" className="size-6" />
       </Link>
       <Link to="new" aria-label="Add expense" className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-20 flex size-14 items-center justify-center rounded-2xl bg-brand-700 text-white shadow-lg hover:bg-brand-900">
@@ -194,8 +197,7 @@ function BalanceRow({ member, value, max, fmt, you }: { member: Member; value: n
   const pct = (Math.abs(value) / max) * 50
   return (
     <li className="flex items-center gap-3">
-      <Avatar name={member.display_name} color={member.color} size="sm" />
-      <span className="w-20 shrink-0 truncate text-sm">{member.display_name}{you ? ' (you)' : ''}</span>
+      <div className="min-w-0 max-w-[50%] text-sm"><TravelerLink member={member} you={you} /></div>
       <div className="relative h-2 flex-1 rounded-full bg-stone-100" aria-hidden="true">
         <div className={`absolute top-0 h-2 rounded-full ${value >= 0 ? 'left-1/2 bg-green-500' : 'right-1/2 bg-red-400'}`} style={{ width: `${pct}%` }} />
       </div>

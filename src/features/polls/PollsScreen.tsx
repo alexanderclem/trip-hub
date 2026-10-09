@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { ChevronRight, Plus } from 'lucide-react'
+import { Check, ChevronRight, Plus } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
 import { DateTime } from 'luxon'
@@ -108,13 +108,14 @@ export function PollsScreen() {
             const winner = poll.status === 'closed' ? live.find((o) => o.id === poll.winner_option_id) : ended ? top?.option : null
             return (
               <li key={poll.id}>
-                <Link to={poll.id} className="block rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-colors hover:border-brand-600 active:bg-brand-50">
+                <Link to={poll.id} className="block rounded-2xl border border-stone-200 bg-surface p-4 transition-colors hover:border-brand-600 active:bg-brand-50">
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-medium text-stone-500">{ended ? (winner ? 'Decided' : 'Voting ended') : `${live.length} option${live.length === 1 ? '' : 's'} · you voted on ${myVotes}${poll.closes_at ? ` · closes ${closesLabel(poll.closes_at, Date.now(), zone)}` : ''}`}{comments > 0 && ` · ${comments} ${comments === 1 ? 'comment' : 'comments'}`}</p>
                       <h2 className="mt-1 break-words text-lg font-semibold tracking-tight">{poll.title}</h2>
-                      <p className="mt-1 text-sm text-stone-600">
-                        {winner ? `✓ ${winner.label}` : top ? `Leading: ${top.option.label}` : live.length ? 'Not enough votes yet' : 'No options yet'}
+                      <p className="mt-1 flex items-start gap-1.5 text-sm text-stone-600">
+                        {winner && <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand-700" />}
+                        {winner ? winner.label : top ? `Leading: ${top.option.label}` : live.length ? 'Not enough votes yet' : 'No options yet'}
                       </p>
                     </div>
                     <ChevronRight aria-hidden="true" className="mt-1 size-5 shrink-0 text-stone-400" />

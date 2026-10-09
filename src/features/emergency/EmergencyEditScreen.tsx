@@ -5,6 +5,7 @@ import { useMyMemberId } from '@/data/device'
 import { useTrip } from '@/data/hooks'
 import { Button, ErrorNote, Field, Input, PageHeader, Textarea } from '@/ui'
 import { EMPTY_SAFETY, saveMySafety, saveTripEmergency, safetyId, tripEmergency, useSafety, type Contact, type SafetyFields, type TripEmergency } from './data'
+import { ListSkeleton } from '@/ui/collection'
 
 /** My own emergency card. Fills itself once, so background sync never undoes typing. */
 export function EmergencyEditScreen() {
@@ -115,7 +116,7 @@ export function EmergencyNumbersScreen() {
   return (
     <div className="min-h-full pb-24">
       <PageHeader title="Emergency numbers" back={back} />
-      {!info ? <p role="status" className="p-4 text-stone-500">Loading…</p> : (
+      {!info ? <ListSkeleton label="Loading…" className="p-4" /> : (
         <form onSubmit={submit} className="mx-auto max-w-md space-y-5 p-4">
           <p className="text-sm text-stone-600">Shared with the whole trip. Look these up for your destination while you have signal.</p>
           <fieldset disabled={busy} className="min-w-0 space-y-2">

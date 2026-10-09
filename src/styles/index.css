@@ -68,6 +68,17 @@ body {
   .ui-icon-button { display: inline-flex; min-height: 44px; min-width: 44px; align-items: center; justify-content: center; border-radius: var(--stowaway-radius-control); }
   .ui-icon-button:hover { background: var(--color-brand-50); }
   .ui-card { border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); padding: 1rem; }
+  /* A tappable row in a list of destinations (More, settings). Surfaces are bordered, not shadowed. */
+  .ui-row {
+    display: flex; min-height: 3.5rem; align-items: center; gap: .75rem; padding: .75rem 1rem;
+    border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface);
+    transition: background-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), border-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease);
+  }
+  .ui-row:hover, .ui-row:active { background: var(--color-brand-50); border-color: var(--color-brand-500); }
+  /* Text roles for trip screens: one page title, one section title, one small label. */
+  .ui-page-title { font-size: 1.25rem; font-weight: 600; line-height: 1.4; color: var(--stowaway-ink); }
+  .ui-section-title { font-size: 1.125rem; font-weight: 600; line-height: 1.4; color: var(--stowaway-ink); }
+  .ui-label { font-size: .875rem; font-weight: 500; line-height: 1.5; color: var(--stowaway-muted); }
 }
 
 .ui-dialog {
@@ -96,7 +107,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; }
-  .ui-button, .ui-icon-button { transition-duration: 0s; }
+  .ui-button, .ui-icon-button, .ui-row { transition-duration: 0s; }
 }
 
 /* Map controls sit below the category chips and idea-pool buttons. */
@@ -109,6 +120,8 @@ body {
   outline: 2px solid var(--color-brand-700);
   outline-offset: 3px;
 }
+/* Fields already have a border, so the indicator sits on it instead of floating around it. */
+.ui-field:focus-visible { outline-offset: 0; }
 
 .trip-skip { position: fixed; inset-inline-start: 1rem; top: -10rem; z-index: 100; padding: .75rem 1rem; background: var(--stowaway-surface); color: var(--stowaway-ink); border: 2px solid var(--stowaway-action); border-radius: var(--stowaway-radius-control); }
 .trip-skip:focus { top: 1rem; }

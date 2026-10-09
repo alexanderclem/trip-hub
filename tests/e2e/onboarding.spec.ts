@@ -11,7 +11,7 @@ test.use(fresh)
 test('opening sequence: welcome → create → quiz → trip; a friend joins, skips, and sees the profile', async ({ page, browser }) => {
   // ── Alex: welcome screen, then create ──
   await page.goto('/app')
-  await expect(page.getByRole('heading', { name: 'Plan it together, take it anywhere.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Let’s make the trip happen.' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
   await shot(page, '70-welcome')
   await page.getByRole('link', { name: 'Create a trip' }).click()

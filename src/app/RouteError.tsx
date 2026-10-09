@@ -1,6 +1,7 @@
 import { Link, useRouteError } from 'react-router'
 import { RefreshCw } from 'lucide-react'
-import { Button } from '@/ui'
+import { Button, LinkButton } from '@/ui'
+import { Brand } from '@/ui/Brand'
 
 /** Kept in the main bundle so a missing lazy chunk cannot prevent recovery. */
 export function RouteError() {
@@ -10,7 +11,8 @@ export function RouteError() {
 
   return (
     <main className="mx-auto max-w-md px-5 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight">
+      <Link to="/app" aria-label="Stowaway — your trips" className="mb-8 inline-flex"><Brand /></Link>
+      <h1 className="travel-heading text-3xl text-brand-900">
         {assetError ? 'The app needs a refresh' : 'This page couldn’t load'}
       </h1>
       <p className="mt-3 leading-relaxed text-stone-600">
@@ -19,9 +21,9 @@ export function RouteError() {
           : 'Try reloading this page, or return to your trips.'}
       </p>
       <p className="mt-3 text-sm text-stone-600">Reloading keeps your saved trips and offline changes on this device.</p>
-      <div className="mt-6 flex flex-wrap items-center gap-4">
+      <div className="mt-6 flex flex-wrap items-center gap-2">
         <Button onClick={() => window.location.reload()}><RefreshCw aria-hidden="true" className="size-4" />Reload app</Button>
-        <Link className="rounded-lg px-2 py-3 font-medium text-brand-700 underline underline-offset-4" to="/app">Your trips</Link>
+        <LinkButton variant="secondary" to="/app">Your trips</LinkButton>
       </div>
     </main>
   )

@@ -170,7 +170,7 @@ test('group radar excludes missing profiles, updates membership and applies and 
   await page.getByRole('checkbox', { name: 'Alex (you)' }).check()
   // Load the lazy calendar route before testing offline navigation.
   await page.goto(`/t/${TRIP}/plan`)
-  await expect(page.getByText('Nothing planned yet', { exact: true })).toBeVisible()
+  await expect(page.getByText('Know what’s next', { exact: true })).toBeVisible()
   await openEditor(page)
   await context.setOffline(true)
   await page.locator('section').filter({ has: page.getByRole('heading', { name: result.ideas[0]!.title }) }).last().getByRole('button', { name: 'Add draft to plan' }).click()
@@ -220,7 +220,7 @@ test('an overlapping draft explains the empty plan and can be refined and added'
   await page.getByRole('button', { name: 'Add draft to plan' }).click()
   await expect(page.getByRole('alert')).toHaveText('“Sunset at El Arco” overlaps “Visit the food market” within this draft on 2027-03-14. Nothing was added to your plan. Refine this idea to give the activities separate times.')
   await page.goto(`/t/${TRIP}/plan`)
-  await expect(page.getByText('Nothing planned yet', { exact: true })).toBeVisible()
+  await expect(page.getByText('Know what’s next', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: /Sunset at El Arco/ })).toHaveCount(0)
   await openEditor(page)
   await page.getByRole('button', { name: 'Refine this idea' }).click()

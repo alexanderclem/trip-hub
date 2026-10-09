@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { RouteError } from './app/RouteError'
 import { RootLayout } from './app/layouts/RootLayout'
 import { LandingScreen } from './features/website/LandingScreen'
+import { NotFoundScreen } from './features/website/NotFoundScreen'
 import { LegalScreen } from './features/legal/LegalScreen'
 import { LoadingState } from './ui/LoadingState'
 
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="overview" replace /> },
           { path: 'overview', lazy: () => import('./features/trips/TripOverviewScreen').then((m) => ({ Component: m.TripOverviewScreen })) },
+          { path: 'travelers/:memberId', lazy: () => import('./features/trips/TravelerScreen').then((m) => ({ Component: m.TravelerScreen })) },
           { path: 'activity', lazy: () => import('./features/activity/ActivityScreen').then((m) => ({ Component: m.ActivityScreen })) },
           { path: 'map', lazy: () => import('./features/map/MapScreen').then((m) => ({ Component: m.default })) },
           { path: 'plan', lazy: () => import('./features/itinerary/PlanScreen').then((m) => ({ Component: m.PlanScreen })) },
@@ -67,7 +69,7 @@ export const router = createBrowserRouter([
           { path: 'more/vote/:pollId', lazy: () => import('./features/polls/PollScreen').then((m) => ({ Component: m.PollScreen })) },
         ],
       },
-      { path: '*', element: <Navigate to="/" replace /> },
+      { path: '*', element: <NotFoundScreen /> },
     ],
   },
 ])

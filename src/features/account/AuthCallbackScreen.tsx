@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { Brand } from '@/ui/Brand'
-import { ErrorNote } from '@/ui'
+import { ErrorNote, LinkButton } from '@/ui'
 import { finishSignIn, signedInDestination, type SignInResult } from './account'
 
 /** Where Google, or a link in a sign-in email, sends the phone back to. Finishes sign-in, restores trips, then goes home. */
@@ -48,7 +48,7 @@ export function AuthCallbackScreen() {
       ) : (
         <p role="status" className="text-stone-600">Signing you in and fetching your trips…</p>
       )}
-      {(error || result) && <Link to={returnPath} replace className="inline-flex min-h-11 items-center rounded-xl bg-brand-700 px-4 font-medium text-white">{returnPath.startsWith('/oauth/') ? 'Continue connecting' : 'Back to your trips'}</Link>}
+      {(error || result) && <LinkButton to={returnPath} replace>{returnPath.startsWith('/oauth/') ? 'Continue connecting' : 'Back to your trips'}</LinkButton>}
     </main>
   )
 }

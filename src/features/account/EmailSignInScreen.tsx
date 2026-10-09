@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useOnline } from '@/lib/useOnline'
-import { Button, ErrorNote, Field, Input, PageHeader } from '@/ui'
+import { Button, ErrorNote, Field, Input, LinkButton, PageHeader } from '@/ui'
 import {
   createPasswordAccount, MIN_PASSWORD, sendEmailCode, signedInDestination, signInWithPassword, verifyEmailCode,
   type EmailCodeKind, type SignInResult,
@@ -78,7 +78,7 @@ export function EmailSignInScreen() {
         <p role="alert" className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
           {notCarried.count} {notCarried.count === 1 ? 'trip on this phone was' : 'trips on this phone were'} not added to your account. Open {notCarried.count === 1 ? 'its' : 'their'} invite link again to join with your account.
         </p>
-        <Link to={notCarried.to} replace className="inline-flex min-h-11 items-center rounded-xl bg-brand-700 px-4 font-medium text-white">Back to your trips</Link>
+        <LinkButton to={notCarried.to} replace>Back to your trips</LinkButton>
       </main>
     )
   }

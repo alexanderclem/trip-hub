@@ -8,7 +8,7 @@ import { save, softDelete } from '@/data/repo'
 import { LINK_KINDS, type Link as TripLink, type LinkKind } from '@/data/types'
 import { googleMapsUrl, tripadvisorUrl } from '@/lib/geo'
 import { newId } from '@/lib/ids'
-import { Button, Card, ErrorNote, Input, PageHeader, Select } from '@/ui'
+import { Button, Card, ErrorNote, Input, LinkButton, PageHeader, Select } from '@/ui'
 import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
 import { TravelTimesCard } from '@/features/routing/TravelTimesCard'
 import { GroupRatingCard } from '@/features/ratings/GroupRatingCard'
@@ -64,9 +64,9 @@ export function PlaceDetailScreen() {
 
         {place.notes && <Card><p className="whitespace-pre-wrap">{place.notes}</p></Card>}
 
-        <Link to={`/t/${tripId}/plan/new?place=${place.id}`} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 font-medium text-white hover:bg-brand-900">
+        <LinkButton to={`/t/${tripId}/plan/new?place=${place.id}`} className="w-full">
           <CalendarPlus aria-hidden="true" className="size-4" /> Add to the plan
-        </Link>
+        </LinkButton>
 
         {me && <GroupRatingCard place={place} memberId={me} />}
 
@@ -96,7 +96,7 @@ export function PlaceDetailScreen() {
                   <span className="truncate">{l.label || l.url}</span>
                   <span className="shrink-0 rounded bg-stone-100 px-1.5 text-xs text-stone-600">{l.kind}</span>
                 </a>
-                <button onClick={() => softDelete('links', l.id, me)} className="p-2 text-stone-400" aria-label="Remove link">
+                <button onClick={() => softDelete('links', l.id, me)} className="p-2 text-stone-500" aria-label="Remove link">
                   <Trash2 className="size-4" />
                 </button>
               </li>
@@ -105,7 +105,7 @@ export function PlaceDetailScreen() {
           <AddLink tripId={tripId} placeId={placeId} me={me} />
         </Card>
 
-        <p className="text-center text-xs text-stone-400">
+        <p className="text-center text-xs text-stone-600">
           {editedBy ? `Last edited by ${editedBy}` : null}
           {place.source === 'osm' && ' · Place data © OpenStreetMap contributors'}
         </p>
