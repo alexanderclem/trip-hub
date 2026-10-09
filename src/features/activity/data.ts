@@ -7,12 +7,12 @@ import { buildFeed, unseenCount, type ActivityEvent } from './feed'
 export function useActivity(tripId: string, limit = 50): ActivityEvent[] | undefined {
   return useLiveQuery(async () => {
     const mine = { trip_id: tripId }
-    const [members, polls, options, places, items, expenses, tasks, attachments, comments] = await Promise.all([
+    const [members, polls, options, places, items, expenses, tasks, attachments, comments, settlements, ratings] = await Promise.all([
       db.members.where(mine).toArray(), db.polls.where(mine).toArray(), db.poll_options.where(mine).toArray(), db.places.where(mine).toArray(),
       db.itinerary_items.where(mine).toArray(), db.expenses.where(mine).toArray(), db.trip_tasks.where(mine).toArray(),
-      db.attachments.where(mine).toArray(), db.comments.where(mine).toArray(),
+      db.attachments.where(mine).toArray(), db.comments.where(mine).toArray(), db.settlements.where(mine).toArray(), db.place_ratings.where(mine).toArray(),
     ])
-    return buildFeed({ members, polls, options, places, items, expenses, tasks, attachments, comments }, limit)
+    return buildFeed({ members, polls, options, places, items, expenses, settlements, ratings, tasks, attachments, comments }, limit)
   }, [tripId, limit])
 }
 

@@ -1,10 +1,22 @@
 // "What's new" on a trip, worked out on the phone from rows it already has: who added what, and
 // when. There is no activity table. Pure, so it is unit-tested; the live query is in data.ts.
+// Things that happen to a row after it was made (a task completed, a plan item confirmed, a
+// rating) are timed by the row's last edit, so a later edit moves the entry up.
 
-import type { Attachment, Comment, ExpenseRow, ItineraryItem, Member, Place, Poll, PollOption, TripTask } from '@/data/types'
+import type { Attachment, Comment, ExpenseRow, ItineraryItem, Member, Place, PlaceRating, Poll, PollOption, SettlementRow, TripTask } from '@/data/types'
 import { formatMoney } from '@/lib/money'
 
-export type ActivityKind = 'joined' | 'vote' | 'option' | 'decided' | 'place' | 'item' | 'expense' | 'task' | 'ticket' | 'comment'
+export type ActivityKind =
+  | 'joined' | 'vote' | 'option' | 'decided' | 'place' | 'rated' | 'item' | 'item-status' | 'expense' | 'settled' | 'task' | 'task-done' | 'ticket' | 'comment'
+
+/** What the feed can be narrowed to. Someone joining belongs to none of them. */
+export const GROUPS = ['votes', 'plan', 'places', 'money', 'tasks', 'tickets', 'comments'] as const
+export type ActivityGroup = (typeof GROUPS)[number]
+const GROUP_OF: Record<ActivityKind, ActivityGroup | null> = {
+  joined: null, vote: 'votes', option: 'votes', decided: 'votes', place: 'places', rated: 'places', item: 'plan', 'item-status': 'plan',
+  expense: 'money', settled: 'money', task: 'tasks', 'task-done': 'tasks', ticket: 'tickets', comment: 'comments',
+}
+export const groupOf = (kind: ActivityKind): ActivityGroup | null => GROUP_OF[kind]
 
 export interface ActivityEvent {
   id: string
@@ -26,12 +38,17 @@ export interface FeedRows {
   places: Place[]
   items: ItineraryItem[]
   expenses: ExpenseRow[]
+  settlements: SettlementRow[]
+  ratings: PlaceRating[]
   tasks: TripTask[]
   attachments: Attachment[]
   comments: Comment[]
 }
 
 const live = <T extends { deleted_at?: string | null; created_at?: string }>(rows: T[]) => rows.filter((r) => !r.deleted_at && !!r.created_at)
+/** Edited a while after it was made, as opposed to being saved that way in the first place. */
+const LATER_MS = 10 * 60_000
+const changedLater = (row: { created_at?: string; updated_at?: string }) => !!row.updated_at && Date.parse(row.updated_at) - Date.parse(row.created_at!) >= LATER_MS
 const clip = (text: string, max = 80) => (text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text)
 
 /** Newest first. Individual votes are left out: they are private-ish and would drown the rest. */
@@ -43,6 +60,7 @@ export function buildFeed(rows: FeedRows, limit = 50): ActivityEvent[] {
   const polls = new Map(rows.polls.map((p) => [p.id, p]))
   const places = new Map(rows.places.map((p) => [p.id, p]))
   const items = new Map(rows.items.map((i) => [i.id, i]))
+  const members = new Map(rows.members.map((m) => [m.id, m]))
 
   for (const m of live(rows.members)) add('joined', m, 'joined the trip', 'overview', { by: m.id })
   for (const p of live(rows.polls)) {
@@ -61,9 +79,24 @@ export function buildFeed(rows: FeedRows, limit = 50): ActivityEvent[] {
   }
   // The imported idea pool isn't something a person did.
   for (const p of live(rows.places)) if (p.source === 'manual' || p.source === 'suggestion') add('place', p, `added a place: ${p.name}`, `more/places/${p.id}`)
-  for (const i of live(rows.items)) add('item', i, `added to the plan: ${i.title}`, `plan/${i.id}`)
+  // Ratings are switched on and off on one row per person, so a withdrawn one is stars: null.
+  for (const r of live(rows.ratings)) {
+    const place = places.get(r.place_id)
+    if (r.stars === null || !place || place.deleted_at) continue
+    add('rated', r, `rated ${place.name}: ${r.stars} ★`, `more/places/${place.id}`, { at: r.updated_at ?? r.created_at!, by: r.member_id })
+  }
+  for (const i of live(rows.items)) {
+    add('item', i, `added to the plan: ${i.title}`, `plan/${i.id}`)
+    if ((i.status === 'confirmed' || i.status === 'cancelled') && changedLater(i)) add('item-status', i, `${i.status}: ${i.title}`, `plan/${i.id}`, { at: i.updated_at!, by: i.updated_by ?? null })
+  }
   for (const e of live(rows.expenses)) add('expense', e, `logged ${formatMoney(e.amount_minor, e.currency)} for ${e.description}`, `money/${e.id}`)
-  for (const t of live(rows.tasks)) add('task', t, `added a task: ${t.title}`, `more/tasks/${t.id}`)
+  for (const s of live(rows.settlements)) {
+    add('settled', s, `paid ${members.get(s.to_member_id)?.display_name ?? 'someone'} ${formatMoney(s.amount_minor, s.currency)}`, 'money', { by: s.from_member_id })
+  }
+  for (const t of live(rows.tasks)) {
+    add('task', t, `added a task: ${t.title}`, `more/tasks/${t.id}`)
+    if (t.completed && t.updated_at && t.updated_at > t.created_at!) add('task-done', t, `completed a task: ${t.title}`, `more/tasks/${t.id}`, { at: t.updated_at, by: t.updated_by ?? null })
+  }
   for (const a of live(rows.attachments)) add('ticket', a, `added a ticket: ${a.title}`, `tickets/${a.id}`)
   for (const c of live(rows.comments)) {
     const [subject, to] =

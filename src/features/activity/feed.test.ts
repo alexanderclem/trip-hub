@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import type { Attachment, Comment, ExpenseRow, ItineraryItem, Member, Place, Poll, PollOption, TripTask } from '@/data/types'
-import { buildFeed, isNew, unseenCount, type FeedRows } from './feed'
+import type { Attachment, Comment, ExpenseRow, ItineraryItem, Member, Place, PlaceRating, Poll, PollOption, SettlementRow, TripTask } from '@/data/types'
+import { buildFeed, groupOf, GROUPS, isNew, unseenCount, type ActivityKind, type FeedRows } from './feed'
 
 const at = (minute: number) => `2027-01-05T10:${String(minute).padStart(2, '0')}:00.000Z`
 const base = (id: string, minute: number, by: string | null = 'alex') => ({ id, trip_id: 't', created_at: at(minute), updated_at: at(minute), created_by: by, deleted_at: null })
-const rows = (over: Partial<FeedRows> = {}): FeedRows => ({ members: [], polls: [], options: [], places: [], items: [], expenses: [], tasks: [], attachments: [], comments: [], ...over })
+const rows = (over: Partial<FeedRows> = {}): FeedRows => ({ members: [], polls: [], options: [], places: [], items: [], expenses: [], settlements: [], ratings: [], tasks: [], attachments: [], comments: [], ...over })
 
 const member = (id: string, minute: number) => ({ ...base(id, minute, null), display_name: id, color: null, avatar_emoji: null, home_timezone: null }) as Member
 const poll = (id: string, minute: number, over: Partial<Poll> = {}) => ({ ...base(id, minute), title: 'Where do we stay?', description: null, status: 'open', winner_option_id: null, ...over }) as Poll
@@ -73,6 +73,51 @@ describe('buildFeed', () => {
   it('keeps only the newest entries when there are many', () => {
     const feed = buildFeed(rows({ tasks: Array.from({ length: 30 }, (_, i) => ({ ...base(`k${i}`, i), title: `Task ${i}`, completed: false }) as TripTask) }), 5)
     expect(feed.map((e) => e.id)).toEqual(['task:k29', 'task:k28', 'task:k27', 'task:k26', 'task:k25'])
+  })
+})
+
+describe('what happened to something after it was added', () => {
+  const later = (id: string, made: number, changed: number, by = 'sam') => ({ ...base(id, made), updated_at: at(changed), updated_by: by })
+
+  it('credits a finished task to whoever ticked it, when they did', () => {
+    const feed = buildFeed(rows({ tasks: [
+      { ...later('done', 1, 20), title: 'Book shuttle', completed: true } as TripTask,
+      { ...later('open', 2, 25), title: 'Buy sunscreen', completed: false } as TripTask,
+    ] }))
+    expect(feed.map((e) => [e.kind, e.by, e.at, e.text])).toEqual([
+      ['task-done', 'sam', at(20), 'completed a task: Book shuttle'],
+      ['task', 'alex', at(2), 'added a task: Buy sunscreen'],
+      ['task', 'alex', at(1), 'added a task: Book shuttle'],
+    ])
+  })
+
+  it('says who paid whom', () => {
+    const feed = buildFeed(rows({
+      members: [member('sam', 1)],
+      settlements: [{ ...base('s', 9, 'sam'), from_member_id: 'alex', to_member_id: 'sam', amount_minor: 2500, currency: 'USD' } as SettlementRow],
+    }))
+    expect(feed[0]).toMatchObject({ kind: 'settled', by: 'alex', text: 'paid sam $25.00', to: 'money' })
+  })
+
+  it('reports a rating by the person who gave it, and not one that was withdrawn or has no place here', () => {
+    const rating = (id: string, over: Partial<PlaceRating>) => ({ ...later(id, 3, 15, 'alex'), place_id: 'pl', member_id: 'sam', stars: 4, note: null, ...over }) as PlaceRating
+    const feed = buildFeed(rows({ places: [place('pl', 1, 'osm')], ratings: [rating('r', {}), rating('none', { stars: null }), rating('lost', { place_id: 'nope' })] }))
+    expect(feed.map((e) => [e.kind, e.by, e.at, e.text, e.to])).toEqual([['rated', 'sam', at(15), 'rated Café Sabor: 4 ★', 'more/places/pl']])
+  })
+
+  it('reports a plan item confirmed or cancelled later, not one saved that way', () => {
+    const item = (id: string, changed: number, status: ItineraryItem['status']) => ({ ...later(id, 1, changed), title: 'Volcano hike', status }) as ItineraryItem
+    const feed = buildFeed(rows({ items: [item('now', 2, 'confirmed'), item('yes', 30, 'confirmed'), item('no', 31, 'cancelled'), item('maybe', 32, 'tentative')] }))
+    expect(feed.filter((e) => e.kind === 'item-status').map((e) => [e.id, e.by, e.text])).toEqual([
+      ['item-status:no', 'sam', 'cancelled: Volcano hike'],
+      ['item-status:yes', 'sam', 'confirmed: Volcano hike'],
+    ])
+  })
+
+  it('files every kind under a filter, except someone joining', () => {
+    const kinds: ActivityKind[] = ['joined', 'vote', 'option', 'decided', 'place', 'rated', 'item', 'item-status', 'expense', 'settled', 'task', 'task-done', 'ticket', 'comment']
+    expect(kinds.filter((k) => groupOf(k) === null)).toEqual(['joined'])
+    expect(new Set(kinds.map(groupOf).filter(Boolean))).toEqual(new Set(GROUPS))
   })
 })
 
