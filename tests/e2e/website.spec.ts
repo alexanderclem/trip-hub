@@ -17,7 +17,7 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
   await expect(logos).toHaveCount(2)
   for (const logo of await logos.all()) {
     await expect(logo).toHaveAttribute('src', '/brand/stowaway-wordmark.svg')
-    expect(await logo.evaluate((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
+    await expect.poll(() => logo.evaluate((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
   }
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app', exact: true }).click()
   await page.waitForURL('**/app')
