@@ -41,8 +41,10 @@ rotate the mark in a lockup, add a second pair of eyes, or set the name in a fon
 
 Palette: ocean ink `#183e4b`, action blue `#295361`, cream `#f8f5ee`, mist
 `#d6e4e5`, coral `#ef9477`. Coral is decorative, not a small-text color on cream.
-Georgia gives the homepage heading a travel-journal character (the wordmark is drawn); keep
-the system sans-serif for forms, navigation, and trip details. No external fonts.
+The October 22, 2026 redesign adds locally hosted Antonio for poster headings.
+Georgia gives editorial headings and trip names their travel-journal character;
+keep system sans-serif for forms, navigation, and trip details. The wordmark is drawn.
+Fonts make no third-party runtime requests. See `DESIGN.md` for the current system.
 
 Run `node scripts/build-brand-assets.mjs` to regenerate the favicon, PNG install
 icons, full logo, and 1200×630 social preview from the three masters, using

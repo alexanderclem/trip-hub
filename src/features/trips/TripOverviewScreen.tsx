@@ -86,7 +86,8 @@ export function TripOverviewScreen() {
 
   return (
     <div className="trip-page px-4 pb-10 pt-safe sm:px-8">
-      <header className="mb-6 pt-4 lg:pt-8">
+      <header className="trip-overview-heading mb-6 pt-4 lg:pt-8">
+        <p className="app-kicker mb-3">YOUR GROUP’S GETAWAY</p>
         <div className="flex items-start gap-1">
           <h1 className="travel-heading min-w-0 flex-1 break-words pt-1 text-3xl text-brand-900 sm:text-4xl">{trip.name}</h1>
           {tools}

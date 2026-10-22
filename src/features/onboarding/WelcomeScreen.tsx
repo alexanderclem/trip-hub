@@ -16,27 +16,28 @@ export function StartScreen() {
 /** First open: get into a trip (join, create, or sign in to bring yours back). The quiz follows. */
 export function WelcomeScreen() {
   return (
-    <main className="mx-auto max-w-md px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)]">
-      <Link to="/" aria-label="Stowaway home"><Brand /></Link>
-      <img src="/brand/packed-for-anywhere.svg" alt="" width="360" height="170" className="mx-auto mt-8 w-64 max-w-full" />
-      <p className="ui-label mt-6">Good company. Great trips.</p>
-      <h1 className="travel-heading mt-2 text-5xl text-brand-900">Let’s make the trip happen.</h1>
-      <p className="mt-4 leading-relaxed text-stone-600">
-        Start with an idea and invite your friends, or join the trip they’ve already started. Pick places, decide together, and give yourselves something to look forward to.
-      </p>
-
-      <LinkButton to="/new" className="mt-6 w-full">
-        <Plus aria-hidden="true" className="size-4" />Create a trip
-      </LinkButton>
-
-      <div id="join" className="mt-6 scroll-mt-6 space-y-6">
-        <JoinByLink />
-        <AccountCard />
+    <main className="app-entry">
+      <header className="app-entry-header"><Link to="/" aria-label="Stowaway home"><Brand /></Link><span className="app-kicker">THE WHOLE TRIP, TUCKED AWAY.</span></header>
+      <div className="app-entry-layout">
+        <section className="app-entry-story" aria-labelledby="welcome-title">
+          <p className="app-kicker">GOOD COMPANY. GREAT TRIPS.</p>
+          <h1 id="welcome-title">Let’s make<br /> the trip<br /> <span>happen.</span></h1>
+          <p>Start with an idea. Bring your people. Give that “we should go” a place to become a plan.</p>
+          <img src="/brand/packed-for-anywhere.svg" alt="" width="360" height="170" />
+          <span className="app-entry-caption">A little organization. A lot of possibility.</span>
+        </section>
+        <div className="app-entry-actions">
+          <section className="app-start-trip" aria-labelledby="start-trip-title">
+            <p className="app-kicker">YOUR NEXT ADVENTURE STARTS HERE</p>
+            <h2 id="start-trip-title" className="travel-heading">Where to next?</h2>
+            <p>Make a home for your plans, invite the group, and work out the good stuff together.</p>
+            <LinkButton to="/new" className="mt-5 w-full"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
+          </section>
+          <div id="join" className="scroll-mt-6 space-y-6"><JoinByLink /><AccountCard /></div>
+          <Link to="/inspire" className="app-inspire-link">Not sure where to go yet? Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link>
+        </div>
       </div>
-
-      <Link to="/inspire" className="mt-6 inline-flex min-h-11 items-center gap-2 font-medium text-brand-700">
-        Not sure where to go yet? Help me plan <ArrowRight aria-hidden="true" className="size-4" />
-      </Link>
+      <footer className="app-entry-footer"><span>Made for the way you go together.</span><Link to="/">Back to Stowaway</Link></footer>
     </main>
   )
 }

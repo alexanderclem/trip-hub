@@ -14,7 +14,7 @@ import { JoinByLink } from './JoinByLink'
 function TripCard({ trip }: { trip: Trip }) {
   const dates = dateRange(trip.start_date, trip.end_date)
   return (
-    <Link to={`/t/${trip.id}`} className="group block rounded-2xl border border-stone-200 bg-surface p-5 transition-colors hover:border-brand-600 active:bg-brand-50">
+    <Link to={`/t/${trip.id}`} className="saved-trip-card group block">
       <div className="flex items-start justify-between gap-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Compass aria-hidden="true" className="size-5" /></span>
         <ArrowRight aria-hidden="true" className="mt-2 size-5 shrink-0 text-stone-600 group-hover:text-brand-700" />
@@ -32,12 +32,13 @@ export function HomeScreen() {
   const visibleTrips = trips?.filter((t): t is NonNullable<typeof t> => !!t && !t.deleted_at) ?? []
 
   return (
-    <main className="mx-auto max-w-5xl px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-8 sm:pb-16">
+    <main className="app-home mx-auto max-w-7xl px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-8 sm:pb-16">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-brand-900/15 pb-5">
         <Link to="/" aria-label="Stowaway home"><Brand /></Link>
       </header>
       <div className="mb-8 mt-8 flex flex-wrap items-end justify-between gap-5 sm:mt-12">
         <div>
+          <p className="app-kicker mb-3">YOUR NEXT CHAPTER</p>
           <h1 className="travel-heading text-5xl text-brand-900 sm:text-6xl">Your trips, all aboard.</h1>
           <p className="mt-4 max-w-md leading-relaxed text-stone-600">Save the places you can’t wait to visit, get your friends’ votes, and turn the next group idea into a trip.</p>
         </div>

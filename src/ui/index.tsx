@@ -152,7 +152,7 @@ export const HeaderTools = createContext<ReactNode>(null)
 export function PageHeader({ title, eyebrow, back, action, below }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode }) {
   const tools = useContext(HeaderTools)
   return (
-    <header className="pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas">
+    <header className="app-page-header pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas">
       <div className="flex min-h-14 items-center gap-1 px-3 py-1.5 lg:px-6">
         {back ? (
           <Link to={back} className="ui-icon-button shrink-0" aria-label="Back">

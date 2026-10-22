@@ -1,6 +1,14 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
+@font-face {
+  font-family: Antonio;
+  src: url('/fonts/Antonio-Variable.ttf') format('truetype');
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-brand-50: #edf3f3;
   --color-brand-100: #d6e4e5;
@@ -115,7 +123,7 @@ body {
   .ui-disclosure-chevron { transition: transform var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
   .ui-disclosure[open] .ui-disclosure-chevron { transform: rotate(180deg); }
   /* Text roles for trip screens: one page title, one section title, one small label. */
-  .ui-page-title { font-size: 1.25rem; font-weight: 600; line-height: 1.4; color: var(--stowaway-ink); }
+  .ui-page-title { font-family: var(--stowaway-font-display); font-size: 1.65rem; font-weight: 400; letter-spacing: -.035em; line-height: 1.25; color: var(--stowaway-ink); }
   .ui-section-title { font-size: 1.125rem; font-weight: 600; line-height: 1.4; color: var(--stowaway-ink); }
   .ui-label { font-size: .875rem; font-weight: 500; line-height: 1.5; color: var(--stowaway-muted); }
 }
@@ -174,4 +182,81 @@ body {
   .trip-shell .trip-page-grid > * { min-width: 0; }
   .trip-shell .trip-page-grid > .trip-main { grid-column: 1; }
   .trip-shell .trip-page-grid > .trip-side { grid-column: 2; grid-row: 1 / span 20; }
+}
+
+/* Shared travel-journal system: an expressive entry, a quiet planning workspace. */
+.app-kicker { font-size: .625rem; font-weight: 650; letter-spacing: .12em; line-height: 1.7; color: var(--stowaway-action); }
+.app-entry { width: min(calc(100% - 2.5rem), 1200px); margin-inline: auto; padding-top: env(safe-area-inset-top); }
+.app-entry-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.5rem; border-bottom: 1px solid var(--stowaway-border); }
+.app-entry-header > .app-kicker { display: none; }
+.app-entry-layout { display: grid; gap: 2rem; padding-block: 2rem; }
+.app-entry-story { position: relative; min-width: 0; padding: 2rem; background: var(--stowaway-mist); border-radius: 6px 6px 64px 6px; }
+.app-entry-story h1 { margin-top: 1.25rem; font-family: var(--stowaway-font-poster); font-size: clamp(3.75rem, 7vw, 6rem); font-weight: 600; text-transform: uppercase; line-height: 1.08; letter-spacing: -.04em; color: var(--stowaway-ink); overflow-wrap: anywhere; }
+.app-entry-story h1 span { display: inline-block; padding: 0 .1em .12em; margin-left: -.1em; background: var(--stowaway-coral); transform: rotate(-3deg); }
+.app-entry-story > p:not(.app-kicker) { max-width: 30ch; margin-top: 1.75rem; font-size: .9375rem; line-height: 1.8; color: var(--stowaway-action); }
+.app-entry-story > img { display: block; width: min(85%, 320px); height: auto; margin: 2.5rem auto 1.5rem; }
+.app-entry-caption { display: block; font-family: var(--stowaway-font-display); font-size: 1.125rem; color: var(--stowaway-ink); }
+.app-entry-actions { min-width: 0; display: grid; gap: 1.5rem; align-content: center; }
+.app-start-trip { padding: 1.5rem; border-bottom: 1px solid var(--stowaway-border); }
+.app-start-trip h2 { margin-top: .75rem; font-size: 2.75rem; line-height: 1.1; color: var(--stowaway-ink); }
+.app-start-trip > p:not(.app-kicker) { margin-top: 1rem; font-size: .9375rem; line-height: 1.8; color: var(--stowaway-muted); }
+.app-entry-actions .ui-card { padding: 1.5rem; }
+.app-inspire-link { display: flex; gap: .75rem; align-items: center; min-height: 44px; padding-inline: 1.5rem; font-size: .875rem; font-weight: 550; color: var(--stowaway-action); }
+.app-inspire-link svg { flex-shrink: 0; }
+.app-entry-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.25rem calc(env(safe-area-inset-bottom) + 1.25rem); border-top: 1px solid var(--stowaway-border); color: var(--stowaway-muted); font-size: .75rem; }
+.app-entry-footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
+.saved-trip-card { position: relative; overflow: hidden; padding: 1.5rem; border: 1px solid var(--stowaway-border); border-radius: 8px; background: var(--stowaway-surface); transition: border-color 160ms ease, background-color 160ms ease; }
+.saved-trip-card::before { content: ''; display: block; height: 6px; position: absolute; top: 0; inset-inline: 0; background: var(--stowaway-mist); }
+.saved-trip-card:hover { border-color: var(--stowaway-action); background: #edf3f3; }
+.saved-trip-card h3 { font-family: var(--stowaway-font-display); font-size: 1.75rem; font-weight: 400; line-height: 1.15; }
+.trip-create-intro { padding-block: .5rem 1rem; border-bottom: 1px solid var(--stowaway-border); }
+.trip-create-intro h2 { margin-top: .75rem; font-size: 2.5rem; line-height: 1.1; color: var(--stowaway-ink); }
+.trip-create-intro > p:last-child { margin-top: 1rem; font-size: .875rem; line-height: 1.8; color: var(--stowaway-muted); }
+.trip-overview-heading { border-bottom: 1px solid var(--stowaway-border); padding-bottom: 1.5rem; }
+.trip-overview-heading h1 { font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: 1.12; }
+.trip-shell { background: var(--stowaway-canvas); }
+.trip-shell .app-page-header { box-shadow: 0 1px 0 #fff8; }
+.trip-shell .ui-card, .trip-shell .ui-row-group { border-color: #cdd5d1; }
+.trip-shell .ui-label { font-size: .75rem; font-weight: 650; letter-spacing: .025em; }
+.trip-tab[aria-current='page'] { background: var(--stowaway-mist); }
+.trip-tab[aria-current='page']::before { background: var(--stowaway-ink); width: 1.5rem; }
+.ui-field { min-height: 46px; border-radius: var(--stowaway-radius-control); }
+@media (min-width: 700px) {
+  .app-entry { width: min(calc(100% - 4rem), 1200px); }
+  .app-entry-header > .app-kicker { display: block; }
+  .app-entry-layout { grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); align-items: start; gap: 3rem; padding-block: 3rem; }
+  .app-entry-story { padding: 2.5rem; }
+  .app-entry-actions { padding-top: .5rem; }
+}
+@media (min-width: 1024px) {
+  .trip-shell > aside { width: 17rem; padding: 2rem 1.25rem; background: var(--stowaway-ink); border-right: 0; }
+  .trip-shell > aside > a { margin-bottom: 2.5rem; }
+  .trip-shell > aside .brand-wordmark { color: var(--stowaway-canvas); }
+  .trip-shell > aside > a img { background: var(--stowaway-coral); padding: 4px; border-radius: 6px; }
+  .trip-shell > aside > label, .trip-shell > aside > p { color: var(--stowaway-mist); }
+  .trip-shell > aside select { border-color: #687e83; background: #295361; color: var(--stowaway-canvas); }
+  .trip-shell > aside nav { padding-top: 1.5rem; border-top: 1px solid #54727b; }
+  .trip-shell > aside nav a { min-height: 48px; border-radius: 5px; color: var(--stowaway-mist); }
+  .trip-shell > aside nav a:hover { background: #295361; color: var(--stowaway-canvas); }
+  .trip-shell > aside nav a[aria-current='page'] { background: var(--stowaway-coral); color: var(--stowaway-ink); }
+  .trip-shell > aside > div:last-child > button.text-brand-900 { color: var(--stowaway-mist); }
+  .trip-shell > aside > div:last-child > button.text-brand-900:hover { background: #295361; }
+  .trip-shell > aside > a:focus-visible, .trip-shell > aside > select:focus-visible, .trip-shell > aside nav a:focus-visible, .trip-shell > aside > div:last-child > button:focus-visible { outline-color: var(--stowaway-coral); }
+  .app-entry-layout { gap: 5rem; }
+  .app-entry-story { padding: 3rem; }
+}
+@media (prefers-reduced-motion: reduce) { .saved-trip-card { transition: none; } }
+@media (max-width: 699px) {
+  .app-entry-layout { gap: .75rem; padding-block: 1.25rem; }
+  .app-entry-story { padding: 1.25rem; border-radius: 6px 6px 32px 6px; }
+  .app-entry-story h1 { margin-top: .75rem; font-size: 2.75rem; line-height: 1.15; }
+  .app-entry-story h1 br { display: none; }
+  .app-entry-story > p:not(.app-kicker) { max-width: none; margin-top: 1rem; font-size: .875rem; line-height: 1.6; }
+  .app-entry-story > img, .app-entry-caption { display: none; }
+  .app-start-trip { padding: 1.25rem .25rem; }
+  .app-start-trip > .app-kicker { display: none; }
+  .app-start-trip h2 { margin-top: 0; font-size: 2rem; }
+  .app-start-trip > p:not(.app-kicker) { margin-top: .75rem; font-size: .875rem; }
+  .app-entry-actions .ui-card { padding: 1.25rem; }
+  .app-inspire-link { padding-inline: .25rem; }
 }

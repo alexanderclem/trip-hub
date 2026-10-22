@@ -118,7 +118,8 @@ export function CreateTripScreen() {
     <div className="min-h-full">
       <PageHeader title="New trip" back="/app" />
       {loadingDraft && <LoadingState title="Loading your trip idea…" description="Bringing in the suggested itinerary and dates." />}
-      <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-5">
+      <form onSubmit={submit} className="trip-create-form mx-auto max-w-xl space-y-5 p-5 sm:p-8">
+        <div className="trip-create-intro"><p className="app-kicker">FIRST, THE ESSENTIALS</p><h2 className="travel-heading">Give the adventure a home.</h2><p>A name and your name are all you need to start. You can work out the rest together.</p></div>
         {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name; we’ll add the itinerary as tentative items, ready to edit.</p>}
         {!draftId && <Link to="/inspire" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Need a starting point? Help me plan →</Link>}
         <Field label="Trip name">

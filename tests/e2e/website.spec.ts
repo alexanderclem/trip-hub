@@ -148,7 +148,7 @@ test('the homepage preserves long headings and immediate feedback with reduced m
 test('the introduction and primary action fit a 1280 by 800 laptop', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
-  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.website-intro'), page.getByRole('link', { name: 'Create a trip', exact: true }), page.locator('.preview-map')]) {
+  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.website-intro'), page.getByRole('link', { name: 'Create a trip', exact: true }), page.locator('.website-hero-photo')]) {
     const box = await locator.boundingBox()
     expect(box!.y).toBeGreaterThanOrEqual(0)
     expect(box!.y + box!.height).toBeLessThanOrEqual(800)

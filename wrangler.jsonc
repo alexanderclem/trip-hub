@@ -3,6 +3,8 @@
 {
   "name": "trip-hub",
   "main": "worker/index.ts",
+  // Always produce the app assets when deploying from a clean Git checkout.
+  "build": { "command": "npm run build" },
   "compatibility_date": "2026-09-01",
   "assets": {
     "binding": "ASSETS",

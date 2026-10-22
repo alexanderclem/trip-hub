@@ -8,8 +8,11 @@
   --stowaway-action: #295361;
   --stowaway-border: #dcded5;
   --stowaway-control-border: #687e83;
-  --stowaway-radius-control: 12px;
-  --stowaway-radius-surface: 16px;
+  --stowaway-radius-control: 6px;
+  --stowaway-radius-surface: 10px;
+  --stowaway-mist: #d6e4e5;
+  --stowaway-coral: #ef9477;
+  --stowaway-font-poster: Antonio, Impact, sans-serif;
   --stowaway-font-display: Georgia, 'Times New Roman', serif;
   --stowaway-font-body: system-ui, sans-serif;
 }

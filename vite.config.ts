@@ -33,7 +33,7 @@ export default defineConfig({
       },
       workbox: {
         // Includes the offline map's fonts and sprites, so labels render with no network.
-        globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2}', 'map-assets/**/*.{pbf,json}'], // mjs: pdf.js worker
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2,ttf}', 'map-assets/**/*.{pbf,json}'], // mjs: pdf.js worker
         globIgnores: ['**/tesseract-core-lstm*'], // the OCR core is cached when first used, not precached
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/mcp$/, /^\/\.well-known\//, /^\/oauth\//, /^\/auth\//],
