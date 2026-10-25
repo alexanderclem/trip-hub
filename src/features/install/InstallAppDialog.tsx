@@ -1,32 +1,39 @@
 import { useState, useSyncExternalStore } from 'react'
-import { useLocation } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Share } from 'lucide-react'
 import { Button, ErrorNote } from '@/ui'
 import { Dialog } from '@/ui/Dialog'
 import { consumeInstallPrompt, getInstallPrompt, isStandalone, mobilePlatform, subscribeInstallPrompt } from './installPrompt'
 
-const dismissalKey = 'stowaway-install-dismissed'
-
-function wasDismissed() {
-  try { return sessionStorage.getItem(dismissalKey) === '1' }
-  catch { return false }
+/** Installation is always an explicit choice, never a gate before creating or joining. */
+export function InstallAppButton() {
+  const [params] = useSearchParams()
+  const { hash } = useLocation()
+  const navigate = useNavigate()
+  const { installed } = useSyncExternalStore(subscribeInstallPrompt, getInstallPrompt)
+  if (!mobilePlatform() || installed || isStandalone()) return null
+  return <button type="button" className="ui-link" onClick={() => {
+    const next = new URLSearchParams(params)
+    next.set('install', '1')
+    void navigate({ search: `?${next}`, hash }, { replace: true, preventScrollReset: true })
+  }}>Add to Home Screen</button>
 }
 
 export function InstallAppDialog() {
-  const { pathname, hash } = useLocation()
+  const [params] = useSearchParams()
+  const { hash } = useLocation()
+  const navigate = useNavigate()
   const { prompt, installed } = useSyncExternalStore(subscribeInstallPrompt, getInstallPrompt)
-  const [dismissed, setDismissed] = useState(wasDismissed)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const platform = mobilePlatform()
-  const open = pathname === '/app' && !!platform && !installed && !isStandalone() && !dismissed
+  const open = params.get('install') === '1' && !!platform && !installed && !isStandalone()
 
   function dismiss() {
-    setDismissed(true)
-    try { sessionStorage.setItem(dismissalKey, '1') } catch { /* In-memory dismissal still works. */ }
-    if (hash === '#join') {
-      requestAnimationFrame(() => document.getElementById('trip-link')?.focus({ preventScroll: true }))
-    }
+    const next = new URLSearchParams(params)
+    next.delete('install')
+    void navigate({ search: next.size ? `?${next}` : '', hash }, { replace: true, preventScrollReset: true })
+    setError(null)
   }
 
   async function install() {

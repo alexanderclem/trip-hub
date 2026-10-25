@@ -129,7 +129,7 @@ body {
 }
 
 .ui-dialog {
-  margin: auto; width: min(34rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem);
+  margin: auto; width: min(34rem, calc(100dvw - 2rem)); max-width: calc(100dvw - 2rem); max-height: calc(100dvh - 2rem);
   overflow-y: auto; border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface);
   background: var(--stowaway-surface); color: var(--stowaway-ink); padding: 1.25rem;
   box-shadow: 0 24px 80px #183e4b33;
@@ -187,7 +187,10 @@ body {
 /* Shared travel-journal system: an expressive entry, a quiet planning workspace. */
 .app-kicker { font-size: .625rem; font-weight: 650; letter-spacing: .12em; line-height: 1.7; color: var(--stowaway-action); }
 .app-entry { width: min(calc(100% - 2.5rem), 1200px); margin-inline: auto; padding-top: env(safe-area-inset-top); }
-.app-entry-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.5rem; border-bottom: 1px solid var(--stowaway-border); }
+.app-entry-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.5rem; border-bottom: 1px solid var(--stowaway-border); }
+.app-entry-header > a:first-child, .app-entry-header > a:first-child > span { min-width: 0; max-width: 100%; }
+.app-entry-header .brand-wordmark { min-width: 0; }
+.app-entry-header .brand-wordmark svg { max-width: 100%; }
 .app-entry-header > .app-kicker { display: none; }
 .app-entry-layout { display: grid; gap: 2rem; padding-block: 2rem; }
 .app-entry-story { position: relative; min-width: 0; padding: 2rem; background: var(--stowaway-mist); border-radius: 6px 6px 64px 6px; }
@@ -212,8 +215,25 @@ body {
 .trip-create-intro { padding-block: .5rem 1rem; border-bottom: 1px solid var(--stowaway-border); }
 .trip-create-intro h2 { margin-top: .75rem; font-size: 2.5rem; line-height: 1.1; color: var(--stowaway-ink); }
 .trip-create-intro > p:last-child { margin-top: 1rem; font-size: .875rem; line-height: 1.8; color: var(--stowaway-muted); }
-.trip-overview-heading { border-bottom: 1px solid var(--stowaway-border); padding-bottom: 1.5rem; }
-.trip-overview-heading h1 { font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: 1.12; }
+.trip-overview-heading { border-bottom: 1px solid var(--stowaway-border); padding-bottom: 1rem; }
+.trip-overview-heading h1 { font-size: clamp(1.75rem, 3vw, 2.75rem); line-height: 1.15; }
+.app-entry-compact { max-width: 960px; }
+.app-entry-intro { padding-block: 2rem 1.5rem; }
+.app-entry-intro h1 { margin-top: .75rem; max-width: 20ch; color: var(--stowaway-ink); font-size: clamp(2.25rem, 5vw, 3.5rem); line-height: 1.1; overflow-wrap: anywhere; }
+.app-entry-intro > p:last-child { margin-top: 1rem; max-width: 48ch; color: var(--stowaway-muted); font-size: .9375rem; line-height: 1.7; }
+.app-entry-routes { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+.app-entry-routes > * { min-width: 0; }
+.app-entry-routes #join { grid-row: 1; }
+.app-entry-routes .app-start-trip { border: 1px solid var(--stowaway-border); border-radius: 12px; background: var(--stowaway-mist); padding: 1.25rem; }
+.app-entry-routes .app-start-trip h2 { margin-top: .75rem; font-size: 1.75rem; }
+.app-entry-routes .app-start-trip > p { font-size: .875rem; margin-top: .75rem; }
+.app-entry-extras { display: grid; gap: 1rem; padding-block: 1.5rem; }
+@media (min-width: 700px) {
+  .app-entry-routes { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .app-entry-routes #join { grid-row: auto; }
+  .app-entry-routes.is-joining #join { grid-column: 1; grid-row: 1; }
+  .app-entry-routes.is-joining .app-start-trip { grid-column: 2; }
+}
 .trip-shell { background: var(--stowaway-canvas); }
 .trip-shell .app-page-header { box-shadow: 0 1px 0 #fff8; }
 .trip-shell .ui-card, .trip-shell .ui-row-group { border-color: #cdd5d1; }

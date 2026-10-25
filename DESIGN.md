@@ -56,17 +56,24 @@ forms remain at 16px or larger on phones.
 
 ## Composition and behavior
 
-- `/`: oversized left-aligned introduction beside a destination photograph;
-  capabilities; interactive map/itinerary example; full-width typographic
-  statement; three planning steps with labeled examples; offline preparation;
-  native FAQ; closing invitation. Desktop content width is 1320px.
-- `/app`: split welcome poster and create/join actions on desktop. On a phone the
-  poster becomes a compact introduction and gives priority to trip entry.
+- `/`: a concrete introduction beside an interactive sample trip. Ideas, votes,
+  a compact agenda, tickets, and costs demonstrate the product before sign-up.
+  Three planning steps, offline preparation, a native FAQ, and a closing invitation
+  complete the page. Desktop content width is 1320px.
+- `/app`: a compact introduction and direct create/join actions. Invite entry
+  gives priority to the invite field. Installation is always an explicit choice.
+- Creation starts with a trip name and traveler name. Dates and destination are
+  optional. Settings supports later edits to trip dates, name, and time zone.
 - Returning workspace: editorial trip titles and bordered trip cards; existing
   create, invite, restore, and planning entry points.
 - Trip workspace: ocean-ink sidebar on desktop, five labeled bottom tabs on mobile.
   The active destination has a filled treatment as well as a label. Home, Plan,
   Map, Vote, and More retain their existing routes.
+- Home prioritizes decisions during planning, offline preparation within seven
+  destination-calendar days of departure, and the next event during travel.
+  Navigation remains stable. These priorities use local trip data.
+- Plan defaults to a compact agenda with ticket shortcuts and conflict warnings.
+  The proportional timeline remains available through a labeled toggle.
 - Forms, lists, and screens share the same semantic tokens and primitives.
   Existing validation, pending states, focus, error recovery, and destructive
   confirmations remain in the product flows.

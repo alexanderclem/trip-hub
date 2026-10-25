@@ -30,16 +30,14 @@ const addMe = async (page: Page) => {
   await page.getByRole('button', { name: 'Add me' }).click()
 }
 
-test('joining goes to Stowie’s quiz, then a welcome on the overview, and is not asked twice', async ({ page }) => {
+test('joining opens the trip immediately and offers preferences without blocking the welcome', async ({ page }) => {
   await stub(page)
   await page.goto(`/join#t=${shareToken}`)
   await addMe(page)
 
-  await page.waitForURL(/\/quiz\?next=/)
-  await expect(page.getByRole('heading', { name: 'What kind of traveler are you?' })).toBeVisible()
-  await page.getByRole('button', { name: 'Skip for now' }).click()
-
   await page.waitForURL(/\/overview/)
+  await expect(page.getByRole('heading', { name: 'What kind of traveler are you?' })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: /Set your travel preferences/ })).toBeVisible()
   const welcome = page.getByRole('status', { name: 'Welcome from Stowie' })
   await expect(welcome).toContainText('You’re in.')
   await expect(welcome.getByRole('link', { name: 'See the votes' })).toBeVisible()
@@ -64,14 +62,13 @@ test('joining goes to Stowie’s quiz, then a welcome on the overview, and is no
   if (process.env.SHOTS_DIR) await setup.screenshot({ path: `${process.env.SHOTS_DIR}/first-steps.png` })
 })
 
-test('a shared vote link also starts with the quiz, then lands on the vote', async ({ page }) => {
+test('a shared vote link lands directly on the vote, without an intervening quiz', async ({ page }) => {
   await stub(page)
   await page.goto(`/join?to=vote/${pollId}#t=${shareToken}`)
   await addMe(page)
 
-  await page.waitForURL(/\/quiz\?next=/)
-  await page.getByRole('button', { name: 'Skip for now' }).click()
   await page.waitForURL(new RegExp(`/more/vote/${pollId}$`))
+  await expect(page.getByRole('heading', { name: 'What kind of traveler are you?' })).toHaveCount(0)
 })
 
 test('an invitation introduces the real trip and group before choosing a name', async ({ page }) => {
@@ -100,7 +97,7 @@ test('an invitation introduces the real trip and group before choosing a name', 
   await page.keyboard.press('Tab')
   await expect(page.getByRole('button', { name: /averylongtraveler/ })).toBeFocused()
   await addMe(page)
-  await page.waitForURL(/\/quiz\?next=/)
+  await page.waitForURL(/\/overview/)
 })
 
 test('an undecided invitation welcomes the first traveler without inventing details', async ({ page }) => {
@@ -112,5 +109,5 @@ test('an undecided invitation welcomes the first traveler without inventing deta
   await expect(page.getByText(/Be the first to add your name/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'What should we call you?' })).toBeVisible()
   await addMe(page)
-  await page.waitForURL(/\/quiz\?next=/)
+  await page.waitForURL(/\/overview/)
 })

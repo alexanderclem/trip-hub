@@ -21,7 +21,7 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
   }
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app', exact: true }).click()
   await page.waitForURL('**/app')
-  await page.getByRole('button', { name: 'Continue in browser' }).click()
+  await expect(page.getByRole('dialog', { name: 'Take Stowaway with you' })).not.toBeVisible()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
   await page.getByRole('link', { name: 'Create a trip', exact: true }).click()
   await page.waitForURL('**/new')
@@ -31,11 +31,30 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
 })
 
+test('the sample demonstrates ideas, a practice vote, the plan and shared essentials without saving', async ({ page }) => {
+  await page.goto('/')
+  const stages = page.getByRole('group', { name: 'Explore the sample trip', exact: true })
+  await stages.getByRole('button', { name: 'Ideas', exact: true }).click()
+  await expect(page.getByText('Food · Added by Alex', { exact: true })).toBeVisible()
+  await stages.getByRole('button', { name: 'Vote', exact: true }).click()
+  await page.getByRole('group', { name: 'Try a sample vote' }).getByRole('button', { name: 'Must-do', exact: true }).click()
+  await expect(page.getByRole('status')).toHaveText('Your sample score: Must-do. Nothing is saved to a real trip.')
+  await page.getByRole('button', { name: 'See the favorite on the plan →' }).click()
+  await expect(stages.getByRole('button', { name: 'Plan', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('heading', { name: 'Dinner in Chinatown', exact: true })).toBeVisible()
+  await stages.getByRole('button', { name: 'Essentials', exact: true }).click()
+  await expect(page.getByText('Your share: $14', { exact: true })).toBeVisible()
+  await expect(page.getByText('Downloaded on this sample phone', { exact: true })).toBeVisible()
+  await page.reload()
+  await stages.getByRole('button', { name: 'Vote', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Must-do', exact: true })).toHaveAttribute('aria-pressed', 'false')
+})
+
 test('joining from the website focuses the invite field and retains validation', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'Join your group' }).click()
+  await page.locator('.website-hero').getByRole('link', { name: 'Join a trip', exact: true }).click()
   await page.waitForURL('**/app#join')
-  await page.getByRole('button', { name: 'Continue in browser' }).click()
+  await expect(page.getByRole('dialog', { name: 'Take Stowaway with you' })).not.toBeVisible()
   const input = page.getByLabel('Trip link', { exact: true })
   await expect(input).toBeFocused()
   await input.fill('not a trip link')
@@ -98,7 +117,7 @@ test('returning travelers get the website at root and their workspace in the app
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Get the trip out of the group chat.' })).toBeVisible()
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Your trips, all aboard.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your trips.' })).toBeVisible()
 })
 
 test('the homepage keeps its content at 200 percent text scaling', async ({ page }) => {
@@ -148,7 +167,7 @@ test('the homepage preserves long headings and immediate feedback with reduced m
 test('the introduction and primary action fit a 1280 by 800 laptop', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
-  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.website-intro'), page.getByRole('link', { name: 'Create a trip', exact: true }), page.locator('.website-hero-photo')]) {
+  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.website-intro'), page.getByRole('link', { name: 'Create a trip', exact: true }), page.locator('.website-preview')]) {
     const box = await locator.boundingBox()
     expect(box!.y).toBeGreaterThanOrEqual(0)
     expect(box!.y + box!.height).toBeLessThanOrEqual(800)

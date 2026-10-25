@@ -10,6 +10,7 @@ import { Brand } from '@/ui/Brand'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle, Skeleton } from '@/ui/collection'
 import { AccountCard } from '@/features/account/AccountCard'
 import { JoinByLink } from './JoinByLink'
+import { InstallAppButton } from '@/features/install/InstallAppDialog'
 
 function TripCard({ trip }: { trip: Trip }) {
   const dates = dateRange(trip.start_date, trip.end_date)
@@ -20,7 +21,7 @@ function TripCard({ trip }: { trip: Trip }) {
         <ArrowRight aria-hidden="true" className="mt-2 size-5 shrink-0 text-stone-600 group-hover:text-brand-700" />
       </div>
       <h3 className="mt-5 break-words text-xl font-semibold tracking-tight group-hover:text-brand-700">{trip.name}</h3>
-      <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-stone-600"><CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0" />{dates}</p>
+      <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-stone-600"><CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0" />{dates || 'Dates to be decided'}</p>
       <div className="mt-5 border-t border-stone-200 pt-3 text-sm font-medium text-brand-700">Open trip</div>
     </Link>
   )
@@ -39,8 +40,8 @@ export function HomeScreen() {
       <div className="mb-8 mt-8 flex flex-wrap items-end justify-between gap-5 sm:mt-12">
         <div>
           <p className="app-kicker mb-3">YOUR NEXT CHAPTER</p>
-          <h1 className="travel-heading text-5xl text-brand-900 sm:text-6xl">Your trips, all aboard.</h1>
-          <p className="mt-4 max-w-md leading-relaxed text-stone-600">Save the places you can’t wait to visit, get your friends’ votes, and turn the next group idea into a trip.</p>
+          <h1 className="travel-heading text-4xl text-brand-900 sm:text-5xl">Your trips.</h1>
+          <p className="mt-3 max-w-md leading-relaxed text-stone-600">Pick up where your group left off.</p>
         </div>
         <LinkButton to="/new"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
       </div>
@@ -80,7 +81,7 @@ export function HomeScreen() {
         </div>
       </div>
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-brand-900/15 pt-5 text-xs text-stone-600">
-        <span>Made for the way you go together.</span>
+        <InstallAppButton />
         <Link to="/connections" className="inline-flex min-h-11 items-center font-medium text-brand-700">Connected apps</Link>
       </footer>
     </main>

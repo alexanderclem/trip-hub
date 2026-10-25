@@ -23,8 +23,9 @@ afterEach(async () => {
 })
 
 describe('where someone lands after creating or joining a trip', () => {
-  it('sends a new person to the quiz, which then continues to the trip', async () => {
-    expect(await afterEntry(path)).toBe(`/quiz?next=${encodeURIComponent(path)}`)
+  it('opens the trip immediately for a new person without marking the optional quiz complete', async () => {
+    expect(await afterEntry(path)).toBe(path)
+    expect(useDevice.getState().quizSeen).toBe(false)
   })
 
   it('goes straight to the trip once the quiz was taken or skipped', async () => {

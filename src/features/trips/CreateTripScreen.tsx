@@ -43,7 +43,7 @@ export function CreateTripScreen() {
     yourName: '',
     startDate: '',
     endDate: '',
-    timezone: 'America/New_York',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     baseCurrency: 'USD',
     localCurrency: 'USD',
   })
@@ -119,15 +119,17 @@ export function CreateTripScreen() {
       <PageHeader title="New trip" back="/app" />
       {loadingDraft && <LoadingState title="Loading your trip idea…" description="Bringing in the suggested itinerary and dates." />}
       <form onSubmit={submit} className="trip-create-form mx-auto max-w-xl space-y-5 p-5 sm:p-8">
-        <div className="trip-create-intro"><p className="app-kicker">FIRST, THE ESSENTIALS</p><h2 className="travel-heading">Give the adventure a home.</h2><p>A name and your name are all you need to start. You can work out the rest together.</p></div>
+        <div className="trip-create-intro"><p className="app-kicker">FIRST, THE ESSENTIALS</p><h2 className="travel-heading">Create your trip.</h2><p>A trip name and your name. That’s enough to get everyone together.</p></div>
         {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name; we’ll add the itinerary as tentative items, ready to edit.</p>}
-        {!draftId && <Link to="/inspire" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Need a starting point? Help me plan →</Link>}
         <Field label="Trip name">
           <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="NYC spring break 2027" />
         </Field>
         <Field label="Your name" hint="How the group will see you.">
           <Input required maxLength={40} value={form.yourName} onChange={set('yourName')} />
         </Field>
+        <details className="rounded-xl border border-stone-200 bg-surface p-4" open={draft ? true : undefined}>
+          <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-brand-900">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</summary>
+          <div className="mt-3 space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Starts">
             <DateInput required={!!draft} value={form.startDate} onValue={(date) => { setForm((f) => ({ ...f, startDate: date, ...(draft && date ? { endDate: DateTime.fromISO(date).plus({ days: draft.result.ideas[ideaIndex]!.days.length - 1 }).toISODate()! } : {}) })) }} />
@@ -153,6 +155,9 @@ export function CreateTripScreen() {
           )}
           {areas.length < MAX_AREAS && <div className="mt-2"><DestinationSearch onPick={addDestination} placeholder={areas.length ? 'Add another town' : 'Search for a town or city'} /></div>}
         </div>
+        <details className="border-t border-stone-200 pt-2">
+          <summary className="min-h-11 cursor-pointer content-center text-sm font-medium text-brand-900">Time zone & currencies</summary>
+          <p className="mb-4 text-sm leading-relaxed text-stone-600">Destinations can set these for you. Review the time zone before adding your itinerary. Balances are always calculated in the settle-up currency.</p>
         <Field label="Destination time zone" hint="Trip times are shown in this zone unless you switch to your phone's time.">
           <Select value={form.timezone} onChange={set('timezone')}>
             {zones.map((z) => (
@@ -162,7 +167,7 @@ export function CreateTripScreen() {
             ))}
           </Select>
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-3">
           <Field label="Settle-up currency">
             <Input required maxLength={3} value={form.baseCurrency} onChange={set('baseCurrency')} />
           </Field>
@@ -170,12 +175,17 @@ export function CreateTripScreen() {
             <Input maxLength={3} value={form.localCurrency} onChange={set('localCurrency')} />
           </Field>
         </div>
+        </details>
+          </div>
+        </details>
+        <p className="text-xs leading-relaxed text-stone-600">{form.startDate || 'Dates to be decided'} · {form.timezone.replaceAll('_', ' ')} · Settle up in {form.baseCurrency.toUpperCase() || 'a currency you choose'}. Add or change dates and time zone later in Trip settings.</p>
         <ErrorNote error={error} />
         {createdTripId && error && <Link className="inline-flex min-h-11 items-center text-brand-700" to={`/t/${createdTripId}/overview`}>Open the created trip →</Link>}
         {busy && <p role="status" className="text-sm text-stone-600">Creating your shared trip and saving a copy on this device…</p>}
         <Button type="submit" className="w-full" disabled={busy || loadingDraft || (!!draftId && !draft)}>
           {busy ? 'Creating…' : 'Create trip'}
         </Button>
+        {!draftId && <Link to="/inspire" className="ui-link">Need a starting point? Help me plan →</Link>}
       </form>
     </div>
   )

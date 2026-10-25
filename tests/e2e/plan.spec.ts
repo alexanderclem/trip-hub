@@ -44,6 +44,7 @@ test('itinerary: cross-zone flight, stays, overlaps, local/destination time togg
   await page.getByRole('link', { name: 'Create a trip' }).click()
   await page.getByLabel('Trip name').fill(`E2E TEST plan ${new Date().toISOString()}`)
   await page.getByLabel('Your name').fill('Alex')
+  await page.getByText('Add dates and destination (optional)', { exact: true }).click()
   await page.getByLabel('Starts').fill('2027-03-13')
   await page.getByLabel('Ends').fill('2027-03-21')
   await page.getByRole('button', { name: 'Create trip' }).click()
