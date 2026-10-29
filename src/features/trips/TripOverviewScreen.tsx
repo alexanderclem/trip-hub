@@ -84,7 +84,7 @@ export function TripOverviewScreen() {
   const steps = [
     { title: 'Invite friends', description: 'Send the trip link to your group.', done: members.length > 1, to: '#invite-group', Icon: Users },
     { title: 'Save an idea', description: 'A restaurant, a beach, somewhere to stay.', done: savedPlaces.length > 0, to: `${root}/more/places/new`, Icon: MapPin },
-    { title: 'Start a vote', description: 'Give everyone a say in what happens next.', done: !!polls?.length, to: `${root}/more/vote`, Icon: Vote },
+    { title: 'Start a vote', description: 'Let the group choose between options.', done: !!polls?.length, to: `${root}/more/vote`, Icon: Vote },
   ]
   const completed = steps.filter((s) => s.done).length
 
@@ -109,7 +109,7 @@ export function TripOverviewScreen() {
       {arrival && <section role="status" aria-label="Welcome from Stowie" className="mb-6 flex items-start gap-3 rounded-2xl bg-brand-50 p-4">
         <Stowie mood="delighted" size={48} />
         <div className="min-w-0 flex-1 space-y-3">
-          <Bubble from="stowie">{arrival === 'created' ? 'Your trip is ready. Bring the group in—share the invite link, then save your first idea.' : 'You’re in. Have your say in the group votes, then take a peek at the plan.'}</Bubble>
+          <Bubble from="stowie">{arrival === 'created' ? 'Your trip is ready. Share the invite link, then save your first idea.' : 'You’re in. Check the votes and the plan.'}</Bubble>
           <div className="flex flex-wrap gap-2">
             {arrival === 'created'
               ? <><Button onClick={invite}><Users aria-hidden="true" className="size-4" />Invite friends</Button><LinkButton to={`${root}/more/places/new`} variant="secondary">Save an idea</LinkButton></>

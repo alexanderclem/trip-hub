@@ -34,7 +34,7 @@ export function ActivityScreen() {
           </div>
         )}
         {shown === undefined ? <ListSkeleton label="Loading…" rows={5} />
-          : shown.length === 0 ? <p className="text-sm text-stone-600">Nothing yet. What the group adds will show up here.</p>
+          : shown.length === 0 ? <p className="text-sm text-stone-600">No activity yet.</p>
           : <ActivityList tripId={tripId} events={shown} members={members} me={me} since={since} />}
       </div>
     </div>

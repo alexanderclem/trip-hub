@@ -39,9 +39,7 @@ export function HomeScreen() {
       </header>
       <div className="mb-8 mt-8 flex flex-wrap items-end justify-between gap-5 sm:mt-12">
         <div>
-          <p className="app-kicker mb-3">YOUR NEXT CHAPTER</p>
           <h1 className="travel-heading text-4xl text-brand-900 sm:text-5xl">Your trips.</h1>
-          <p className="mt-3 max-w-md leading-relaxed text-stone-600">Pick up where your group left off.</p>
         </div>
         <LinkButton to="/new"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
       </div>
@@ -64,7 +62,7 @@ export function HomeScreen() {
           ) : (
             <Empty>
               <img src="/brand/packed-for-anywhere.svg" alt="" width="360" height="170" className="w-64 max-w-full" />
-              <EmptyHeader><EmptyTitle>Got a “we should go” in mind?</EmptyTitle><EmptyDescription>Create a trip, invite your friends, and save the first idea. Already have an invite? Join your group below.</EmptyDescription></EmptyHeader>
+              <EmptyHeader><EmptyTitle>No trips yet</EmptyTitle><EmptyDescription>Create a trip, or join one with an invite link below.</EmptyDescription></EmptyHeader>
             </Empty>
           )}
         </section>
@@ -72,8 +70,8 @@ export function HomeScreen() {
         <div className="space-y-6">
         <Card>
           <Compass aria-hidden="true" className="size-5 text-brand-700" />
-          <h2 className="travel-heading mt-3 text-2xl">Find your kind of trip.</h2>
-          <p className="mt-2 text-sm leading-relaxed text-stone-600">Discover your travel style, explore ideas, and turn a favorite into your first itinerary.</p>
+          <h2 className="travel-heading mt-3 text-2xl">Need ideas?</h2>
+          <p className="mt-2 text-sm leading-relaxed text-stone-600">Describe how you like to travel and get trip ideas.</p>
           <Link to="/inspire" className="mt-4 inline-flex min-h-11 items-center gap-2 font-medium text-brand-700">Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link>
         </Card>
         <div id="join" className="scroll-mt-6"><JoinByLink /></div>

@@ -43,6 +43,6 @@ export function JoinScreen() {
       {!navigator.onLine && <p className="text-sm text-stone-600">You're offline. Joining needs a connection once.</p>}
       {token.current && <Button className="w-full" disabled={busy} onClick={() => void attempt()}>{busy ? 'Joining…' : 'Try joining again'}</Button>}
       <LinkButton to="/app" variant="secondary" className="w-full">Back to your trips</LinkButton>
-    </div> : <LoadingState title="Joining your group…" description="Downloading the shared plan so it’s ready on this device." />}
+    </div> : <LoadingState title="Joining your group…" />}
   </div>
 }

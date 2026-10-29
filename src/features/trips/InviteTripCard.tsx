@@ -39,14 +39,14 @@ export function InviteTripCard({ trip, bare = false }: { trip: Trip; bare?: bool
 
   const body = <>
     {!bare && <p className="mt-2 break-words text-sm font-medium text-brand-700">You’re invited to {trip.name}.</p>}
-    <p className={`${bare ? '' : 'mt-2 '}text-sm leading-relaxed text-stone-600`}>Bring your friends in to save ideas and decide together. Anyone with this link can see and edit the whole trip, so keep it in your group.</p>
+    <p className={`${bare ? '' : 'mt-2 '}text-sm leading-relaxed text-stone-600`}>Anyone with this link can see and edit the whole trip, so keep it in your group.</p>
     <p className="mt-3 select-all rounded-xl bg-stone-100 p-3 font-mono text-xs break-all">{link}</p>
     <div className="mt-3 grid grid-cols-2 gap-2">
       <Button variant={bare ? 'secondary' : 'primary'} disabled={pending !== null} aria-busy={pending === 'share'} onClick={() => void send('share')}><Share2 aria-hidden="true" className="size-4" />{pending === 'share' ? 'Sharing…' : 'Share'}</Button>
       <Button variant="secondary" disabled={pending !== null} aria-busy={pending === 'copy'} onClick={() => void send('copy')}>{copied ? <Check aria-hidden="true" className="size-4" /> : <Copy aria-hidden="true" className="size-4" />}{pending === 'copy' ? 'Copying…' : copied ? 'Copied' : 'Copy'}</Button>
     </div>
     <div className="mt-3 min-h-10">
-      <p role="status" className="text-sm text-brand-700">{pending === 'copy' ? 'Copying your invite link…' : copied ? 'Invite copied. Send it to your friends—there’s room for everyone.' : ''}</p>
+      <p role="status" className="text-sm text-brand-700">{pending === 'copy' ? 'Copying your invite link…' : copied ? 'Invite link copied.' : ''}</p>
       <ErrorNote error={error} />
     </div>
   </>

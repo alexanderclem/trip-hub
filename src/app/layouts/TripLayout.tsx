@@ -114,5 +114,5 @@ function TripShell({ tripId }: { tripId: string }) {
 }
 
 export function TripRouteLoading() {
-  return <LoadingState fullScreen title="Opening Stowaway…" description="Getting the app ready for your next trip." />
+  return <LoadingState fullScreen title="Opening Stowaway…" />
 }

@@ -31,7 +31,7 @@ export function GroupRatingCard({ place, memberId }: { place: Place; memberId: s
         <h2 className="ui-section-title">Group rating</h2>
         <StarsSummary summary={summary} />
       </div>
-      <p className="mt-1 text-sm text-stone-600">{place.status === 'visited' ? 'How was it?' : 'Been here or heard about it? Rate it for the group.'}</p>
+      <p className="mt-1 text-sm text-stone-600">{place.status === 'visited' ? 'How was it?' : 'Rate it for the group.'}</p>
       <div className="mt-3">
         <StarsInput value={mine?.stars ?? null} onChange={(stars) => rate(place.trip_id, place.id, memberId, stars, note)} />
       </div>

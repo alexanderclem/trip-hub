@@ -117,10 +117,10 @@ export function CreateTripScreen() {
   return (
     <div className="min-h-full">
       <PageHeader title="New trip" back="/app" />
-      {loadingDraft && <LoadingState title="Loading your trip idea…" description="Bringing in the suggested itinerary and dates." />}
+      {loadingDraft && <LoadingState title="Loading your trip idea…" />}
       <form onSubmit={submit} className="trip-create-form mx-auto max-w-xl space-y-5 p-5 sm:p-8">
-        <div className="trip-create-intro"><p className="app-kicker">FIRST, THE ESSENTIALS</p><h2 className="travel-heading">Create your trip.</h2><p>A trip name and your name. That’s enough to get everyone together.</p></div>
-        {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name; we’ll add the itinerary as tentative items, ready to edit.</p>}
+        <div className="trip-create-intro"><h2 className="travel-heading">Create your trip.</h2></div>
+        {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name. The itinerary is added as tentative items you can edit.</p>}
         <Field label="Trip name">
           <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="NYC spring break 2027" />
         </Field>
@@ -140,7 +140,7 @@ export function CreateTripScreen() {
         </div>
         <div>
           <p className="text-sm font-medium text-stone-700">Where are you going?</p>
-          <p className="mt-1 text-xs text-stone-600">Optional. Destinations set the time zone and currency.</p>
+          <p className="mt-1 text-xs text-stone-600">Optional. Sets the time zone and currency.</p>
           {areas.length > 0 && (
             <ul aria-label="Destinations" className="mt-2 flex flex-wrap gap-2">
               {areas.map((a) => (
@@ -157,7 +157,6 @@ export function CreateTripScreen() {
         </div>
         <details className="border-t border-stone-200 pt-2">
           <summary className="min-h-11 cursor-pointer content-center text-sm font-medium text-brand-900">Time zone & currencies</summary>
-          <p className="mb-4 text-sm leading-relaxed text-stone-600">Destinations can set these for you. Review the time zone before adding your itinerary. Balances are always calculated in the settle-up currency.</p>
         <Field label="Destination time zone" hint="Trip times are shown in this zone unless you switch to your phone's time.">
           <Select value={form.timezone} onChange={set('timezone')}>
             {zones.map((z) => (

@@ -24,13 +24,13 @@ export function WelcomeScreen() {
       <div className="app-entry-intro">
         <p className="app-kicker">The shared trip planner</p>
         <h1 className="travel-heading">{joining ? 'Join your friends.' : 'Your next trip starts here.'}</h1>
-        <p>{joining ? 'Paste your invite link, then choose your name. No password needed.' : 'Create a shared plan or join your friends. You can work out the details together.'}</p>
+        <p>{joining ? 'Paste your invite link, then choose your name. No password needed.' : 'Create a shared plan or join one.'}</p>
       </div>
       <div className={`app-entry-routes ${joining ? 'is-joining' : ''}`}>
         <section className="app-start-trip" aria-labelledby="start-trip-title">
           <img src="/brand/stowaway-mark.svg" alt="" width="40" height="40" />
-          <h2 id="start-trip-title" className="travel-heading">Bringing the group?</h2>
-          <p>All you need is a trip name and your name. Invite everyone once you’re in.</p>
+          <h2 id="start-trip-title" className="travel-heading">Start a trip</h2>
+          <p>You only need a trip name and your name. Invite everyone afterward.</p>
           <LinkButton to="/new" className="mt-5 w-full"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
         </section>
         <div id="join" className="scroll-mt-6"><JoinByLink /></div>

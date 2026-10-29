@@ -10,7 +10,7 @@ const days = [
     title: 'West Side wandering',
     route: 'M164 178C195 187 197 112 260 123S381 167 401 66',
     stops: [
-      { time: '09:00', name: 'Coffee in the West Village', note: 'An easy start, together.', x: 164, y: 178 },
+      { time: '09:00', name: 'Coffee in the West Village', note: 'Meet outside.', x: 164, y: 178 },
       { time: '11:00', name: 'Walk the High Line', note: 'Meet at the Gansevoort Street entrance.', x: 260, y: 123 },
       { time: '19:00', name: 'Dinner in Chinatown', note: 'The group’s pick. Table for six.', x: 401, y: 66 },
     ],
@@ -19,8 +19,8 @@ const days = [
     title: 'Art and a little fresh air',
     route: 'M190 192C230 170 192 116 263 87S340 59 383 120',
     stops: [
-      { time: '09:30', name: 'Bagels on the Upper West Side', note: 'Breakfast before the park.', x: 190, y: 192 },
-      { time: '11:00', name: 'A stroll through Central Park', note: 'Take the scenic way across.', x: 263, y: 87 },
+      { time: '09:30', name: 'Bagels on the Upper West Side', note: 'Grab and go.', x: 190, y: 192 },
+      { time: '11:00', name: 'A stroll through Central Park', note: 'Enter at Columbus Circle.', x: 263, y: 87 },
       { time: '14:00', name: 'An afternoon at the Met', note: 'Tickets saved with the plan.', x: 383, y: 120 },
     ],
   },
@@ -28,9 +28,9 @@ const days = [
     title: 'A day downtown',
     route: 'M167 83C222 52 214 130 294 137S381 145 391 195',
     stops: [
-      { time: '10:00', name: 'Browse the shops in SoHo', note: 'A little time to find your own thing.', x: 167, y: 83 },
-      { time: '12:30', name: 'Lunch together in Chinatown', note: 'Order a few dishes for the table.', x: 294, y: 137 },
-      { time: '16:00', name: 'Walk the Brooklyn Bridge', note: 'One last view to take home.', x: 391, y: 195 },
+      { time: '10:00', name: 'Browse the shops in SoHo', note: 'Free time.', x: 167, y: 83 },
+      { time: '12:30', name: 'Lunch together in Chinatown', note: 'Shared dishes.', x: 294, y: 137 },
+      { time: '16:00', name: 'Walk the Brooklyn Bridge', note: 'Walk toward Brooklyn.', x: 391, y: 195 },
     ],
   },
 ]
@@ -91,20 +91,19 @@ export function TripPreview() {
       </div>
       <div id="sample-content" className="preview-content">
         {stage === 'Ideas' && <div className="preview-example-panel">
-          <p className="preview-context">Start with the places from your group chat.</p>
           {ideas.map(({ name, note }) => <div key={name} className="preview-example-row"><MapPin aria-hidden="true" size={19} /><div><h3>{name}</h3><p>{note}</p></div><span className="preview-status">Saved</span></div>)}
-          <button type="button" className="preview-next" onClick={() => setStage('Vote')}><Vote aria-hidden="true" size={17} /> Can’t agree? Put the options to a vote.</button>
+          <button type="button" className="preview-next" onClick={() => setStage('Vote')}><Vote aria-hidden="true" size={17} /> Vote on the options</button>
         </div>}
         {stage === 'Vote' && <div className="preview-example-panel">
           <p className="website-eyebrow preview-label">Group vote</p>
           <h3 className="preview-question">Where should we eat on Friday?</h3>
           <div className="preview-vote-result"><span>Dumplings in Chinatown</span><span className="preview-status">Group favorite</span></div>
-          <p className="preview-context">Everyone scores each option, from “No way” to “Must-do.” Try a score for this one:</p>
+          <p className="preview-context">Everyone scores each option. Try one:</p>
           <div className="preview-score" role="group" aria-label="Try a sample vote">
             {scores.map((label) => <button type="button" key={label} aria-pressed={score === label} onClick={() => setScore(label)}>{label}</button>)}
           </div>
-          <p className="preview-feedback" role="status">{score ? `Your sample score: ${score}. Nothing is saved to a real trip.` : 'Just practice. Your group won’t see it.'}</p>
-          <button type="button" className="preview-next" onClick={() => showDay(0)}><CalendarDays aria-hidden="true" size={17} /> See the favorite on the plan</button>
+          <p className="preview-feedback" role="status">{score ? `Your sample score: ${score}.` : ''}</p>
+          <button type="button" className="preview-next" onClick={() => showDay(0)}><CalendarDays aria-hidden="true" size={17} /> See it on the plan</button>
         </div>}
         {stage === 'Plan' && <>
           <div className="preview-days" role="group" aria-label="Explore the example itinerary">
@@ -150,10 +149,8 @@ export function TripPreview() {
           </div>
         </>}
         {stage === 'Essentials' && <div className="preview-example-panel">
-          <p className="preview-context">The details you need, without searching old messages.</p>
           <div className="preview-example-row"><Ticket aria-hidden="true" size={20} /><div><h3>The Met · Entry tickets</h3><p>Day 2, 14:00 · Six travelers</p><p className="preview-saved"><Check size={14} aria-hidden="true" /> Downloaded on this sample phone</p></div></div>
           <div className="preview-example-row"><Receipt aria-hidden="true" size={20} /><div><h3>Dinner in Chinatown</h3><p>$84 paid by Maya · Split six ways</p><strong>Your share: <NumberTicker value={14} prefix="$" /></strong></div></div>
-          <p className="preview-context preview-tip">In your own trip, download essentials while online before you travel.</p>
         </div>}
       </div>
       {stage === 'Plan' && <p className="sr-only" role="status">{interacted ? `Day ${selected + 1}: ${day.title}. Three stops shown.` : ''}</p>}

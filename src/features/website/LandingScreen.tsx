@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, MapPin, Receipt, Ticket, Vote } from 'lucide-react'
+import { ArrowUpRight, Check, MapPin, Receipt, Ticket, Vote } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
 import { Brand } from '@/ui/Brand'
 import { TripPreview } from './TripPreview'
@@ -38,8 +38,7 @@ export function LandingScreen() {
               <Link to="/new" className="website-button website-button-primary">Create a trip <ArrowUpRight size={18} aria-hidden="true" /></Link>
               <Link to="/app#join" className="website-button website-button-outline">Join a trip</Link>
             </div>
-            <p className="website-hero-note">Free to use. Start in your browser. No password to remember.</p>
-            <p className="website-preview-instruction"><ArrowDown className="website-preview-below" size={16} aria-hidden="true" /><ArrowRight className="website-preview-beside" size={16} aria-hidden="true" /> Try the sample trip: tap through ideas, a vote, the plan and essentials.</p>
+            <p className="website-hero-note">Free. Runs in your browser, no password.</p>
           </div>
           <div id="the-plan" className="website-hero-example"><TripPreview /></div>
         </section>
@@ -55,11 +54,11 @@ export function LandingScreen() {
 
         <section id="how-it-works" className="website-how" aria-labelledby="how-title">
           <div className="website-container">
-            <Reveal className="website-section-heading"><div><p className="website-eyebrow">From the first idea to the last day</p><h2 id="how-title">Make a plan.<br /><em>Make it together.</em></h2></div><p>Start with a trip link. Give everyone a say. <br />Keep the details where the group can find them.</p></Reveal>
+            <Reveal className="website-section-heading"><div><h2 id="how-title">How it works</h2></div></Reveal>
             <ol className="website-steps">
-              <li><Reveal className="website-step" delay={0}><div className="website-step-heading"><span className="website-step-number" aria-hidden="true">01</span><h3>Invite your people</h3></div><p>Create a trip with just a name and share the invite link. Friends choose who they are. No passwords, no long setup.</p></Reveal></li>
-              <li><Reveal className="website-step" delay={0.08}><div className="website-step-heading"><span className="website-step-number" aria-hidden="true">02</span><h3>Pick the group’s favorites</h3></div><p>Save the places everyone suggests and put decisions to a vote. Turn the winner into a stop on the plan.</p></Reveal></li>
-              <li><Reveal className="website-step" delay={0.16}><div className="website-step-heading"><span className="website-step-number" aria-hidden="true">03</span><h3>Know what’s next, and who paid</h3></div><p>Follow the day’s itinerary, open the right ticket, and see who owes what without another spreadsheet.</p></Reveal></li>
+              <li><Reveal className="website-step" delay={0}><div className="website-step-heading"><span className="website-step-number" aria-hidden="true">01</span><h3>Invite your people</h3></div><p>Create a trip with a name and share the invite link. Friends pick their name when they open it.</p></Reveal></li>
+              <li><Reveal className="website-step" delay={0.08}><div className="website-step-heading"><span className="website-step-number" aria-hidden="true">02</span><h3>Pick the group’s favorites</h3></div><p>Save the places everyone suggests and vote on them. The winner becomes a stop on the plan.</p></Reveal></li>
+              <li><Reveal className="website-step" delay={0.16}><div className="website-step-heading"><span className="website-step-number" aria-hidden="true">03</span><h3>Know what’s next, and who paid</h3></div><p>See the day’s itinerary, open tickets, and check who owes what.</p></Reveal></li>
             </ol>
           </div>
         </section>
@@ -68,15 +67,12 @@ export function LandingScreen() {
           <div className="website-container website-offline-inner">
             <div className="website-hero-art">
               <img className="website-hero-photo" src="/images/lakeside-escape.jpg" alt="The bow of a wooden boat on a mountain lake in the Dolomites" width="1800" height="1200" loading="lazy" />
-              <div className="website-postcard-note"><img src="/brand/stowaway-mark.svg" width="48" height="48" alt="" /><p>The whole trip,<br /><em>tucked away.</em></p></div>
-              <p className="website-photo-caption">A little inspiration: the Dolomites, Italy.</p>
+              <p className="website-photo-caption">The Dolomites, Italy.</p>
             </div>
             <Reveal>
-              <p className="website-eyebrow">Prepare once. Take it with you.</p>
-              <h2 id="offline-title">Your plans travel.<br /><em>Even without signal.</em></h2>
-              <p>Before you leave, use “Ready for offline” in trip settings. Your saved itinerary and downloaded tickets stay available without a connection.</p>
+              <h2 id="offline-title">Works without signal</h2>
+              <p>Before you leave, use “Ready for offline” in trip settings. Your itinerary and downloaded tickets then work without a connection.</p>
               <ul className="website-offline-list">
-                <li><Check size={16} aria-hidden="true" /> Plans and downloaded tickets work offline</li>
                 <li><Check size={16} aria-hidden="true" /> Changes wait on your phone and sync when you’re back</li>
                 <li><MapPin size={16} aria-hidden="true" /> Maps need a downloaded pack or saved area</li>
               </ul>
@@ -86,20 +82,20 @@ export function LandingScreen() {
         </section>
 
         <section id="questions" className="website-questions website-container" aria-labelledby="questions-title">
-          <Reveal><p className="website-eyebrow">Before you start</p><h2 id="questions-title">A few things<br /><em>to know.</em></h2></Reveal>
+          <Reveal><h2 id="questions-title">Questions</h2></Reveal>
           <div className="website-faq">
-            <details><summary>Do I need to download an app?</summary><p>You can create and plan a trip right in your browser. Add Stowaway to your phone’s Home Screen for quick access on the go. Installing is optional.</p></details>
-            <details><summary>How does my group join?</summary><p>Create a trip and share its invite link from trip settings. Friends open the link and choose who they are in the group. Have a link already? <Link to="/app#join">Join your trip.</Link></p></details>
-            <details><summary>Who can see our trip?</summary><p>Anyone with the secret invite link can join and see the group’s plans and documents, so share it only with people you trust. See the <Link to="/privacy">privacy policy</Link> for details.</p></details>
-            <details><summary>Can I use it without a connection?</summary><p>Yes, after preparing your trip while online. “Ready for offline” in trip settings saves trip data and downloads tickets to your phone. Maps need a downloaded pack or saved area. Creating or joining a trip needs a connection.</p></details>
-            <details><summary>Can I get my trips on another phone?</summary><p>Rejoin with your group’s invite link. If sign-in is available, use the same account to restore its connected trips. Downloads are saved separately on each phone.</p></details>
+            <details><summary>Do I need to download an app?</summary><p>No. You can create and plan a trip in your browser. You can also add Stowaway to your phone’s Home Screen.</p></details>
+            <details><summary>How does my group join?</summary><p>Create a trip and share its invite link from trip settings. Friends open the link and pick their name. Have a link already? <Link to="/app#join">Join your trip.</Link></p></details>
+            <details><summary>Who can see our trip?</summary><p>Anyone with the invite link can join and see the group’s plans and documents, so only share it with people you trust. See the <Link to="/privacy">privacy policy</Link> for details.</p></details>
+            <details><summary>Can I use it without a connection?</summary><p>Yes, once you’ve prepared the trip while online. “Ready for offline” in trip settings saves trip data and downloads tickets to your phone. Maps need a downloaded pack or saved area. Creating or joining a trip needs a connection.</p></details>
+            <details><summary>Can I get my trips on another phone?</summary><p>Rejoin with your group’s invite link, or sign in with the same account to restore its trips. Downloads are saved separately on each phone.</p></details>
           </div>
         </section>
 
-        <section className="website-closing" aria-labelledby="closing-title"><div className="website-container website-closing-inner"><Reveal><p className="website-eyebrow">Start with the people. Add the plan.</p><h2 id="closing-title">Next stop: <em>going together.</em></h2></Reveal><Link to="/new" className="website-button website-button-primary">Start planning <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
+        <section className="website-closing" aria-labelledby="closing-title"><div className="website-container website-closing-inner"><Reveal><h2 id="closing-title">Plan your next trip together.</h2></Reveal><Link to="/new" className="website-button website-button-primary">Create a trip <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
       </main>
 
-      <footer className="website-footer website-container"><div><Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link><p>A shared trip planner for trips with friends.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#questions">Questions</a><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/app">Open app</Link></nav></footer>
+      <footer className="website-footer website-container"><div><Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link><p>A shared planner for group trips.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#questions">Questions</a><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/app">Open app</Link></nav></footer>
     </div>
   )
 }

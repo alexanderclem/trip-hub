@@ -162,7 +162,7 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
   return (
     <Card>
       <h2 className="ui-section-title">Ready for offline</h2>
-      <p className="mt-1 text-sm text-stone-600">One tap puts everything on this phone (trip data, every ticket, the offline map, exchange rates and weather) so it all works in airplane mode.</p>
+      <p className="mt-1 text-sm text-stone-600">Saves trip data, tickets, the offline map, exchange rates and weather to this phone.</p>
       {isIOS() && !isStandalone() && (
         <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
           First add Stowaway to your Home Screen (Share → Add to Home Screen) and open it from there. Safari can clear offline data for websites, and the Home Screen app keeps its own copy.

@@ -43,7 +43,7 @@ export function NotificationsCard({ tripId }: { tripId: string }) {
         <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Notifications are blocked for Stowaway. Allow them in your phone’s Settings → Notifications (or the browser’s site settings), then come back here.</p>
       ) : !setting ? (
         <>
-          <p className="mt-1 text-sm text-stone-600">Get a nudge when it’s time to leave, when there’s a new vote, and when an expense or task involves you. Needs signal to arrive.</p>
+          <p className="mt-1 text-sm text-stone-600">Notifies you when it’s time to leave, a vote opens, or an expense or task involves you. Needs signal to arrive.</p>
           <Button className="mt-3 flex w-full items-center justify-center gap-2" disabled={busy || !me} onClick={() => void turnOn()}>
             <BellRing aria-hidden="true" className="size-4" /> {busy ? 'Turning on…' : 'Turn on notifications'}
           </Button>

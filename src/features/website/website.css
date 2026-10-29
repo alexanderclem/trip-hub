@@ -47,9 +47,6 @@
 .website-hero-note { max-width: 45ch; margin-top: 1.25rem; font-size: .75rem; color: var(--stowaway-muted); line-height: 1.7; }
 .website-hero-art { position: relative; min-width: 0; min-height: 380px; padding-bottom: 2rem; }
 .website-hero-photo { display: block; position: absolute; inset: 0 0 2rem; width: 100%; height: calc(100% - 2rem); object-fit: cover; object-position: 50% 60%; border-radius: var(--stowaway-radius-surface); }
-.website-postcard-note { position: absolute; bottom: 3.5rem; inset-inline-start: 1rem; display: flex; gap: 1rem; align-items: center; max-width: calc(100% - 2rem); padding: 1rem 1.5rem; background: var(--stowaway-surface); border-top: 3px solid var(--stowaway-coral); border-radius: 0 0 var(--stowaway-radius-control) var(--stowaway-radius-control); color: var(--stowaway-ink); }
-.website-postcard-note img { flex-shrink: 0; }
-.website-postcard-note p { font-family: var(--stowaway-font-display); font-size: 1.5rem; line-height: 1.2; letter-spacing: -.025em; }
 .website-photo-caption { position: absolute; bottom: 0; inset-inline-end: 0; color: var(--stowaway-muted); font-size: .6875rem; }
 .website-capabilities { border-block: 1px solid var(--stowaway-border); background: var(--stowaway-mist); }
 .website-capabilities ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; list-style: none; padding-block: 1.5rem; }
@@ -57,9 +54,6 @@
 .website-capabilities svg { flex-shrink: 0; }
 .website h2 { font-family: var(--stowaway-font-display); font-size: var(--stowaway-text-section); line-height: 1.12; letter-spacing: -.045em; font-weight: 400; }
 .website-section-heading h2, .website-offline h2, .website-questions h2 { margin-top: 1rem; }
-.website-preview-instruction { display: flex; align-items: center; gap: .5rem; margin-top: 1.5rem; color: var(--stowaway-action); font-size: .75rem; line-height: 1.6; }
-.website-preview-instruction svg { flex-shrink: 0; }
-.website-preview-beside { display: none; }
 .website-hero-example { min-width: 0; align-self: center; padding: .75rem; background: var(--stowaway-mist); border-radius: calc(var(--stowaway-radius-surface) + .75rem); scroll-margin-top: 1.5rem; }
 .website-preview { min-width: 0; width: 100%; overflow: hidden; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); }
 .preview-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: 1rem 1.5rem .875rem; }
@@ -79,7 +73,6 @@
 .preview-content > .preview-days { padding-top: 1rem; }
 .preview-example-panel { padding: 1.25rem 1.5rem; }
 .preview-context { margin-bottom: .75rem; color: var(--stowaway-muted); font-size: .8125rem; line-height: 1.7; }
-.preview-tip { margin-block: 1rem 0; }
 .preview-example-row { display: flex; align-items: flex-start; gap: .75rem; padding-block: .875rem; border-bottom: 1px solid var(--stowaway-border); }
 .preview-example-row > svg { flex-shrink: 0; margin-top: .15rem; color: var(--stowaway-action); }
 .preview-example-row > div { flex: 1; min-width: 0; }
@@ -159,8 +152,6 @@
   .website-capabilities li { font-size: .8125rem; }
   .website-section-heading { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 3rem; }
   .website-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
-  .website-preview-below { display: none; }
-  .website-preview-beside { display: block; }
   .website-step-heading { align-items: baseline; }
   .website-offline-inner { grid-template-columns: minmax(0, .95fr) minmax(0, 1fr); gap: 3rem; }
   .website-questions { grid-template-columns: minmax(0, .8fr) minmax(0, 1fr); gap: 4rem; }
@@ -168,7 +159,6 @@
 @media (min-width: 1100px) {
   .website-hero { column-gap: 4rem; }
   .website-hero-art { min-height: 510px; }
-  .website-postcard-note { inset-inline-start: -1.5rem; padding: 1.25rem 1.75rem; }
   .website-offline-inner { gap: 5rem; }
   .website-steps { gap: 2rem; }
 }
@@ -187,8 +177,6 @@
   .preview-score { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .preview-heading, .preview-plan, .preview-example-panel { padding-inline: 1rem; }
   .preview-days, .preview-stages { padding-inline: 1rem; }
-  .website-postcard-note { padding: .875rem 1rem; gap: .75rem; }
-  .website-postcard-note p { font-size: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .website *, .website *::before, .website *::after { transition-duration: 0s !important; scroll-behavior: auto !important; }

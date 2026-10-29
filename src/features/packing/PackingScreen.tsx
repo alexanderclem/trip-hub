@@ -69,7 +69,6 @@ export function PackingScreen() {
       <div className="mx-auto max-w-2xl space-y-4 p-4">
         <div>
           <h2 className="ui-section-title">Pack together</h2>
-          <p className="mt-1 text-sm text-stone-600">Tick what you’ve packed, claim the shared gear, and keep your own list. Works offline.</p>
         </div>
         {!me && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Choose who you are in this trip to tick items off.</p>}
         {me && myJobs.length > 0 && (

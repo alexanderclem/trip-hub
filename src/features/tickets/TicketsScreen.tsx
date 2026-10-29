@@ -49,7 +49,7 @@ export function TicketsScreen() {
     return receipts ? [...out, ['receipts', receipts] as const] : [...out]
   }, [rows, items, zone, query])
 
-  if (!trip || !rows) return <LoadingState fullScreen title="Loading your tickets…" description="Finding the documents saved for this trip." />
+  if (!trip || !rows) return <LoadingState fullScreen title="Loading your tickets…" />
 
   return (
     <div className="min-h-full pb-28">

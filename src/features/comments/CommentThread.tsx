@@ -37,7 +37,7 @@ export function CommentThread({ tripId, type, subjectId, me, prompt = 'Add a com
     <Card>
       <section aria-labelledby={titleId}>
         <h2 id={titleId} className="ui-section-title">Comments{comments?.length ? ` (${comments.length})` : ''}</h2>
-        {comments?.length === 0 && <p className="mt-2 text-sm text-stone-600">Nothing yet. Say what you think.</p>}
+        {comments?.length === 0 && <p className="mt-2 text-sm text-stone-600">No comments yet.</p>}
         {!!comments?.length && (
           <ul className="mt-3 space-y-4">
             {comments.map((c) => {

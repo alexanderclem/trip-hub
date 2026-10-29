@@ -10,7 +10,7 @@ export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     errorElement: <RouteError />,
-    hydrateFallbackElement: <LoadingState fullScreen title="Opening Stowaway…" description="Getting the app ready for your next trip." />,
+    hydrateFallbackElement: <LoadingState fullScreen title="Opening Stowaway…" />,
     children: [
       { path: '/', element: <LandingScreen /> },
       { path: '/privacy', element: <LegalScreen policy="privacy" /> },

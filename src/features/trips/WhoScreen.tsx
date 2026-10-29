@@ -32,7 +32,7 @@ export function WhoScreen() {
     }
   }
 
-  if (!trip || !members) return <LoadingState fullScreen title="Finding your group…" description="Loading the travelers already on this trip." />
+  if (!trip || !members) return <LoadingState fullScreen title="Finding your group…" />
   const destinations = tripAreas(trip).map((area) => area.name).join(' · ')
   const dateLabel = (value: string) => DateTime.fromISO(value).toLocaleString(DateTime.DATE_MED)
   const dates = trip.start_date
@@ -46,10 +46,9 @@ export function WhoScreen() {
         <h1 className="travel-heading break-words text-4xl text-brand-900">{trip.name}</h1>
         {destinations && <p className="mt-3 break-words font-medium text-brand-700">{destinations}</p>}
         <p className="mt-2 text-sm text-stone-600">{dates}</p>
-        <p className="mt-4 text-sm leading-relaxed text-stone-600">Your friends have made room for you. Help pick the places, have your say, and keep the plans together.</p>
       </header>
       <h2 className="mt-6 text-xl font-semibold text-brand-900">Who are you?</h2>
-      <p className="mt-2 text-sm leading-relaxed text-stone-600">{members.length ? 'Here’s who’s coming. Choose your name, or add yourself below.' : 'Be the first to add your name. The rest of the group can join you here.'} We’ll remember you on this device.</p>
+      <p className="mt-2 text-sm leading-relaxed text-stone-600">{members.length ? 'Choose your name, or add yourself below.' : 'Add your name to get started.'} We’ll remember you on this device.</p>
 
       <div className="mt-5 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
         {members.map((m) => (

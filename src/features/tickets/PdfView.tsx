@@ -47,7 +47,7 @@ export function PdfView({ blob, title }: { blob: Blob; title: string }) {
   return (
     <div>
       {state && 'error' in state && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-800">Couldn't show this PDF: {state.error}</p>}
-      {!state && <LoadingState title="Opening your PDF…" description="Preparing the pages of your saved ticket." />}
+      {!state && <LoadingState title="Opening your PDF…" />}
       <div ref={host} className="space-y-3" />
     </div>
   )

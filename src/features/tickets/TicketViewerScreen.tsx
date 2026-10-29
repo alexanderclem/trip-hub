@@ -68,7 +68,7 @@ export function TicketViewerScreen() {
         <div style={{ touchAction: 'pan-x pan-y pinch-zoom' }}>
           {blob && att.mime === 'application/pdf' && <PdfView blob={blob} title={att.title} />}
           {url && att.mime.startsWith('image/') && <img src={url} alt={att.title} className="w-full rounded-lg bg-white shadow-sm" />}
-          {!blob && !error && <LoadingState title="Opening your ticket…" description="Getting your saved ticket ready to view." />}
+          {!blob && !error && <LoadingState title="Opening your ticket…" />}
         </div>
         <AttachmentText att={att} blob={blob} />
         <div className="grid grid-cols-2 gap-2 pt-2">
