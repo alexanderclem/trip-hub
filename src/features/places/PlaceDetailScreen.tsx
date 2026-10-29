@@ -31,7 +31,7 @@ export function PlaceDetailScreen() {
     return (
       <div>
         <PageHeader title="Deleted" back={`/t/${tripId}/more/places`} />
-        <p className="p-5 text-stone-600">This place was deleted.</p>
+        <p className="p-5 text-muted">This place was deleted.</p>
       </div>
     )
   }
@@ -46,7 +46,7 @@ export function PlaceDetailScreen() {
         title={place.name}
         back={`/t/${tripId}/more/places`}
         action={
-          <Link to="edit" className="ui-icon-button text-brand-700" aria-label="Edit">
+          <Link to="edit" className="ui-icon-button text-action" aria-label="Edit">
             <Pencil aria-hidden="true" className="size-5" />
           </Link>
         }
@@ -58,11 +58,11 @@ export function PlaceDetailScreen() {
           </span>
           <div>
             <div className="font-medium">{label}{place.area && ` · ${place.area}`}</div>
-            <div className="text-sm text-stone-600">{STATUS_LABEL[place.status]}</div>
+            <div className="text-sm text-muted">{STATUS_LABEL[place.status]}</div>
           </div>
         </div>
 
-        {place.notes && <p className="whitespace-pre-wrap break-words px-1 text-stone-800">{place.notes}</p>}
+        {place.notes && <p className="whitespace-pre-wrap break-words px-1 text-ink">{place.notes}</p>}
 
         <LinkButton to={`/t/${tripId}/plan/new?place=${place.id}`} className="w-full">
           <CalendarPlus aria-hidden="true" className="size-4" /> Add to the plan
@@ -89,20 +89,20 @@ export function PlaceDetailScreen() {
                 <a href={l.url} target="_blank" rel="noreferrer" className="ui-link min-w-0 flex-1">
                   <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
                   <span className="truncate">{l.label || l.url}</span>
-                  <span className="shrink-0 text-xs font-normal text-stone-600">{l.kind}</span>
+                  <span className="shrink-0 text-xs font-normal text-muted">{l.kind}</span>
                   <span className="sr-only"> (opens in a new tab)</span>
                 </a>
-                <button type="button" onClick={() => softDelete('links', l.id, me)} className="ui-icon-button -mr-2 text-stone-600" aria-label="Remove link">
+                <button type="button" onClick={() => softDelete('links', l.id, me)} className="ui-icon-button -mr-2 text-muted" aria-label="Remove link">
                   <Trash2 aria-hidden="true" className="size-4" />
                 </button>
               </div>
             ))}
           </div>
-          {!at && <p className="pt-1 text-sm text-amber-800">No map pin yet. Edit to add a location.</p>}
-          <Disclosure summary="Add a link" className="mt-1 border-t border-stone-200 pt-1"><AddLink tripId={tripId} placeId={placeId} me={me} /></Disclosure>
+          {!at && <p className="pt-1 text-sm text-warning-ink">No map pin yet. Edit to add a location.</p>}
+          <Disclosure summary="Add a link" className="mt-1 border-t border-line pt-1"><AddLink tripId={tripId} placeId={placeId} me={me} /></Disclosure>
         </Card>
 
-        <p className="text-center text-xs text-stone-600">
+        <p className="text-center text-xs text-muted">
           {editedBy ? `Last edited by ${editedBy}` : null}
           {place.source === 'osm' && ' · Place data © OpenStreetMap contributors'}
         </p>

@@ -65,38 +65,38 @@ export function ConnectorConsentScreen() {
     <main className="mx-auto max-w-lg space-y-6 px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)]">
       <Brand />
       <div>
-        <p className="text-sm font-medium text-brand-700">Connect your account</p>
+        <p className="text-sm font-medium text-action">Connect your account</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your trips in ChatGPT</h1>
-        <p className="mt-3 text-sm leading-relaxed text-stone-600">Ask about your shared plans using the trips saved to your Stowaway account.</p>
+        <p className="mt-3 text-sm leading-relaxed text-muted">Ask about your shared plans using the trips saved to your Stowaway account.</p>
       </div>
       {!validId ? <ErrorNote error="This connection request is missing or invalid. Start again from ChatGPT." />
         : account.kind === 'loading' ? <p role="status">Checking your account…</p>
         : account.kind === 'guest' ? <Card className="space-y-4">
           <h2 className="ui-section-title">Sign in to connect your trips</h2>
-          <p className="text-sm leading-relaxed text-stone-600">Use the same account you use in Stowaway. After signing in, you can review and approve the connection.</p>
+          <p className="text-sm leading-relaxed text-muted">Use the same account you use in Stowaway. After signing in, you can review and approve the connection.</p>
           {methods.google && <Button onClick={() => void signIn()} disabled={busy || !online} className="w-full">{busy ? 'Opening Google…' : 'Sign in with Google'}</Button>}
           {methods.email && <LinkButton to="/signin" variant={methods.google ? 'secondary' : 'primary'} className="w-full" onClick={() => rememberConnectorReturn(`/oauth/consent?authorization_id=${authorizationId}`)}>{methods.google ? 'Use email instead' : 'Sign in with email'}</LinkButton>}
-          {!methods.google && !methods.email && <p className="text-sm text-stone-600">Sign-in needs to be enabled for Stowaway before you can connect.</p>}
+          {!methods.google && !methods.email && <p className="text-sm text-muted">Sign-in needs to be enabled for Stowaway before you can connect.</p>}
         </Card>
         : details ? <Card className="space-y-4">
           <h2 className="break-words ui-section-title">Allow {details.client.name} to read your trips?</h2>
-          <p className="break-words text-sm text-stone-600">Signed in as {account.email ?? details.user.email}</p>
-          <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-stone-700">
+          <p className="break-words text-sm text-muted">Signed in as {account.email ?? details.user.email}</p>
+          <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-ink">
             <li>Read names, dates, timezones and currencies for trips you have joined.</li>
             <li>Read itinerary titles, times, activity types and plan status.</li>
             {details.scope.includes('email') && <li>Read your account email address.</li>}
             {details.scope.includes('profile') && <li>Read your account profile.</li>}
           </ul>
-          <p className="text-sm leading-relaxed text-stone-600">This connection cannot change your plans or read tickets, booking codes, expenses or private notes. Only changes synced to your account are available.</p>
-          <p className="text-sm text-stone-600">You can disconnect at any time in <Link to="/connections" className="font-medium text-brand-700 underline">Connected apps</Link>.</p>
+          <p className="text-sm leading-relaxed text-muted">This connection cannot change your plans or read tickets, booking codes, expenses or private notes. Only changes synced to your account are available.</p>
+          <p className="text-sm text-muted">You can disconnect at any time in <Link to="/connections" className="font-medium text-action underline">Connected apps</Link>.</p>
           <div className="flex flex-wrap gap-3">
             <Button onClick={() => void decide(true)} disabled={busy || !online}>{busy ? 'Finishing…' : 'Allow connection'}</Button>
             <Button variant="secondary" onClick={() => void decide(false)} disabled={busy || !online}>Decline</Button>
           </div>
         </Card> : !error && online ? <p role="status">Loading the connection request…</p> : null}
-      {!online && <p role="status" className="text-sm text-amber-900">Connect to the internet to link your account.</p>}
+      {!online && <p role="status" className="text-sm text-warning-ink">Connect to the internet to link your account.</p>}
       {error && <div className="space-y-3"><ErrorNote error={error} />{account.kind === 'signed-in' && <Button variant="secondary" disabled={busy || !online} onClick={() => setRetry((value) => value + 1)}>Try again</Button>}</div>}
-      <Link to="/app" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to your trips</Link>
+      <Link to="/app" className="inline-flex min-h-11 items-center text-sm font-medium text-action">Back to your trips</Link>
     </main>
   )
 }

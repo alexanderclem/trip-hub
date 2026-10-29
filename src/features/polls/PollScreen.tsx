@@ -10,7 +10,8 @@ import { useMembers, usePlaces, useTrip } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
 import { VOTE_SCORES, type Member, type Place, type Poll, type PollOption, type PollVote, type Trip, type VoteScore } from '@/data/types'
 import { useOnline } from '@/lib/useOnline'
-import { Button, Card, DateInput, ErrorNote, Field, Input, LinkButton, PageHeader } from '@/ui'
+import { Button, Card, DateInput, ErrorNote, Field, Input, LinkButton, PageHeader, Status } from '@/ui'
+import { useSlidingHighlight } from '@/ui/effects'
 import { PlaceCategoryIcon, PlaceStatusBadge } from '@/features/places/PlaceSummary'
 import { StarsSummary } from '@/features/ratings/Stars'
 import { CommentThread } from '@/features/comments/CommentThread'
@@ -33,10 +34,11 @@ function useNow(everyMs = 30_000) {
 }
 
 const SCORE_STYLE: Record<VoteScore, string> = {
-  0: 'border-red-300 bg-red-50 text-red-800',
-  1: 'border-stone-400 bg-stone-100 text-stone-800',
-  2: 'border-brand-500 bg-brand-50 text-brand-900',
-  3: 'border-brand-700 bg-brand-700 text-white',
+  // As on the website's sample vote: a chosen score fills with ink; "No way" keeps its warning tint.
+  0: 'border-danger-ink bg-danger text-danger-ink',
+  1: 'border-ink bg-ink text-on-action',
+  2: 'border-ink bg-ink text-on-action',
+  3: 'border-ink bg-ink text-on-action',
 }
 
 export function PollScreen() {
@@ -51,6 +53,7 @@ export function PollScreen() {
   const online = useOnline()
   const now = useNow()
   const [tab, setTab] = useState<'vote' | 'results'>('vote')
+  const tabHighlight = useSlidingHighlight<HTMLDivElement>(tab, '[aria-selected="true"]')
 
   const ranked = useMemo(() => (data ? rankOptions(data.options, data.votes, Math.max(1, members.length)) : []), [data, members.length])
 
@@ -71,7 +74,7 @@ export function PollScreen() {
     return (
       <div>
         <PageHeader title="Vote" back={`/t/${tripId}/more/vote`} />
-        <p className="p-5 text-stone-600">This vote was deleted.</p>
+        <p className="p-5 text-muted">This vote was deleted.</p>
       </div>
     )
   }
@@ -102,15 +105,15 @@ export function PollScreen() {
         title={poll.title}
         back={`/t/${tripId}/more/vote`}
         action={sharing.ready && (
-          <button onClick={() => void sharing.share()} className="ui-icon-button shrink-0 text-brand-700" aria-label="Share this vote">
+          <button onClick={() => void sharing.share()} className="ui-icon-button shrink-0 text-action" aria-label="Share this vote">
             <Share2 aria-hidden="true" className="size-5" />
           </button>
         )}
       />
       <div className="mx-auto max-w-lg space-y-4 p-4">
-        {poll.description && <p className="text-sm whitespace-pre-wrap text-stone-600">{poll.description}</p>}
+        {poll.description && <p className="text-sm whitespace-pre-wrap text-muted">{poll.description}</p>}
         {poll.closes_at && (
-          <p className="flex items-center gap-2 text-sm text-stone-600">
+          <p className="flex items-center gap-2 text-sm text-muted">
             <Clock aria-hidden="true" className="size-4 shrink-0" />
             {closed ? 'Voting has ended.' : `Voting closes ${closesLabel(poll.closes_at, now, zone)}.`}
           </p>
@@ -118,14 +121,14 @@ export function PollScreen() {
         {quiet && sharing.ready && <SharePollCard sharing={sharing} />}
 
         {winner && (
-          <Card className="border-brand-200 bg-brand-50">
-            <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-medium text-brand-900"><Trophy aria-hidden="true" className="size-4" />Decided</p><Stowie mood="delighted" size={36} /></div>
-            <p className="mt-1 text-lg font-semibold">{winner.label}</p>
+          <Card framed>
+            <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-medium text-ink"><Trophy aria-hidden="true" className="size-4" />Decided</p><Stowie mood="delighted" size={36} /></div>
+            <p className="ui-section-title mt-1">{winner.label}</p>
             <div className="mt-3">
               {winner.starts_on && trip ? (
                 <TripDatesAction trip={trip} option={winner} me={me} />
               ) : winnerPlace && !['catalog', 'shortlist'].includes(winnerPlace.status) ? (
-                <p className="flex items-center gap-2 text-sm text-brand-900">On the plan: <PlaceStatusBadge status={winnerPlace.status} /></p>
+                <p className="flex items-center gap-2 text-sm text-ink">On the plan: <PlaceStatusBadge status={winnerPlace.status} /></p>
               ) : (
                 <LinkButton to={`/t/${poll.trip_id}/plan/new?${winnerPlace ? `place=${winnerPlace.id}` : `title=${encodeURIComponent(winner.label)}`}`} className="w-full">
                   <CalendarPlus aria-hidden="true" className="size-4" />Add to the plan
@@ -135,7 +138,8 @@ export function PollScreen() {
           </Card>
         )}
 
-        <div role="tablist" aria-label="View" className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1 text-sm">
+        <div ref={tabHighlight.ref} role="tablist" aria-label="View" className="ui-segmented grid-cols-2">
+          <span className="ui-highlight" style={tabHighlight.style} aria-hidden="true" />
           {(['vote', 'results'] as const).map((t) => (
             <button key={t} role="tab" aria-selected={tab === t} tabIndex={tab === t ? 0 : -1} onKeyDown={(event) => {
               if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
@@ -144,18 +148,18 @@ export function PollScreen() {
               setTab(next)
               const tabs = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
               tabs?.[next === 'vote' ? 0 : 1]?.focus()
-            }} onClick={() => setTab(t)} className={`min-h-11 rounded-lg ${tab === t ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}>
+            }} onClick={() => setTab(t)} className="min-h-11">
               {t === 'vote' ? `Vote (${myCount}/${options.length})` : 'Results'}
             </button>
           ))}
         </div>
 
         {tab === 'vote' ? (
-          <ul className="space-y-3">
+          <ul className="ui-row-group">
             {options.map((o) => (
               <OptionVoteCard key={o.id} option={o} place={placeOf(o)} rating={o.place_id ? ratings?.get(o.place_id) : undefined} score={myScore(o)} closed={closed} me={me} labels={labels} />
             ))}
-            {options.length === 0 && <p className="text-sm text-stone-600">No options yet. Add the first one below.</p>}
+            {options.length === 0 && <li className="p-4 text-sm text-muted">No options yet. Add the first one below.</li>}
           </ul>
         ) : (
           <Results ranked={ranked} votes={votes} members={members} groupSize={members.length} winnerId={winnerId} placeOf={placeOf} labels={labels} dates={poll.kind === 'dates'} />
@@ -179,7 +183,7 @@ function TripDatesAction({ trip, option, me }: { trip: Trip; option: PollOption;
   const start = option.starts_on!
   const end = option.ends_on ?? start
   if (trip.start_date === start && trip.end_date === end) {
-    return <p className="flex items-center gap-2 text-sm text-brand-900"><CalendarCheck aria-hidden="true" className="size-4" />These are the trip’s dates.</p>
+    return <p className="flex items-center gap-2 text-sm text-ink"><CalendarCheck aria-hidden="true" className="size-4" />These are the trip’s dates.</p>
   }
   async function apply() {
     if (trip.start_date && !(await confirm(`Change the trip’s dates from ${dateRangeLabel(trip.start_date, trip.end_date)} to ${dateRangeLabel(start, end)}? Plan items keep the days they already have.`))) return
@@ -215,25 +219,25 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
     }
   }
   return (
-    <li className="rounded-2xl border border-stone-200 bg-surface p-4">
+    <li className="px-4 pb-2 pt-4">
       <div className="flex items-start gap-3">
         {place && <PlaceCategoryIcon category={place.category} />}
         <div className="min-w-0 flex-1">
           {place ? (
-            <Link to={`/t/${place.trip_id}/more/places/${place.id}`} className="break-words font-semibold hover:text-brand-700">{option.label}</Link>
+            <Link to={`/t/${place.trip_id}/more/places/${place.id}`} className="break-words font-semibold underline decoration-transparent underline-offset-4 transition-colors hover:text-action hover:decoration-coral">{option.label}</Link>
           ) : option.url ? (
-            <a href={option.url} target="_blank" rel="noreferrer" className="break-words font-semibold text-brand-700">{option.label}<span className="sr-only"> (opens in a new tab)</span></a>
+            <a href={option.url} target="_blank" rel="noreferrer" className="break-words font-semibold text-action">{option.label}<span className="sr-only"> (opens in a new tab)</span></a>
           ) : (
             <p className="break-words font-semibold">{option.label}</p>
           )}
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-stone-600">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
             {place?.area && <span>{place.area}</span>}
             <StarsSummary summary={rating} />
           </div>
-          {option.description && <p className="mt-1 text-sm text-stone-600">{option.description}</p>}
+          {option.description && <p className="mt-1 text-sm text-muted">{option.description}</p>}
         </div>
         {!closed && (
-          <button onClick={async () => { if (await confirm(`Remove “${option.label}” from this vote?`)) await softDelete('poll_options', option.id, me) }} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-600 hover:bg-stone-100" aria-label={`Remove ${option.label}`}>
+          <button onClick={async () => { if (await confirm(`Remove “${option.label}” from this vote?`)) await softDelete('poll_options', option.id, me) }} className="flex size-11 shrink-0 items-center justify-center rounded-control text-muted hover:bg-brand-50" aria-label={`Remove ${option.label}`}>
             <Trash2 aria-hidden="true" className="size-4" />
           </button>
         )}
@@ -245,14 +249,14 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
             disabled={closed || saving}
             aria-pressed={score === s}
             onClick={() => void castVote(score === s ? null : s)}
-            className={`ui-press min-h-11 rounded-xl border px-1 text-sm font-medium disabled:opacity-50 ${score === s ? SCORE_STYLE[s] : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'}`}
+            className={`ui-press min-h-11 rounded-control border px-1 text-[.8125rem] font-semibold disabled:opacity-50 ${score === s ? SCORE_STYLE[s] : 'border-line bg-surface text-ink hover:bg-mist'}`}
           >
             {labels[s]}
           </button>
         ))}
       </div>
-      <div className="mt-2 min-h-10">
-        <p role="status" className="text-xs leading-5 text-stone-600">{message}</p>
+      <div className="mt-1.5 min-h-5">
+        <p role="status" className="text-xs leading-5 text-muted">{message}</p>
         <ErrorNote error={error} />
       </div>
     </li>
@@ -264,28 +268,29 @@ function Results({ ranked, votes, members, groupSize, winnerId, placeOf, labels,
   labels: Record<VoteScore, string>; dates: boolean
 }) {
   const top = leader(ranked)
-  if (!ranked.length) return <p className="text-sm text-stone-600">No options yet.</p>
+  if (!ranked.length) return <p className="text-sm text-muted">No options yet.</p>
   return (
-    <ol className="space-y-3">
+    <ol className="ui-row-group">
       {ranked.map((r, i) => {
         const isTop = r.option.id === (winnerId ?? top?.option.id)
         const place = placeOf(r.option)
         return (
-          <li key={r.option.id} className={`rounded-2xl border bg-surface p-4 ${isTop ? 'border-brand-500' : 'border-stone-200'}`}>
+          <li key={r.option.id} className="p-4">
             <div className="flex items-start gap-3">
-              <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${isTop ? 'bg-brand-700 text-white' : 'bg-stone-100 text-stone-600'}`}>{i + 1}</span>
+              <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums ${isTop ? 'bg-ink text-on-action' : 'bg-mist text-ink'}`}>{i + 1}</span>
               <div className="min-w-0 flex-1">
-                <p className="break-words font-semibold">{r.option.label}</p>
-                {place?.area && <p className="text-xs text-stone-600">{place.area}</p>}
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100" aria-hidden="true">
-                  <div className="h-full rounded-full bg-brand-600" style={{ width: `${((r.mean ?? 0) / 3) * 100}%` }} />
+                <p className="flex flex-wrap items-center gap-2 break-words font-semibold">{r.option.label}{isTop && r.mean != null && <Status>{winnerId ? 'Winner' : 'Group favorite'}</Status>}</p>
+                {place?.area && <p className="text-xs text-muted">{place.area}</p>}
+                {/* A slim score rule, like the website's sample vote. */}
+                <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-line" aria-hidden="true">
+                  <div className={`h-full rounded-full ${isTop ? 'bg-ink' : 'bg-control'}`} style={{ width: `${((r.mean ?? 0) / 3) * 100}%` }} />
                 </div>
-                <p className="mt-1.5 text-sm text-stone-600">
+                <p className="mt-1.5 text-sm text-muted">
                   {r.mean != null ? `${r.mean.toFixed(1)} avg · ${r.voters} of ${groupSize} voted` : 'No votes yet'}
-                  {r.counts[0] > 0 && <span className="ml-2 font-medium text-red-700">{r.counts[0]} × {labels[0]}</span>}
+                  {r.counts[0] > 0 && <span className="ml-2 font-medium text-danger-ink">{r.counts[0]} × {labels[0]}</span>}
                 </p>
-                {dates && r.counts[0] === 0 && groupSize > 0 && r.voters >= groupSize && <p className="mt-1 text-sm font-medium text-brand-700">Everyone can make it.</p>}
-                {r.needsVotes && r.voters > 0 && <p className="mt-1 text-xs text-amber-800">Needs votes from at least half the group to count.</p>}
+                {dates && r.counts[0] === 0 && groupSize > 0 && r.voters >= groupSize && <p className="mt-1 text-sm font-medium text-action">Everyone can make it.</p>}
+                {r.needsVotes && r.voters > 0 && <p className="mt-1 text-xs text-warning-ink">Needs votes from at least half the group to count.</p>}
                 <WhoVoted optionId={r.option.id} votes={votes} members={members} labels={labels} />
               </div>
             </div>
@@ -304,7 +309,7 @@ function WhoVoted({ optionId, votes, members, labels }: { optionId: string; vote
   return (
     <ul className="mt-2 space-y-1">
       {rows.map(({ s, who }) => (
-        <li key={s} className="flex flex-wrap items-center gap-1.5 text-xs text-stone-600">
+        <li key={s} className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
           <span className="w-16 shrink-0 font-medium">{labels[s]}</span>
           {who.map((m) => (
             <TravelerLink key={m.id} member={m} />
@@ -373,17 +378,17 @@ function AddOptionCard({ poll, options, places, me }: { poll: Poll; options: Pol
       <h2 className="ui-section-title">Add an option</h2>
       <form onSubmit={addText} className="mt-2">
         <div className="relative">
-          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-500" />
+          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-muted" />
           <Input value={q} onChange={(e) => { setQ(e.target.value); setError(null) }} placeholder="Search places, or type any option" className="pl-10" aria-label="Option" />
         </div>
         {matches.length > 0 && (
-          <ul className="mt-2 divide-y divide-stone-200 rounded-xl border border-stone-200">
+          <ul className="mt-2 divide-y divide-line rounded-surface border border-line">
             {matches.map((p) => (
               <li key={p.id}>
-                <button type="button" onClick={() => { void addOption(poll, { label: p.name, placeId: p.id }, me); setQ('') }} className="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-stone-50">
-                  <Plus aria-hidden="true" className="size-4 shrink-0 text-brand-700" />
+                <button type="button" onClick={() => { void addOption(poll, { label: p.name, placeId: p.id }, me); setQ('') }} className="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-brand-50">
+                  <Plus aria-hidden="true" className="size-4 shrink-0 text-action" />
                   <span className="min-w-0 flex-1 truncate">{p.name}</span>
-                  <span className="shrink-0 text-xs text-stone-600">{p.area}</span>
+                  <span className="shrink-0 text-xs text-muted">{p.area}</span>
                 </button>
               </li>
             ))}

@@ -20,7 +20,7 @@ async function localTrip(page: Page, date: string) {
     } }))
   }, { tripId, memberId })
   await page.goto('/inspire/manual')
-  await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trip ideas' })).toBeVisible()
   await expect.poll(() => page.evaluate(async () => (await indexedDB.databases()).some((d) => d.name === 'trip-hub'))).toBe(true)
   await page.evaluate(async ({ tripId, memberId, flightId, ticketId }) => {
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -141,10 +141,10 @@ for (const [phase, date] of [['planning', '2027-03-01'], ['preparing', '2027-03-
     await expect(page.getByRole('heading', { name: 'E2E TEST A week away with good company' })).toBeVisible()
     const headings = page.locator('#trip-content h2').filter({ visible: true })
     if (phase === 'planning') {
-      await expect(headings.first()).toHaveText('Needs you')
+      await expect(headings.first()).toHaveText('Book the shuttle')
       await expect(page.getByRole('button', { name: 'Download all', exact: true })).toHaveCount(0)
     } else {
-      await expect(headings.first()).toHaveText(phase === 'traveling' ? 'Up next for you' : 'Prepare for departure')
+      await expect(headings.first()).toHaveText(phase === 'traveling' ? 'Up next for you' : 'A little preparation. A smoother trip.')
       await expect(page.getByRole('button', { name: 'Download all', exact: true })).toBeVisible()
     }
     const tabs = page.getByRole('navigation', { name: 'Trip navigation' }).filter({ visible: true }).getByRole('link')

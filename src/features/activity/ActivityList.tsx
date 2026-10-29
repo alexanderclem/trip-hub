@@ -11,7 +11,7 @@ export function ActivityList({ tripId, events, members, me, since }: {
 }) {
   const now = Date.now()
   return (
-    <ul className="divide-y divide-stone-200">
+    <ul className="divide-y divide-line">
       {events.map((e) => {
         const author = e.by ? members.find((m) => m.id === e.by) : undefined
         const name = e.by === null ? null : author ? (author.id === me ? 'You' : author.display_name) : 'Someone'
@@ -19,13 +19,13 @@ export function ActivityList({ tripId, events, members, me, since }: {
         return (
           <li key={e.id} className="flex items-start gap-2">
             {author && <div className="max-w-[40%] pt-2 text-sm"><TravelerLink member={author} you={author.id === me} /></div>}
-            <Link to={`/t/${tripId}/${e.to}`} className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-lg py-3 hover:bg-brand-50">
-              {!author && name ? <Avatar name={name} color={null} size="sm" /> : !author ? <span aria-hidden="true" className="size-7 shrink-0 rounded-full bg-brand-100" /> : null}
-              <span className="min-w-0 flex-1 text-sm break-words text-stone-800">
+            <Link to={`/t/${tripId}/${e.to}`} className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-control py-3 hover:bg-brand-50">
+              {!author && name ? <Avatar name={name} color={null} size="sm" /> : !author ? <span aria-hidden="true" className="size-7 shrink-0 rounded-full bg-mist" /> : null}
+              <span className="min-w-0 flex-1 text-sm break-words text-ink">
                 {!author && name && <span className="font-medium">{name} </span>}{e.text}
-                <span className="block text-xs text-stone-600">{ago(e.at, now)}</span>
+                <span className="block text-xs text-muted">{ago(e.at, now)}</span>
               </span>
-              {fresh && <span className="mt-1 shrink-0 rounded-full bg-brand-700 px-2 py-0.5 text-xs font-medium text-white">New</span>}
+              {fresh && <span className="mt-1 shrink-0 rounded-full bg-action px-2 py-0.5 text-xs font-medium text-white">New</span>}
             </Link>
           </li>
         )

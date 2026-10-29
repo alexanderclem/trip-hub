@@ -34,7 +34,7 @@ function fieldProblem(el: HTMLInputElement): string {
 
 function FieldProblem({ invalid, names }: { invalid: { name: string; message: string } | null; names: string[] }) {
   if (!invalid || !names.includes(invalid.name)) return null
-  return <p id={`${invalid.name}-problem`} role="alert" className="text-sm text-red-700">{invalid.message}</p>
+  return <p id={`${invalid.name}-problem`} role="alert" className="text-sm text-danger-ink">{invalid.message}</p>
 }
 
 interface FormState {
@@ -194,7 +194,7 @@ export function ItemFormScreen() {
             const s = KIND_STYLE[k]
             return (
               <button key={k} type="button" role="radio" aria-checked={f.kind === k} onClick={() => set('kind', k)}
-                className={`ui-press flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border text-xs ${f.kind === k ? `${s.bg} ${s.border} ${s.text} font-semibold` : 'border-stone-200 bg-surface text-stone-600'}`}>
+                className={`ui-press flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control border text-xs ${f.kind === k ? `${s.bg} ${s.border} ${s.text} font-semibold` : 'border-line bg-surface text-muted'}`}>
                 <s.Icon aria-hidden="true" className="size-4" />{s.label}
               </button>
             )
@@ -220,7 +220,7 @@ export function ItemFormScreen() {
           <input type="checkbox" checked={f.allDay} onChange={(e) => set('allDay', e.target.checked)} className="ui-check" /> All day
         </label>
         <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-stone-700">{f.kind === 'lodging' ? 'Check in' : travel ? 'Departs' : 'Starts'}</legend>
+          <legend className="text-sm font-medium text-ink">{f.kind === 'lodging' ? 'Check in' : travel ? 'Departs' : 'Starts'}</legend>
           <div className="grid grid-cols-2 gap-2">
             <DateInput name="startDate" aria-label="Start date" value={f.startDate} required {...flag('startDate')} onValue={(date) => setF((c) => c && { ...c, startDate: date, endDate: c.endDate < date ? date : c.endDate })} />
             {!f.allDay && <Input type="time" name="startTime" aria-label="Start time" value={f.startTime} required {...flag('startTime')} onChange={(e) => set('startTime', e.target.value)} />}
@@ -233,7 +233,7 @@ export function ItemFormScreen() {
           )}
         </fieldset>
         <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-stone-700">{f.kind === 'lodging' ? 'Check out' : travel ? 'Arrives' : 'Ends'} <span className="font-normal text-stone-600">(optional)</span></legend>
+          <legend className="text-sm font-medium text-ink">{f.kind === 'lodging' ? 'Check out' : travel ? 'Arrives' : 'Ends'} <span className="font-normal text-muted">(optional)</span></legend>
           <div className="grid grid-cols-2 gap-2">
             <DateInput name="endDate" aria-label="End date" value={f.endDate} min={f.startDate} {...flag('endDate')} onValue={(date) => set('endDate', date)} />
             {!f.allDay && <Input type="time" name="endTime" aria-label="End time" value={f.endTime} {...flag('endTime')} onChange={(e) => set('endTime', e.target.value)} />}
@@ -250,7 +250,7 @@ export function ItemFormScreen() {
             Happens in a different time zone?
           </button>
         )}
-        {dstWarning && <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">{dstWarning}</p>}
+        {dstWarning && <p className="rounded-surface bg-warning px-3 py-2 text-sm text-warning-ink">{dstWarning}</p>}
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Status">
@@ -266,7 +266,7 @@ export function ItemFormScreen() {
         <Disclosure summary="More options" open={more ?? hasOptional} onToggle={setMore}>
           <div className="space-y-4">
           <fieldset>
-            <legend className="text-sm font-medium text-stone-700">Who's going</legend>
+            <legend className="text-sm font-medium text-ink">Who's going</legend>
             <label className="mt-1 flex min-h-11 items-center gap-2 text-sm">
               <input type="checkbox" checked={f.everyone} onChange={(e) => set('everyone', e.target.checked)} className="ui-check" /> Everyone
             </label>

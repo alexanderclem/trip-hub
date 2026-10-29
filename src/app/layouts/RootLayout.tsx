@@ -36,7 +36,7 @@ export function RootLayout() {
     <ConfirmProvider><div className="flex h-full flex-col">
       {/* Inside a trip the screen header's sync button says this, in the same place every time. */}
       {!online && !inTrip && (
-        <div className="pt-safe bg-amber-100 px-4 py-1.5 text-center text-sm text-amber-900">
+        <div className="pt-safe bg-warning px-4 py-1.5 text-center text-sm text-warning-ink">
           Offline: changes will sync when you're back online
         </div>
       )}
@@ -45,7 +45,7 @@ export function RootLayout() {
       </PageTransition>
       <InstallAppDialog />
       <AnimatePresence initial={false}>
-        {navigation.state === 'loading' && <m.div key="navigation-loading" role="status" initial={reducedMotion ? false : { opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={motionTiming.fade} className="pointer-events-none fixed right-4 top-4 z-50 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-xl border border-stone-200 bg-surface px-4 py-2 text-sm text-brand-900 shadow-sm"><LoadingLogo compact />Opening your next view…</m.div>}
+        {navigation.state === 'loading' && <m.div key="navigation-loading" role="status" initial={reducedMotion ? false : { opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={motionTiming.fade} className="pointer-events-none fixed right-4 top-4 z-50 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-surface border border-line bg-surface px-4 py-2 text-sm text-ink shadow-sm"><LoadingLogo compact />Opening your next view…</m.div>}
       </AnimatePresence>
     </div></ConfirmProvider>
   )

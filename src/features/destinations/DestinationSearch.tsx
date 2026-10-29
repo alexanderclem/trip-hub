@@ -48,12 +48,12 @@ export function DestinationSearch({ onPick, placeholder = 'Search for a town or 
         autoCorrect="off"
         spellCheck={false}
       />
-      {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-sm text-danger-ink">{error}</p>}
       {results && (
         results.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-600">No places found for “{query.trim()}”.</p>
+          <p className="mt-2 text-sm text-muted">No places found for “{query.trim()}”.</p>
         ) : (
-          <ul aria-label="Search results" className="mt-2 divide-y divide-stone-200 overflow-hidden rounded-xl border border-stone-200 bg-white">
+          <ul aria-label="Search results" className="mt-2 divide-y divide-line overflow-hidden rounded-surface border border-line bg-surface">
             {results.map((d) => (
               <li key={d.label}>
                 <button
@@ -63,9 +63,9 @@ export function DestinationSearch({ onPick, placeholder = 'Search for a town or 
                     setQuery('')
                     setResults(null)
                   }}
-                  className="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-stone-50"
+                  className="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-brand-50"
                 >
-                  <MapPin aria-hidden="true" className="size-4 shrink-0 text-brand-700" />
+                  <MapPin aria-hidden="true" className="size-4 shrink-0 text-action" />
                   <span className="min-w-0 break-words">{d.label}</span>
                 </button>
               </li>

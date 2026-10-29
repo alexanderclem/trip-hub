@@ -36,17 +36,17 @@ export function AuthCallbackScreen() {
         <>
           <h1 className="text-xl font-semibold">Sign-in didn’t finish</h1>
           <ErrorNote error={error} />
-          <p className="text-sm text-stone-600">Nothing on this phone was changed.</p>
+          <p className="text-sm text-muted">Nothing on this phone was changed.</p>
         </>
       ) : result ? (
         <>
           <h1 className="text-xl font-semibold">You’re signed in</h1>
-          <p role="alert" className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <p role="alert" className="rounded-surface bg-warning px-3 py-2 text-sm text-warning-ink">
             {result.notCarried} {result.notCarried === 1 ? 'trip on this phone was' : 'trips on this phone were'} not added to your account. Open {result.notCarried === 1 ? 'its' : 'their'} invite link again to join with your account.
           </p>
         </>
       ) : (
-        <p role="status" className="text-stone-600">Signing you in and fetching your trips…</p>
+        <p role="status" className="text-muted">Signing you in and fetching your trips…</p>
       )}
       {(error || result) && <LinkButton to={returnPath} replace>{returnPath.startsWith('/oauth/') ? 'Continue connecting' : 'Back to your trips'}</LinkButton>}
     </main>

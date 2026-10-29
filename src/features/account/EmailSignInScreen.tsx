@@ -75,7 +75,7 @@ export function EmailSignInScreen() {
     return (
       <main className="mx-auto max-w-md space-y-5 px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)]">
         <h1 className="text-xl font-semibold">You’re signed in</h1>
-        <p role="alert" className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p role="alert" className="rounded-surface bg-warning px-3 py-2 text-sm text-warning-ink">
           {notCarried.count} {notCarried.count === 1 ? 'trip on this phone was' : 'trips on this phone were'} not added to your account. Open {notCarried.count === 1 ? 'its' : 'their'} invite link again to join with your account.
         </p>
         <LinkButton to={notCarried.to} replace>Back to your trips</LinkButton>
@@ -90,7 +90,7 @@ export function EmailSignInScreen() {
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-5">
         {step.at === 'code' ? (
           <>
-            <p className="text-sm leading-relaxed text-stone-600">We sent a code to <strong className="break-all font-medium text-stone-800">{address}</strong>. It can take a minute, and may land in spam.</p>
+            <p className="text-sm leading-relaxed text-muted">We sent a code to <strong className="break-all font-medium text-ink">{address}</strong>. It can take a minute, and may land in spam.</p>
             <Field label="Code from the email">
               <Input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" autoComplete="one-time-code" autoFocus required maxLength={10} className="w-40 text-lg tracking-widest tabular-nums" />
             </Field>
@@ -101,7 +101,7 @@ export function EmailSignInScreen() {
           </>
         ) : (
           <>
-            <p className="text-sm leading-relaxed text-stone-600">Your trips come back on any phone you sign in on. New here? The same steps make your account.</p>
+            <p className="text-sm leading-relaxed text-muted">Your trips come back on any phone you sign in on. New here? The same steps make your account.</p>
             <Field label="Email">
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" autoCapitalize="none" required />
             </Field>
@@ -123,7 +123,7 @@ export function EmailSignInScreen() {
                 <Button type="button" variant="ghost" className="w-full" disabled={busy || !online || !address} onClick={() => void sendCode()}>Forgot it? Email me a code instead</Button>
               </>
             )}
-            {!online && <p className="text-xs text-stone-600">You need signal to sign in.</p>}
+            {!online && <p className="text-xs text-muted">You need signal to sign in.</p>}
           </>
         )}
       </form>

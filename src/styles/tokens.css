@@ -13,6 +13,13 @@
   --stowaway-mist: #d6e4e5;
   --stowaway-coral: #ef9477;
   --stowaway-on-action: #fffdf8;
+  /* Status keeps its meaning and a visible label; each pair passes AA on canvas and surface. */
+  --stowaway-warning-bg: #f6ebd3;
+  --stowaway-warning-ink: #7a4b10;
+  --stowaway-danger-bg: #f9e6df;
+  --stowaway-danger-ink: #9a2f22;
+  --stowaway-success-bg: #e2ede0;
+  --stowaway-success-ink: #2e5c3c;
   --stowaway-font-display: Georgia, 'Times New Roman', serif;
   --stowaway-font-body: system-ui, sans-serif;
   --stowaway-text-hero: clamp(3rem, 5.7vw, 5rem);

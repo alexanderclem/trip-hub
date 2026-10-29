@@ -63,41 +63,41 @@ export function PlaceSheet({ place, origins, origin, onOrigin, onMeasure, legCtx
       <div className="flex items-start gap-3 pr-10">
         <PlaceCategoryIcon category={place.category} />
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-medium text-stone-600">{[label, place.area].filter(Boolean).join(' · ')}</p>
+          <p className="mb-1 text-xs font-medium text-muted">{[label, place.area].filter(Boolean).join(' · ')}</p>
           <h2 className="break-words text-xl font-semibold leading-snug tracking-tight">{place.name}</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2"><PlaceStatusBadge status={place.status} /><StarsSummary summary={rating} /></div>
         </div>
       </div>
-      {place.address && <p className="mt-4 flex items-start gap-2 text-sm leading-relaxed text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{place.address}</span></p>}
-      {place.notes && !reporting && <p className="mt-3 line-clamp-3 break-words text-sm leading-relaxed whitespace-pre-wrap text-stone-700">{place.notes}</p>}
+      {place.address && <p className="mt-4 flex items-start gap-2 text-sm leading-relaxed text-muted"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{place.address}</span></p>}
+      {place.notes && !reporting && <p className="mt-3 line-clamp-3 break-words text-sm leading-relaxed whitespace-pre-wrap text-ink">{place.notes}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
         <a href={googleMapsUrl(place.name, place.area, at)} target="_blank" rel="noreferrer" className={placeActionClass}><Navigation aria-hidden="true" className="size-4" />Google Maps<span className="sr-only"> (opens in a new tab)</span></a>
         {booking && <a href={webLink(booking.url)!} target="_blank" rel="noreferrer" className={placeActionClass}><Ticket aria-hidden="true" className="size-4" />Booking<span className="sr-only"> (opens in a new tab)</span></a>}
         {website && <a href={website} target="_blank" rel="noreferrer" className={placeActionClass}><Globe aria-hidden="true" className="size-4" />Website<span className="sr-only"> (opens in a new tab)</span></a>}
       </div>
-      {!at && <p className="mt-2 text-xs text-amber-800">No map pin yet. Google Maps will search by name.</p>}
+      {!at && <p className="mt-2 text-xs text-warning-ink">No map pin yet. Google Maps will search by name.</p>}
 
       {at && (choices.length > 0 || origin) && (
-        <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-3">
-          <h3 className="mb-2 text-sm font-semibold text-stone-700">Getting there</h3>
+        <div className="mt-4 rounded-surface border border-line bg-mist/40 p-3">
+          <h3 className="mb-2 text-sm font-semibold text-ink">Getting there</h3>
           <div className="-mx-1 mb-2 flex gap-1.5 overflow-x-auto px-1">
             {choices.map((c) => (
               <button
                 key={c.place.id}
                 onClick={() => { setReporting(false); onOrigin(c.place.id) }}
                 aria-pressed={origin?.id === c.place.id}
-                className={`min-h-11 shrink-0 rounded-xl px-3 py-2 text-sm ${origin?.id === c.place.id ? 'bg-brand-700 text-white' : 'border border-stone-200 bg-white text-stone-700'}`}
+                className={`min-h-11 shrink-0 rounded-control px-3 py-2 text-sm ${origin?.id === c.place.id ? 'bg-action text-white' : 'border border-line bg-surface text-ink'}`}
               >
                 From {c.label}
               </button>
             ))}
-            <button onClick={onMeasure} className="flex min-h-11 shrink-0 items-center gap-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700">
+            <button onClick={onMeasure} className="flex min-h-11 shrink-0 items-center gap-1 rounded-control border border-line bg-surface px-3 py-2 text-sm text-ink">
               <Ruler aria-hidden="true" className="size-3.5" /> Measure from here
             </button>
           </div>
           {origin && origin.id !== place.id && <TravelOptionsList options={options} />}
           {origin && origin.id !== place.id && origin.id !== ME_ID && !reporting && (
-            <button onClick={() => setReporting(true)} className="mt-1 min-h-11 text-sm text-brand-700 underline underline-offset-4">
+            <button onClick={() => setReporting(true)} className="mt-1 min-h-11 text-sm text-action underline underline-offset-4">
               Report the actual time
             </button>
           )}
@@ -109,7 +109,7 @@ export function PlaceSheet({ place, origins, origin, onOrigin, onMeasure, legCtx
         </div>
       )}
 
-      <div className="sticky -bottom-4 -mx-4 -mb-4 mt-4 border-t border-stone-200 bg-white px-4 pt-3 pb-4 sm:-bottom-5 sm:-mx-5 sm:-mb-5 sm:px-5 sm:pb-5">
+      <div className="sticky -bottom-4 -mx-4 -mb-4 mt-4 border-t border-line bg-surface px-4 pt-3 pb-4 sm:-bottom-5 sm:-mx-5 sm:-mb-5 sm:px-5 sm:pb-5">
         <ErrorNote error={error} />
         <div className="mt-2 flex flex-wrap gap-2">
           {place.status === 'catalog' && <Button disabled={saving} onClick={shortlist} className="flex-1"><Plus aria-hidden="true" className="size-4" />{saving ? 'Saving…' : 'Shortlist'}</Button>}
@@ -132,8 +132,8 @@ export function Sheet({ children, onClose, label = 'Map selection' }: { children
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-6 z-20 p-3">
-      <div role="dialog" aria-label={label} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); onClose() } }} className="pointer-events-auto relative mx-auto max-h-[70dvh] max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-stone-200 bg-white p-4 shadow-xl sm:p-5">
-        <button ref={closeRef} onClick={onClose} className="absolute top-3 right-3 flex size-10 items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200" aria-label="Close">
+      <div role="dialog" aria-label={label} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); onClose() } }} className="pointer-events-auto relative mx-auto max-h-[70dvh] max-w-lg overflow-y-auto overscroll-contain rounded-surface border border-line bg-surface p-4 shadow-xl sm:p-5">
+        <button ref={closeRef} onClick={onClose} className="absolute top-3 right-3 flex size-10 items-center justify-center rounded-full bg-mist/60 text-muted hover:bg-brand-100" aria-label="Close">
           <X aria-hidden="true" className="size-5" />
         </button>
         {children}

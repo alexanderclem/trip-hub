@@ -10,8 +10,8 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collectio
 import { addStarters, claim, setMyCheck, setPacked, tally, usePacking } from './data'
 import { suggestedStarters } from './starters'
 
-const CHIP = 'min-h-11 rounded-xl border px-3 text-sm font-medium'
-const chip = (on: boolean) => `${CHIP} ${on ? 'border-brand-700 bg-brand-700 text-white' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'}`
+const CHIP = 'min-h-11 rounded-control border px-3 text-sm font-medium'
+const chip = (on: boolean) => `${CHIP} ${on ? 'border-action bg-action text-white' : 'border-line bg-surface text-ink hover:bg-brand-50'}`
 
 export function PackingScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -65,17 +65,17 @@ export function PackingScreen() {
 
   return (
     <div className="min-h-full pb-24">
-      <PageHeader title="Packing" back={`/t/${tripId}/more`} action={<Link to="new" className="inline-flex min-h-11 items-center gap-1 rounded-xl px-3 font-medium text-brand-700 hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add item</Link>} />
+      <PageHeader title="Packing" back={`/t/${tripId}/more`} action={<Link to="new" className="inline-flex min-h-11 items-center gap-1 rounded-control px-3 font-medium text-action hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add item</Link>} />
       <div className="mx-auto max-w-2xl space-y-4 p-4">
         <div>
           <h2 className="ui-section-title">Pack together</h2>
         </div>
-        {!me && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Choose who you are in this trip to tick items off.</p>}
+        {!me && <p className="rounded-surface bg-warning p-3 text-sm text-warning-ink">Choose who you are in this trip to tick items off.</p>}
         {me && myJobs.length > 0 && (
-          <div className="rounded-2xl border border-stone-200 bg-surface p-3">
+          <div className="rounded-surface border border-line bg-surface p-3">
             <p className="text-sm font-medium">You’ve packed {myDone} of {myJobs.length}</p>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100" role="progressbar" aria-label="Your packing" aria-valuemin={0} aria-valuemax={myJobs.length} aria-valuenow={myDone}>
-              <div className="h-full rounded-full bg-brand-600" style={{ width: `${(100 * myDone) / myJobs.length}%` }} />
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-mist/60" role="progressbar" aria-label="Your packing" aria-valuemin={0} aria-valuemax={myJobs.length} aria-valuenow={myDone}>
+              <div className="h-full rounded-full bg-action" style={{ width: `${(100 * myDone) / myJobs.length}%` }} />
             </div>
           </div>
         )}
@@ -84,11 +84,11 @@ export function PackingScreen() {
           <button aria-pressed={todo} onClick={() => setFilter('todo')} className={chip(todo)}>Still to pack</button>
         </div>
         <ErrorNote error={error} />
-        {note && <p role="status" className="rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{note}</p>}
+        {note && <p role="status" className="rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink">{note}</p>}
 
-        {data === undefined ? <p role="status" className="py-8 text-center text-stone-600">Loading packing list…</p> : items.length === 0 ? (
+        {data === undefined ? <p role="status" className="py-8 text-center text-muted">Loading packing list…</p> : items.length === 0 ? (
           <Empty>
-            <Backpack aria-hidden="true" className="size-8 text-brand-700" />
+            <Backpack aria-hidden="true" className="size-8 text-action" />
             <EmptyHeader>
               <EmptyTitle>Nothing on the list yet</EmptyTitle>
               <EmptyDescription>Start with the usual things (passport, chargers, a first-aid kit), then add your own.{tripDays.length ? ' Suggestions include extras for the forecast.' : ''}</EmptyDescription>
@@ -102,22 +102,22 @@ export function PackingScreen() {
                 const t = tally(i.id, checks, memberIds)
                 const state = myState(i.id)
                 return (
-                  <li key={i.id} className="border-b border-stone-200 py-1 last:border-0">
+                  <li key={i.id} className="border-b border-line py-1 last:border-0">
                     <div className="flex items-center gap-1">
                       <Tick checked={state === 'packed'} disabled={!me || state === 'skip'} label={i.title} onChange={(v) => void act(() => setMyCheck(tripId, i.id, me!, v ? 'packed' : null))} />
                       <Title item={i} tripId={tripId} skipped={state === 'skip'} />
                       <button aria-expanded={open === i.id} aria-controls={`who-${i.id}`} onClick={() => setOpen(open === i.id ? null : i.id)}
-                        className="flex min-h-11 shrink-0 items-center gap-1 rounded-xl px-2 text-sm tabular-nums text-stone-600 hover:bg-stone-50">
+                        className="flex min-h-11 shrink-0 items-center gap-1 rounded-control px-2 text-sm tabular-nums text-muted hover:bg-brand-50">
                         {t.packed.length}/{t.needed}<span className="sr-only"> packed, show who</span><ChevronDown aria-hidden="true" className={`size-4 transition ${open === i.id ? 'rotate-180' : ''}`} />
                       </button>
                     </div>
                     {open === i.id && (
-                      <div id={`who-${i.id}`} className="mb-2 ml-12 space-y-1 text-sm text-stone-600">
+                      <div id={`who-${i.id}`} className="mb-2 ml-12 space-y-1 text-sm text-muted">
                         <Who label="Packed" ids={t.packed} name={name} />
                         <Who label="Not yet" ids={t.waiting} name={name} />
                         <Who label="Not needed" ids={t.skipped} name={name} />
                         {me && (
-                          <button onClick={() => void act(() => setMyCheck(tripId, i.id, me, state === 'skip' ? null : 'skip'))} className="min-h-11 rounded-xl px-2 font-medium text-brand-700 hover:bg-brand-50">
+                          <button onClick={() => void act(() => setMyCheck(tripId, i.id, me, state === 'skip' ? null : 'skip'))} className="min-h-11 rounded-control px-2 font-medium text-action hover:bg-brand-50">
                             {state === 'skip' ? 'I do need this' : 'I don’t need this'}
                           </button>
                         )}
@@ -130,26 +130,26 @@ export function PackingScreen() {
 
             <Section id="pack-group" title="Group gear" hint="One person brings it for everyone." count={show.group.length}>
               {show.group.map((i) => (
-                <li key={i.id} className="flex items-center gap-1 border-b border-stone-200 py-1 last:border-0">
+                <li key={i.id} className="flex items-center gap-1 border-b border-line py-1 last:border-0">
                   <Tick checked={i.packed} disabled={!me || i.owner_id !== me} label={i.title} onChange={(v) => void act(() => setPacked(i.id, v, me))} />
                   <Title item={i} tripId={tripId} sub={i.owner_id ? `${name(i.owner_id)}${i.owner_id === me ? ' (you)' : ''} is bringing it${i.packed ? ' · packed' : ''}` : 'Nobody yet'} />
                   {me && (i.owner_id === me
-                    ? <button onClick={() => void act(() => claim(i.id, null, me))} className="min-h-11 shrink-0 rounded-xl px-3 text-sm font-medium text-stone-600 hover:bg-stone-50">Hand back</button>
-                    : !i.owner_id && <button onClick={() => void act(() => claim(i.id, me, me))} className="min-h-11 shrink-0 rounded-xl border border-brand-700 px-3 text-sm font-medium text-brand-700 hover:bg-brand-50">I’ll bring it</button>)}
+                    ? <button onClick={() => void act(() => claim(i.id, null, me))} className="min-h-11 shrink-0 rounded-control px-3 text-sm font-medium text-muted hover:bg-brand-50">Hand back</button>
+                    : !i.owner_id && <button onClick={() => void act(() => claim(i.id, me, me))} className="min-h-11 shrink-0 rounded-control border border-action px-3 text-sm font-medium text-action hover:bg-brand-50">I’ll bring it</button>)}
                 </li>
               ))}
             </Section>
 
             <Section id="pack-mine" title="My items" hint="Only you see these here (they still sync with the trip, so they aren’t secret)." count={show.mine.length}>
               {show.mine.map((i) => (
-                <li key={i.id} className="flex items-center gap-1 border-b border-stone-200 py-1 last:border-0">
+                <li key={i.id} className="flex items-center gap-1 border-b border-line py-1 last:border-0">
                   <Tick checked={i.packed} label={i.title} onChange={(v) => void act(() => setPacked(i.id, v, me))} />
                   <Title item={i} tripId={tripId} />
                 </li>
               ))}
             </Section>
 
-            <button onClick={() => void suggest()} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">
+            <button onClick={() => void suggest()} className="inline-flex min-h-11 items-center gap-2 rounded-control px-2 text-sm font-medium text-action hover:bg-brand-50">
               <Sparkles aria-hidden="true" className="size-4" /> Add suggested items
             </button>
           </>
@@ -162,16 +162,16 @@ export function PackingScreen() {
 function Section({ id, title, hint, count, children }: { id: string; title: string; hint: string; count: number; children: ReactNode }) {
   return (
     <section aria-labelledby={id}>
-      <h2 id={id} className="text-sm font-semibold text-stone-700">{title} · {count}</h2>
-      <p className="mb-2 text-xs text-stone-600">{hint}</p>
-      {count ? <ul className="rounded-2xl border border-stone-200 bg-surface px-2">{children}</ul> : <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Nothing here.</p>}
+      <h2 id={id} className="text-sm font-semibold text-ink">{title} · {count}</h2>
+      <p className="mb-2 text-xs text-muted">{hint}</p>
+      {count ? <ul className="rounded-surface border border-line bg-surface px-2">{children}</ul> : <p className="rounded-surface bg-brand-50 p-3 text-sm text-ink">Nothing here.</p>}
     </section>
   )
 }
 
 function Tick({ checked, disabled, label, onChange }: { checked: boolean; disabled?: boolean; label: string; onChange: (v: boolean) => void }) {
   return (
-    <label className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl hover:bg-stone-50">
+    <label className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-control hover:bg-brand-50">
       <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} aria-label={`Packed ${label}`} className="ui-check" />
     </label>
   )
@@ -180,15 +180,15 @@ function Tick({ checked, disabled, label, onChange }: { checked: boolean; disabl
 function Title({ item, tripId, sub, skipped }: { item: PackingItem; tripId: string; sub?: string; skipped?: boolean }) {
   const done = item.kind === 'everyone' ? skipped : item.packed
   return (
-    <Link to={`/t/${tripId}/more/packing/${item.id}`} className="min-h-11 min-w-0 flex-1 rounded-xl px-2 py-1.5 hover:bg-stone-50">
-      <p className={`break-words font-medium ${done ? 'text-stone-600 line-through' : 'text-stone-900'}`}>{item.title}{item.quantity && item.quantity > 1 ? ` ×${item.quantity}` : ''}</p>
-      {(sub || item.category || skipped) && <p className="text-xs text-stone-600">{[skipped ? 'Not needed' : null, sub, item.category].filter(Boolean).join(' · ')}</p>}
+    <Link to={`/t/${tripId}/more/packing/${item.id}`} className="min-h-11 min-w-0 flex-1 rounded-control px-2 py-1.5 hover:bg-brand-50">
+      <p className={`break-words font-medium ${done ? 'text-muted line-through' : 'text-ink'}`}>{item.title}{item.quantity && item.quantity > 1 ? ` ×${item.quantity}` : ''}</p>
+      {(sub || item.category || skipped) && <p className="text-xs text-muted">{[skipped ? 'Not needed' : null, sub, item.category].filter(Boolean).join(' · ')}</p>}
     </Link>
   )
 }
 
 function Who({ label, ids, name }: { label: string; ids: string[]; name: (id: string) => string }) {
   if (!ids.length) return null
-  return <p><span className="font-medium text-stone-700">{label}:</span> {ids.map(name).join(', ')}</p>
+  return <p><span className="font-medium text-ink">{label}:</span> {ids.map(name).join(', ')}</p>
 }
 

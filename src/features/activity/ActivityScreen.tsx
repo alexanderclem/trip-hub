@@ -9,8 +9,8 @@ import { GROUPS, groupOf, type ActivityGroup } from './feed'
 import { ListSkeleton } from '@/ui/collection'
 
 const LABEL: Record<ActivityGroup, string> = { votes: 'Votes', plan: 'Plan', places: 'Places', money: 'Money', tasks: 'Tasks', tickets: 'Tickets', comments: 'Comments' }
-const CHIP = 'min-h-11 shrink-0 rounded-xl border px-3 text-sm font-medium'
-const chip = (on: boolean) => `${CHIP} ${on ? 'border-brand-700 bg-brand-700 text-white' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'}`
+const CHIP = 'min-h-11 shrink-0 rounded-control border px-3 text-sm font-medium'
+const chip = (on: boolean) => `${CHIP} ${on ? 'border-action bg-action text-white' : 'border-line bg-surface text-ink hover:bg-brand-50'}`
 
 export function ActivityScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -34,7 +34,7 @@ export function ActivityScreen() {
           </div>
         )}
         {shown === undefined ? <ListSkeleton label="Loading…" rows={5} />
-          : shown.length === 0 ? <p className="text-sm text-stone-600">No activity yet.</p>
+          : shown.length === 0 ? <p className="text-sm text-muted">No activity yet.</p>
           : <ActivityList tripId={tripId} events={shown} members={members} me={me} since={since} />}
       </div>
     </div>

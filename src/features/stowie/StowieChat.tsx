@@ -257,14 +257,14 @@ export function StowieChat({ tripId, screen = null, subject = null, sheet = fals
           ))}
         </div>
       </div>
-      <div className={`shrink-0 border-t border-stone-200 bg-surface px-4 pt-3 ${tripId && !sheet ? 'pb-3' : 'pb-[max(0.75rem,env(safe-area-inset-bottom))]'}`}>
+      <div className={`shrink-0 border-t border-line bg-surface px-4 pt-3 ${tripId && !sheet ? 'pb-3' : 'pb-[max(0.75rem,env(safe-area-inset-bottom))]'}`}>
         <div className="mx-auto max-w-2xl">
           <div className="flex items-end gap-3">
             <Stowie mood={mood} size={60} />
             <div className="min-w-0 flex-1 pb-2">
               {busy ? (
                 <div className="flex flex-wrap items-center gap-3">
-                  <p role="status" className="text-sm text-stone-600">{thread.pending?.type === 'generate' ? 'Stowie is sketching your trip…' : thread.pending?.type === 'assist' || thread.pending?.type === 'tally' ? 'Stowie is checking the trip…' : 'Stowie is thinking…'}</p>
+                  <p role="status" className="text-sm text-muted">{thread.pending?.type === 'generate' ? 'Stowie is sketching your trip…' : thread.pending?.type === 'assist' || thread.pending?.type === 'tally' ? 'Stowie is checking the trip…' : 'Stowie is thinking…'}</p>
                   {thread.pending?.type === 'generate' && <Button variant="secondary" onClick={() => request.current?.abort()}>Stop</Button>}
                 </div>
               ) : (
@@ -279,7 +279,7 @@ export function StowieChat({ tripId, screen = null, subject = null, sheet = fals
               inputMode={numeric ? 'decimal' : 'text'} placeholder={PLACEHOLDER[thread.step] ?? (tripId ? 'Ask about the trip…' : 'Tell Stowie what you’re imagining…')}
               onChange={(e) => setText(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
             />
-            <button type="submit" className="ui-icon-button shrink-0 bg-brand-700 text-white disabled:opacity-45" aria-label="Send" disabled={busy || !text.trim()}><SendHorizontal aria-hidden="true" className="size-5" /></button>
+            <button type="submit" className="ui-icon-button shrink-0 bg-action text-white disabled:opacity-45" aria-label="Send" disabled={busy || !text.trim()}><SendHorizontal aria-hidden="true" className="size-5" /></button>
           </form>
         </div>
       </div>

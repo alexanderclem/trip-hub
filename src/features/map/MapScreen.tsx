@@ -507,17 +507,17 @@ export default function MapScreen() {
               <span className="ui-chip shadow-sm" aria-current="true">
                 <CalendarDays aria-hidden="true" className="size-4" />
                 {DateTime.fromISO(day).toFormat('ccc d LLL')} · {dayStops?.length ?? 0} stops
-                <button type="button" onClick={() => setQuery({ day: null })} aria-label="Show all places" className="-mr-2.5 flex size-9 items-center justify-center rounded-full hover:bg-white/20">
+                <button type="button" onClick={() => setQuery({ day: null })} aria-label="Show all places" className="-mr-2.5 flex size-9 items-center justify-center rounded-full hover:bg-surface/20">
                   <X aria-hidden="true" className="size-4" />
                 </button>
               </span>
             )}
             {wantOffline && <span className="ui-chip shadow-sm">Offline map</span>}
           </div>
-          <div className="pointer-events-auto flex shrink-0 rounded-full border border-stone-200 bg-surface shadow-sm">{tools}</div>
+          <div className="pointer-events-auto flex shrink-0 rounded-full border border-line bg-surface shadow-sm">{tools}</div>
         </div>
         {filtering && (
-          <div id="map-filters" role="group" aria-label="Show these kinds of place" className="pointer-events-auto mx-3 mt-1 flex flex-wrap gap-2 rounded-2xl border border-stone-200 bg-surface p-3 shadow-md">
+          <div id="map-filters" role="group" aria-label="Show these kinds of place" className="pointer-events-auto mx-3 mt-1 flex flex-wrap gap-2 rounded-surface border border-line bg-surface p-3 shadow-md">
             {PLACE_CATEGORIES.map((c) => {
               const { label, color, Icon } = CATEGORY_STYLE[c]
               return (
@@ -528,12 +528,12 @@ export default function MapScreen() {
             })}
           </div>
         )}
-        {mapError && <p className="pointer-events-auto mx-3 mt-2 rounded-xl bg-amber-100 px-3 py-2 text-sm text-amber-900">{mapError}</p>}
+        {mapError && <p className="pointer-events-auto mx-3 mt-2 rounded-surface bg-warning px-3 py-2 text-sm text-warning-ink">{mapError}</p>}
       </div>
 
       {places && picks.length === 0 && !selected && !pending && !measuring && (
         <div className="absolute inset-x-0 bottom-6 z-10 p-3">
-          <div className="mx-auto max-w-md rounded-2xl bg-surface p-4 text-sm text-stone-600 shadow-lg">
+          <div className="mx-auto max-w-md rounded-surface bg-surface p-4 text-sm text-muted shadow-lg">
             {poolTotal > 0
               ? 'No shortlisted places yet. Turn on the idea pool and tap a pin to shortlist it, or long-press the map to add your own.'
               : 'Long-press anywhere on the map to add a place, or import starter places in Trip settings.'}
@@ -543,10 +543,10 @@ export default function MapScreen() {
 
       {measuring && (
         <div className="absolute inset-x-0 bottom-6 z-20 p-3">
-          <div className="mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-brand-900 p-4 text-white shadow-lg">
+          <div className="mx-auto flex max-w-md items-center gap-3 rounded-surface bg-ink p-4 text-white shadow-lg">
             <Ruler className="size-5 shrink-0" />
             <p className="flex-1 text-sm">Tap another place to see travel times from <b>{measuring.name}</b></p>
-            <button onClick={() => setMeasuring(null)} aria-label="Cancel measuring" className="rounded-full p-1 active:bg-white/10">
+            <button onClick={() => setMeasuring(null)} aria-label="Cancel measuring" className="rounded-full p-1 active:bg-surface/10">
               <X className="size-5" />
             </button>
           </div>
@@ -572,7 +572,7 @@ export default function MapScreen() {
       {pending && (
         <Sheet onClose={() => setPending(null)}>
           <h2 className="ui-section-title">Add a place here?</h2>
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-muted">
             {pending.lat.toFixed(5)}, {pending.lng.toFixed(5)}
           </p>
           <Button

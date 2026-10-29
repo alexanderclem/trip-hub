@@ -54,10 +54,10 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
   return (
     <Card>
       <h2 className="ui-section-title">Offline map</h2>
-      <p className="mt-1 text-sm text-stone-600">{pack.label}. Works with no signal at all.</p>
+      <p className="mt-1 text-sm text-muted">{pack.label}. Works with no signal at all.</p>
 
       {isIOS() && !isStandalone() && (
-        <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+        <p className="mt-3 rounded-surface bg-warning p-3 text-sm text-warning-ink">
           On iPhone, first add Stowaway to your Home Screen (Share → Add to Home Screen) and download from there. Safari
           can wipe offline data for websites that aren't opened for a week.
         </p>
@@ -65,12 +65,12 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
 
       {state.status === 'ready' ? (
         <>
-          <p className="mt-3 flex items-center gap-2 text-sm text-brand-700">
+          <p className="mt-3 flex items-center gap-2 text-sm text-action">
             <CheckCircle2 className="size-5" /> On this phone · {mb(total)} · map data from {buildDate(pack.version)}
           </p>
           <fieldset className="mt-3">
             <legend className="text-sm font-medium">Which map to show</legend>
-            <div className="mt-2 grid grid-cols-3 gap-1 rounded-xl bg-stone-100 p-1 text-sm">
+            <div className="mt-2 grid grid-cols-3 gap-1 rounded-surface bg-mist/60 p-1 text-sm">
               {(
                 [
                   ['auto', 'Auto'],
@@ -82,13 +82,13 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
                   key={v}
                   onClick={() => setBasemap(v)}
                   aria-pressed={basemap === v}
-                  className={`rounded-lg py-1.5 ${basemap === v ? 'bg-white font-medium shadow-sm' : 'text-stone-600'}`}
+                  className={`rounded-control py-1.5 ${basemap === v ? 'bg-surface font-medium shadow-sm' : 'text-muted'}`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-xs text-stone-600">
+            <p className="mt-1 text-xs text-muted">
               Auto uses the online map (more detail everywhere) and switches to the offline one when you lose signal. Use
               Offline to save roaming data.
             </p>
@@ -109,10 +109,10 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
         <>
           {progress != null ? (
             <div className="mt-3">
-              <div className="h-2 overflow-hidden rounded-full bg-stone-200">
-                <div className="h-full bg-brand-600 transition-[width]" style={{ width: `${Math.round((progress / total) * 100)}%` }} />
+              <div className="h-2 overflow-hidden rounded-full bg-mist">
+                <div className="h-full bg-action transition-[width]" style={{ width: `${Math.round((progress / total) * 100)}%` }} />
               </div>
-              <p className="mt-1 text-xs text-stone-600">
+              <p className="mt-1 text-xs text-muted">
                 {mb(progress)} of {mb(total)}
               </p>
             </div>
@@ -127,7 +127,7 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
         <ErrorNote error={error} />
       </div>
       {storage && (
-        <p className="mt-3 text-xs text-stone-500">
+        <p className="mt-3 text-xs text-muted">
           Storage protected from clean-up: {storage.persisted ? 'yes' : storage.persisted === false ? 'no' : 'unknown'}
           {storage.usage != null && ` · this app uses ${mb(storage.usage)}`}
         </p>

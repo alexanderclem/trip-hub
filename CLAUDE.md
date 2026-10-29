@@ -212,7 +212,9 @@ name "travel app" and runs every spec.
     component libraries.
   - Icons get `aria-hidden`; sheets are labelled `role="dialog"`; external links get an
     sr-only "(opens in a new tab)".
-  - Use the existing brand (teal) and stone tokens in `src/styles/index.css`.
+  - Use the semantic tokens in `src/styles/index.css` (`ink`, `action`, `muted`, `mist`, `line`,
+    `control`, `warning`/`danger`/`success`, `rounded-control`/`rounded-surface`), never raw `stone-*`,
+    `bg-white` or Tailwind hues. The app follows the website's sample trip (`DESIGN.md`).
   - Follow "Keeping screens uncluttered" in `docs/UI_COMPONENTS.md`: one header, one filled button, one
     floating add button, no link that repeats a tab. Tabs are Home · Plan · Map · Vote · More.
 - **Verify UI with Playwright screenshots** (`SHOTS_DIR=<scratchpad>`), not just assertions.

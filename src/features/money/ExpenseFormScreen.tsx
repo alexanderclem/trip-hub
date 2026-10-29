@@ -163,19 +163,19 @@ export function ExpenseFormScreen() {
           </Field>
         </div>
         {d.currency !== base && (
-          <div className="flex flex-wrap items-center gap-2 text-sm text-stone-600">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
             <span>1 {base} =</span>
             <Input inputMode="decimal" aria-label="Exchange rate" value={d.rateEdited ? d.rateText : rate.value ? String(Number(rate.value.toFixed(4))) : ''}
               onChange={(e) => setD((c) => c && { ...c, rateText: e.target.value, rateEdited: true })} className="w-24 px-2 py-1.5" />
             <span>{d.currency}</span>
-            <span className="text-xs text-stone-600">
+            <span className="text-xs text-muted">
               {rate.source === 'manual' ? 'your rate' : rate.source === 'fallback' ? 'approximate (offline)' : `rates from ${rate.asOf}`}
               {amountMinor > 0 && result && 'expense' in result && ` · ≈ ${formatMoney(result.expense.base_amount_minor, base)}`}
             </span>
           </div>
         )}
         <fieldset>
-          <legend className="text-sm font-medium text-stone-700">Paid by</legend>
+          <legend className="text-sm font-medium text-ink">Paid by</legend>
           {!d.multiPay ? (
             <div className="mt-1 flex gap-2">
               <Select aria-label="Paid by" value={d.payers[0]!.memberId} onChange={(e) => set('payers', [{ memberId: e.target.value, amount: '' }])} className="flex-1">
@@ -202,14 +202,14 @@ export function ExpenseFormScreen() {
         </fieldset>
 
         <fieldset>
-          <legend className="text-sm font-medium text-stone-700">Split</legend>
+          <legend className="text-sm font-medium text-ink">Split</legend>
           <div role="radiogroup" aria-label="Split method" className="ui-segmented mt-1 grid-cols-4">
             {METHODS.map((m) => (
               <button key={m.id} type="button" role="radio" aria-checked={d.splitMethod === m.id} onClick={() => set('splitMethod', m.id)}
                 className="min-h-10">{m.label}</button>
             ))}
           </div>
-          <ul className="mt-2 divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-surface">
+          <ul className="mt-2 divide-y divide-line rounded-surface border border-line bg-surface">
             {d.rows.map((r, i) => {
               const m = members.find((x) => x.id === r.memberId)!
               const share = shares?.get(r.memberId)?.owed
@@ -217,21 +217,21 @@ export function ExpenseFormScreen() {
                 <li key={r.memberId} className="flex min-h-12 items-center gap-2 px-3 py-1.5">
                   <input type="checkbox" checked={r.included} onChange={(e) => setRow(i, { included: e.target.checked })} aria-label={`Include ${m.display_name}`} className="ui-check" />
                   <Avatar name={m.display_name} color={m.color} photo={m.avatar_url} size="sm" />
-                  <span className={`min-w-0 flex-1 truncate text-sm ${r.included ? '' : 'text-stone-600 line-through'}`}>{m.display_name}</span>
+                  <span className={`min-w-0 flex-1 truncate text-sm ${r.included ? '' : 'text-muted line-through'}`}>{m.display_name}</span>
                   {r.included && d.splitMethod !== 'equal' && (
                     <Input inputMode="decimal" aria-label={`${m.display_name} ${d.splitMethod}`} value={r.value} onChange={(e) => setRow(i, { value: e.target.value })}
                       placeholder={d.splitMethod === 'shares' ? '1' : d.splitMethod === 'percent' ? '%' : '0.00'} className="w-20 px-2 py-1.5 text-right" />
                   )}
-                  <span className="w-20 text-right text-sm text-stone-600 tabular-nums">{r.included && share != null ? formatMoney(share, base) : ''}</span>
+                  <span className="w-20 text-right text-sm text-muted tabular-nums">{r.included && share != null ? formatMoney(share, base) : ''}</span>
                 </li>
               )
             })}
           </ul>
           {d.splitMethod === 'exact' && amountMinor > 0 && assigned !== amountMinor && (
-            <p className="mt-1 text-sm text-amber-800">{formatMoney(Math.abs(amountMinor - assigned), d.currency)} {assigned < amountMinor ? 'left to assign' : 'too much'}</p>
+            <p className="mt-1 text-sm text-warning-ink">{formatMoney(Math.abs(amountMinor - assigned), d.currency)} {assigned < amountMinor ? 'left to assign' : 'too much'}</p>
           )}
           {d.splitMethod === 'percent' && assigned !== 10000 && (
-            <p className="mt-1 text-sm text-amber-800">{Math.abs(10000 - assigned) / 100}% {assigned < 10000 ? 'left to assign' : 'too much'}</p>
+            <p className="mt-1 text-sm text-warning-ink">{Math.abs(10000 - assigned) / 100}% {assigned < 10000 ? 'left to assign' : 'too much'}</p>
           )}
         </fieldset>
 
@@ -253,12 +253,12 @@ export function ExpenseFormScreen() {
             </Field>
           </div>
         </Disclosure>
-        {receiptId && <p className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900"><Receipt aria-hidden="true" className="size-4 shrink-0" />The receipt photo will be attached to this expense.</p>}
+        {receiptId && <p className="flex items-center gap-2 rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink"><Receipt aria-hidden="true" className="size-4 shrink-0" />The receipt photo will be attached to this expense.</p>}
         {expenseId && (
           <section aria-label="Receipts" className="space-y-2">
             {(receipts ?? []).map((r) => (
-              <Link key={r.id} to={`/t/${tripId}/tickets/${r.id}`} className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-surface px-3 py-2 text-sm hover:bg-brand-50">
-                <Receipt aria-hidden="true" className="size-4 shrink-0 text-brand-700" /><span className="min-w-0 flex-1 truncate font-medium">{r.title}</span><span className="text-xs text-stone-600">View</span>
+              <Link key={r.id} to={`/t/${tripId}/tickets/${r.id}`} className="flex min-h-11 items-center gap-2 rounded-control border border-line bg-surface px-3 py-2 text-sm hover:bg-brand-50">
+                <Receipt aria-hidden="true" className="size-4 shrink-0 text-action" /><span className="min-w-0 flex-1 truncate font-medium">{r.title}</span><span className="text-xs text-muted">View</span>
               </Link>
             ))}
             <Link to={`/t/${tripId}/tickets/new?kind=receipt&for_expense=${expenseId}`} className="ui-link">

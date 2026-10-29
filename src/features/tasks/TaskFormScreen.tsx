@@ -14,7 +14,7 @@ export function TaskFormScreen() {
   const back = `/t/${tripId}/more/tasks`
   return <div className="min-h-full pb-24"><PageHeader title={taskId ? 'Edit task' : 'Add task'} back={back} />
     {taskId && task === undefined ? <ListSkeleton label="Loading task…" className="p-4" />
-      : (taskId && task === null) || task?.deleted_at || (task && task.trip_id !== tripId) ? <p className="p-4 text-stone-600">This task is no longer available.</p>
+      : (taskId && task === null) || task?.deleted_at || (task && task.trip_id !== tripId) ? <p className="p-4 text-muted">This task is no longer available.</p>
         : <TaskEditor key={taskId ?? 'new'} tripId={tripId} taskId={taskId} initial={task ?? { title: '', assignee_id: query.get('assignee'), due_date: null, notes: null }} />}
   </div>
 }

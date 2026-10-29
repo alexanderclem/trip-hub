@@ -31,7 +31,7 @@ export function GroupRatingCard({ place, memberId }: { place: Place; memberId: s
         <h2 className="ui-section-title">Group rating</h2>
         <StarsSummary summary={summary} />
       </div>
-      <p className="mt-1 text-sm text-stone-600">{place.status === 'visited' ? 'How was it?' : 'Rate it for the group.'}</p>
+      <p className="mt-1 text-sm text-muted">{place.status === 'visited' ? 'How was it?' : 'Rate it for the group.'}</p>
       <div className="mt-3">
         <StarsInput value={mine?.stars ?? null} onChange={(stars) => rate(place.trip_id, place.id, memberId, stars, note)} />
       </div>
@@ -50,7 +50,7 @@ export function GroupRatingCard({ place, memberId }: { place: Place; memberId: s
         className="mt-2"
       />
       {others.length > 0 && (
-        <ul className="mt-4 space-y-3 border-t border-stone-200 pt-3">
+        <ul className="mt-4 space-y-3 border-t border-line pt-3">
           {others.map((r) => {
             const m = name(r.member_id)
             return (
@@ -59,9 +59,9 @@ export function GroupRatingCard({ place, memberId }: { place: Place; memberId: s
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">
                     {m ? <TravelerLink member={m} avatar={false} /> : 'Someone'}
-                    {r.stars != null && <span className="ml-2 text-amber-600" aria-label={`${r.stars} stars`}>{'★'.repeat(r.stars)}</span>}
+                    {r.stars != null && <span className="ml-2 text-warning-ink" aria-label={`${r.stars} stars`}>{'★'.repeat(r.stars)}</span>}
                   </p>
-                  {r.note && <p className="text-sm break-words whitespace-pre-wrap text-stone-600">{r.note}</p>}
+                  {r.note && <p className="text-sm break-words whitespace-pre-wrap text-muted">{r.note}</p>}
                 </div>
               </li>
             )

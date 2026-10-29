@@ -40,17 +40,17 @@ export function JoinByLink() {
   return (
     <Card>
       <CardHeader>
-        <Link2 aria-hidden="true" className="mb-2 size-5 text-brand-700" />
+        <Link2 aria-hidden="true" className="mb-2 size-5 text-action" />
         <CardTitle>Have an invite?</CardTitle>
         <CardDescription>Paste the link your group shared to join their trip.</CardDescription>
       </CardHeader>
       <form onSubmit={join} className="mt-5">
-        <label htmlFor="trip-link" className="text-sm font-medium text-stone-700">Trip link</label>
+        <label htmlFor="trip-link" className="text-sm font-medium text-ink">Trip link</label>
         <div className="mt-2 flex gap-2">
           <Input id="trip-link" value={link} onChange={(e) => { setLink(e.target.value); setError(null); setInvalid(false) }} placeholder="https://…/join#t=…" className="min-w-0 flex-1" autoCapitalize="none" autoCorrect="off" spellCheck={false} aria-invalid={invalid} aria-describedby={error ? 'trip-link-error' : undefined} />
           <Button type="button" variant="secondary" onClick={pasteFromClipboard} disabled={pasting} aria-label="Paste from clipboard" className="px-3"><ClipboardPaste aria-hidden="true" className="size-5" /></Button>
         </div>
-        {error && <p id="trip-link-error" role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+        {error && <p id="trip-link-error" role="alert" className="mt-3 rounded-surface bg-danger px-3 py-2 text-sm text-danger-ink">{error}</p>}
         <Button type="submit" className="mt-4 w-full" disabled={!link.trim()}>Join trip<ArrowRight aria-hidden="true" className="size-4" /></Button>
       </form>
     </Card>

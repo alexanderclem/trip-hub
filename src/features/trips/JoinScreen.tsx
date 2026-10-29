@@ -40,7 +40,7 @@ export function JoinScreen() {
     {error ? <div className="space-y-4">
       <h1 className="text-xl font-semibold">Couldn't join the trip</h1>
       <ErrorNote error={error} />
-      {!navigator.onLine && <p className="text-sm text-stone-600">You're offline. Joining needs a connection once.</p>}
+      {!navigator.onLine && <p className="text-sm text-muted">You're offline. Joining needs a connection once.</p>}
       {token.current && <Button className="w-full" disabled={busy} onClick={() => void attempt()}>{busy ? 'Joining…' : 'Try joining again'}</Button>}
       <LinkButton to="/app" variant="secondary" className="w-full">Back to your trips</LinkButton>
     </div> : <LoadingState title="Joining your group…" />}

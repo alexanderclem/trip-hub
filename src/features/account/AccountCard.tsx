@@ -65,12 +65,12 @@ export function AccountCard() {
     return (
       <Card>
         <CardHeader>
-          <ShieldCheck aria-hidden="true" className="mb-2 size-5 text-brand-700" />
+          <ShieldCheck aria-hidden="true" className="mb-2 size-5 text-action" />
           <CardTitle>Your trips are on your account</CardTitle>
           <CardDescription>Signed in{account.email ? ` as ${account.email}` : ''}. Sign in on another phone to get your trips there.</CardDescription>
         </CardHeader>
         <ErrorNote error={error} />
-        {saved && <p role="status" className="mt-3 text-sm text-stone-600">Password saved. You can sign in with it, or with a code by email.</p>}
+        {saved && <p role="status" className="mt-3 text-sm text-muted">Password saved. You can sign in with it, or with a code by email.</p>}
         {password === null ? (
           <Button variant="ghost" className="mt-2 -ml-4" disabled={busy || !online} onClick={() => { setSaved(false); setPasswordText('') }}>Set a password</Button>
         ) : (
@@ -92,14 +92,14 @@ export function AccountCard() {
   return (
     <Card>
       <CardHeader>
-        <UserRound aria-hidden="true" className="mb-2 size-5 text-brand-700" />
+        <UserRound aria-hidden="true" className="mb-2 size-5 text-action" />
         <CardTitle>Keep your trips if you change phones</CardTitle>
         <CardDescription>Optional. Sign in and your trips come back on any phone. Without it, this phone is the only key.</CardDescription>
       </CardHeader>
       <ErrorNote error={error} />
       {methods.google && <Button className="mt-4 w-full" disabled={busy || !online} onClick={() => void signIn()}>{busy ? 'Opening Google…' : 'Sign in with Google'}</Button>}
       {methods.email && <LinkButton to="/signin" variant={methods.google ? 'secondary' : 'primary'} className={`w-full ${methods.google ? 'mt-2' : 'mt-4'}`}>{methods.google ? 'Use email instead' : 'Sign in with email'}</LinkButton>}
-      {!online && <p className="mt-2 text-xs text-stone-600">You need signal to sign in.</p>}
+      {!online && <p className="mt-2 text-xs text-muted">You need signal to sign in.</p>}
     </Card>
   )
 }

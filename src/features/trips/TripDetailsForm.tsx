@@ -1,6 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import type { Trip } from '@/data/types'
 import { save } from '@/data/repo'
+import { db } from '@/data/db'
+import { CheckCircle2 } from 'lucide-react'
 import { isValidZone } from '@/lib/time'
 import { Button, DateInput, ErrorNote, Field, Input } from '@/ui'
 
@@ -13,22 +15,28 @@ export function TripDetailsForm({ trip, memberId }: { trip: Trip; memberId: stri
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [busy, setBusy] = useState(false)
+  const locked = useRef(false)
 
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (locked.current) return
     setError(null)
     setSaved(false)
     if (!name.trim()) return setError('Give your trip a name.')
     if (end && !start) return setError('Add a start date before an end date.')
     if (start && end && end < start) return setError('The end date must be on or after the start date.')
     if (!isValidZone(zone.trim())) return setError('Enter a valid time zone, such as America/New_York.')
+    locked.current = true
     setBusy(true)
     try {
-      await save('trips', { ...trip, name: name.trim(), start_date: start || null, end_date: end || null, timezone: zone.trim() }, memberId)
+      const latest = await db.trips.get(trip.id)
+      if (!latest || latest.deleted_at) throw new Error('This trip is no longer available.')
+      await save('trips', { ...latest, name: name.trim(), start_date: start || null, end_date: end || null, timezone: zone.trim() }, memberId)
       setSaved(true)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save trip details. Try again.')
     } finally {
+      locked.current = false
       setBusy(false)
     }
   }
@@ -42,9 +50,9 @@ export function TripDetailsForm({ trip, memberId }: { trip: Trip; memberId: stri
     <Field label="Destination time zone" hint="Use an IANA time zone, such as America/New_York. Existing itinerary items keep their own time zones.">
       <Input required value={zone} onChange={(e) => setZone(e.target.value)} />
     </Field>
-    <p className="text-xs leading-relaxed text-stone-600">Settle-up currency: {trip.base_currency}. It stays the same so existing balances keep their meaning.</p>
+    <p className="text-xs leading-relaxed text-muted">Settle-up currency: {trip.base_currency}. It stays the same so existing balances keep their meaning.</p>
     <ErrorNote error={error} />
-    {saved && <p role="status" className="text-sm text-brand-900">Trip details saved on this phone. They’ll sync when connected.</p>}
+    <div role="status" className="save-feedback">{saved && <p><CheckCircle2 aria-hidden="true" className="size-4 shrink-0" />Trip details saved on this phone. They’ll sync when connected.</p>}</div>
     <Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save trip details'}</Button>
   </form>
 }

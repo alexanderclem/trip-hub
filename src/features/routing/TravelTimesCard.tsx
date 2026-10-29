@@ -28,7 +28,7 @@ export function TravelTimesCard({ place, places, ctx }: { place: Place; places: 
   return (
     <Card>
       <h2 className="ui-section-title">Travel times</h2>
-      <p className="mb-3 text-xs text-stone-600">To the group's other places. Planning times include a buffer; check traffic for a fresh driving estimate.</p>
+      <p className="mb-3 text-xs text-muted">To the group's other places. Planning times include a buffer; check traffic for a fresh driving estimate.</p>
       <ul className="space-y-3">
         {shown.map(({ p, options }) => {
           const { Icon, color } = CATEGORY_STYLE[p.category]
@@ -39,7 +39,7 @@ export function TravelTimesCard({ place, places, ctx }: { place: Place; places: 
                 <Link to={`../${p.id}`} relative="path" className="min-w-0 flex-1 truncate font-medium">
                   {p.name}
                 </Link>
-                <button onClick={() => setReportFor(reportFor === p.id ? null : p.id)} className="text-xs text-brand-700">
+                <button onClick={() => setReportFor(reportFor === p.id ? null : p.id)} className="text-xs text-action">
                   Report time
                 </button>
               </div>
@@ -57,7 +57,7 @@ export function TravelTimesCard({ place, places, ctx }: { place: Place; places: 
         })}
       </ul>
       {rows.length > SHOW && (
-        <button onClick={() => setAll((v) => !v)} className="mt-3 text-sm text-brand-700">
+        <button onClick={() => setAll((v) => !v)} className="mt-3 text-sm text-action">
           {all ? 'Show fewer' : `Show all ${rows.length}`}
         </button>
       )}

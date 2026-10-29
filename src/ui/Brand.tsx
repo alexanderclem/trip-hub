@@ -9,7 +9,7 @@ export function Brand({ className = '', variant = 'app' }: { className?: string;
   const [mark, poke] = usePoke<HTMLSpanElement>(6)
   if (variant === 'website') return <img className={className} src="/brand/stowaway-wordmark.svg" alt="Stowaway" width="424" height="96" />
   return (
-    <span className={`inline-flex items-center gap-2.5 text-brand-900 ${className}`}>
+    <span className={`inline-flex items-center gap-2.5 text-ink ${className}`}>
       <m.span ref={mark} initial={false} animate={poke} className="size-11 shrink-0 origin-[50%_90%]">
         <img src="/brand/stowaway-mark.svg" alt="" width="44" height="44" className="size-11" />
       </m.span>

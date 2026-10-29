@@ -5,8 +5,8 @@ import { useMotionPreference } from './MotionProvider'
 import { motionTiming } from './motion'
 
 /** Native modal behavior supplies focus containment, Escape, and focus restoration. */
-export function Dialog({ open, onClose, title, children }: {
-  open: boolean; onClose: () => void; title: string; children: ReactNode
+export function Dialog({ open, onClose, title, children, dismissible = true }: {
+  open: boolean; onClose: () => void; title: string; children: ReactNode; dismissible?: boolean
 }) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -26,14 +26,14 @@ export function Dialog({ open, onClose, title, children }: {
     return () => animation.stop()
   }, [open, reducedMotion, animate, scope])
   return (
-    <dialog ref={ref} aria-labelledby={titleId} className="ui-dialog" onCancel={onClose} onClose={() => {
+    <dialog ref={ref} aria-labelledby={titleId} className="ui-dialog" onCancel={(event) => { if (dismissible) onClose(); else event.preventDefault() }} onClose={() => {
       // Ignore a queued close event if StrictMode has already reopened the dialog.
       if (!ref.current?.open) onClose()
     }}>
       <div ref={scope}>
-      <div className="flex items-start justify-between gap-4 border-b border-stone-200 pb-3">
-        <h2 id={titleId} className="min-w-0 flex-1 wrap-anywhere pt-2 text-xl font-semibold text-brand-900">{title}</h2>
-        <button type="button" onClick={onClose} aria-label="Close dialog" className="ui-icon-button shrink-0"><X aria-hidden="true" className="size-5" /></button>
+      <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
+        <h2 id={titleId} className="min-w-0 flex-1 wrap-anywhere pt-2 text-xl font-semibold text-ink">{title}</h2>
+        <button type="button" onClick={onClose} disabled={!dismissible} aria-label="Close dialog" className="ui-icon-button shrink-0 disabled:opacity-40"><X aria-hidden="true" className="size-5" /></button>
       </div>
       <div className="pt-4">{children}</div>
       </div>

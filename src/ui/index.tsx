@@ -8,6 +8,7 @@ import { dateOrder, formatTypedDate, parseTypedDate } from '@/lib/time'
 import { m, type HTMLMotionProps } from 'motion/react'
 import { useMotionPreference } from './MotionProvider'
 import { motionTiming } from './motion'
+import { useSlidingHighlight } from './effects'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 const MotionLink = m.create(Link)
@@ -20,8 +21,7 @@ export function Button({
   const reducedMotion = useMotionPreference()
   return (
     <m.button
-      whileHover={!reducedMotion && !props.disabled ? { y: -1 } : undefined}
-      whileTap={!reducedMotion && !props.disabled ? { scale: 0.98 } : undefined}
+      whileTap={!reducedMotion && !props.disabled ? { y: 1 } : undefined}
       transition={motionTiming.feedback}
       {...props}
       className={cx(
@@ -34,15 +34,15 @@ export function Button({
 
 export function LinkButton({ variant = 'primary', className, ...props }: ComponentProps<typeof MotionLink> & { variant?: 'primary' | 'secondary' | 'ghost' }) {
   const reducedMotion = useMotionPreference()
-  return <MotionLink whileHover={reducedMotion ? undefined : { y: -1 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={motionTiming.feedback} {...props} className={cx('ui-button', `ui-button-${variant}`, className)} />
+  return <MotionLink whileTap={reducedMotion ? undefined : { y: 1 }} transition={motionTiming.feedback} {...props} className={cx('ui-button', `ui-button-${variant}`, className)} />
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-stone-700">{label}</span>
-      <div className="mt-1">{children}</div>
-      {hint && <span className="mt-1 block text-xs text-stone-500">{hint}</span>}
+      <span className="text-sm font-[550] text-ink">{label}</span>
+      <div className="mt-1.5">{children}</div>
+      {hint && <span className="mt-1.5 block text-xs leading-relaxed text-muted">{hint}</span>}
     </label>
   )
 }
@@ -51,7 +51,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 // in the stylesheet, where w-full would win.
 const fieldCls = (className?: string) => cx(/(^|\s)w-/.test(className ?? '') ? '' : 'w-full', inputCls, className)
 const inputCls =
-  'ui-field rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base focus:border-brand-700 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-60 aria-invalid:border-red-500'
+  'ui-field rounded-control border border-control bg-surface px-3 py-2.5 text-base text-ink placeholder:text-muted focus:border-action disabled:cursor-not-allowed disabled:bg-mist/60 disabled:opacity-60 aria-invalid:border-danger-ink'
 
 export const Input = (props: InputHTMLAttributes<HTMLInputElement>) => (
   <input {...props} className={fieldCls(props.className)} />
@@ -124,7 +124,7 @@ export function DateInput({ value, onValue, min, max, className, ...props }: Dat
       />
       {/* The browser's calendar, opened from the button. It belongs to no form (form=""), so it is never validated or submitted. */}
       <input ref={picker} type="date" form="" tabIndex={-1} aria-hidden="true" value={value} min={min} max={max} disabled={props.disabled} onChange={(e) => onValue(e.target.value)} className="pointer-events-none absolute bottom-0 right-0 size-0 opacity-0" />
-      <button type="button" aria-label="Choose from a calendar" disabled={props.disabled} onClick={() => picker.current?.showPicker()} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-stone-500 hover:text-brand-700 disabled:opacity-60">
+      <button type="button" aria-label="Choose from a calendar" disabled={props.disabled} onClick={() => picker.current?.showPicker()} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-control text-muted hover:text-action disabled:opacity-60">
         <CalendarDays aria-hidden="true" className="size-5" />
       </button>
     </div>
@@ -138,8 +138,35 @@ export const Textarea = (props: TextareaHTMLAttributes<HTMLTextAreaElement>) => 
   <textarea rows={3} {...props} className={fieldCls(props.className)} />
 )
 
-export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx('ui-card', className)}>{children}</section>
+/**
+ * A distinct object, laid out like the website's sample trip. `title` (with an optional
+ * `eyebrow` and `action`) gives it a Georgia heading; `footer` adds a ruled caption strip.
+ * `framed` sets the one hero object on a screen in a mist frame.
+ */
+export function Card({ children, className, eyebrow, title, action, footer, framed, labelledBy }: {
+  children?: ReactNode; className?: string; eyebrow?: ReactNode; title?: ReactNode; action?: ReactNode; footer?: ReactNode; framed?: boolean; labelledBy?: string
+}) {
+  const card = (
+    <section className={cx('ui-card', className)} aria-labelledby={labelledBy}>
+      {(title || eyebrow || action) && (
+        <div className="ui-card-head">
+          <div>
+            {eyebrow && <p className="ui-eyebrow">{eyebrow}</p>}
+            {title && <h2 id={labelledBy} className={cx('ui-section-title', eyebrow ? 'mt-0.5' : null)}>{title}</h2>}
+          </div>
+          {action}
+        </div>
+      )}
+      {children}
+      {footer && <div className="ui-card-foot">{footer}</div>}
+    </section>
+  )
+  return framed ? <div className="ui-frame">{card}</div> : card
+}
+
+/** A short state beside a record: "Booked", "Needs votes", "On this phone". Always words, never colour alone. */
+export function Status({ tone, className, ...props }: ComponentProps<'span'> & { tone?: 'warning' | 'danger' | 'success' | 'quiet' }) {
+  return <span {...props} className={cx('ui-status', tone && `ui-status-${tone}`, className)} />
 }
 
 /** What the trip shell adds to the end of every screen header (sync status, Stowie). Empty outside a trip. */
@@ -152,8 +179,8 @@ export const HeaderTools = createContext<ReactNode>(null)
 export function PageHeader({ title, eyebrow, back, action, below }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode }) {
   const tools = useContext(HeaderTools)
   return (
-    <header className="app-page-header pt-safe sticky top-0 z-10 border-b border-stone-200 bg-canvas">
-      <div className="flex min-h-14 items-center gap-1 px-3 py-1.5 lg:px-6">
+    <header className="app-page-header pt-safe sticky top-0 z-10 border-b border-line bg-canvas/95 backdrop-blur-sm">
+      <div className="flex min-h-16 items-center gap-1 px-3 py-2 lg:px-8">
         {back ? (
           <Link to={back} className="ui-icon-button shrink-0" aria-label="Back">
             <ChevronLeft aria-hidden="true" className="size-6" />
@@ -162,7 +189,7 @@ export function PageHeader({ title, eyebrow, back, action, below }: { title: str
           <span className="w-2" />
         )}
         <div className="min-w-0 flex-1">
-          {eyebrow && <p className="truncate text-xs font-medium text-stone-600">{eyebrow}</p>}
+          {eyebrow && <p className="ui-eyebrow truncate">{eyebrow}</p>}
           <h1 className="ui-page-title break-words">{title}</h1>
         </div>
         {action}
@@ -182,8 +209,10 @@ export function SectionTitle({ className, ...props }: ComponentProps<'h2'>) {
 export function Segmented<T extends string>({ label, value, options, onChange, className }: {
   label: string; value: T; options: readonly { value: T; label: ReactNode; title?: string }[]; onChange: (value: T) => void; className?: string
 }) {
+  const { ref, style } = useSlidingHighlight<HTMLDivElement>(value, '[aria-checked="true"]')
   return (
-    <div role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+    <div ref={ref} role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+      <span className="ui-highlight" style={style} aria-hidden="true" />
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value} title={o.title} onClick={() => onChange(o.value)}>{o.label}</button>
       ))}
@@ -200,25 +229,29 @@ export function Chip({ pressed, className, ...props }: ComponentProps<'button'> 
 export function RowGroup({ label, children, className }: { label?: string; children: ReactNode; className?: string }) {
   return (
     <section className={className}>
-      {label && <h2 className="ui-label mb-2 px-1">{label}</h2>}
+      {label && <h2 className="ui-label mb-2 px-0.5">{label}</h2>}
       <ul className="ui-row-group">{children}</ul>
     </section>
   )
 }
 
-/** One row of a RowGroup. With `to` the whole row is a link and shows a chevron. */
-export function Row({ to, icon, title, detail, trailing, onClick }: {
-  to?: string; icon?: ReactNode; title: ReactNode; detail?: ReactNode; trailing?: ReactNode; onClick?: () => void
+/**
+ * One row of a RowGroup. With `to` the whole row is a link and shows a chevron. `time` puts a
+ * tabular time column first, as in an agenda.
+ */
+export function Row({ to, icon, time, title, detail, trailing, onClick }: {
+  to?: string; icon?: ReactNode; time?: ReactNode; title: ReactNode; detail?: ReactNode; trailing?: ReactNode; onClick?: () => void
 }) {
   const body = (
     <>
-      {icon && <span className="flex shrink-0 text-brand-700">{icon}</span>}
+      {time && <span className="ui-time">{time}</span>}
+      {icon && <span className="flex shrink-0 text-action">{icon}</span>}
       <span className="min-w-0 flex-1">
-        <span className="block break-words font-medium text-brand-900">{title}</span>
-        {detail && <span className="block break-words text-sm text-stone-600">{detail}</span>}
+        <span className="ui-row-title">{title}</span>
+        {detail && <span className="ui-row-detail">{detail}</span>}
       </span>
-      {trailing && <span className="shrink-0 text-sm text-stone-600">{trailing}</span>}
-      {to && <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-stone-500" />}
+      {trailing && <span className="shrink-0 text-sm text-muted">{trailing}</span>}
+      {to && <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted" />}
     </>
   )
   return <li>{to ? <Link to={to} onClick={onClick} className="ui-row">{body}</Link> : <div className="ui-row">{body}</div>}</li>
@@ -247,7 +280,7 @@ export function Disclosure({ summary, children, className, defaultOpen, open, on
 
 export function ErrorNote({ error }: { error: string | null }) {
   if (!error) return null
-  return <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
+  return <p role="alert" className="rounded-control border-l-2 border-danger-ink bg-danger px-3 py-2.5 text-sm leading-relaxed text-danger-ink">{error}</p>
 }
 
 export function Avatar({ name, color, photo, size = 'md' }: { name: string; color: string | null; photo?: string | null; size?: 'sm' | 'md' }) {
@@ -260,7 +293,7 @@ export function Avatar({ name, color, photo, size = 'md' }: { name: string; colo
         'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white',
         size === 'md' ? 'size-10 text-sm' : 'size-7 text-xs',
       )}
-      style={{ background: color ?? '#78716c' }}
+      style={{ background: color ?? 'var(--stowaway-control-border)' }}
     >
       {photo && !failed ? <img src={photo} alt="" className="size-full object-cover" onError={() => setFailed(true)} /> : initials}
     </span>

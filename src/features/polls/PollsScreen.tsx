@@ -11,13 +11,15 @@ import { createPoll, usePolls } from './data'
 import { deadlineFor, tonightAvailable, type DeadlineChoice } from './deadline'
 import { leader, rankOptions, votingEnded } from './rank'
 import { closesLabel } from './share'
+import { travelersStillVoting } from '@/features/trips/decisions'
 
 export function PollsScreen() {
   const { tripId } = useParams() as { tripId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
   const polls = usePolls(tripId)
-  const groupSize = useMembers(tripId)?.length ?? 1
+  const members = useMembers(tripId)
+  const groupSize = members?.length ?? 1
   const commentCounts = useCommentCounts(tripId, 'poll')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -49,7 +51,7 @@ export function PollsScreen() {
       <PageHeader
         title="Votes"
         action={!!polls?.length && (
-          <button type="button" onClick={() => setCreating((v) => !v)} className="ui-icon-button text-brand-700" aria-label="New vote" aria-expanded={creating}>
+          <button type="button" onClick={() => setCreating((v) => !v)} className="ui-icon-button text-action" aria-label="New vote" aria-expanded={creating}>
             <Plus aria-hidden="true" className="size-6" />
           </button>
         )}
@@ -63,10 +65,10 @@ export function PollsScreen() {
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder="Where do we stay at the lake?" required />
               </Field>
               <fieldset>
-                <legend className="text-sm font-medium text-stone-700">What are the choices?</legend>
+                <legend className="text-sm font-medium text-ink">What are the choices?</legend>
                 <div className="ui-segmented mt-2 grid-cols-2">
                   {([['options', 'Places or ideas'], ['dates', 'Dates that work']] as const).map(([value, label]) => (
-                    <label key={value} className="min-h-11 has-focus-visible:outline-2 has-focus-visible:outline-brand-700">
+                    <label key={value} className="min-h-11 has-focus-visible:outline-2 has-focus-visible:outline-action">
                       <input type="radio" name="vote-kind" value={value} checked={kind === value} onChange={() => setKind(value)} className="sr-only" />
                       {label}
                     </label>
@@ -107,19 +109,21 @@ export function PollsScreen() {
             const ended = votingEnded(poll, Date.now())
             const comments = commentCounts?.get(poll.id) ?? 0
             const winner = poll.status === 'closed' ? live.find((o) => o.id === poll.winner_option_id) : ended ? top?.option : null
+            const waiting = members?.length ? travelersStillVoting(options, votes, members).length : null
             return (
               <li key={poll.id}>
                 <Link to={poll.id} className="ui-row">
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-stone-600">{ended ? (winner ? 'Decided' : 'Voting ended') : `${live.length} option${live.length === 1 ? '' : 's'} · you voted on ${myVotes}${poll.closes_at ? ` · closes ${closesLabel(poll.closes_at, Date.now(), zone)}` : ''}`}{comments > 0 && ` · ${comments} ${comments === 1 ? 'comment' : 'comments'}`}</p>
-                      <h2 className="break-words font-semibold text-brand-900">{poll.title}</h2>
-                      <p className="flex items-start gap-1.5 text-sm text-stone-600">
-                        {winner && <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand-700" />}
+                      <p className="text-xs font-medium text-muted">{ended ? (winner ? 'Decided' : 'Voting ended') : `${live.length} option${live.length === 1 ? '' : 's'} · you voted on ${myVotes}${poll.closes_at ? ` · closes ${closesLabel(poll.closes_at, Date.now(), zone)}` : ''}`}{comments > 0 && ` · ${comments} ${comments === 1 ? 'comment' : 'comments'}`}</p>
+                      <h2 className="break-words font-semibold text-ink">{poll.title}</h2>
+                      {!ended && live.length > 0 && waiting !== null && <p className="mt-1 text-sm text-muted">{waiting ? `${waiting} ${waiting === 1 ? 'traveler still needs' : 'travelers still need'} to vote` : 'Everyone’s voted · ready to decide'}</p>}
+                      <p className="flex items-start gap-1.5 text-sm text-muted">
+                        {winner && <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-action" />}
                         {winner ? winner.label : top ? `Leading: ${top.option.label}` : live.length ? 'Not enough votes yet' : 'No options yet'}
                       </p>
                     </div>
-                    <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-stone-600" />
+                    <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted" />
                   </div>
                 </Link>
               </li>

@@ -20,9 +20,9 @@ export function LoadingState({ title = 'Opening your trip…', description, acti
         {fullScreen && <Brand className="mb-8" />}
         <div role="status">
           <div className="mb-4 flex justify-center pt-5"><LoadingLogo /></div>
-          <h2 className="text-xl font-semibold text-brand-900">{title}</h2>
-          {description && <p className="mt-2 text-sm leading-relaxed text-stone-600">{description}</p>}
-          {slow && <m.p initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={motionTiming.fade} className="mt-3 text-sm text-stone-600">This is taking longer than usual. Your saved trip stays on this device.</m.p>}
+          <h2 className="text-xl font-semibold text-ink">{title}</h2>
+          {description && <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>}
+          {slow && <m.p initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={motionTiming.fade} className="mt-3 text-sm text-muted">This is taking longer than usual. Your saved trip stays on this device.</m.p>}
         </div>
         {slow && <div className="mt-5 flex flex-wrap justify-center gap-2">{action}<button type="button" className="ui-button ui-button-secondary" onClick={() => window.location.reload()}>Reload</button></div>}
       </div>

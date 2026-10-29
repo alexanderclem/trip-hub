@@ -25,6 +25,7 @@ import { WeatherGlyph, WeatherLine } from './WeatherLine'
 import { useDaySuggestions } from '@/features/suggest/data'
 import { SuggestionsCard } from '@/features/suggest/SuggestionsCard'
 import { Agenda } from './Agenda'
+import { useSlidingHighlight } from '@/ui/effects'
 
 const HOUR_PX = 60
 const GUTTER = '3.25rem'
@@ -40,6 +41,7 @@ export function PlanScreen() {
   const { zone } = useDisplayZone(trip)
   const [params, setParams] = useSearchParams()
   const [view, setView] = useState<'agenda' | 'timeline'>('agenda')
+  const viewHighlight = useSlidingHighlight<HTMLDivElement>(view, '[aria-pressed="true"]')
 
   const days = useMemo(() => planDays(trip?.start_date ?? null, trip?.end_date ?? null, items ?? [], zone), [trip, items, zone])
   const today = DateTime.now().setZone(zone).toISODate()!
@@ -62,6 +64,7 @@ export function PlanScreen() {
 
   // Keep the selected day visible in the strip.
   const stripRef = useRef<HTMLDivElement>(null)
+  const dayHighlight = useSlidingHighlight<HTMLDivElement>(day, '[aria-current="date"]')
   useEffect(() => {
     stripRef.current?.querySelector<HTMLElement>('[aria-current="date"]')?.scrollIntoView({ inline: 'center', block: 'nearest' })
   }, [day])
@@ -72,7 +75,9 @@ export function PlanScreen() {
   return (
     <div className="min-h-full pb-28">
       <PageHeader title="Plan" below={
-        <div ref={stripRef} role="tablist" aria-label="Days" className="flex gap-1.5 overflow-x-auto px-4 pb-3 pt-1 lg:px-6">
+        <div ref={stripRef} role="tablist" aria-label="Days" className="overflow-x-auto px-4 pb-3 pt-1 lg:px-8">
+          <div ref={dayHighlight.ref} className="relative flex w-max gap-1.5">
+          <span className="ui-highlight" style={dayHighlight.style} aria-hidden="true" />
           {days.map((d) => {
             const dt = DateTime.fromISO(d)
             const on = d === day
@@ -85,19 +90,21 @@ export function PlanScreen() {
                 aria-current={on ? 'date' : undefined}
                 aria-label={`${dt.toFormat('cccc d LLLL')}${d === today ? ', today' : ''}, ${perDay[d]?.count ?? 0} items${perDay[d]?.conflict ? ', has overlaps' : ''}${w ? `, ${describeCode(w.weather.code).label}, high ${formatTemp(w.weather.hi, tempUnit)}` : ''}`}
                 onClick={() => setParams({ day: d }, { replace: true })}
-                className={`plan-day ${on ? 'bg-brand-700 text-white' : `bg-surface text-stone-700 ${d === today ? 'border-2 border-brand-700' : 'border border-stone-200'}`}`}
+                data-today={d === today ? '' : undefined}
+                className="plan-day"
               >
                 <span className="text-xs">{dt.toFormat('ccc')}</span>
                 <span className="text-base font-semibold tabular-nums">{dt.toFormat('d')}</span>
                 {w && (
-                  <span aria-hidden="true" className={`flex items-center gap-0.5 text-xs tabular-nums ${on ? 'text-white' : 'text-stone-600'}`}>
+                  <span aria-hidden="true" className={`flex items-center gap-0.5 text-xs tabular-nums ${on ? 'text-on-action' : 'text-muted'}`}>
                     <WeatherGlyph code={w.weather.code} className="size-3.5" />{formatTemp(w.weather.hi, tempUnit)}
                   </span>
                 )}
-                {(perDay[d]?.count ?? 0) > 0 && <span aria-hidden="true" className={`absolute top-1.5 right-1.5 size-1.5 rounded-full ${perDay[d]?.conflict ? 'bg-red-500' : on ? 'bg-white' : 'bg-brand-600'}`} />}
+                {(perDay[d]?.count ?? 0) > 0 && <span aria-hidden="true" className={`absolute top-1.5 right-1.5 size-1.5 rounded-full ${perDay[d]?.conflict ? 'bg-danger-ink' : on ? 'bg-surface' : 'bg-action'}`} />}
               </button>
             )
           })}
+          </div>
         </div>
       } />
 
@@ -112,27 +119,28 @@ export function PlanScreen() {
           )}
         </div>
 
-        <div role="group" aria-label="Plan view" className="flex w-fit gap-1 rounded-xl border border-stone-200 bg-surface p-1">
-          {(['agenda', 'timeline'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)} className={`min-h-11 rounded-lg px-4 text-sm font-medium ${view === mode ? 'bg-brand-700 text-white' : 'text-stone-600 hover:bg-brand-50'}`}>{mode === 'agenda' ? 'Agenda' : 'Timeline'}</button>)}
+        <div ref={viewHighlight.ref} role="group" aria-label="Plan view" className="ui-segmented w-fit grid-cols-2">
+          <span className="ui-highlight" style={viewHighlight.style} aria-hidden="true" />
+          {(['agenda', 'timeline'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)} className="min-h-11 px-5">{mode === 'agenda' ? 'Agenda' : 'Timeline'}</button>)}
         </div>
         <WeatherLine day={weatherOf(day)} />
         <DayNoteEditor tripId={tripId} day={day} />
 
         {layout.stays.map((s) => (
-          <Link key={s.id} to={`/t/${tripId}/plan/${s.id}`} className="flex min-h-11 items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">
+          <Link key={s.id} to={`/t/${tripId}/plan/${s.id}`} className="flex min-h-11 items-center gap-2 rounded-control bg-brand-50 px-3 py-2 text-sm text-ink">
             <BedDouble aria-hidden="true" className="size-4 shrink-0" />
             <span className="min-w-0 truncate">Staying at <b>{placeOf(s.place_id)?.name ?? s.title}</b></span>
           </Link>
         ))}
         {layout.allDay.map((i) => (
-          <Link key={i.id} to={`/t/${tripId}/plan/${i.id}`} className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-200 bg-surface px-3 py-2 text-sm">
-            <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-brand-700" />
+          <Link key={i.id} to={`/t/${tripId}/plan/${i.id}`} className="flex min-h-11 items-center gap-2 rounded-control border border-line bg-surface px-3 py-2 text-sm">
+            <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-action" />
             <span className="min-w-0 truncate font-medium">{i.title}</span>
-            <span className="ml-auto text-xs text-stone-600">All day</span>
+            <span className="ml-auto text-xs text-muted">All day</span>
           </Link>
         ))}
         {conflicts > 0 && (
-          <p role="alert" className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p role="alert" className="flex items-center gap-2 rounded-surface bg-danger px-3 py-2 text-sm text-danger-ink">
             <AlertTriangle aria-hidden="true" className="size-4 shrink-0" /> {conflicts} items overlap for the same people
           </p>
         )}
@@ -142,7 +150,7 @@ export function PlanScreen() {
 
         {empty ? (
           <Empty>
-            <CalendarDays aria-hidden="true" className="size-8 text-brand-700" />
+            <CalendarDays aria-hidden="true" className="size-8 text-action" />
             <EmptyHeader>
               <EmptyTitle>Know what’s next</EmptyTitle>
               <EmptyDescription>Start with the flight you booked, a dinner everyone picked, or a day you want to explore. Add it to the plan so your friends can follow along, even offline.</EmptyDescription>
@@ -158,7 +166,7 @@ export function PlanScreen() {
         )}
 
         {/* Things about the whole plan, not this day, sit after it. */}
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-stone-200 pt-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line pt-3">
           <TimeToggle trip={trip} />
           {mine.length > 0 && (
             <button type="button" className="ui-link" onClick={() => void shareCalendar(trip?.name ?? 'Trip', planIcs(mine, places, members, trip?.name ?? 'Trip', location.origin))}>
@@ -185,13 +193,13 @@ function Timeline({ blocks, fromHour, toHour, zone, day, tripId, placeOf }: {
   return (
     <div className="relative" style={{ height: hours.length * HOUR_PX }} aria-label="Timeline">
       {hours.map((h) => (
-        <div key={h} className="absolute inset-x-0 border-t border-stone-200" style={{ top: (h - fromHour) * HOUR_PX }}>
-          <span className="absolute -top-2.5 left-0 bg-canvas pr-1 text-xs tabular-nums text-stone-600">{String(h).padStart(2, '0')}:00</span>
+        <div key={h} className="absolute inset-x-0 border-t border-line" style={{ top: (h - fromHour) * HOUR_PX }}>
+          <span className="absolute -top-2.5 left-0 bg-canvas pr-1 text-xs tabular-nums text-muted">{String(h).padStart(2, '0')}:00</span>
         </div>
       ))}
       {nowMin != null && nowMin >= fromHour * 60 && nowMin <= toHour * 60 && (
-        <div aria-label="Now" className="absolute right-0 z-10 border-t-2 border-red-500" style={{ top: top(nowMin), left: GUTTER }}>
-          <span className="absolute -top-1.5 -left-1.5 size-3 rounded-full bg-red-500" />
+        <div aria-label="Now" className="absolute right-0 z-10 border-t-2 border-danger-ink" style={{ top: top(nowMin), left: GUTTER }}>
+          <span className="absolute -top-1.5 -left-1.5 size-3 rounded-full bg-danger-ink" />
         </div>
       )}
       <ol>
@@ -215,7 +223,7 @@ function BlockCard({ block, top, height, zone, tripId, place, to }: { block: Blo
       <Link
         to={`/t/${tripId}/plan/${item.id}`}
         aria-label={`${item.title}, ${time}${where ? `, ${where}` : ''}${conflict ? ', overlaps another item' : ''}`}
-        className={`flex h-full flex-col overflow-hidden rounded-xl border-l-4 px-2 py-1 text-left ${k.bg} ${k.border} ${k.text} ${dashed ? 'border-dashed opacity-80' : ''} ${conflict ? 'ring-2 ring-red-500' : ''}`}
+        className={`flex h-full flex-col overflow-hidden rounded-surface border-l-4 px-2 py-1 text-left ${k.bg} ${k.border} ${k.text} ${dashed ? 'border-dashed opacity-80' : ''} ${conflict ? 'ring-2 ring-danger-ink' : ''}`}
       >
         <span className="flex items-center gap-1 text-xs font-medium opacity-80">
           <k.Icon aria-hidden="true" className="size-3.5 shrink-0" />
@@ -223,7 +231,7 @@ function BlockCard({ block, top, height, zone, tripId, place, to }: { block: Blo
         </span>
         <span className="truncate text-sm font-semibold">{item.title}</span>
         {where && height > 54 && <span className="truncate text-xs opacity-80">{where}</span>}
-        {conflict && height > 72 && <span className="mt-auto text-xs font-semibold text-red-700">Overlaps</span>}
+        {conflict && height > 72 && <span className="mt-auto text-xs font-semibold text-danger-ink">Overlaps</span>}
       </Link>
     </li>
   )
@@ -261,7 +269,7 @@ function DayNoteEditor({ tripId, day }: { tripId: string; day: string }) {
         setOpen(false)
         if (text.trim() !== saved) void saveDayNote(tripId, day, text, me)
       }}
-      className="bg-amber-50/60"
+      className="bg-warning/60"
     />
   )
 }

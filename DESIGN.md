@@ -111,6 +111,13 @@ create/join actions. An invite link (`#join`) gives priority to the invite field
 Installation is always an explicit choice. Creation starts with a trip name and
 traveler name; dates and destination are optional and editable later in Settings.
 
+The trip app is drawn from the website's sample trip. It uses Georgia page and card titles
+with eyebrows, ruled row groups instead of a card per row, an agenda time column, ink for the
+chosen option, mist frames for the one hero object on a screen, and `Status` labels. Screens use
+the semantic Tailwind tokens in `src/styles/index.css` (see `docs/UI_COMPONENTS.md`). Itinerary
+kinds and place categories use the same restrained journal tones (sage, coral, ocean, slate,
+dusk, sand), each checked for AA.
+
 Trip workspace: Home prioritizes decisions during planning, offline preparation
 within seven destination-calendar days of departure, and the next event during
 travel. Plan defaults to a compact agenda; the proportional timeline remains
@@ -135,6 +142,10 @@ the hero line settles within 0.75s. Nothing loops, and reduced motion disables
 all of it. Particles, shader
 backgrounds, globes and cursor effects are out: they add weight, ignore touch,
 and compete with the product example.
+
+The app shares only the interaction effects, from `src/ui/effects.tsx`: the sliding highlight
+(segmented switches, Plan days, phone tabs), the number ticker on the balance, the warming link
+underline, and the primary sheen. Load and scroll reveals stay website-only.
 
 No entrance or scroll animation is required to read the website. Brief control
 feedback uses 160ms and the shared easing. Existing day transitions communicate

@@ -17,7 +17,7 @@ export function TimeToggle({ trip }: { trip: Trip | undefined }) {
 
   if (same) {
     return (
-      <p className="inline-flex min-h-9 items-center gap-1.5 text-xs text-stone-600">
+      <p className="inline-flex min-h-9 items-center gap-1.5 text-xs text-muted">
         <Clock aria-hidden="true" className="size-3.5" /> Times in {label(tripZone)} (same as your phone)
       </p>
     )
@@ -28,8 +28,8 @@ export function TimeToggle({ trip }: { trip: Trip | undefined }) {
       value={view}
       onChange={setTimeView}
       options={[
-        { value: 'trip', title: label(tripZone), label: <>{city(tripZone)} time<span className="ml-1 font-normal text-stone-600">{zoneLabel(tripZone, now)}</span></> },
-        { value: 'device', title: label(phoneZone), label: <>My phone<span className="ml-1 font-normal text-stone-600">{zoneLabel(phoneZone, now)}</span></> },
+        { value: 'trip', title: label(tripZone), label: <>{city(tripZone)} time<span className="ml-1 font-normal text-muted">{zoneLabel(tripZone, now)}</span></> },
+        { value: 'device', title: label(phoneZone), label: <>My phone<span className="ml-1 font-normal text-muted">{zoneLabel(phoneZone, now)}</span></> },
       ]}
     />
   )

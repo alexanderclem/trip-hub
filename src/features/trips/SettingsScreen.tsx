@@ -17,6 +17,9 @@ import { save } from '@/data/repo'
 import { Button, Card, Disclosure, ErrorNote, PageHeader, SectionTitle, Segmented } from '@/ui'
 import { rotateShareToken } from './actions'
 import { TripDetailsForm } from './TripDetailsForm'
+import { TripCoverPicker } from './TripCoverPicker'
+import { TripArtwork } from './TripArtwork'
+import { tripCover } from './presentation'
 
 export function SettingsScreen() {
   const confirm = useConfirm()
@@ -49,6 +52,7 @@ export function SettingsScreen() {
     <div className="pb-10">
       <PageHeader title="Trip settings" back={`/t/${tripId}/more`} />
       <div className="mx-auto max-w-md space-y-4 p-4">
+        <Card><SectionTitle>Make it yours</SectionTitle><p className="mt-1 text-sm text-muted">A familiar cover for your shared adventure.</p><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} /></div><TripCoverPicker trip={trip} memberId={me} /></Card>
         <Card><Disclosure summary="Trip details"><TripDetailsForm trip={trip} memberId={me} /></Disclosure></Card>
         <Card>
           <SectionTitle>Invite the group</SectionTitle>
@@ -69,7 +73,7 @@ export function SettingsScreen() {
           </button>
           {(msg || error) && (
             <div className="space-y-2">
-              {msg && <p role="status" className="rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{msg}</p>}
+              {msg && <p role="status" className="rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink">{msg}</p>}
               <ErrorNote error={error} />
             </div>
           )}
@@ -110,7 +114,7 @@ export function SettingsScreen() {
           <div className="space-y-4">
         <Card>
               <h2 className="ui-section-title">Travel times</h2>
-              <p className="mt-1 text-sm text-stone-600">
+              <p className="mt-1 text-sm text-muted">
                 Calculated automatically for shortlisted, planned and booked places. Road times are multiplied by this range
                 to allow for traffic and delays along the way.
               </p>
@@ -138,7 +142,7 @@ export function SettingsScreen() {
               >
                 <RefreshCw aria-hidden="true" className={`size-4 ${legs.busy ? 'animate-spin' : ''}`} /> {legs.busy ? 'Calculating…' : 'Recalculate now'}
               </Button>
-              {legs.msg && <p role="status" className="mt-3 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{legs.msg}</p>}
+              {legs.msg && <p role="status" className="mt-3 rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink">{legs.msg}</p>}
               <div className="mt-3 empty:hidden"><ErrorNote error={legs.error} /></div>
             </Card>
 
@@ -175,7 +179,7 @@ function FactorInput({ value, onSave }: { value: number; onSave: (v: number) => 
         if (v >= 1 && v <= 4) onSave(Math.round(v * 10) / 10)
         else setText(String(value))
       }}
-      className="w-14 rounded-lg border border-stone-300 px-2 py-1 text-center"
+      className="w-14 rounded-control border border-control px-2 py-1 text-center"
       aria-label="Road time multiplier"
     />
   )

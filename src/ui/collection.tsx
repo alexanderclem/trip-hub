@@ -2,7 +2,7 @@
 import type { ComponentProps } from 'react'
 
 export function Empty({ className = '', ...props }: ComponentProps<'div'>) {
-  return <div data-slot="empty" className={`flex min-w-0 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-stone-300 bg-white/60 px-6 py-10 text-center ${className}`} {...props} />
+  return <div data-slot="empty" className={`flex min-w-0 flex-col items-center justify-center gap-4 rounded-surface bg-mist/55 px-6 py-10 text-center ${className}`} {...props} />
 }
 
 export function EmptyHeader({ className = '', ...props }: ComponentProps<'div'>) {
@@ -10,15 +10,15 @@ export function EmptyHeader({ className = '', ...props }: ComponentProps<'div'>)
 }
 
 export function EmptyTitle(props: ComponentProps<'h3'>) {
-  return <h3 data-slot="empty-title" {...props} className={`text-lg font-semibold tracking-tight ${props.className ?? ''}`} />
+  return <h3 data-slot="empty-title" {...props} className={`ui-section-title ${props.className ?? ''}`} />
 }
 
 export function EmptyDescription(props: ComponentProps<'p'>) {
-  return <p data-slot="empty-description" {...props} className={`text-sm leading-relaxed text-stone-600 ${props.className ?? ''}`} />
+  return <p data-slot="empty-description" {...props} className={`text-sm leading-relaxed text-muted ${props.className ?? ''}`} />
 }
 
 export function Skeleton({ className = '', ...props }: ComponentProps<'div'>) {
-  return <div data-slot="skeleton" className={`rounded-md bg-stone-200 motion-safe:animate-pulse ${className}`} {...props} />
+  return <div data-slot="skeleton" className={`rounded-control bg-mist motion-safe:animate-pulse ${className}`} {...props} />
 }
 
 /** Placeholder rows while a list loads from the phone, in place of a line of "Loading…" text. */
@@ -38,9 +38,9 @@ export function CardHeader(props: ComponentProps<'div'>) {
 }
 
 export function CardTitle(props: ComponentProps<'h2'>) {
-  return <h2 data-slot="card-title" {...props} className={`text-lg font-semibold tracking-tight ${props.className ?? ''}`} />
+  return <h2 data-slot="card-title" {...props} className={`ui-section-title ${props.className ?? ''}`} />
 }
 
 export function CardDescription(props: ComponentProps<'p'>) {
-  return <p data-slot="card-description" {...props} className={`text-sm leading-relaxed text-stone-600 ${props.className ?? ''}`} />
+  return <p data-slot="card-description" {...props} className={`text-sm leading-relaxed text-muted ${props.className ?? ''}`} />
 }

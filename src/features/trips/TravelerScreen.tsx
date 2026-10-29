@@ -40,8 +40,8 @@ export function TravelerScreen() {
     <PageHeader title={member?.display_name ?? 'Traveler'} back={`${root}/overview`} />
     <div className="mx-auto max-w-2xl space-y-4 p-4">
       {!members ? <ListSkeleton label="Loading traveler…" /> : !member ? <p>This traveler is no longer in the trip.</p> : <>
-        <Card><div className="flex items-center gap-3"><Avatar name={member.display_name} color={member.color} photo={member.avatar_url} /><div className="min-w-0"><h2 className="break-words ui-section-title">{member.display_name}{memberId === me ? ' (you)' : ''}</h2><p className="text-sm text-stone-600">Events and responsibilities for this trip</p></div></div>
-          {member.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(member.venmo_username)}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center rounded-lg px-2 font-medium text-brand-700 hover:bg-brand-50">Open Venmo · @{member.venmo_username}</a>}
+        <Card><div className="flex items-center gap-3"><Avatar name={member.display_name} color={member.color} photo={member.avatar_url} /><div className="min-w-0"><h2 className="break-words ui-section-title">{member.display_name}{memberId === me ? ' (you)' : ''}</h2><p className="text-sm text-muted">Events and responsibilities for this trip</p></div></div>
+          {member.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(member.venmo_username)}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center rounded-control px-2 font-medium text-action hover:bg-brand-50">Open Venmo · @{member.venmo_username}</a>}
         </Card>
         <ProfileEditor key={member.id} member={member} me={me} />
         <Assignments title="Plans & events" loading={!items} empty="No events assigned yet." action={<LinkButton variant="ghost" to={`${root}/plan/new?attendee=${memberId}`}>Add an event</LinkButton>}>
@@ -63,10 +63,10 @@ export function TravelerScreen() {
 }
 
 function Assignment({ to, title, detail }: { to: string; title: string; detail: string }) {
-  return <li className="border-b border-stone-200 last:border-0"><Link to={to} className="block min-h-11 rounded-lg py-3 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-brand-700"><p className="break-words font-medium text-brand-700">{title}</p><p className="break-words text-sm text-stone-600">{detail}</p></Link></li>
+  return <li className="border-b border-line last:border-0"><Link to={to} className="block min-h-11 rounded-control py-3 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-action"><p className="break-words font-medium text-action">{title}</p><p className="break-words text-sm text-muted">{detail}</p></Link></li>
 }
 function Assignments({ title, loading, empty, action, children }: { title: string; loading: boolean; empty: string; action: ReactNode; children: ReactNode[] | undefined }) {
-  return <Card><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="ui-section-title">{title}</h2>{action}</div>{loading ? <ListSkeleton label="Loading…" rows={2} className="py-3" /> : children?.length ? <ul>{children}</ul> : <p className="py-3 text-sm text-stone-600">{empty}</p>}</Card>
+  return <Card><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="ui-section-title">{title}</h2>{action}</div>{loading ? <ListSkeleton label="Loading…" rows={2} className="py-3" /> : children?.length ? <ul>{children}</ul> : <p className="py-3 text-sm text-muted">{empty}</p>}</Card>
 }
 function ProfileEditor({ member, me }: { member: Member; me: string | null }) {
   const [name, setName] = useState(member.display_name)
@@ -75,7 +75,7 @@ function ProfileEditor({ member, me }: { member: Member; me: string | null }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
-  return <Card><details><summary className="min-h-11 cursor-pointer py-2 font-medium text-brand-700">Edit traveler profile</summary><form className="mt-3 space-y-4" onSubmit={async (e) => {
+  return <Card><details><summary className="min-h-11 cursor-pointer py-2 font-medium text-action">Edit traveler profile</summary><form className="mt-3 space-y-4" onSubmit={async (e) => {
     e.preventDefault(); setBusy(true); setError(null); setMessage(null)
     try {
       if (!name.trim() || name.trim().length > 100) throw new Error('Use a name between 1 and 100 characters.')
@@ -85,16 +85,16 @@ function ProfileEditor({ member, me }: { member: Member; me: string | null }) {
     finally { setBusy(false) }
   }}>
     <Field label="Traveler name"><Input value={name} maxLength={100} required onChange={(e) => setName(e.target.value)} /></Field>
-    <Field label="Venmo username or profile link"><Input value={venmo} placeholder="@your-username" onChange={(e) => setVenmo(e.target.value)} /><p className="mt-1 text-sm text-stone-600">Visible to your trip group. Opens your Venmo profile to pay in Venmo.</p></Field>
+    <Field label="Venmo username or profile link"><Input value={venmo} placeholder="@your-username" onChange={(e) => setVenmo(e.target.value)} /><p className="mt-1 text-sm text-muted">Visible to your trip group. Opens your Venmo profile to pay in Venmo.</p></Field>
     <div className="flex flex-wrap items-center gap-3"><Avatar name={name} color={member.color} photo={photo} /><Field label="Profile photo"><Input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async (e) => {
       const file = e.target.files?.[0]; if (!file) return
       setBusy(true); setError(null); setMessage(null)
       try { setPhoto(await profilePhoto(file)) } catch (err) { setError(err instanceof Error ? err.message : 'Could not read photo.') } finally { setBusy(false) }
       e.target.value = ''
     }} /></Field></div>
-    <p className="text-sm text-stone-600">Photos are cropped to a square. Without a photo, your bubble shows your initials.</p>
+    <p className="text-sm text-muted">Photos are cropped to a square. Without a photo, your bubble shows your initials.</p>
     {photo && <Button type="button" variant="ghost" disabled={busy} onClick={() => setPhoto(null)}>Remove photo</Button>}
-    <ErrorNote error={error} />{message && <p role="status" className="text-sm text-brand-700">{message}</p>}
+    <ErrorNote error={error} />{message && <p role="status" className="text-sm text-action">{message}</p>}
     <Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save profile'}</Button>
   </form></details></Card>
 }

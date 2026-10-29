@@ -46,21 +46,21 @@ export function AttachmentText({ att, blob }: { att: Attachment; blob: Blob | nu
   })
 
   return (
-    <section aria-label="Text" className="space-y-2 rounded-2xl border border-stone-200 bg-surface p-4">
+    <section aria-label="Text" className="space-y-2 rounded-surface border border-line bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="ui-section-title flex items-center gap-2"><ScanText aria-hidden="true" className="size-4 text-brand-700" />Text</h2>
+        <h2 className="ui-section-title flex items-center gap-2"><ScanText aria-hidden="true" className="size-4 text-action" />Text</h2>
         {text && editing === null && (
           <div className="flex gap-1">
-            <button onClick={() => { void navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }) }} className="inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50">
+            <button onClick={() => { void navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }) }} className="inline-flex min-h-11 items-center gap-1 rounded-control px-2 text-sm font-medium text-action hover:bg-brand-50">
               {copied ? <Check aria-hidden="true" className="size-4" /> : <Copy aria-hidden="true" className="size-4" />}{copied ? 'Copied' : 'Copy'}
             </button>
-            <button onClick={() => setEditing(text)} className="inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50"><Pencil aria-hidden="true" className="size-4" />Edit</button>
+            <button onClick={() => setEditing(text)} className="inline-flex min-h-11 items-center gap-1 rounded-control px-2 text-sm font-medium text-action hover:bg-brand-50"><Pencil aria-hidden="true" className="size-4" />Edit</button>
           </div>
         )}
       </div>
 
       {d && (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-xl bg-brand-50 p-3 text-sm text-brand-900">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-surface bg-brand-50 p-3 text-sm text-ink">
           {d.merchant && <><dt className="font-medium">From</dt><dd>{d.merchant}</dd></>}
           {amount != null && <><dt className="font-medium">Amount</dt><dd className="tabular-nums">{formatMoney(amount, d.currency!)}</dd></>}
           {d.date && <><dt className="font-medium">Date</dt><dd>{d.date}</dd></>}
@@ -80,9 +80,9 @@ export function AttachmentText({ att, blob }: { att: Attachment; blob: Blob | nu
         </>
       ) : text ? (
         <div>
-          <p className={`whitespace-pre-line break-words text-sm text-stone-700 ${open ? '' : 'line-clamp-4'}`}>{text}</p>
+          <p className={`whitespace-pre-line break-words text-sm text-ink ${open ? '' : 'line-clamp-4'}`}>{text}</p>
           {text.split('\n').length > 4 || text.length > 240 ? (
-            <button onClick={() => setOpen(!open)} className="min-h-11 rounded-xl px-1 text-sm font-medium text-brand-700">{open ? 'Show less' : 'Show all'}</button>
+            <button onClick={() => setOpen(!open)} className="min-h-11 rounded-control px-1 text-sm font-medium text-action">{open ? 'Show less' : 'Show all'}</button>
           ) : null}
         </div>
       ) : (
@@ -96,14 +96,14 @@ export function AttachmentText({ att, blob }: { att: Attachment; blob: Blob | nu
           <Sparkles aria-hidden="true" className="size-4" />{busy === 'details' ? 'Reading details…' : d ? 'Pull out details again' : 'Pull out details'}
         </Button>
       )}
-      {!online && editing === null && <p className="text-xs text-stone-600">Pulling out details needs signal.</p>}
+      {!online && editing === null && <p className="text-xs text-muted">Pulling out details needs signal.</p>}
       {att.kind === 'receipt' && !att.expense_id && (
         <LinkButton to={`/t/${att.trip_id}/money/new?receipt=${att.id}`} className="w-full">
           <Wallet aria-hidden="true" className="size-4" />Log as an expense
         </LinkButton>
       )}
       {att.expense_id && (
-        <Link to={`/t/${att.trip_id}/money/${att.expense_id}`} className="block min-h-11 rounded-xl px-1 py-2.5 text-sm font-medium text-brand-700">Logged as an expense →</Link>
+        <Link to={`/t/${att.trip_id}/money/${att.expense_id}`} className="block min-h-11 rounded-control px-1 py-2.5 text-sm font-medium text-action">Logged as an expense →</Link>
       )}
       <ErrorNote error={error} />
     </section>

@@ -120,15 +120,15 @@ export function CreateTripScreen() {
       {loadingDraft && <LoadingState title="Loading your trip idea…" />}
       <form onSubmit={submit} className="trip-create-form mx-auto max-w-xl space-y-5 p-5 sm:p-8">
         <div className="trip-create-intro"><h2 className="travel-heading">Create your trip.</h2></div>
-        {draft && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-900">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name. The itinerary is added as tentative items you can edit.</p>}
+        {draft && <p className="rounded-surface bg-brand-50 p-3 text-sm text-ink">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name. The itinerary is added as tentative items you can edit.</p>}
         <Field label="Trip name">
           <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="NYC spring break 2027" />
         </Field>
         <Field label="Your name" hint="How the group will see you.">
           <Input required maxLength={40} value={form.yourName} onChange={set('yourName')} />
         </Field>
-        <details className="rounded-xl border border-stone-200 bg-surface p-4" open={draft ? true : undefined}>
-          <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-brand-900">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</summary>
+        <details className="rounded-surface border border-line bg-surface p-4" open={draft ? true : undefined}>
+          <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-ink">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</summary>
           <div className="mt-3 space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Starts">
@@ -139,12 +139,12 @@ export function CreateTripScreen() {
           </Field>
         </div>
         <div>
-          <p className="text-sm font-medium text-stone-700">Where are you going?</p>
-          <p className="mt-1 text-xs text-stone-600">Optional. Sets the time zone and currency.</p>
+          <p className="text-sm font-medium text-ink">Where are you going?</p>
+          <p className="mt-1 text-xs text-muted">Optional. Sets the time zone and currency.</p>
           {areas.length > 0 && (
             <ul aria-label="Destinations" className="mt-2 flex flex-wrap gap-2">
               {areas.map((a) => (
-                <li key={a.name} className="inline-flex items-center rounded-full bg-brand-50 pl-3 text-sm text-brand-900">
+                <li key={a.name} className="inline-flex items-center rounded-full bg-brand-50 pl-3 text-sm text-ink">
                   {a.name}
                   <button type="button" aria-label={`Remove ${a.name}`} onClick={() => setAreas(areas.filter((x) => x.name !== a.name))} className="flex size-11 items-center justify-center rounded-full hover:bg-brand-100">
                     <X aria-hidden="true" className="size-4" />
@@ -155,8 +155,8 @@ export function CreateTripScreen() {
           )}
           {areas.length < MAX_AREAS && <div className="mt-2"><DestinationSearch onPick={addDestination} placeholder={areas.length ? 'Add another town' : 'Search for a town or city'} /></div>}
         </div>
-        <details className="border-t border-stone-200 pt-2">
-          <summary className="min-h-11 cursor-pointer content-center text-sm font-medium text-brand-900">Time zone & currencies</summary>
+        <details className="border-t border-line pt-2">
+          <summary className="min-h-11 cursor-pointer content-center text-sm font-medium text-ink">Time zone & currencies</summary>
         <Field label="Destination time zone" hint="Trip times are shown in this zone unless you switch to your phone's time.">
           <Select value={form.timezone} onChange={set('timezone')}>
             {zones.map((z) => (
@@ -177,10 +177,10 @@ export function CreateTripScreen() {
         </details>
           </div>
         </details>
-        <p className="text-xs leading-relaxed text-stone-600">{form.startDate || 'Dates to be decided'} · {form.timezone.replaceAll('_', ' ')} · Settle up in {form.baseCurrency.toUpperCase() || 'a currency you choose'}. Add or change dates and time zone later in Trip settings.</p>
+        <p className="text-xs leading-relaxed text-muted">{form.startDate || 'Dates to be decided'} · {form.timezone.replaceAll('_', ' ')} · Settle up in {form.baseCurrency.toUpperCase() || 'a currency you choose'}. Add or change dates and time zone later in Trip settings.</p>
         <ErrorNote error={error} />
-        {createdTripId && error && <Link className="inline-flex min-h-11 items-center text-brand-700" to={`/t/${createdTripId}/overview`}>Open the created trip →</Link>}
-        {busy && <p role="status" className="text-sm text-stone-600">Creating your shared trip and saving a copy on this device…</p>}
+        {createdTripId && error && <Link className="inline-flex min-h-11 items-center text-action" to={`/t/${createdTripId}/overview`}>Open the created trip →</Link>}
+        {busy && <p role="status" className="text-sm text-muted">Creating your shared trip and saving a copy on this device…</p>}
         <Button type="submit" className="w-full" disabled={busy || loadingDraft || (!!draftId && !draft)}>
           {busy ? 'Creating…' : 'Create trip'}
         </Button>

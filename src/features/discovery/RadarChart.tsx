@@ -12,7 +12,7 @@ export function RadarChart({ scores, comparison, range, label = 'Your travel pre
 }) {
   const id = useId()
   return <figure>
-    <svg viewBox="0 0 400 340" role="img" aria-labelledby={`${id}-title ${id}-desc`} className="mx-auto w-full max-w-md text-brand-700">
+    <svg viewBox="0 0 400 340" role="img" aria-labelledby={`${id}-title ${id}-desc`} className="mx-auto w-full max-w-md text-action">
       <title id={`${id}-title`}>{label}</title>
       <desc id={`${id}-desc`}>Eight preferences from 0 to 100. Higher means more important. Exact values follow the chart.</desc>
       {[25, 50, 75, 100].map((n) => <polygon key={n} points={AXES.map((_, i) => point(i, n * 1.06).join(',')).join(' ')} fill="none" stroke="#d6d3d1" strokeWidth="1" />)}
@@ -25,9 +25,9 @@ export function RadarChart({ scores, comparison, range, label = 'Your travel pre
       <polygon points={polygon(scores)} fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="2.5" />
       {AXES.map(({ key }, i) => { const [x, y] = point(i, scores[key] * 1.06); return <circle key={key} cx={x} cy={y} r="3" fill="currentColor" /> })}
     </svg>
-    <figcaption className="text-center text-xs text-stone-600">Solid: {label.toLowerCase()}{comparison ? ' · Dashed: your profile' : ''}{range ? ' · Dotted: group range' : ''}</figcaption>
-    <details className="mt-3 text-sm"><summary className="min-h-11 cursor-pointer py-3 text-brand-700">View exact scores</summary>
-      <table className="w-full text-left text-xs"><thead><tr><th className="py-2">Preference</th><th>Score</th>{comparison && <th>You</th>}{range && <th>Group range</th>}</tr></thead><tbody>{AXES.map(({ key, label: axisLabel }) => <tr key={key} className="border-t border-stone-200"><th className="py-2 font-normal">{axisLabel}</th><td>{scores[key]}</td>{comparison && <td>{comparison[key]}</td>}{range && <td>{range.low[key]}–{range.high[key]}</td>}</tr>)}</tbody></table>
+    <figcaption className="text-center text-xs text-muted">Solid: {label.toLowerCase()}{comparison ? ' · Dashed: your profile' : ''}{range ? ' · Dotted: group range' : ''}</figcaption>
+    <details className="mt-3 text-sm"><summary className="min-h-11 cursor-pointer py-3 text-action">View exact scores</summary>
+      <table className="w-full text-left text-xs"><thead><tr><th className="py-2">Preference</th><th>Score</th>{comparison && <th>You</th>}{range && <th>Group range</th>}</tr></thead><tbody>{AXES.map(({ key, label: axisLabel }) => <tr key={key} className="border-t border-line"><th className="py-2 font-normal">{axisLabel}</th><td>{scores[key]}</td>{comparison && <td>{comparison[key]}</td>}{range && <td>{range.low[key]}–{range.high[key]}</td>}</tr>)}</tbody></table>
     </details>
   </figure>
 }

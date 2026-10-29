@@ -21,25 +21,25 @@ export function WeatherLine({ day }: { day: DayWeather | null }) {
   const { label } = describeCode(w.code)
   const typical = day.kind === 'typical'
   return (
-    <section aria-label="Weather" className="rounded-xl border border-brand-100 bg-brand-50 px-3 py-2 text-sm text-brand-900">
+    <section aria-label="Weather" className="rounded-surface border border-line bg-brand-50 px-3 py-2 text-sm text-ink">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span className="flex items-center gap-1.5 font-medium">
-          <WeatherGlyph code={w.code} className="size-5 text-brand-700" />
+          <WeatherGlyph code={w.code} className="size-5 text-action" />
           {label}
-          {typical && <span className="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-stone-600">Typical</span>}
+          {typical && <span className="rounded bg-surface px-1.5 py-0.5 text-xs font-semibold text-muted">Typical</span>}
         </span>
         <span className="tabular-nums"><b>{formatTemp(w.hi, unit)}</b> / {formatTemp(w.lo, unit)}</span>
         {w.rainPct != null && (
           <span className="flex items-center gap-1 tabular-nums">
-            <Droplets aria-hidden="true" className="size-4 text-brand-700" />
+            <Droplets aria-hidden="true" className="size-4 text-action" />
             {typical ? `Rained ${w.rainPct}% of years` : `${w.rainPct}% rain`}
           </span>
         )}
-        {w.windKmh != null && <span className="flex items-center gap-1"><Wind aria-hidden="true" className="size-4 text-brand-700" />{formatWind(w.windKmh, unit)}</span>}
-        {w.sunrise && <span className="flex items-center gap-1 tabular-nums"><Sunrise aria-hidden="true" className="size-4 text-amber-600" /><span className="sr-only">Sunrise</span>{w.sunrise}</span>}
-        {w.sunset && <span className="flex items-center gap-1 tabular-nums"><Sunset aria-hidden="true" className="size-4 text-amber-700" /><span className="sr-only">Sunset</span>{w.sunset}</span>}
+        {w.windKmh != null && <span className="flex items-center gap-1"><Wind aria-hidden="true" className="size-4 text-action" />{formatWind(w.windKmh, unit)}</span>}
+        {w.sunrise && <span className="flex items-center gap-1 tabular-nums"><Sunrise aria-hidden="true" className="size-4 text-warning-ink" /><span className="sr-only">Sunrise</span>{w.sunrise}</span>}
+        {w.sunset && <span className="flex items-center gap-1 tabular-nums"><Sunset aria-hidden="true" className="size-4 text-warning-ink" /><span className="sr-only">Sunset</span>{w.sunset}</span>}
       </div>
-      <p className="mt-1 text-xs text-stone-600">
+      <p className="mt-1 text-xs text-muted">
         {typical ? 'Typical for these dates (last few years), not a forecast' : `Forecast updated ${Date.now() - Date.parse(day.fetched_at) < 60_000 ? 'just now' : DateTime.fromISO(day.fetched_at).toRelative()}`}
         {' · '}
         <a href={ATTRIBUTION_URL} target="_blank" rel="noreferrer" className="underline">

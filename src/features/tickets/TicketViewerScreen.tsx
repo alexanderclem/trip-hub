@@ -45,35 +45,35 @@ export function TicketViewerScreen() {
     return (
       <div>
         <PageHeader title="Ticket" back={`/t/${tripId}/tickets`} />
-        {att?.deleted_at && <p className="p-5 text-stone-600">This ticket was removed.</p>}
+        {att?.deleted_at && <p className="p-5 text-muted">This ticket was removed.</p>}
       </div>
     )
   }
 
   return (
-    <div className="min-h-full bg-stone-100 pb-10">
+    <div className="min-h-full bg-mist/60 pb-10">
       <PageHeader title={att.title} back={`/t/${tripId}/tickets`} />
       <div className="mx-auto max-w-2xl space-y-3 p-3">
         {att.confirmation_code && (
-          <div className="rounded-2xl border border-stone-200 bg-surface p-4 text-center">
+          <div className="rounded-surface border border-line bg-surface p-4 text-center">
             <p className="ui-label">Confirmation</p>
             <p className="font-mono text-3xl font-semibold tracking-wider break-all select-all">{att.confirmation_code}</p>
           </div>
         )}
         {item && (
-          <Link to={`/t/${tripId}/plan/${item.id}`} className="block rounded-xl border border-stone-200 bg-surface px-4 py-3 text-sm text-brand-700">For: {item.title}</Link>
+          <Link to={`/t/${tripId}/plan/${item.id}`} className="block rounded-control border border-line bg-surface px-4 py-3 text-sm text-action">For: {item.title}</Link>
         )}
         <ErrorNote error={error} />
         {/* touch-action lets people pinch-zoom a barcode for the scanner. */}
         <div style={{ touchAction: 'pan-x pan-y pinch-zoom' }}>
           {blob && att.mime === 'application/pdf' && <PdfView blob={blob} title={att.title} />}
-          {url && att.mime.startsWith('image/') && <img src={url} alt={att.title} className="w-full rounded-lg bg-white shadow-sm" />}
+          {url && att.mime.startsWith('image/') && <img src={url} alt={att.title} className="w-full rounded-control bg-surface shadow-sm" />}
           {!blob && !error && <LoadingState title="Opening your ticket…" />}
         </div>
         <AttachmentText att={att} blob={blob} />
         <div className="grid grid-cols-2 gap-2 pt-2">
           {url && (
-            <a href={url} download={att.filename} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 font-medium text-stone-800">
+            <a href={url} download={att.filename} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-control bg-surface px-4 font-medium text-ink">
               <Download aria-hidden="true" className="size-4" /> Save a copy
             </a>
           )}

@@ -83,7 +83,7 @@ export function TicketFormScreen() {
           <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}><FileUp aria-hidden="true" className="size-4" />PDF or photo</Button>
           <Button type="button" variant="secondary" onClick={() => cameraRef.current?.click()}><Camera aria-hidden="true" className="size-4" />Take a photo</Button>
         </div>
-        {file && <p className="rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{file.name} · {(file.size / 1024 / 1024).toFixed(1)} MB</p>}
+        {file && <p className="rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink">{file.name} · {(file.size / 1024 / 1024).toFixed(1)} MB</p>}
         {file && (
           <ScanPanel
             file={file} mime={file.type || 'application/octet-stream'} kind={kind} langs={langs} value={scan} onChange={setScan}
@@ -95,7 +95,7 @@ export function TicketFormScreen() {
           />
         )}
         {details && (
-          <p role="status" className="rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">
+          <p role="status" className="rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink">
             Found: {[details.merchant, detailsAmountMinor(details) != null ? formatMoney(detailsAmountMinor(details)!, details.currency!) : null, details.date, details.flight, details.confirmation_code].filter(Boolean).join(' · ') || 'a few details'}. Check them before saving.
           </p>
         )}
@@ -121,7 +121,7 @@ export function TicketFormScreen() {
         </Field>
         <ErrorNote error={error} />
         <Button type="submit" className="w-full" disabled={saving || !file}>{saving ? 'Saving…' : forExpense && kind === 'receipt' ? 'Save and log the expense' : 'Save'}</Button>
-        <p className="text-center text-xs text-stone-600">Saved on this phone right away, then shared with the group when there's signal.</p>
+        <p className="text-center text-xs text-muted">Saved on this phone right away, then shared with the group when there's signal.</p>
       </form>
     </div>
   )

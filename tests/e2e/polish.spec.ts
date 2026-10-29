@@ -10,7 +10,7 @@ async function seed(page: Page, baseURL: string, offline = true) {
   await page.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL).origin, route => route.abort())
   if (offline) await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
   await page.goto('/inspire/manual')
-  await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trip ideas' })).toBeVisible()
   await page.evaluate(async ({ tripId, memberId, pollId }) => {
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
@@ -97,7 +97,7 @@ test('public visits defer offline downloads; entering the app installs it for of
   await page.goto('/')
   await page.getByRole('heading', { level: 1 }).waitFor()
   expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0)
-  await page.getByRole('link', { name: 'Create a trip', exact: true }).click()
+  await page.getByRole('link', { name: 'Create a trip', exact: true }).first().click()
   await expect(page.getByLabel('Trip name')).toBeVisible()
   await page.waitForFunction(async () => (await navigator.serviceWorker.ready) && !!navigator.serviceWorker.controller)
   await context.setOffline(true)
@@ -126,7 +126,7 @@ test('invite copying locks duplicate actions, reports failure, and permits retry
   await card.getByRole('button', { name: 'Copy', exact: true }).click()
   await page.evaluate(() => (window as unknown as { finishCopy: () => void }).finishCopy())
   await expect(card.getByRole('button', { name: 'Copied' })).toBeEnabled()
-  await expect(card.getByRole('status')).toContainText('Invite copied')
+  await expect(card.getByRole('status')).toContainText('Invite link copied')
   await expect(card.getByRole('alert')).toHaveCount(0)
 })
 

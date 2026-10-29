@@ -21,7 +21,7 @@ export function AddToPollCard({ place, memberId }: { place: Place; memberId: str
         <ul className="mt-2 space-y-1">
           {included.map(({ poll }) => (
             <li key={poll.id}>
-              <Link to={`/t/${place.trip_id}/more/vote/${poll.id}`} className="flex min-h-11 items-center gap-2 text-sm text-brand-700">
+              <Link to={`/t/${place.trip_id}/more/vote/${poll.id}`} className="flex min-h-11 items-center gap-2 text-sm text-action">
                 <Check aria-hidden="true" className="size-4" /> In “{poll.title}”{votingEnded(poll, Date.now()) ? ' (closed)' : ''}
               </Link>
             </li>

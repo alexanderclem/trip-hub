@@ -1,8 +1,9 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { CalendarDays, Check, MapPin, Receipt, Ticket, Users, Vote } from 'lucide-react'
 import { m, useInView } from 'motion/react'
 import { useMotionPreference } from '@/ui/MotionProvider'
 import { motionTiming } from '@/ui/motion'
+import { useSlidingHighlight } from '@/ui/effects'
 import { NumberTicker } from './effects'
 
 const days = [
@@ -45,23 +46,8 @@ type Stage = typeof stages[number]
 
 /** A segmented control whose one highlight slides to the pressed button, whatever its width. */
 function Segment({ active, children }: { active: string | number; children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [box, setBox] = useState<CSSProperties>()
-  const placed = useRef(false)
-  useLayoutEffect(() => {
-    const row = ref.current
-    if (!row) return
-    const measure = () => {
-      const pressed = row.querySelector<HTMLElement>('button[aria-pressed="true"]')
-      if (pressed) setBox({ width: pressed.offsetWidth, height: pressed.offsetHeight, transform: `translate(${pressed.offsetLeft}px, ${pressed.offsetTop}px)`, transition: placed.current ? undefined : 'none' })
-      placed.current = true
-    }
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(row)
-    return () => observer.disconnect()
-  }, [active])
-  return <div ref={ref} className="preview-segment"><span className="preview-highlight" style={box} aria-hidden="true" />{children}</div>
+  const { ref, style } = useSlidingHighlight<HTMLDivElement>(active, 'button[aria-pressed="true"]')
+  return <div ref={ref} className="preview-segment"><span className="preview-highlight" style={style} aria-hidden="true" />{children}</div>
 }
 
 /** A safe, local-only example. No accounts, map requests, writes or real trip data. */

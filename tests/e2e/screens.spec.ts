@@ -18,7 +18,7 @@ async function seed(page: Page, baseURL: string) {
   await page.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL).origin, route => route.abort())
   await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
   await page.goto('/inspire/manual')
-  await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Trip ideas' })).toBeVisible()
   await page.evaluate(async (ids) => {
     const { tripId, me, friend, pollId, dinner, cafe, expense, ticket } = ids
     const req = indexedDB.open('trip-hub')
@@ -90,7 +90,7 @@ for (const width of [390, 1440]) {
     for (const [name, path] of screens) {
       await page.goto(`${root}/${path}`)
       await (name === 'map' ? page.getByRole('button', { name: /Filters/ }) : page.getByRole('heading', { level: 1 }).first()).waitFor()
-      await page.waitForTimeout(400)
+      await page.waitForTimeout(900) // lets a balance finish counting up
       await page.screenshot({ path: `${shots}/${name}-${width}.png` })
       // The screen itself scrolls inside the shell, so a full-page capture needs the content's own height.
       const tall = await page.locator('#trip-content').evaluate(el => el.scrollHeight)

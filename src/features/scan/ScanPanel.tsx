@@ -60,10 +60,10 @@ export function ScanPanel({ file, mime, kind, langs, value, onChange, onDetails 
   }
 
   return (
-    <section aria-label="Text from the file" className="space-y-2 rounded-2xl border border-stone-200 bg-surface p-3">
+    <section aria-label="Text from the file" className="space-y-2 rounded-surface border border-line bg-surface p-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-sm font-semibold"><ScanText aria-hidden="true" className="size-4 text-brand-700" />Text</h2>
-        {reading !== null && <span role="status" className="text-xs text-stone-600">Reading text… {Math.round(reading * 100)}%</span>}
+        <h2 className="flex items-center gap-2 text-sm font-semibold"><ScanText aria-hidden="true" className="size-4 text-action" />Text</h2>
+        {reading !== null && <span role="status" className="text-xs text-muted">Reading text… {Math.round(reading * 100)}%</span>}
       </div>
       <Textarea
         aria-label="Text from the file"
@@ -74,11 +74,11 @@ export function ScanPanel({ file, mime, kind, langs, value, onChange, onDetails 
         placeholder={reading !== null ? 'Reading…' : 'No text found. You can type the important bits here.'}
         onChange={(e) => onChange({ text: e.target.value, source: 'edited' })}
       />
-      {readError && <p className="text-sm text-amber-800">{readError}</p>}
+      {readError && <p className="text-sm text-warning-ink">{readError}</p>}
       <Button type="button" variant="secondary" className="flex w-full items-center justify-center gap-2" disabled={!online || asking || reading !== null} onClick={() => void pullDetails()}>
         <Sparkles aria-hidden="true" className="size-4" />{asking ? 'Reading details…' : 'Pull out details'}
       </Button>
-      {!online && <p className="text-xs text-stone-600">Pulling out details needs signal; the text above is read on your phone.</p>}
+      {!online && <p className="text-xs text-muted">Pulling out details needs signal; the text above is read on your phone.</p>}
       <ErrorNote error={detailsError} />
     </section>
   )

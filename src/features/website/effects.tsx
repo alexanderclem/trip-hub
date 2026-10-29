@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { animate, m, useInView } from 'motion/react'
+import type { ReactNode } from 'react'
+import { m } from 'motion/react'
 import { useMotionPreference } from '@/ui/MotionProvider'
 
 /**
@@ -51,17 +51,4 @@ export function WordReveal({ text, delay = 0 }: { text: string; delay?: number }
   )
 }
 
-/** Counts up to a whole number when it first appears. */
-export function NumberTicker({ value, prefix = '' }: { value: number; prefix?: string }) {
-  const reduced = useMotionPreference()
-  const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true })
-  const [shown, setShown] = useState(reduced ? value : 0)
-  useEffect(() => {
-    if (reduced) { setShown(value); return }
-    if (!inView) return
-    const controls = animate(0, value, { duration: 0.7, ease, onUpdate: (v) => setShown(Math.round(v)) })
-    return () => controls.stop()
-  }, [inView, reduced, value])
-  return <span ref={ref} className="website-ticker">{prefix}{shown}</span>
-}
+export { NumberTicker } from '@/ui/effects'

@@ -76,8 +76,8 @@ export function QuizScreen() {
       <Screen mood="delighted">
         <Bubble from="stowie">That’s all I need. Here’s how you travel.</Bubble>
         <p className="ui-label mt-5">Your travel style</p>
-        <h1 ref={heading} tabIndex={-1} className="travel-heading mt-2 text-4xl text-brand-900 outline-none">{classify(scores)}</h1>
-        <p className="mt-3 leading-relaxed text-stone-600">
+        <h1 ref={heading} tabIndex={-1} className="travel-heading mt-2 text-4xl text-ink outline-none">{classify(scores)}</h1>
+        <p className="mt-3 leading-relaxed text-muted">
           This is your radar. The group’s trip ideas balance everyone’s, and you can fine-tune yours any time by asking me in More → Trip ideas.
         </p>
         <div className="mt-4"><RadarChart scores={scores} label="Your travel style" /></div>
@@ -95,16 +95,16 @@ export function QuizScreen() {
       <Screen mood={mood}>
         <Bubble from="stowie">Hi, I’m Stowie. I ride along in the suitcase and think about trips all day.</Bubble>
         <div className="mt-3"><Bubble from="stowie">
-          <h1 ref={heading} tabIndex={-1} className="travel-heading inline text-2xl text-brand-900 outline-none">
+          <h1 ref={heading} tabIndex={-1} className="travel-heading inline text-2xl text-ink outline-none">
             {retake ? 'Retake the travel quiz' : 'What kind of traveler are you?'}
           </h1>
         </Bubble></div>
-        <p className="mt-5 leading-relaxed text-stone-600">
+        <p className="mt-5 leading-relaxed text-muted">
           {QUESTIONS.length} quick this-or-that questions, about a minute. Your answers draw your travel radar, so the group can plan days everyone enjoys.
         </p>
-        <ul className="mt-5 space-y-2 text-sm text-stone-700">
+        <ul className="mt-5 space-y-2 text-sm text-ink">
           {['No right answers: pick what sounds most like you', 'Your group sees your radar, not your answers', 'Change it any time from More → Trip ideas'].map((t) => (
-            <li key={t} className="flex gap-2"><Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand-700" />{t}</li>
+            <li key={t} className="flex gap-2"><Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-action" />{t}</li>
           ))}
         </ul>
         <div className="mt-8 space-y-2">
@@ -123,11 +123,11 @@ export function QuizScreen() {
         <Button variant="ghost" className="-ml-4" onClick={() => { setMood('talking'); setStep(step === 0 ? 'intro' : step - 1) }}>
           <ArrowLeft aria-hidden="true" className="size-4" />Back
         </Button>
-        <span className="text-sm tabular-nums text-stone-600">{step + 1} of {QUESTIONS.length}</span>
+        <span className="text-sm tabular-nums text-muted">{step + 1} of {QUESTIONS.length}</span>
         <Button variant="ghost" className="-mr-4" onClick={skip}>{retake ? 'Not now' : 'Skip for now'}</Button>
       </div>
-      <div role="progressbar" aria-label="Quiz progress" aria-valuemin={1} aria-valuemax={QUESTIONS.length} aria-valuenow={step + 1} className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200">
-        <div className="h-full rounded-full bg-brand-700 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }} />
+      <div role="progressbar" aria-label="Quiz progress" aria-valuemin={1} aria-valuemax={QUESTIONS.length} aria-valuenow={step + 1} className="mt-2 h-1.5 overflow-hidden rounded-full bg-mist">
+        <div className="h-full rounded-full bg-action transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }} />
       </div>
       {/* What's been said so far scrolls up above the current question, like any chat. */}
       <div className="mt-5 space-y-3">
@@ -141,7 +141,7 @@ export function QuizScreen() {
           )
         })}
         <Bubble key={q.id} from="stowie">
-          <h1 ref={heading} tabIndex={-1} id={`q-${q.id}`} className="travel-heading inline text-2xl text-brand-900 outline-none">{q.prompt}</h1>
+          <h1 ref={heading} tabIndex={-1} id={`q-${q.id}`} className="travel-heading inline text-2xl text-ink outline-none">{q.prompt}</h1>
         </Bubble>
       </div>
       <div role="radiogroup" aria-labelledby={`q-${q.id}`} className="mt-5 space-y-3">
@@ -152,7 +152,7 @@ export function QuizScreen() {
             role="radio"
             aria-checked={picked === i}
             onClick={() => void answer(step, i)}
-            className={`flex min-h-14 w-full items-center rounded-2xl border px-4 py-3 text-left font-medium transition-colors active:bg-brand-50 ${picked === i ? 'border-brand-700 bg-brand-50 text-brand-900' : 'border-stone-200 bg-surface text-stone-800 hover:border-brand-600'}`}
+            className={`flex min-h-14 w-full items-center rounded-surface border px-4 py-3 text-left font-medium transition-colors active:bg-brand-50 ${picked === i ? 'border-action bg-brand-50 text-ink' : 'border-line bg-surface text-ink hover:border-action'}`}
           >
             {o.label}
           </button>

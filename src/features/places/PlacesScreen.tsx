@@ -41,14 +41,14 @@ export function PlacesScreen() {
         title="Places"
         back={`/t/${tripId}/more`}
         action={
-          <Link to="new" className="flex size-10 items-center justify-center rounded-full text-brand-700 active:bg-brand-50" aria-label="Add place">
+          <Link to="new" className="flex size-10 items-center justify-center rounded-full text-action active:bg-brand-50" aria-label="Add place">
             <Plus className="size-6" />
           </Link>
         }
       />
       <div className="mx-auto max-w-4xl space-y-4 p-4 sm:p-6">
         <div className="relative">
-          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-stone-500" />
+          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-muted" />
           <Input aria-label="Search places" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search places" className="pl-10" />
         </div>
         <div aria-label="Filter places by category" className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1">
@@ -60,27 +60,27 @@ export function PlacesScreen() {
           ))}
         </div>
         {poolCount > 0 && (
-          <label className="flex items-center gap-2 text-sm text-stone-600">
-            <input type="checkbox" checked={showPool} onChange={(e) => setShowPool(e.target.checked)} className="size-4 accent-brand-600" />
+          <label className="flex items-center gap-2 text-sm text-muted">
+            <input type="checkbox" checked={showPool} onChange={(e) => setShowPool(e.target.checked)} className="size-4 accent-action" />
             Include {poolCount} places from the idea pool
           </label>
         )}
 
-        <div className="flex items-center justify-between gap-3 border-t border-stone-200 pt-4">
-          <h2 className="text-sm font-semibold text-stone-700">{q.trim() ? 'Search results' : showPool ? 'All places' : 'Your places'}</h2>
-          <label className="ml-auto flex items-center gap-1.5 text-xs text-stone-600">
+        <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+          <h2 className="text-sm font-semibold text-ink">{q.trim() ? 'Search results' : showPool ? 'All places' : 'Your places'}</h2>
+          <label className="ml-auto flex items-center gap-1.5 text-xs text-muted">
             Sort
-            <select value={sort} onChange={(e) => setSort(e.target.value as 'area' | 'rating')} className="min-h-9 rounded-lg border border-stone-300 bg-white px-2 text-xs">
+            <select value={sort} onChange={(e) => setSort(e.target.value as 'area' | 'rating')} className="min-h-9 rounded-control border border-control bg-surface px-2 text-xs">
               <option value="area">By town</option>
               <option value="rating">Best rated</option>
             </select>
           </label>
-          <p role="status" className="text-xs text-stone-600">{places ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}` : 'Loading places…'}</p>
+          <p role="status" className="text-xs text-muted">{places ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}` : 'Loading places…'}</p>
         </div>
-        {!places && <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl border border-stone-200 bg-surface p-4"><Skeleton className="h-10 w-10" /><Skeleton className="mt-4 h-5 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></div>)}</div>}
+        {!places && <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="rounded-surface border border-line bg-surface p-4"><Skeleton className="h-10 w-10" /><Skeleton className="mt-4 h-5 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></div>)}</div>}
         {places && filtered.length === 0 && (
           <Empty>
-            <MapPin aria-hidden="true" className="size-8 text-brand-700" />
+            <MapPin aria-hidden="true" className="size-8 text-action" />
             <EmptyHeader>
               <EmptyTitle>{places.length ? 'No places in this view' : 'Where should we go?'}</EmptyTitle>
               <EmptyDescription>{places.length ? 'Try another search or category, or include the idea pool.' : 'That restaurant from the group chat? The beach you can’t stop thinking about? Save it here and let your friends add their favorites.'}</EmptyDescription>
@@ -93,16 +93,16 @@ export function PlacesScreen() {
           {filtered.map((p) => {
             const at = p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : null
             return (
-              <li key={p.id} className="flex min-w-0 flex-col rounded-2xl border border-stone-200 bg-surface">
-                <Link to={p.id} className="group flex-1 rounded-t-2xl p-4 transition-colors hover:bg-stone-50">
+              <li key={p.id} className="flex min-w-0 flex-col rounded-surface border border-line bg-surface">
+                <Link to={p.id} className="group flex-1 rounded-t-surface p-4 transition-colors hover:bg-brand-50">
                   <div className="mb-4 flex items-center justify-between gap-2"><PlaceCategoryIcon category={p.category} /><span className="flex items-center gap-2"><StarsSummary summary={ratings?.get(p.id)} compact /><PlaceStatusBadge status={p.status} /></span></div>
-                  <p className="mb-1 text-xs font-medium text-stone-600">{CATEGORY_STYLE[p.category].label}</p>
-                  <h3 className="flex items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight group-hover:text-brand-700"><span className="min-w-0 break-words">{p.name}</span><ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-stone-500" /></h3>
-                  {(p.area || p.address) && <p className="mt-2 flex items-start gap-1.5 text-sm text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{p.address || p.area}</span></p>}
-                  {p.notes && <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-stone-600">{p.notes}</p>}
-                  {!at && <p className="mt-3 text-xs text-amber-800">No map pin yet</p>}
+                  <p className="mb-1 text-xs font-medium text-muted">{CATEGORY_STYLE[p.category].label}</p>
+                  <h3 className="flex items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight group-hover:text-action"><span className="min-w-0 break-words">{p.name}</span><ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted" /></h3>
+                  {(p.area || p.address) && <p className="mt-2 flex items-start gap-1.5 text-sm text-muted"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{p.address || p.area}</span></p>}
+                  {p.notes && <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-muted">{p.notes}</p>}
+                  {!at && <p className="mt-3 text-xs text-warning-ink">No map pin yet</p>}
                 </Link>
-                <div className="mx-4 flex flex-wrap gap-2 border-t border-stone-200 py-3">
+                <div className="mx-4 flex flex-wrap gap-2 border-t border-line py-3">
                   {at && <Link to={`/t/${tripId}/map?place=${encodeURIComponent(p.id)}`} className={placeActionClass}><MapPin aria-hidden="true" className="size-4" />On map</Link>}
                   <a href={googleMapsUrl(p.name, p.area, at)} target="_blank" rel="noreferrer" className={placeActionClass}><Navigation aria-hidden="true" className="size-4" />Google Maps<span className="sr-only"> (opens in a new tab)</span></a>
                 </div>
@@ -121,7 +121,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       onClick={onClick}
       aria-pressed={active}
       className={`min-h-11 shrink-0 rounded-full border px-3 py-2 text-sm ${
-        active ? 'border-brand-700 bg-brand-50 text-brand-900' : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-50'
+        active ? 'border-action bg-brand-50 text-ink' : 'border-control bg-surface text-ink hover:bg-brand-50'
       }`}
     >
       {children}

@@ -42,16 +42,16 @@ export function ConnectedAppsScreen() {
 
   return <main className="mx-auto max-w-lg space-y-6 px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)]">
     <Brand />
-    <div><h1 className="text-2xl font-semibold tracking-tight">Connected apps</h1><p className="mt-3 text-sm leading-relaxed text-stone-600">Manage apps you have allowed to access your Stowaway account.</p></div>
-    {account.kind === 'guest' ? <p className="text-sm text-stone-600">Sign in from your trips page to manage connected apps.</p>
+    <div><h1 className="text-2xl font-semibold tracking-tight">Connected apps</h1><p className="mt-3 text-sm leading-relaxed text-muted">Manage apps you have allowed to access your Stowaway account.</p></div>
+    {account.kind === 'guest' ? <p className="text-sm text-muted">Sign in from your trips page to manage connected apps.</p>
       : !online ? <p role="status">Connect to the internet to manage apps.</p>
       : grants ? grants.length ? grants.map((grant) => <Card key={grant.client.id} className="space-y-3">
         <h2 className="break-words ui-section-title">{grant.client.name}</h2>
-        <p className="text-sm text-stone-600">Disconnecting stops this app from refreshing its access. Existing access expires within five minutes. It does not remove information already shared.</p>
+        <p className="text-sm text-muted">Disconnecting stops this app from refreshing its access. Existing access expires within five minutes. It does not remove information already shared.</p>
         <Button variant="danger" disabled={busy !== null} onClick={() => void disconnect(grant.client.id)}>{busy === grant.client.id ? 'Disconnecting…' : 'Disconnect'}</Button>
-      </Card>) : <p role="status" className="text-sm text-stone-600">You have no connected apps.</p>
+      </Card>) : <p role="status" className="text-sm text-muted">You have no connected apps.</p>
       : !error ? <ListSkeleton label="Loading connected apps…" /> : null}
     {error && <div className="space-y-3"><ErrorNote error={error} /><Button variant="secondary" disabled={!online} onClick={() => setRetry((value) => value + 1)}>Try again</Button></div>}
-    <Link to="/app" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700">Back to your trips</Link>
+    <Link to="/app" className="inline-flex min-h-11 items-center text-sm font-medium text-action">Back to your trips</Link>
   </main>
 }

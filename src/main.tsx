@@ -6,6 +6,7 @@ import { MotionProvider } from './ui/MotionProvider'
 import { initializeInstallPrompt } from './features/install/installPrompt'
 import { clearPreResetTrips } from './data/reset'
 import './styles/index.css'
+import './styles/journal.css'
 
 initializeInstallPrompt()
 

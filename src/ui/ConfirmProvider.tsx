@@ -23,7 +23,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     <ConfirmContext.Provider value={confirm}>
       {children}
       <Dialog open={message !== null} onClose={() => finish(false)} title="Confirm this change">
-        <p className="break-words leading-relaxed text-stone-700">{message}</p>
+        <p className="break-words leading-relaxed text-ink">{message}</p>
         <div className="mt-6 flex flex-wrap justify-end gap-2">
           <Button variant="secondary" onClick={() => finish(false)}>Cancel</Button>
           <Button variant="danger" onClick={() => finish(true)}>Confirm change</Button>

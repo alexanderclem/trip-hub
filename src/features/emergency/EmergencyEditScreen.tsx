@@ -39,9 +39,9 @@ export function EmergencyEditScreen() {
   return (
     <div className="min-h-full pb-24">
       <PageHeader title="My emergency card" back={back} />
-      {!me ? <p className="p-4 text-stone-600">Choose who you are in this trip first.</p> : (
+      {!me ? <p className="p-4 text-muted">Choose who you are in this trip first.</p> : (
         <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4">
-          <p className="text-sm text-stone-600">Everyone on the trip can see this, even offline. Leave out anything you’d rather not share.</p>
+          <p className="text-sm text-muted">Everyone on the trip can see this, even offline. Leave out anything you’d rather not share.</p>
           <fieldset disabled={busy} className="min-w-0 space-y-4">
             <legend className="font-semibold">Who to call</legend>
             <Field label="Name"><Input value={v('emergency_name')} onChange={set('emergency_name')} maxLength={120} autoComplete="off" /></Field>
@@ -118,17 +118,17 @@ export function EmergencyNumbersScreen() {
       <PageHeader title="Emergency numbers" back={back} />
       {!info ? <ListSkeleton label="Loading…" className="p-4" /> : (
         <form onSubmit={submit} className="mx-auto max-w-md space-y-5 p-4">
-          <p className="text-sm text-stone-600">Shared with the whole trip. Look these up for your destination while you have signal.</p>
+          <p className="text-sm text-muted">Shared with the whole trip. Look these up for your destination while you have signal.</p>
           <fieldset disabled={busy} className="min-w-0 space-y-2">
             <legend className="font-semibold">Phone numbers</legend>
             {info.numbers.map((n, i) => (
               <div key={i} className="flex items-end gap-2">
                 <div className="min-w-0 flex-1"><Field label={i === 0 ? 'What' : ''}><Input aria-label={`Number ${i + 1} name`} value={n.label} placeholder="Police" maxLength={60} onChange={(e) => setInfo({ ...info, numbers: info.numbers.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })} /></Field></div>
                 <div className="w-32"><Field label={i === 0 ? 'Number' : ''}><Input aria-label={`Number ${i + 1} phone`} type="tel" value={n.phone} placeholder="110" maxLength={40} onChange={(e) => setInfo({ ...info, numbers: info.numbers.map((x, j) => (j === i ? { ...x, phone: e.target.value } : x)) })} /></Field></div>
-                <button type="button" aria-label={`Remove number ${i + 1}`} onClick={() => setInfo({ ...info, numbers: info.numbers.filter((_, j) => j !== i) })} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-stone-600 hover:bg-stone-100"><Trash2 aria-hidden="true" className="size-4" /></button>
+                <button type="button" aria-label={`Remove number ${i + 1}`} onClick={() => setInfo({ ...info, numbers: info.numbers.filter((_, j) => j !== i) })} className="flex size-11 shrink-0 items-center justify-center rounded-control text-muted hover:bg-brand-50"><Trash2 aria-hidden="true" className="size-4" /></button>
               </div>
             ))}
-            <button type="button" onClick={() => setInfo({ ...info, numbers: [...info.numbers, { label: '', phone: '' }] })} className="inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-brand-700 hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add a number</button>
+            <button type="button" onClick={() => setInfo({ ...info, numbers: [...info.numbers, { label: '', phone: '' }] })} className="inline-flex min-h-11 items-center gap-1 rounded-control px-2 text-sm font-medium text-action hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add a number</button>
           </fieldset>
           <div className="space-y-5" aria-disabled={busy}>
             {contactFields('hospital', 'Nearest good hospital')}

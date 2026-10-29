@@ -8,7 +8,7 @@ import { Button, ErrorNote, Input, Select } from '@/ui'
 import { formatRange, MODE_LABEL, pairKey, SOURCE_LABEL, type TravelOption } from './legs'
 
 export function TravelOptionsList({ options, compact = false }: { options: TravelOption[]; compact?: boolean }) {
-  if (!options.length) return <p className="text-sm text-stone-600">No travel time yet.</p>
+  if (!options.length) return <p className="text-sm text-muted">No travel time yet.</p>
   return (
     <ul className="space-y-1.5">
       {options.map((o) => {
@@ -17,12 +17,12 @@ export function TravelOptionsList({ options, compact = false }: { options: Trave
           <li key={`${o.mode}-${o.source}`} className="flex items-baseline gap-2 text-sm">
             <span aria-hidden>{m.emoji}</span>
             <span className="font-medium">{m.label}</span>
-            <span className={o.source === 'estimate' ? 'text-stone-600' : 'text-stone-900'}>
+            <span className={o.source === 'estimate' ? 'text-muted' : 'text-ink'}>
               {o.source === 'estimate' && '~'}
               {formatRange(o.minS, o.maxS)}
             </span>
             {!compact && (
-              <span className="min-w-0 truncate text-xs text-stone-600">
+              <span className="min-w-0 truncate text-xs text-muted">
                 {SOURCE_LABEL[o.source]}
                 {o.distanceM != null && o.source !== 'estimate' ? ` · ${formatDistance(o.distanceM)}` : ''}
               </span>
@@ -34,7 +34,7 @@ export function TravelOptionsList({ options, compact = false }: { options: Trave
         options
           .filter((o) => o.note)
           .map((o) => (
-            <li key={`note-${o.mode}`} className="pl-6 text-xs text-stone-600">
+            <li key={`note-${o.mode}`} className="pl-6 text-xs text-muted">
               {MODE_LABEL[o.mode].emoji} {o.note}
             </li>
           ))}
@@ -72,7 +72,7 @@ export function ReportTimeForm({ from, to, onDone }: { from: Place; to: Place; o
   }
 
   return (
-    <form onSubmit={submit} className="space-y-2 rounded-2xl bg-stone-50 p-3">
+    <form onSubmit={submit} className="space-y-2 rounded-surface bg-mist/40 p-3">
       <p className="text-sm font-medium">How long does {from.name} → {to.name} take?</p>
       <div className="flex items-center gap-2">
         <Select value={mode} onChange={(e) => setMode(e.target.value as TravelMode)} className="w-36">
@@ -85,7 +85,7 @@ export function ReportTimeForm({ from, to, onDone }: { from: Place; to: Place; o
         <Input inputMode="numeric" value={lo} onChange={(e) => setLo(e.target.value)} placeholder="min" className="w-16 px-2" aria-label="Minimum minutes" />
         <span>–</span>
         <Input inputMode="numeric" value={hi} onChange={(e) => setHi(e.target.value)} placeholder="max" className="w-16 px-2" aria-label="Maximum minutes" />
-        <span className="text-sm text-stone-600">min</span>
+        <span className="text-sm text-muted">min</span>
       </div>
       <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (optional), e.g. last boat 5 pm" maxLength={140} />
       <ErrorNote error={error} />

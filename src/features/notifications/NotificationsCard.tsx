@@ -34,30 +34,30 @@ export function NotificationsCard({ tripId }: { tripId: string }) {
     <Card>
       <h2 className="ui-section-title">Notifications</h2>
       {support === 'install' ? (
-        <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+        <p className="mt-2 rounded-surface bg-warning p-3 text-sm text-warning-ink">
           On iPhone, notifications only work in the Home Screen app. In Safari tap Share → Add to Home Screen, open Stowaway from there, then come back here.
         </p>
       ) : support === 'unsupported' ? (
-        <p className="mt-2 text-sm text-stone-600">This browser can’t receive notifications.</p>
+        <p className="mt-2 text-sm text-muted">This browser can’t receive notifications.</p>
       ) : support === 'blocked' && !setting ? (
-        <p className="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Notifications are blocked for Stowaway. Allow them in your phone’s Settings → Notifications (or the browser’s site settings), then come back here.</p>
+        <p className="mt-2 rounded-surface bg-warning p-3 text-sm text-warning-ink">Notifications are blocked for Stowaway. Allow them in your phone’s Settings → Notifications (or the browser’s site settings), then come back here.</p>
       ) : !setting ? (
         <>
-          <p className="mt-1 text-sm text-stone-600">Notifies you when it’s time to leave, a vote opens, or an expense or task involves you. Needs signal to arrive.</p>
+          <p className="mt-1 text-sm text-muted">Notifies you when it’s time to leave, a vote opens, or an expense or task involves you. Needs signal to arrive.</p>
           <Button className="mt-3 flex w-full items-center justify-center gap-2" disabled={busy || !me} onClick={() => void turnOn()}>
             <BellRing aria-hidden="true" className="size-4" /> {busy ? 'Turning on…' : 'Turn on notifications'}
           </Button>
-          {!me && <p className="mt-2 text-xs text-stone-600">Choose who you are in this trip first.</p>}
+          {!me && <p className="mt-2 text-xs text-muted">Choose who you are in this trip first.</p>}
         </>
       ) : (
         <>
-          <p className="mt-1 text-sm text-stone-600">On for this trip on this phone.</p>
+          <p className="mt-1 text-sm text-muted">On for this trip on this phone.</p>
           <fieldset disabled={busy} className="mt-3 space-y-1">
             <legend className="sr-only">What to be notified about</legend>
             {KINDS.map((k) => (
-              <label key={k.key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-1 py-1 hover:bg-stone-50">
+              <label key={k.key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-1 py-1 hover:bg-brand-50">
                 <input type="checkbox" checked={prefs[k.key] ?? true} onChange={() => void toggle(k.key)} className="ui-check" />
-                <span><span className="block text-sm font-medium">{k.label}</span><span className="block text-xs text-stone-600">{k.hint}</span></span>
+                <span><span className="block text-sm font-medium">{k.label}</span><span className="block text-xs text-muted">{k.hint}</span></span>
               </label>
             ))}
           </fieldset>

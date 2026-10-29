@@ -62,18 +62,18 @@ export function TrafficEstimate({ from, to }: { from: Place; to: Place }) {
       <Button variant="secondary" type="button" onClick={() => void check()} disabled={busy || !online || !pinned} aria-label={`Check driving traffic from ${from.name} to ${to.name}`} className="min-h-11 text-xs">
         {busy ? 'Checking traffic…' : estimate ? 'Refresh traffic' : 'Check driving traffic'}
       </Button>
-      <p className="mt-1 text-xs text-stone-600">Sends these two place coordinates to Google. <Link className="underline" to="/privacy">Privacy</Link> · <Link className="underline" to="/terms">Terms</Link></p>
+      <p className="mt-1 text-xs text-muted">Sends these two place coordinates to Google. <Link className="underline" to="/privacy">Privacy</Link> · <Link className="underline" to="/terms">Terms</Link></p>
       <div aria-live="polite" aria-atomic="true">
         {estimate && (
-          <div className="mt-2 border-l-2 border-stone-300 pl-3 text-sm text-stone-900">
+          <div className="mt-2 border-l-2 border-control pl-3 text-sm text-ink">
             <p className="font-medium">Drive · {formatRange(estimate.duration_s, estimate.duration_s)} · {formatDistance(estimate.distance_m)}</p>
-            <p className="text-xs text-stone-600">Leaving now · traffic-aware · checked {new Date(estimate.checked_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+            <p className="text-xs text-muted">Leaving now · traffic-aware · checked {new Date(estimate.checked_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
             <p translate="no" className="mt-1 whitespace-nowrap font-sans text-xs font-normal not-italic text-[#5E5E5E]">Google Maps</p>
           </div>
         )}
-        {error && <p className="mt-1 text-xs text-red-700">{error}</p>}
-        {!online && <p className="mt-1 text-xs text-stone-600">Connect to check current traffic.</p>}
-        {!pinned && <p className="mt-1 text-xs text-stone-600">Add map pins to check traffic.</p>}
+        {error && <p className="mt-1 text-xs text-danger-ink">{error}</p>}
+        {!online && <p className="mt-1 text-xs text-muted">Connect to check current traffic.</p>}
+        {!pinned && <p className="mt-1 text-xs text-muted">Add map pins to check traffic.</p>}
       </div>
     </div>
   )
