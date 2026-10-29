@@ -9,9 +9,14 @@ Decisions made with you on 29 Oct 2026 (this session):
 | Decision | Answer | Consequence for the plan |
 |---|---|---|
 | Money model | **Facilitator** | Operators connect their own Stripe account (Standard-style). Charges run directly on that account, so the operator is merchant of record. Stowaway never holds funds and earns an application fee. |
-| $0 rule in CLAUDE.md | **Lifted for Stripe and email only** | Stripe platform verification and a free-tier email sender (no card) are allowed. Supabase stays on Free; Supabase Pro waits until revenue covers it. CLAUDE.md "Hard constraints" must be updated in Phase 1. |
+| $0 rule in CLAUDE.md | **Lifted for Stripe and email only** | Stripe platform verification and a free email sender (Gmail) are allowed. Supabase stays on Free; Supabase Pro waits until revenue covers it. CLAUDE.md "Hard constraints" must be updated in Phase 1. |
 | Agent API | **Spec only, never built** | It's the fallback direction if validation fails. It is not something to "fix". |
 | Time budget | **~10 focused h/week** | Estimates below are in focused hours, converted at 10 h = 1 calendar week. |
+| Take rate | **Flat 1%** (no minimum, no cap) | Set as `application_fee_amount` = 1% of each charge, rounded to the cent. It's refunded pro rata when the operator refunds. |
+| Monetization at launch | **Take rate only; Pro later** | Phase 1 has no subscription billing or entitlement gating. The Pro subscription ships in 2a, alongside the first Pro features; the price is decided then. |
+| Launch market | **US operators, USD only** | Connect onboarding is limited to `country=US`, and offers are USD only. The existing multi-currency expense code stays as it is for free trips. |
+| Legal entity | **Sole proprietor** | The Stripe platform account is opened as an individual/sole proprietor under your SSN, with "Stowaway" as the business name. You're personally liable; the facilitator model and operator terms keep that exposure low (section 10). |
+| Email sender | **Gmail** | Use a **dedicated** Gmail account for Stowaway, not your personal one. It sends through the Gmail API over HTTPS (section 4, "Email"). Personal Gmail allows about 500 recipients a day, which covers Phase 1 but not Phase 2b campaigns. |
 
 Ground truth that changes the brief's assumptions:
 - **The agent REST API does not exist.** No branch of the repo has it. The only Worker on the Cloudflare account (`trip-hub`) routes just `/mcp`, `/.well-known/oauth-protected-resource*`, `/api/scan` and `/api/travel-ai` (`worker/index.ts`). What does exist is a read-only MCP connector with 2 tools (`list_trips`, `get_itinerary`), and its live `/mcp` returns 503 until Supabase OAuth is configured (`docs/CHATGPT_CONNECTOR.md`). `/llms.txt` falls through to the SPA's `NotFoundScreen` because `wrangler.jsonc` sets `not_found_handling: "single-page-application"`.
@@ -216,6 +221,7 @@ All new tables follow the standard columns plus `sync_guard`, a `(trip_id, updat
 - If we're down, Stripe retries for 3 days, and reconciliation covers anything later.
 
 **Fees and pricing mechanics:**
+- Stowaway's fee is a flat 1% of every charge, card or ACH, with no minimum and no cap. It's the same number on the pricing page, in the calculator and in the offer form.
 - `fee_mode=absorb`: the operator pays Stripe's fee plus ours.
 - `fee_mode=pass`: a separate "booking fee" line that applies to every payment method, which keeps it a service fee, not a card surcharge. **Legal review needed** before launch (US surcharging rules).
 - Card fees are never surcharged per card.
@@ -227,7 +233,20 @@ All new tables follow the standard columns plus `sync_guard`, a `(trip_id, updat
 - Stripe issues 1099-Ks to connected accounts.
 - New operator terms, plus privacy page updates (bookings, emails, intake data).
 - CAN-SPAM for Phase 2 campaigns.
-- The Stripe platform account needs your identity, business details (sole proprietor or LLC) and a bank account.
+- The Stripe platform account is opened as a sole proprietor: your identity (SSN), "Stowaway" as the business name, and a bank account. Check whether your state or county requires a DBA filing to trade under "Stowaway". The 1% income goes on your personal return.
+- Connect onboarding only offers `country=US`, and offers only accept USD.
+
+**Email (Gmail):**
+- **Sending account:** a dedicated Gmail account for Stowaway (for example a new "Stowaway" address), with 2-Step Verification on and recovery details in your password manager. Keep it separate from your personal Gmail, so a suspension or a leaked credential can't touch your own mail.
+- **Auth email codes:** Supabase Auth's custom SMTP points at `smtp.gmail.com` with an app password. This runs on Supabase's servers, so the Edge Function port block doesn't apply. It also fixes the existing CLAUDE.md gap (the built-in mailer sends only a few emails an hour).
+- **Transactional email** (booking confirmations, balance reminders, hold alerts): Edge Function `email-dispatch` sends through the **Gmail API over HTTPS** (`users.messages.send`). Supabase Edge Functions can't open SMTP on ports 25 or 587.
+  - Use the existing Google Cloud project (the one already used for Routes) for an OAuth client with the `gmail.send` scope.
+  - Set the consent screen to **In production**: in Testing status, Google expires refresh tokens after 7 days. It will show an "unverified app" warning on the one-time consent, which is fine because only you consent.
+  - Store the refresh token as a Supabase function secret.
+  - Do a 1-hour spike at the start of 1C to prove the send path. If it fails, fall back to SMTP on port 465 from the function, or from the Worker's TCP `connect()`.
+- **Headers:** the sender shows as "Stowaway for {Operator} <…@gmail.com>", with Reply-To set to the operator's support email so travelers' replies reach the operator. Every link in the email points to `joinstowaway.app`, never a shortener, so payment emails don't look like phishing.
+- **Volume guard:** personal Gmail allows about 500 recipients a day. `email-dispatch` stops at 400 a day; the rest wait for the next day (balance reminders aren't urgent within a day), and you get an alert. Confirmations always go out first.
+- **Phase 2b campaigns can't run on Gmail.** Personal-account limits and Google's bulk-sender rules make it unsuitable. Before campaigns ship, move to a sender on the `joinstowaway.app` domain (cost flagged in 2b).
 
 **Stripe test strategy:**
 - **Unit:** `fees.ts` quotes (property: kept + fees = collected), ledger postings (always balanced), the booking state machine, and reminder scheduling across DST.
@@ -300,7 +319,7 @@ Honest note: at 10 h/week, Phase 1 can't fit in "weeks". Each slice can (3–6 w
 |---|---|---|---|
 | **1A Trust** | section 2 in full: migration, `can()`, policy rewrite, removal/revocation, epoch purge, no auto-rejoin after revocation, document visibility, Travelers & access screen, min-version check, PGlite equivalence and role tests | 32 | Every existing e2e spec passes unchanged in group mode. In hosted mode, a traveler can't read another traveler's documents or expenses (checked in PGlite and e2e). A removed phone loses the trip within one sync and can't rejoin through the old link. Works at 390×844 and with keyboard/VoiceOver labels. |
 | **1B Organizer** | claim flow (reusing account sign-in), `organizers`, `/operators` landing, `/pricing` with the fee calculator (`src/lib/fees.ts`: price, headcount, deposit/balance, card or ACH, international share, absorb/pass → per-traveler charges, Stripe fee, Stowaway fee, what you keep; Stripe rates as dated constants with a source link); update CLAUDE.md's hard constraints | 16 | A guest trip creator signs in, claims an existing trip retroactively with no data loss and no re-invite, and other members see who organizes it. Calculator property tests pass. Pricing page is checked at 390×844. |
-| **1C Payments** | sections 3–4 for Phase 1: Connect onboarding, offers and `/go/:slug`, `checkout-create`, webhook inbox, processor, reconciliation, ledger, booking → traveler join, `/b/:token` balance payment, payout and hold display (section 7 copy), application-fee refunds, dispute alerts, email outbox and reminders (free-tier sender with DNS on `joinstowaway.app`, which also unblocks custom SMTP for email codes), minimal `/organize` dashboard (trips, bookings, collected and due, payouts, CSV export), staging project, test-mode e2e, live $1 check | 62 | **End to end on mobile and desktop:** an operator onboards, publishes a trip page, and a real traveler pays a deposit. The traveler lands in the trip with no account. The operator sees the payout at the arrival date Stripe gave, on their chosen schedule. Ledger reconciliation shows zero mismatches. A refund reverses our fee automatically. |
+| **1C Payments** | sections 3–4 for Phase 1: Connect onboarding, offers and `/go/:slug`, `checkout-create`, webhook inbox, processor, reconciliation, ledger, booking → traveler join, `/b/:token` balance payment, payout and hold display (section 7 copy), application-fee refunds, dispute alerts, email outbox and reminders (dedicated Gmail account through the Gmail API, plus Gmail SMTP for Supabase Auth email codes), minimal `/organize` dashboard (trips, bookings, collected and due, payouts, CSV export), staging project, test-mode e2e, live $1 check | 62 | **End to end on mobile and desktop:** an operator onboards, publishes a trip page, and a real traveler pays a deposit. The traveler lands in the trip with no account. The operator sees the payout at the arrival date Stripe gave, on their chosen schedule. Ledger reconciliation shows zero mismatches. A refund reverses our fee automatically. |
 
 **Cut first if time runs short**, in this order (each saves about 2–6 h):
 1. ACH (card only)
@@ -313,11 +332,11 @@ Honest note: at 10 h/week, Phase 1 can't fit in "weeks". Each slice can (3–6 w
 **Never cut:** 1A, the webhook inbox with idempotency, reconciliation, the ledger balance constraint, the staging project, and the hold/delay copy.
 
 ### Phase 2: Repeat-business tooling (about 170 h; ~20 weeks; two slices)
-- **2a (≈70 h):** template and clone trip; installment schedules (more than two); in-app refunds with cancellation tiers; financial reporting (per-trip P&L from the ledger, payouts reconciliation, CSV/QuickBooks export); dispute evidence pack; Pro subscription billing and entitlements; `trip_invites` (viewer links, expiry).
+- **2a (≈70 h):** template and clone trip; installment schedules (more than two); in-app refunds with cancellation tiers; financial reporting (per-trip P&L from the ledger, payouts reconciliation, CSV/QuickBooks export); dispute evidence pack; Pro subscription billing and entitlements (the first paid plan; launch is take rate only, and the price is decided here); `trip_invites` (viewer links, expiry).
   - *Accept:* clone last year's trip in under 2 minutes; ≥85% of balances paid by the due date with automated reminders; a Pro charge succeeds and gates templates.
 - **2b (≈100 h):** CRM (contacts and past trips, dietary and accessibility intake, tags); waitlists with auto-offer; rooming tied to pricing; email campaigns (consent, unsubscribe, sending limits); referral links paid as credit toward the next trip; organizer staff.
   - *Accept:* send a campaign to past travelers with working unsubscribe; a referral booking credits the referrer; a waitlist spot is offered automatically after a cancellation.
-  - *Cost flag:* campaign volume will outgrow free email tiers.
+  - *Cost flag:* campaigns need a domain email sender before they ship, because Gmail can't send them (section 4, "Email").
 
 ### Phase 3: Supplier layer and corporate tier (about 240 h; **needs a second person, or near full-time**; start only when revenue or a signed corporate pilot funds it)
 - **3a Supplier (≈90 h):** supplier directory, one-click hotel RFP (a tokenized response form emailed to hotels), payables tracking, commission tracking, and a season catalog view across trips.
@@ -426,23 +445,26 @@ The **corporate variant** swaps questions 2–7 for: who approves, budgets, how 
 | **Sales-motion change** (demos, onboarding, support eat a 10 h week) | Beta capped at 10 operators, weekly office hours instead of ad-hoc demos, written onboarding, support time-boxed to 2 h/week, and Stripe's Dashboard does refunds and disputes. |
 | **Seasonality** (spring break deposits happen Sep–Jan; retreats book in winter) | Concierge serves the current season; Phase 1 targets the summer and fall 2027 season. Instrument now so funnel data exists before launch. |
 | **Bus factor (one developer)** | Facilitator model: operators' money never depends on Stowaway being up. Runbooks in `docs/` (webhooks, reconciliation, incidents), Stripe as system of record, credentials in a password manager with emergency access, and an incident email template for operators. |
+| **Personal liability as a sole proprietor** | The facilitator model keeps payment losses with Stripe and operators, not you. Operator terms include a limitation of liability. Revisit forming an LLC once take-rate revenue is steady or the first corporate contract arrives. |
+| **Gmail as the sender** (Google suspends the account, the 500/day cap, or emails land in spam) | A dedicated account limits the blast radius. A daily cap of 400 with an alert. Push notifications back up reminders for travelers who turned them on. Stripe sends its own payment receipts, so a sending outage never hides that a payment went through. Plan the move to a domain sender before 2b, or sooner if suspended. |
 | **Friend groups won't pay 1% plus card fees when Venmo is free** | Expected. The funnel's job is to surface the organizers who are really operators. Paywall rules keep the free loop intact. |
 
 ---
 
 ## 11. Open questions for you
 
-**Blocks Phase 1** (1A can start without these, 1C can't):
-1. **Default fee mode:** does the operator absorb fees, or do travelers pay a booking fee? Is the take 1% flat, with a minimum or a cap?
-2. **Monetization at launch:** take rate only, with the Pro subscription coming in 2a once there are Pro features (my recommendation)? Or Pro from day one, and at **$79 or $99** a month?
-3. **Launch market:** US operators and USD only (my recommendation)? Note that Guatemala-based operators can't hold Stripe accounts.
-4. **Hosted-mode defaults for operator trips:** may travelers vote and suggest places? (Recommendation: vote yes, edit no, joins need approval.)
-5. **Legal entity:** sole proprietor or LLC for the Stripe platform account? And a budget for one lawyer review of operator terms and fee wording.
-6. **Email sender:** OK to use a free-tier transactional provider (no card) with DNS records on `joinstowaway.app`?
-7. **Staging:** OK to create a second free Supabase project for payments testing?
-8. **Claim rule:** only the trip creator's device may claim; any other case goes through support. Confirm.
+**Decided 29 Oct 2026:** flat 1% take; take rate only at launch, Pro in 2a; US operators and USD only; sole proprietor; Gmail as the email sender. See the table in Context.
+
+**Still blocks Phase 1** (1A can start without these, 1C can't):
+1. **Default fee mode:** the operator absorbs Stripe's fee and our 1% (my recommendation for launch, because it keeps the traveler's price simple and needs no surcharge-law wording), or travelers pay a separate booking fee. Operators can switch either way.
+2. **Hosted-mode defaults for operator trips:** may travelers vote and suggest places? (Recommendation: vote yes, edit no, joins need approval.)
+3. **Lawyer review:** a budget for one review of the operator terms, fee wording and limitation of liability before 1C launches.
+4. **Staging:** OK to create a second free Supabase project for payments testing?
+5. **Claim rule:** only the trip creator's device may claim; any other case goes through support. Confirm.
+6. **Sending account:** OK to create a dedicated Stowaway Gmail account, rather than sending from your personal one?
 
 **Can decide later:**
+- Pro price point ($79 or $99 a month): decide when 2a starts.
 - Payout schedule defaults: settled by the facilitator model (the operator sets them in Stripe). Confirm the onboarding copy recommends daily automatic payouts.
 - Agent API story: a public "agent-ready" story for free planning, versus API and webhooks as a Pro feature for operators. Decide after Phase 0 (it's also the fallback).
 - Corporate SSO timing: I recommend after the first signed corporate contract, because it needs paid Supabase.
@@ -500,7 +522,7 @@ The **corporate variant** swaps questions 2–7 for: who approves, budgets, how 
 
 **The pitch this makes true:** "We never hold your money. It goes straight to your own Stripe account on your own payout schedule. Here is exactly what you'll pay." When Stripe holds something, we say so, why, and when it ends.
 
-**What it costs:** about 125 h through Phase 1 (≈4–5 months at 10 h/week). Phase 2 is about 170 h. Phase 3 is about 240 h and needs a second person or near full-time. Cash costs: Stripe fees are paid by operators; the email sender is on a free tier; a one-off legal review; Supabase Pro ($25/month) once revenue covers it.
+**What it costs:** about 125 h through Phase 1 (≈4–5 months at 10 h/week). Phase 2 is about 170 h. Phase 3 is about 240 h and needs a second person or near full-time. Cash costs: Stripe fees are paid by operators; email goes through a dedicated Gmail account for free (a paid domain sender before Phase 2b campaigns); a one-off legal review; Supabase Pro ($25/month) once revenue covers it. Revenue at launch is a flat 1% of what operators collect, with Pro added in Phase 2.
 
 **What could kill it**
 - Operators don't feel the payment pain strongly enough (Phase 0 tests this).
@@ -509,4 +531,6 @@ The **corporate variant** swaps questions 2–7 for: who approves, budgets, how 
 - We miss the summer and fall 2027 booking season.
 - A permissions bug exposes one traveler's documents to another (that's why 1A ships first, with equivalence tests).
 
-**Decide before 1C starts:** default fee mode and take rate; take-rate-only vs Pro at launch ($79 or $99); US/USD-only launch; hosted-mode defaults; legal entity and lawyer review; the email sender; the staging project; the claim rule. 1A can start now.
+**Already decided:** flat 1% take, take rate only at launch, US/USD only, sole proprietor, Gmail.
+
+**Decide before 1C starts:** default fee mode (my recommendation: operator absorbs), hosted-mode defaults, a lawyer review budget, the staging project, the claim rule, and a dedicated Gmail account. 1A can start now.
