@@ -280,7 +280,21 @@ Events are queued on the phone in a local-only Dexie table and flushed through `
 
 ## 6. Phases, acceptance criteria, effort
 
-Effort is in focused hours, converted to calendar weeks at 10 h/week, plus about 20% buffer. Every sub-phase can ship and be demoed on its own.
+Every sub-phase can ship and be demoed on its own.
+
+**How to read the effort numbers.** The hours in each phase heading and table are *build effort*: what the work would take a solo developer writing it by hand. Claude writes the implementation (as it has for most of this repo), so your own hours are much lower. What stays with you can't be handed off: interviews, account setup, reviewing security and money code, real-device and live-money checks, and decisions. The calendar is set by outside waits, not by typing.
+
+| Phase | Build effort | **Your hours** | What sets the calendar | Calendar at 10 h/week |
+|---|---|---|---|---|
+| 0 | 16 h | **30–35** (interviews ≈25, concierge, Stripe application) | Scheduling 10 conversations; the concierge trip's deposit deadline | 4–6 weeks |
+| 1A Trust | 32 h | **6–10** (review the role and RLS changes, test on your phone) | Your review; e2e sign-in limits (≈30 anonymous sign-ins per hour per IP) | 1–2 weeks |
+| 1B Organizer | 16 h | **3–5** (review the copy, pricing page and claim flow) | – | 1 week |
+| 1C Payments | 62 h | **12–20** (Stripe platform and Connect settings, Google Cloud/Gmail setup, Supabase staging, reviewing money code, live $1 booking and refund, the lawyer) | Stripe platform approval; the lawyer review; the first real payout (≈7 days for a new Stripe account) | 3–4 weeks |
+| 2 | 170 h | **20–30** | Real operator feedback between slices | 2–3 months |
+| 3 | 240 h | **40+** (sales, supplier and corporate contracts) | Signed pilots | When funded |
+| 4 | 35 h | Ongoing sales time | Outbound replies | Ongoing |
+
+So Phases 0–1 take about **60–75 of your hours, or 6–8 calendar weeks**, with Phase 0's interviews running alongside 1A and 1B. The build-effort hours are still worth keeping: they show where a bug would be expensive, and they're the honest estimate if you ever hire help.
 
 ### Phase 0: Validation and hygiene (about 16 h dev + 25 h founder; 5–6 calendar weeks, interviews set the pace)
 
@@ -311,9 +325,9 @@ Effort is in focused hours, converted to calendar weeks at 10 h/week, plus about
 - **NO-GO** if <3 interviewees feel the pain strongly, or no operator agrees to the concierge, or the concierge operator won't commit to trip two. Then switch to the **agent-protocol fallback**: build the spec'd agent API (trip-scoped tokens, REST, webhooks, MCP write tools) as the product's story, keep the free planner, and keep 1A.
 - **Pivot within:** if the ops-manager interview is clearly stronger than the operator interviews, re-aim Phase 1C at offsites (approvals, budgets) before operators.
 
-### Phase 1: Operator MVP (about 110 h; **about 13 calendar weeks at 10 h/week**, meaning a quarter, delivered as three shippable slices)
+### Phase 1: Operator MVP (build effort about 110 h; about 20–35 of your hours; 5–7 calendar weeks, in three shippable slices)
 
-Honest note: at 10 h/week, Phase 1 can't fit in "weeks". Each slice can (3–6 weeks each). Spring break 2027 deposits are being collected now, so Phase 1 serves the **summer and fall 2027** booking season, and the concierge serves this one.
+With Claude writing the code, Phase 1 fits in about 5–7 calendar weeks; the cut list below only matters if outside waits (Stripe, the lawyer) or review time run long. Spring break 2027 deposits are being collected now, so Phase 1 serves the **summer and fall 2027** booking season, and the concierge serves this one.
 
 | Slice | Contents | Hours | Acceptance criteria |
 |---|---|---|---|
@@ -519,14 +533,14 @@ The **corporate variant** swaps questions 2–7 for: who approves, budgets, how 
   - Ship funnel instrumentation and an honest "payments coming" door at the money moment.
   - Run 10 operator interviews and one concierge trip on the operator's own Stripe Payment Links.
   - Apply for the Stripe platform account.
-- **Phase 1 (about 13 weeks at 10 h/week, in three shippable slices):**
+- **Phase 1 (three shippable slices; about 20–35 of your hours with Claude writing the code):**
   - **1A Trust:** roles, hosted mode, removal and revocation, private documents. Required, because today anyone with the link sees everything, and a removed phone would silently rejoin.
   - **1B Organizer:** claim a trip in place, plus the pricing page and fee calculator.
   - **1C Payments:** Stripe Connect as a facilitator, deposits and balance by link, webhook inbox, ledger, reminders, minimal dashboard.
 
 **The pitch this makes true:** "We never hold your money. It goes straight to your own Stripe account on your own payout schedule. Here is exactly what you'll pay." When Stripe holds something, we say so, why, and when it ends.
 
-**What it costs:** about 125 h through Phase 1 (≈4–5 months at 10 h/week). Phase 2 is about 170 h. Phase 3 is about 240 h and needs a second person or near full-time. Cash costs: Stripe fees are paid by operators; email goes through a dedicated Gmail account for free (a paid domain sender before Phase 2b campaigns); a one-off legal review; Supabase Pro ($25/month) once revenue covers it. Revenue at launch is a flat 1% of what operators collect, with Pro added in Phase 2.
+**What it costs:** about 60–75 of your hours through Phase 1, or 6–8 calendar weeks at 10 h/week, set by Stripe approval, interviews and the lawyer rather than by coding. Build effort is about 125 h, written by Claude. Phase 2 is 20–30 of your hours. Phase 3 needs sales and contracts more than code, and starts when a pilot funds it. Cash costs: Stripe fees are paid by operators; email goes through a dedicated Gmail account for free (a paid domain sender before Phase 2b campaigns); a one-off legal review; Supabase Pro ($25/month) once revenue covers it. Revenue at launch is a flat 1% of what operators collect, with Pro added in Phase 2.
 
 **What could kill it**
 - Operators don't feel the payment pain strongly enough (Phase 0 tests this).
