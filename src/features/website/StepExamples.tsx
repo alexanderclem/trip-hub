@@ -6,32 +6,44 @@ const options = [
   { label: 'Rooftop near the High Line', share: 41, note: 'Fine' },
 ]
 
-/** Local, illustrative data, one small example per step: an invite, a vote, and the details. */
+/** Illustrative product artifacts; no real invites, votes, or transactions. */
 export function StepExamples() {
   return (
-    <div className="website-examples" role="group" aria-labelledby="examples-caption">
-      <div className="example-card">
-        <span className="website-eyebrow">You’re invited</span>
-        <p className="example-title">A few days in NYC</p>
-        <p className="example-meta"><CalendarDays size={15} aria-hidden="true" /> Jun 4 – 7 <Users size={15} aria-hidden="true" /> 6 going</p>
-      </div>
-      <div className="example-card">
-        <span className="website-eyebrow">Group vote</span>
-        <p className="example-title">Where should we eat on Friday?</p>
-        <ul className="example-votes">
-          {options.map(({ label, share, note }) => (
-            <li key={label}>
-              <span>{label}</span><span className="example-note">{note}</span>
-              <span className="example-bar" aria-hidden="true"><span style={{ width: `${share}%` }} /></span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="example-card example-details">
-        <p><Ticket size={17} aria-hidden="true" /><span><strong>High Line walking tour</strong>Saturday, 11:00 · ticket saved</span></p>
-        <p><Receipt size={17} aria-hidden="true" /><span><strong>Dinner in Chinatown</strong>$84 split six ways · your share $14</span></p>
-      </div>
-      <p id="examples-caption" className="example-caption">Examples from the same trip.</p>
+    <div className="website-example-group" role="group" aria-labelledby="examples-caption">
+      <ol className="website-steps">
+        <li>
+          <div className="website-step-heading"><span className="website-step-number" aria-hidden="true">01</span><h3>Invite your people</h3></div>
+          <p>Create a trip and send the invite link. Choose a destination now or decide together.</p>
+          <div className="example-card example-invite">
+            <span className="website-eyebrow">You’re invited</span>
+            <p className="example-title">A few days in NYC</p>
+            <p className="example-meta"><CalendarDays size={15} aria-hidden="true" /> Jun 4–7 <Users size={15} aria-hidden="true" /> 6 travelers</p>
+            <span className="example-invite-note">One link. Everyone’s in the loop.</span>
+          </div>
+        </li>
+        <li>
+          <div className="website-step-heading"><span className="website-step-number" aria-hidden="true">02</span><h3>Pick the group’s favorites</h3></div>
+          <p>Save places and start a vote. Add the ideas everyone likes to the itinerary.</p>
+          <div className="example-card">
+            <span className="website-eyebrow">Group vote</span>
+            <p className="example-title">Friday dinner?</p>
+            <ul className="example-votes">
+              {options.map(({ label, share, note }) => (
+                <li key={label}><span>{label}</span><span className="example-note">{note}</span><span className="example-bar" aria-hidden="true"><span style={{ width: `${share}%` }} /></span></li>
+              ))}
+            </ul>
+          </div>
+        </li>
+        <li>
+          <div className="website-step-heading"><span className="website-step-number" aria-hidden="true">03</span><h3>Keep the details together</h3></div>
+          <p>Save tickets, log shared expenses, and see who owes what as the trip unfolds.</p>
+          <div className="example-card example-details">
+            <p><Ticket size={19} aria-hidden="true" /><span><strong>High Line walking tour</strong>Saturday, 11:00 · ticket saved</span></p>
+            <p><Receipt size={19} aria-hidden="true" /><span><strong>Dinner in Chinatown</strong>$84 split six ways · your share $14</span></p>
+          </div>
+        </li>
+      </ol>
+      <p id="examples-caption" className="example-caption">Illustrative examples from one group trip.</p>
     </div>
   )
 }

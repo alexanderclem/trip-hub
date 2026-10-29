@@ -12,7 +12,12 @@
   --stowaway-radius-surface: 10px;
   --stowaway-mist: #d6e4e5;
   --stowaway-coral: #ef9477;
-  --stowaway-font-poster: Antonio, Impact, sans-serif;
+  --stowaway-on-action: #fffdf8;
   --stowaway-font-display: Georgia, 'Times New Roman', serif;
   --stowaway-font-body: system-ui, sans-serif;
+  --stowaway-text-hero: clamp(3rem, 5.7vw, 5rem);
+  --stowaway-text-section: clamp(2.25rem, 3.7vw, 3.5rem);
+  --stowaway-gutter: clamp(1.25rem, 4.5vw, 4rem);
+  --stowaway-content-width: 1200px;
+  --stowaway-section-space: clamp(4rem, 7vw, 6rem);
 }

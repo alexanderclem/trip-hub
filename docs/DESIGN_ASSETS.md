@@ -8,3 +8,11 @@
 - Existing Stowaway logo and illustration masters remain in `public/brand`.
 
 There are no runtime image or font requests to these external asset sources.
+
+## October 29 system update
+
+The current website uses Georgia and system sans-serif without font requests.
+Antonio and its license remain in the asset archive, but are no longer used or
+preloaded. The lake photo and suitcase artwork are retained. The social preview
+is regenerated from the existing logo masters with the current headline, palette,
+and typography. No new external imagery, fonts, or dependencies were added.

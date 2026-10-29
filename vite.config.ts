@@ -20,7 +20,7 @@ export default defineConfig({
         id: '/',
         name: 'Stowaway',
         short_name: 'Stowaway',
-        description: 'Plan your trip together. Choose places, decide with friends, and keep plans, tickets, and shared costs handy.',
+        description: 'Your group trip, all in one place. Save places, vote on favorites, and keep your itinerary, tickets, and shared costs together.',
         theme_color: '#183e4b',
         background_color: '#f8f5ee',
         display: 'standalone',

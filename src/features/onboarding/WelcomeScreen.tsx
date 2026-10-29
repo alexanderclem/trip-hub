@@ -17,27 +17,27 @@ export function StartScreen() {
 export function WelcomeScreen() {
   return (
     <main className="app-entry">
-      <header className="app-entry-header"><Link to="/" aria-label="Stowaway home"><Brand /></Link><span className="app-kicker">THE WHOLE TRIP, TUCKED AWAY.</span></header>
+      <header className="app-entry-header"><Link to="/" aria-label="Stowaway home"><Brand /></Link><span className="app-kicker">The shared trip planner</span></header>
       <div className="app-entry-layout">
         <section className="app-entry-story" aria-labelledby="welcome-title">
-          <p className="app-kicker">GOOD COMPANY. GREAT TRIPS.</p>
-          <h1 id="welcome-title">Let’s make<br /> the trip<br /> <span>happen.</span></h1>
-          <p>Start with an idea. Bring your people. Give that “we should go” a place to become a plan.</p>
+          <p className="app-kicker">A place for the whole trip</p>
+          <h1 id="welcome-title">Your group trip.<br /><span>All in one place.</span></h1>
+          <p>Save places, decide together, and keep your itinerary, tickets, and shared costs in one place.</p>
           <img src="/brand/packed-for-anywhere.svg" alt="" width="360" height="170" />
-          <span className="app-entry-caption">A little organization. A lot of possibility.</span>
+          <span className="app-entry-caption">The whole trip, tucked away.</span>
         </section>
         <div className="app-entry-actions">
           <section className="app-start-trip" aria-labelledby="start-trip-title">
-            <p className="app-kicker">YOUR NEXT ADVENTURE STARTS HERE</p>
+            <p className="app-kicker">Start a shared plan</p>
             <h2 id="start-trip-title" className="travel-heading">Where to next?</h2>
-            <p>Make a home for your plans, invite the group, and work out the good stuff together.</p>
+            <p>Create a trip, then invite your group with a link. You can decide on the destination together.</p>
             <LinkButton to="/new" className="mt-5 w-full"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
           </section>
           <div id="join" className="scroll-mt-6 space-y-6"><JoinByLink /><AccountCard /></div>
           <Link to="/inspire" className="app-inspire-link">Not sure where to go yet? Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link>
         </div>
       </div>
-      <footer className="app-entry-footer"><span>Made for the way you go together.</span><Link to="/">Back to Stowaway</Link></footer>
+      <footer className="app-entry-footer"><span>Plan in your browser. Take it on your phone.</span><Link to="/">Back to Stowaway</Link></footer>
     </main>
   )
 }

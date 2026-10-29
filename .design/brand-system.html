@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stowaway — Brand & design system</title>
+  <link rel="stylesheet" href="../src/styles/tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--stowaway-canvas); color: var(--stowaway-ink); font: 1rem/1.7 var(--stowaway-font-body); }
+    main, header, footer { width: min(calc(100% - 3rem), 1120px); margin-inline: auto; }
+    header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 2rem; border-bottom: 1px solid var(--stowaway-border); }
+    header img { width: 180px; height: auto; }
+    .label { font-size: .75rem; font-weight: 600; letter-spacing: .025em; }
+    h1, h2, .display { font-family: var(--stowaway-font-display); font-weight: 400; letter-spacing: -.045em; line-height: 1.1; overflow-wrap: anywhere; }
+    h1 { font-size: clamp(3rem, 7vw, 6rem); margin: 1.25rem 0 2rem; }
+    h2 { font-size: clamp(2rem, 4vw, 3rem); margin: .5rem 0 1.5rem; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 0 0 .5rem; }
+    p { margin: 0; }
+    a { color: var(--stowaway-action); text-underline-offset: 4px; }
+    a:focus-visible, summary:focus-visible { outline: 2px solid var(--stowaway-action); outline-offset: 5px; }
+    section { padding-block: clamp(3rem, 6vw, 5rem); border-bottom: 1px solid var(--stowaway-border); }
+    .intro { max-width: 55ch; color: var(--stowaway-muted); font-size: 1.125rem; }
+    .hero { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 3rem; align-items: center; }
+    .brand-bag { padding: 3rem; background: var(--stowaway-mist); border-radius: var(--stowaway-radius-surface); text-align: center; }
+    .brand-bag img { width: 150px; max-width: 100%; display: block; margin: auto auto 1.5rem; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+    .swatch { min-width: 0; border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); overflow: hidden; background: var(--stowaway-surface); }
+    .color { height: 100px; background: var(--swatch); }
+    .swatch-text { padding: 1rem; }
+    .swatch p { font-size: .875rem; color: var(--stowaway-muted); }
+    code { font-size: .8125rem; }
+    .type-row { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 2rem; padding-block: 1.5rem; border-top: 1px solid var(--stowaway-border); }
+    .display { font-size: clamp(2.5rem, 5vw, 4rem); }
+    .body-sample { max-width: 46ch; color: var(--stowaway-muted); }
+    .small { font-size: .75rem; color: var(--stowaway-muted); }
+    .specimens { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; margin-block: 2rem; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 1.5rem; min-height: 50px; padding: .85rem 1.25rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); font: 600 .875rem/1.4 var(--stowaway-font-body); color: var(--stowaway-ink); text-decoration: none; transition: background-color 160ms; }
+    .primary { background: var(--stowaway-ink); color: var(--stowaway-on-action); }
+    .primary:hover { background: var(--stowaway-action); }
+    .secondary:hover { background: var(--stowaway-mist); }
+    .text-link { font-size: .875rem; font-weight: 600; }
+    .record { background: var(--stowaway-surface); border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); padding: 1.5rem; }
+    .record .display { font-size: 1.75rem; margin-block: .5rem 1rem; }
+    .record + .small { margin-top: 1rem; }
+    .voice { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; }
+    .voice p { margin-top: .5rem; }
+    .voice > div { border-top: 1px solid var(--stowaway-border); padding-top: 1.5rem; }
+    .signature { font: italic 1.75rem/1.2 var(--stowaway-font-display); margin-top: 2rem; }
+    details { margin-top: 1.5rem; border-block: 1px solid var(--stowaway-border); }
+    summary { padding-block: 1rem; cursor: pointer; font-weight: 600; }
+    details p { padding-bottom: 1.5rem; color: var(--stowaway-muted); }
+    footer { padding-block: 2rem; font-size: .75rem; color: var(--stowaway-muted); }
+    @media (max-width: 700px) { .hero, .grid, .voice, .type-row { grid-template-columns: minmax(0, 1fr); } .hero { gap: 2rem; } .type-row { gap: .75rem; } .brand-bag { padding: 2rem; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header><img src="../public/brand/stowaway-wordmark.svg" alt="Stowaway" width="424" height="96"><span class="label">Brand & design system · October 2026</span></header>
+  <main>
+    <section class="hero">
+      <div><p class="label">The shared trip planner</p><h1>Your group trip.<br><em>All in one place.</em></h1><p class="intro">Save places, vote on favorites, and build an itinerary together. Keep tickets and shared expenses with the plan.</p></div>
+      <div class="brand-bag"><img src="../public/brand/stowaway-mark.svg" alt="The Carry-on suitcase mark" width="96" height="96"><p class="signature">The whole trip,<br>tucked away.</p></div>
+    </section>
+    <section id="direction"><p class="label">01 · Direction</p><h2>A shared travel journal.</h2><p class="intro">Warm paper, ocean ink, and space to think. A quietly organized companion for the friend making the plan and everyone coming along. Show the actual trip, then make the next action clear.</p></section>
+    <section><p class="label">02 · Color</p><h2>Give every color a job.</h2><div class="grid">
+      <article class="swatch"><div class="color" style="--swatch: var(--stowaway-ink)"></div><div class="swatch-text"><h3>Ocean ink</h3><code>#183e4b</code><p>Headlines, text, primary actions.</p></div></article>
+      <article class="swatch"><div class="color" style="--swatch: var(--stowaway-canvas)"></div><div class="swatch-text"><h3>Cream paper</h3><code>#f8f5ee</code><p>The shared page and app canvas.</p></div></article>
+      <article class="swatch"><div class="color" style="--swatch: var(--stowaway-mist)"></div><div class="swatch-text"><h3>Sea-glass mist</h3><code>#d6e4e5</code><p>Supporting sections and selected states.</p></div></article>
+      <article class="swatch"><div class="color" style="--swatch: var(--stowaway-coral)"></div><div class="swatch-text"><h3>Carry-on coral</h3><code>#ef9477</code><p>A small accent. Always pair with ink.</p></div></article>
+      <article class="swatch"><div class="color" style="--swatch: var(--stowaway-action)"></div><div class="swatch-text"><h3>Action blue</h3><code>#295361</code><p>App controls, links, focus, and hover.</p></div></article>
+      <article class="swatch"><div class="color" style="--swatch: var(--stowaway-muted)"></div><div class="swatch-text"><h3>Quiet gray</h3><code>#586467</code><p>Supporting text on cream and white.</p></div></article>
+    </div></section>
+    <section><p class="label">03 · Typography</p><h2>Two voices. Clear roles.</h2>
+      <div class="type-row"><p class="label">Editorial · Georgia</p><p class="display">Know what’s next.<br><em>Enjoy where you are.</em></p></div>
+      <div class="type-row"><p class="label">Practical · System sans</p><div><h3>Build the day together</h3><p class="body-sample">Add activities, times, and notes to a shared plan. Keep the day’s places and route in view.</p></div></div>
+      <div class="type-row"><p class="label">Details · Tabular numbers</p><p style="font-variant-numeric: tabular-nums">09:00 · Coffee in the West Village<br><span class="small">Jun 4–7 · 6 travelers</span></p></div>
+      <p class="small">Regular serif headings. Sentence case. Sans-serif controls and metadata. The wordmark is always supplied artwork.</p>
+    </section>
+    <section id="components"><p class="label">04 · Components</p><h2>One clear next action.</h2><p class="body-sample">6px controls. 10px surfaces. At least 44px touch targets. Quiet rules for grouping. Visible focus for keyboard access.</p>
+      <div class="specimens"><a class="button primary" href="#voice">Create a trip <span aria-hidden="true">↗</span></a><a class="button secondary" href="#voice">Open app <span aria-hidden="true">↗</span></a><a class="text-link" href="#voice">Join your group</a></div>
+      <div class="record"><p class="label">Example trip</p><p class="display">A few days in NYC</p><p class="small">Jun 4–7 · 6 travelers</p></div>
+      <p class="small">Illustrative artifact. Use shared app primitives for real forms, lists, feedback, and validation.</p>
+      <details><summary>How should interactions feel?</summary><p>Immediate and steady. Use brief 160ms feedback for controls. Keep itinerary day changes in place. Honor reduced motion and never depend on an entrance animation to reveal essential content.</p></details>
+    </section>
+    <section id="voice"><p class="label">05 · Voice</p><h2>The organized friend.</h2><div class="voice"><div><h3>Lead with the action</h3><p>Create a trip and share the invite link.</p><p>Save places and vote on favorites.</p><p>Keep tickets and shared expenses with the plan.</p></div><div><h3>Keep promises specific</h3><p>Download your itinerary and tickets before you leave.</p><p>Maps need a downloaded pack or saved area.</p><p>Track who owes what. Stowaway does not move money or book travel.</p></div></div></section>
+  </main>
+  <footer>Source of truth: src/styles/tokens.css · Implementation rules: DESIGN.md · Messaging and logo rules: docs/BRAND.md</footer>
+</body>
+</html>

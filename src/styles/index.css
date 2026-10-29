@@ -1,14 +1,6 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
-@font-face {
-  font-family: Antonio;
-  src: url('/fonts/Antonio-Variable.ttf') format('truetype');
-  font-weight: 100 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme {
   --color-brand-50: #edf3f3;
   --color-brand-100: #d6e4e5;
@@ -185,14 +177,14 @@ body {
 }
 
 /* Shared travel-journal system: an expressive entry, a quiet planning workspace. */
-.app-kicker { font-size: .625rem; font-weight: 650; letter-spacing: .12em; line-height: 1.7; color: var(--stowaway-action); }
+.app-kicker { font-size: .75rem; font-weight: 600; letter-spacing: .025em; line-height: 1.7; color: var(--stowaway-action); }
 .app-entry { width: min(calc(100% - 2.5rem), 1200px); margin-inline: auto; padding-top: env(safe-area-inset-top); }
 .app-entry-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.5rem; border-bottom: 1px solid var(--stowaway-border); }
 .app-entry-header > .app-kicker { display: none; }
 .app-entry-layout { display: grid; gap: 2rem; padding-block: 2rem; }
-.app-entry-story { position: relative; min-width: 0; padding: 2rem; background: var(--stowaway-mist); border-radius: 6px 6px 64px 6px; }
-.app-entry-story h1 { margin-top: 1.25rem; font-family: var(--stowaway-font-poster); font-size: clamp(3.75rem, 7vw, 6rem); font-weight: 600; text-transform: uppercase; line-height: 1.08; letter-spacing: -.04em; color: var(--stowaway-ink); overflow-wrap: anywhere; }
-.app-entry-story h1 span { display: inline-block; padding: 0 .1em .12em; margin-left: -.1em; background: var(--stowaway-coral); transform: rotate(-3deg); }
+.app-entry-story { position: relative; min-width: 0; padding: 2rem; background: var(--stowaway-mist); border-radius: var(--stowaway-radius-surface); }
+.app-entry-story h1 { margin-top: 1.25rem; font-family: var(--stowaway-font-display); font-size: clamp(3rem, 5.7vw, 4.5rem); font-weight: 400; line-height: 1.08; letter-spacing: -.045em; color: var(--stowaway-ink); overflow-wrap: anywhere; }
+.app-entry-story h1 span { font-style: italic; }
 .app-entry-story > p:not(.app-kicker) { max-width: 30ch; margin-top: 1.75rem; font-size: .9375rem; line-height: 1.8; color: var(--stowaway-action); }
 .app-entry-story > img { display: block; width: min(85%, 320px); height: auto; margin: 2.5rem auto 1.5rem; }
 .app-entry-caption { display: block; font-family: var(--stowaway-font-display); font-size: 1.125rem; color: var(--stowaway-ink); }
@@ -248,9 +240,8 @@ body {
 @media (prefers-reduced-motion: reduce) { .saved-trip-card { transition: none; } }
 @media (max-width: 699px) {
   .app-entry-layout { gap: .75rem; padding-block: 1.25rem; }
-  .app-entry-story { padding: 1.25rem; border-radius: 6px 6px 32px 6px; }
+  .app-entry-story { padding: 1.25rem; }
   .app-entry-story h1 { margin-top: .75rem; font-size: 2.75rem; line-height: 1.15; }
-  .app-entry-story h1 br { display: none; }
   .app-entry-story > p:not(.app-kicker) { max-width: none; margin-top: 1rem; font-size: .875rem; line-height: 1.6; }
   .app-entry-story > img, .app-entry-caption { display: none; }
   .app-start-trip { padding: 1.25rem .25rem; }

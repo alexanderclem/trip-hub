@@ -1,97 +1,130 @@
 # Stowaway design system
 
-Direction: **Good company. Great trips.** A travel journal with the confidence of a
-printed adventure poster. The public website inspires a group to start; the app
-makes the next planning action clear.
+**Direction: a shared travel journal.** Calm, practical, and sociable. The website
+shows why a group would use Stowaway; the application makes the next action clear.
+This October 29, 2026 system supersedes the October 22 poster direction.
 
-This October 22, 2026 redesign supersedes the earlier locked homepage composition,
-font restrictions, radius values, and motion guidance. The product identity,
-suitcase artwork, local data, share URLs, and offline behavior remain compatible.
+See [.design/brand-system.html](.design/brand-system.html) for the visual reference
+and [docs/BRAND.md](docs/BRAND.md) for messaging and logo rules.
 
-## Reference and interpretation
+## Product and message
 
-Reference: https://github.com/Fullstack-Empire/GSAP-Awwwards-Website
+Stowaway is a shared trip planner for trips with friends. The primary job is to
+turn saved ideas into a plan everyone can find, then keep tickets and costs nearby.
 
-Studied `HeroSection.jsx`, `MessageSection.jsx`, `ClipPathTitle.jsx`, and the
-reference stylesheet at commit `8a76a36`. Adapted its oversized condensed type,
-rotated color bands, clip-path reveal, and alternating full-width sections to
-Stowaway's travel category. No reference product imagery, proprietary font,
-marketing copy, or application code is included.
+- Main message: **Your group trip. All in one place.**
+- Explanation: Save places, vote on favorites, and build an itinerary together.
+  Keep tickets and shared expenses with the plan.
+- Supporting signature: The whole trip, tucked away.
+- Primary action: Create a trip. Secondary: Join your group. Returning: Open app.
 
-Stowaway already uses `motion/react`; the reveal choreography uses that runtime.
-No second animation engine, scroll hijacking, or animation dependency was added.
-The itinerary itself stays stationary so interaction and live motion-preference
-changes cannot move its click targets.
+Use specific actions and artifacts. Keep each section to one job. Show an
+itinerary, vote, ticket, or expense example beside its explanation. Label sample
+data as illustrative. Do not suggest Stowaway makes reservations or payments.
 
-## Foundation
+## Foundations
 
-`src/styles/tokens.css` owns shared semantic values.
+`src/styles/tokens.css` is the source of truth shared by the app and website.
+The root `tokens.css` provides only illustration aliases for the website.
 
-| Role | Value | Usage |
+| Role | Value | Use |
 | --- | --- | --- |
-| Canvas | `#f8f5ee` | Cream paper, public and application backgrounds |
-| Surface | `#fffdf8` | Forms, itinerary, record groups |
-| Ink | `#183e4b` | Headings, primary public actions, desktop workspace sidebar |
-| Action | `#295361` | App buttons, links, selected controls |
-| Muted | `#586467` | Supporting text on cream |
-| Mist | `#d6e4e5` | Capability band, offline section, selected mobile tab |
-| Coral | `#ef9477` | Poster stamps, closing section, desktop current tab |
-| Border | `#dcded5` | Quiet grouping and separation |
-| Control border | `#687e83` | Controls requiring a stronger visible boundary |
+| Canvas | `#f8f5ee` | Warm paper behind the page and app |
+| Surface | `#fffdf8` | Records, forms, and example artifacts |
+| Ink | `#183e4b` | Text, primary website actions, desktop sidebar |
+| Action | `#295361` | Links, app actions, focused and selected controls |
+| Muted | `#586467` | Supporting text on canvas and surface |
+| Mist | `#d6e4e5` | Supporting sections, selected navigation, demo frame |
+| Coral | `#ef9477` | Small brand accents and closing invitation |
+| Border | `#dcded5` | Noninteractive grouping and rules |
+| Control border | `#687e83` | Controls and boundaries needing visible contrast |
+| On action | `#fffdf8` | Text on ink or action backgrounds |
 
-Coral pairs with ocean ink, never white text. Status colors retain their existing
-meaning and labels. Key controls are at least 44px high; shared fields are 46px.
-Shared control radius is 6px; surface radius is 10px. The photo and welcome poster
-use a single asymmetric corner as a recognizable travel-postcard detail.
+Coral takes ink text. It is not a text or focus color on cream. Status colors
+keep their established meanings and visible labels. Light borders separate
+content; stronger control borders identify interactive boundaries.
 
-## Typography
+### Type
 
-- **Antonio**, locally hosted variable font: public poster headings and app welcome.
-- **Georgia**, system serif: editorial sections, trip names, screen titles.
-- **System sans-serif**: navigation, controls, forms, and trip details.
+Two families, with distinct jobs:
 
-All fonts work without a third-party font request. Antonio is bundled under the
-SIL Open Font License and included in the offline precache. Long headings wrap;
-forms remain at 16px or larger on phones.
+- **Georgia / Times New Roman / serif:** page and section headlines, trip names,
+  artifact titles. Regular weight; sentence case. Italic adds a quiet second voice
+  in editorial headings and the signature. Do not apply italics to navigation.
+- **System sans-serif:** body copy, navigation, labels, dates, amounts, and controls.
+  Weight 400 for reading, 550–600 for controls and headings. Use tabular numerals
+  for times and aligned amounts. Keep labels in sentence case.
 
-## Composition and behavior
+The drawn wordmark remains artwork. No font downloads are needed. The previous
+Antonio asset is retained with its license, but is not used or preloaded.
 
-- `/`: oversized left-aligned introduction beside a destination photograph;
-  capabilities; interactive map/itinerary example; full-width typographic
-  statement; three planning steps with labeled examples; offline preparation;
-  native FAQ; closing invitation. Desktop content width is 1320px.
-- `/app`: split welcome poster and create/join actions on desktop. On a phone the
-  poster becomes a compact introduction and gives priority to trip entry.
-- Returning workspace: editorial trip titles and bordered trip cards; existing
-  create, invite, restore, and planning entry points.
-- Trip workspace: ocean-ink sidebar on desktop, five labeled bottom tabs on mobile.
-  The active destination has a filled treatment as well as a label. Home, Plan,
-  Map, Vote, and More retain their existing routes.
-- Forms, lists, and screens share the same semantic tokens and primitives.
-  Existing validation, pending states, focus, error recovery, and destructive
-  confirmations remain in the product flows.
+| Role | Size / line height |
+| --- | --- |
+| Hero | `clamp(3rem, 5.7vw, 5rem)` / 1.08; compact mobile override |
+| Section | `clamp(2.25rem, 3.7vw, 3.5rem)` / 1.12 |
+| Artifact title | 1.375–1.75rem / 1.2–1.3 |
+| Body | 1–1.0625rem / 1.6–1.8 |
+| Supporting copy | .875rem / 1.7–1.8 |
+| Metadata | .75rem / 1.6–1.7 |
+| Forms | At least 1rem, including on phones |
 
-## Motion and accessibility
+Use readable paragraph measures of roughly 39–46 characters. Headings wrap
+naturally; do not truncate or hide long content.
 
-The travel stamp reveals across its width. Noninteractive editorial content
-settles into place once on entering view. Buttons retain brief press feedback;
-the existing itinerary day transition explains the selected state.
+### Space and shape
 
-The operating interface uses the existing route and state feedback, without
-adding scroll animation to records or forms. Reduced-motion preferences disable
-new motion, including changes to that preference during the session. Headline,
-actions, and content never depend on completing an entrance animation.
+Use the 4px rhythm: 4, 8, 12, 16, 24, 32, 48, 64, 96. Content width caps at
+1200px. Fluid gutters range from 20px to 64px; section spacing ranges from 64px to
+96px. Editorial layouts recompose to a single column below 760px.
 
-Native navigation links, native FAQ disclosures, persistent form labels, visible
-focus indicators, and the public/workspace skip links are retained. Site layout
-must reflow at 320px and with enlarged text. Downloading trip essentials while
-online remains a prerequisite for offline use; the website explains map packs
-separately from saved plans and tickets.
+Controls have a 6px radius. Surfaces and photos have a 10px radius. Nested demo
+frames add their padding to the inner radius. Use rules and background changes
+to group content; reserve shadows for existing overlays and floating app actions.
 
-## Assets
+## Components and states
 
-The brand masters remain in `public/brand`. Use `Brand` or the supplied wordmark;
-do not retype or redraw the logo. See `docs/DESIGN_ASSETS.md` for the new photo,
-font license, and reference provenance.
+- Primary buttons: ink with warm white text on the website; action blue in the
+  app. Hover changes to the other ink/action shade. Press feedback moves 1px.
+- Secondary buttons: transparent or surface with a strong control border; mist
+  on hover. One primary filled action per decision region.
+- Text links: underlined with a 5px offset in website action groups. Navigation
+  gets an underline on hover. Important actions have at least 44px targets.
+- Focus: a visible 2px action outline, offset from the control. On the dark app
+  sidebar, use the existing coral outline. Never remove the ring without a replacement.
+- Selected day: ink fill, warm white text, and `aria-pressed=true`. The itinerary
+  remains a stable height while days change; announce the selected day.
+- FAQ: native `details`/`summary`, plus/minus indicator, keyboard activation.
+- Forms: retain existing labels, validation, pending states, confirmations, and
+  recovery. Disabled buttons use native disabled behavior. Errors explain the
+  next action and retain input.
 
-Verification for this release is recorded in `.design/redesign-2026-10-22.md`.
+## Page patterns
+
+The homepage follows: category and promise → concrete capabilities → interactive
+itinerary → three planning steps with product examples → offline preparation →
+questions → create action. Do not add a second manifesto or a string of taglines.
+
+The welcome screen uses the same fonts, colors, controls, and quiet surface
+language. Create and join stay prominent on mobile. The trip workspace retains
+its existing routes and shared primitives; its records inherit these tokens.
+
+## Imagery and motion
+
+Use destination photography to express travel, and product examples to explain
+function. Serve the existing lake photo locally. Its caption identifies it as
+inspiration rather than an actual offered itinerary. The suitcase illustration
+belongs in onboarding and offline preparation; keep ordinary forms uncluttered.
+
+No entrance or scroll animation is required to read the website. Brief control
+feedback uses 160ms and the shared easing. Existing day transitions communicate
+selection. Respect reduced motion, including a preference change during a visit.
+
+## Verification and compatibility
+
+Keep skip links, native links/disclosures, keyboard focus, and responsive reflow.
+Verify at 320px through wide desktop widths, 200% text size, and browser zoom.
+Prepare offline access while online; maps require their own saved pack or area.
+
+Database names, storage keys, shared URLs, backend logic, and the logo masters
+remain compatible. This work does not change domain or deployment configuration.
+See `.design/brand-system-2026-10-29.md` for the executed verification record.

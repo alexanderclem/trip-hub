@@ -1,58 +1,77 @@
-# Stowaway
+# Stowaway brand
 
-Domain: `joinstowaway.app` · Tagline: **The whole trip, tucked away.**
+Stowaway is **the shared trip planner** for trips with friends.
+Address: `joinstowaway.app`.
 
-Stowaway helps a trip with friends actually happen, from the first idea to the flight
-home. It is a shared, offline-first trip planner. Lead with **Get the trip out of the
-group chat.** Explain the product with **Plan your trip together.** Keep the tagline
-as a supporting line, not the only explanation of what the app does.
+## Message hierarchy
 
-The voice is warm, social, and quietly organized: the organized friend who makes
-room for everyone’s ideas. Use real moments—saving a restaurant, picking a beach,
-booking a flight—rather than feature jargon. Describe the benefits as “Know what’s
-next,” “Keep every ticket handy,” and “See who owes what.” Keep navigation and
-action labels literal: Plan, Tickets, Money, Create a trip, Join trip, Open trip.
+1. **Promise:** Your group trip. All in one place.
+2. **Explanation:** Save places, vote on favorites, and build an itinerary together.
+   Keep tickets and shared expenses with the plan.
+3. **Supporting signature:** The whole trip, tucked away.
 
-Use **Stowaway** as the product name and **joinstowaway.app** as its address.
-Invitations introduce the actual trip: its name, saved destinations, dates, and
-travelers. Never invent an organizer or destination when those details are missing.
-The first group steps are invite friends → save an idea → start a vote.
+Use the promise and the explanation together when introducing the product. The
+signature is an occasional brand detail, not the product explanation. The same
+message appears on the homepage, social preview, and browser metadata.
 
-Stowie, the suitcase character, is curious, helpful, and slightly mischievous. Speak
-briefly, give one useful next step, and celebrate progress without promising that a
-booking or decision happened before it did. Use the character sparingly in welcome
-moments, empty states, and confirmations; keep ordinary forms and navigation clear.
+## Voice
 
-The mark is "Carry-on": a suitcase with a slot in it and two eyes looking out, the
-stowaway. The bag is ocean ink, the handle is coral, and the slot and the eye
-highlights are real cut-outs, so the mark works in one colour and on any background.
+Sound like the organized friend: warm, direct, and specific. Lead with the thing
+people can do or find. Short sentences and familiar words carry the personality.
+Use “your group,” “your trip,” and “together” when they clarify who is involved.
 
-- `public/brand/stowaway-mark.svg` is the master (96-unit grid).
-- `public/brand/stowaway-mark-small.svg` is the small-size cut (bigger eyes, thicker
-  handle, no highlights). Use it below about 32 px; the favicon uses it.
-- `public/brand/stowaway-type.svg` is the drawn wordmark: rounded lowercase with a
-  coral full stop. It is paths, not a font, so never retype it.
-- `public/brand/stowaway-wordmark.svg` is the full horizontal logo, and
-  `src/ui/Brand.tsx` is the interface lockup (it inlines the same wordmark path).
-- The travel illustration is `public/brand/packed-for-anywhere.svg`.
+| Instead of | Write |
+| --- | --- |
+| Give the idea a place to land | Create a trip and share the invite link |
+| Find the group’s kind of good | Save places and vote on favorites |
+| Less signal. Still sorted. | Saved plans and downloaded tickets work offline |
+| Work out the good stuff together | Build an itinerary with your group |
+| Everything you need, anywhere | Save your itinerary and download tickets before you leave |
 
-Keep clear space of one handle width around the logo. Don't recolour the bag,
-rotate the mark in a lockup, add a second pair of eyes, or set the name in a font.
+Action labels stay literal: Create a trip, Join trip, Open trip, Add to plan,
+Save ticket. “Start planning” is appropriate for a closing invitation that opens
+the create flow. Keep navigation names aligned with the actual screens.
 
-Palette: ocean ink `#183e4b`, action blue `#295361`, cream `#f8f5ee`, mist
-`#d6e4e5`, coral `#ef9477`. Coral is decorative, not a small-text color on cream.
-The October 22, 2026 redesign adds locally hosted Antonio for poster headings.
-Georgia gives editorial headings and trip names their travel-journal character;
-keep system sans-serif for forms, navigation, and trip details. The wordmark is drawn.
-Fonts make no third-party runtime requests. See `DESIGN.md` for the current system.
+Say what the app does accurately. Votes express preferences; the group decides
+what enters the plan. Expenses track shares and balances; they do not transfer
+money. Stowaway organizes tickets and confirmations; it does not book travel.
+Offline use requires preparation while online, with maps downloaded separately.
+Never invent reservations, customers, ratings, or claims of universal availability.
 
-Run `node scripts/build-brand-assets.mjs` to regenerate the favicon, PNG install
-icons, full logo, and 1200×630 social preview from the three masters, using
-existing Playwright. The app icon keeps the bag inside the maskable safe area.
+Invitations introduce the actual trip name, destinations, dates, and travelers.
+Do not fabricate missing details. Product demonstrations must be labeled examples.
 
-The rebrand preserves `trip-hub` database, local-storage, infrastructure, and repository
-identifiers for compatibility. Share links continue to use the current origin.
-Domain routing and deployment are separate from these source changes. The social
-preview URL assumes this build will be served at `https://joinstowaway.app`.
-Browser storage is origin-specific: trips saved on the old domain do not automatically
-appear on the new domain; travelers can rejoin with their trip link.
+## Visual identity
+
+The design is a shared travel journal: cream paper, ocean ink, sea-glass mist,
+and a small coral accent. Georgia provides the editorial voice; system sans-serif
+keeps trip details and actions clear. Use sentence case. The exact palette,
+typography, layout, and component states are in [DESIGN.md](../DESIGN.md).
+
+### Logo and character
+
+The Carry-on mark is a suitcase with two eyes looking out. The bag is ocean ink;
+the handle is coral. The slot and eye highlights are transparent cut-outs.
+
+- `public/brand/stowaway-mark.svg`: master on a 96-unit grid.
+- `public/brand/stowaway-mark-small.svg`: small-size cut; use below about 32px.
+- `public/brand/stowaway-type.svg`: drawn lowercase wordmark. Never retype it.
+- `public/brand/stowaway-wordmark.svg`: full horizontal logo.
+- `src/ui/Brand.tsx`: shared application and website lockups.
+- `public/brand/packed-for-anywhere.svg`: travel illustration.
+
+Keep clear space of one handle width. Do not recolor the bag, distort or rotate a
+lockup, or add eyes. Stowie, the suitcase character, is helpful and curious. Use
+him sparingly in welcome moments, offline preparation, and empty states. Give one
+useful next step; never imply a booking or decision happened before it did.
+
+Run `node scripts/build-brand-assets.mjs` to regenerate icons, the full logo, and
+the 1200×630 social preview from the masters. Image and font provenance is in
+[DESIGN_ASSETS.md](DESIGN_ASSETS.md).
+
+## Compatibility
+
+Keep `trip-hub` database, local-storage, infrastructure, and repository identifiers.
+Share links use the current origin. Moving domains does not transfer browser
+storage; travelers can rejoin with their trip link. The social image URL assumes
+production is served at `https://joinstowaway.app`.

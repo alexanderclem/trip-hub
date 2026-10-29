@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 
 test('the website introduces Stowaway, then opens the app and create flow', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Get the trip out of the group chat.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your group trip. All in one place.' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toHaveCount(0)
   const logos = page.getByRole('img', { name: 'Stowaway', exact: true })
   await expect(logos).toHaveCount(2)
@@ -96,7 +96,7 @@ test('returning travelers get the website at root and their workspace in the app
     }))
   })
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Get the trip out of the group chat.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your group trip. All in one place.' })).toBeVisible()
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Your trips, all aboard.' })).toBeVisible()
 })
