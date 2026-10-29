@@ -74,7 +74,7 @@ Ground truth that changes the brief's assumptions:
   - `access_mode text not null default 'group'`
   - `access_epoch int not null default 0`
   - `organizer_id uuid null` (Phase 1B)
-  - `join_role text not null default 'member'`: the role a new joiner gets. Hosted trips use `traveler` or `pending`.
+  - `join_role text not null default 'member'`: the role a new joiner gets. Switching a trip to hosted sets it to `pending` (decided: hosted joiners wait for approval). Travelers who book through `/go/:slug` skip approval and join as `traveler`.
 - `trip_devices.role text not null default 'member'`, one of `owner | admin | member | traveler | viewer | pending`. `owner`/`admin` require a non-anonymous user, enforced in the RPC.
 - `private.trip_revocations(trip_id, user_id, revoked_at, revoked_by)`.
 - `attachments`:
@@ -128,7 +128,7 @@ All new tables follow the standard columns plus `sync_guard`, a `(trip_id, updat
 |---|---|---|---|
 | `organizers` (owner_user_id, display_name, slug, support_email, logo_path) | the operator's business profile | owner, through RPC | no (dashboard is online) |
 | `stripe_accounts` (organizer_id, stripe_account_id, charges_enabled, payouts_enabled, details_submitted, requirements jsonb, disabled_reason, payout_schedule jsonb, country, default_currency) | mirror of the Connect account | webhook | no |
-| `trip_offers` (trip_id, organizer_id, status draft/published/closed, slug, price_minor, currency, deposit_minor, balance_due_date, capacity, cancellation_policy + policy_version, fee_mode absorb/pass) | the public trip page and its pricing | owner/admin, through RPC with validation | yes (read) |
+| `trip_offers` (trip_id, organizer_id, status draft/published/closed, slug, price_minor, currency, deposit_minor, balance_due_date, capacity, cancellation_policy + policy_version, fee_mode absorb/pass, default absorb) | the public trip page and its pricing | owner/admin, through RPC with validation | yes (read) |
 | `bookings` (trip_id, offer_id, member_id, traveler_name, traveler_email, status pending/active/paid/cancelled/refunded, price_minor, manage_token_hash, policy_accepted_at, policy_version, started_by_user) | one traveler's place on a trip | Edge Function | yes; RLS: staff, or the traveler via `claims_member` |
 | `booking_payments` (booking_id, kind deposit/balance, amount_minor, application_fee_minor, stripe ids, status, paid_at, refunded_minor) | each charge | webhook | yes (same RLS) |
 | `payouts` (organizer_id, stripe_payout_id, amount, arrival_date, status, failure_code) | mirror of the operator's payouts | webhook | no |
@@ -222,7 +222,7 @@ All new tables follow the standard columns plus `sync_guard`, a `(trip_id, updat
 
 **Fees and pricing mechanics:**
 - Stowaway's fee is a flat 1% of every charge, card or ACH, with no minimum and no cap. It's the same number on the pricing page, in the calculator and in the offer form.
-- `fee_mode=absorb`: the operator pays Stripe's fee plus ours.
+- `fee_mode=absorb` (the default): the operator pays Stripe's fee plus ours, and the traveler sees one price.
 - `fee_mode=pass`: a separate "booking fee" line that applies to every payment method, which keeps it a service fee, not a card surcharge. **Legal review needed** before launch (US surcharging rules).
 - Card fees are never surcharged per card.
 
@@ -323,11 +323,10 @@ Honest note: at 10 h/week, Phase 1 can't fit in "weeks". Each slice can (3–6 w
 
 **Cut first if time runs short**, in this order (each saves about 2–6 h):
 1. ACH (card only)
-2. pending-approval joins (hosted joiners become travelers directly; rely on removal)
-3. payouts history mirror (show the schedule plus a Stripe Dashboard link)
-4. dispute alerts (Stripe emails the operator anyway)
-5. CSV export
-6. automated reminders → a "Send reminder" button (mailto or share sheet)
+2. payouts history mirror (show the schedule plus a Stripe Dashboard link)
+3. dispute alerts (Stripe emails the operator anyway)
+4. CSV export
+5. automated reminders → a "Send reminder" button (mailto or share sheet)
 
 **Never cut:** 1A, the webhook inbox with idempotency, reconciliation, the ledger balance constraint, the staging project, and the hold/delay copy.
 
@@ -451,25 +450,30 @@ The **corporate variant** swaps questions 2–7 for: who approves, budgets, how 
 
 ---
 
-## 11. Open questions for you
+## 11. Decisions and open questions
 
-**Decided 29 Oct 2026:** flat 1% take; take rate only at launch, Pro in 2a; US operators and USD only; sole proprietor; Gmail as the email sender. See the table in Context.
+**Nothing blocks Phase 1.** Every question that did is decided (29 Oct 2026):
 
-**Still blocks Phase 1** (1A can start without these, 1C can't):
-1. **Default fee mode:** the operator absorbs Stripe's fee and our 1% (my recommendation for launch, because it keeps the traveler's price simple and needs no surcharge-law wording), or travelers pay a separate booking fee. Operators can switch either way.
-2. **Hosted-mode defaults for operator trips:** may travelers vote and suggest places? (Recommendation: vote yes, edit no, joins need approval.)
-3. **Lawyer review:** a budget for one review of the operator terms, fee wording and limitation of liability before 1C launches.
-4. **Staging:** OK to create a second free Supabase project for payments testing?
-5. **Claim rule:** only the trip creator's device may claim; any other case goes through support. Confirm.
-6. **Sending account:** OK to create a dedicated Stowaway Gmail account, rather than sending from your personal one?
+| Question | Decision |
+|---|---|
+| Money model | Facilitator: operators' own Stripe accounts, direct charges |
+| Take rate | Flat 1% of every charge, no minimum, no cap |
+| Monetization at launch | Take rate only; Pro subscription in 2a |
+| Launch market | US operators, USD only |
+| Legal entity | Sole proprietor; one lawyer review (operator terms, fee wording, limitation of liability) before 1C launches |
+| Email | A dedicated Stowaway Gmail account (Gmail API; Gmail SMTP for Supabase Auth codes) |
+| Default fee mode | The operator absorbs Stripe's fee and our 1%. Operators can switch an offer to a traveler-paid booking fee. |
+| Hosted-mode defaults | Travelers vote, rate and comment; they don't edit the plan. New joiners wait for approval (`join_role = 'pending'`). |
+| Staging | A second free Supabase project for payments testing; e2e for payments never runs against live |
+| Claim rule | Only a device that claims the trip creator's member can claim the trip; any other case goes through support |
+| Payout copy | Onboarding recommends daily automatic payouts; the operator sets the schedule in Stripe |
+| Referral rewards | Credit toward the next trip, not cash |
+| Corporate SSO | After the first signed corporate contract (needs paid Supabase) |
+| Phase 4 timing | Starts after 2a; it doesn't wait for Phase 3 |
 
-**Can decide later:**
+**Still open, none blocking:**
 - Pro price point ($79 or $99 a month): decide when 2a starts.
-- Payout schedule defaults: settled by the facilitator model (the operator sets them in Stripe). Confirm the onboarding copy recommends daily automatic payouts.
 - Agent API story: a public "agent-ready" story for free planning, versus API and webhooks as a Pro feature for operators. Decide after Phase 0 (it's also the fallback).
-- Corporate SSO timing: I recommend after the first signed corporate contract, because it needs paid Supabase.
-- Referral rewards: credit (recommended) or cash.
-- Phase 4 timing: right after 2a, or after Phase 3.
 - Whether to ever offer a platform-held "traveler protection" option. That would revisit the merchant-of-record decision.
 
 ---
@@ -533,4 +537,6 @@ The **corporate variant** swaps questions 2–7 for: who approves, budgets, how 
 
 **Already decided:** flat 1% take, take rate only at launch, US/USD only, sole proprietor, Gmail.
 
-**Decide before 1C starts:** default fee mode (my recommendation: operator absorbs), hosted-mode defaults, a lawyer review budget, the staging project, the claim rule, and a dedicated Gmail account. 1A can start now.
+**Also decided:** the operator absorbs fees by default; hosted travelers vote but don't edit, and new joiners need approval; one lawyer review before 1C; a staging Supabase project; only the trip creator can claim; a dedicated Stowaway Gmail account.
+
+**Nothing blocks the start.** Begin with Phase 0 (hygiene, instrumentation, interviews, the Stripe platform application) and 1A in parallel.
