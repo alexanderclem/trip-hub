@@ -35,6 +35,7 @@ const desktopGroups = [
     { to: 'tickets', label: 'Tickets', Icon: Ticket },
     { to: 'money', label: 'Shared expenses', Icon: Wallet },
     { to: 'more/places', label: 'Places', Icon: MapPin },
+    { to: 'more/explore', label: 'Explore destination', Icon: Compass },
   ] },
   { label: 'Getting ready', items: [
     { to: 'more/tasks', label: 'Tasks', Icon: ClipboardCheck },

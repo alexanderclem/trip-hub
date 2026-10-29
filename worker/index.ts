@@ -1,9 +1,10 @@
 import { z } from 'zod'
+import { handleTravel, type TravelEnv } from './travel'
 import { handleConnector, type ConnectorEnv } from './connector'
 import { handleScan } from './scan'
 import { AXES, assistReplySchema, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema, tidyIdea } from '../src/features/discovery/model'
 
-export interface Env extends ConnectorEnv {
+export interface Env extends ConnectorEnv, TravelEnv {
   ASSETS: { fetch(request: Request): Promise<Response> }
   AI: { run(model: string, input: Record<string, unknown>): Promise<{ response?: unknown }> }
   AI_RATE_LIMITER: { limit(input: { key: string }): Promise<{ success: boolean }> }
@@ -53,6 +54,7 @@ Leave unused fields null and options empty. When proposing, reply says what you 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname
+    if (path === '/api/travel-info') return handleTravel(request, env)
     if (path === '/mcp' || path === '/.well-known/oauth-protected-resource' || path === '/.well-known/oauth-protected-resource/mcp') return handleConnector(request, env)
     if (path === '/api/scan') return handleScan(request, env)
     if (new URL(request.url).pathname !== '/api/travel-ai') return env.ASSETS.fetch(request)

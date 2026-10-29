@@ -98,17 +98,21 @@ export function ItemFormScreen() {
     const attendee = search.get('attendee')
     if (attendee && !members.length) return
     const selectedAttendee = members.find((m) => m.id === attendee)
-    const day = search.get('day') ?? trip.start_date ?? DateTime.now().toISODate()!
     const place = places.find((p) => p.id === search.get('place'))
+    const importedEvent = !!place?.external_ids.ticketmaster
+    const day = search.get('day') ?? (importedEvent ? place?.external_ids.event_date : undefined) ?? trip.start_date ?? DateTime.now().toISODate()!
     const kind = (place && KIND_FOR_CATEGORY[place.category]) ?? 'activity'
     const lodging = kind === 'lodging'
-    const time = search.get('time')
+    const time = search.get('time') ?? (importedEvent ? place?.external_ids.event_time : undefined)
     const asked = time && /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : null
+    let eventZone = tripTz
+    const requestedZone = search.get('zone') ?? (importedEvent ? place?.external_ids.event_zone : undefined)
+    if (requestedZone) { try { new Intl.DateTimeFormat('en', { timeZone: requestedZone }).format(); eventZone = requestedZone } catch { /* Keep the trip zone for invalid links. */ } }
     setF({
-      title: place?.name ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: false,
+      title: place?.name ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: importedEvent && !asked,
       startDate: day, startTime: asked ?? (lodging ? '15:00' : kind === 'meal' ? '19:00' : '09:00'),
       endDate: lodging ? DateTime.fromISO(day).plus({ days: 1 }).toISODate()! : day, endTime: lodging ? '11:00' : '',
-      startTz: tripTz, endTz: tripTz, status: 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: '', cost: '',
+      startTz: eventZone, endTz: eventZone, status: importedEvent ? 'tentative' : 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : '', cost: '',
       costCurrency: trip.local_currency ?? trip.base_currency,
     })
   }, [f, trip, itemId, existing, search, places, loadedPlaces, tripTz, members])
