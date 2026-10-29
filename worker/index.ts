@@ -50,12 +50,28 @@ action: "none" unless the traveler asked to add or create something. Then propos
 - vote: title is the question; options lists at least two choices.
 Leave unused fields null and options empty. When proposing, reply says what you would add and that they can confirm it. Never say it has been added, booked or saved; the app adds it only after they confirm.`
 
+/**
+ * Serves a static asset. The SPA fallback answers every unknown path with the app's HTML and a 200,
+ * which tells agents and crawlers that a missing file like /llms.txt exists. Paths that name a
+ * file (an extension other than .html) get a plain 404 instead.
+ */
+export async function assetOrNotFound(request: Request, env: Pick<Env, 'ASSETS'>): Promise<Response> {
+  const response = await env.ASSETS.fetch(request)
+  const path = new URL(request.url).pathname
+  const namesFile = /\.[a-z0-9]+$/i.test(path) && !/\.html?$/i.test(path)
+  if (namesFile && (response.headers.get('content-type') ?? '').startsWith('text/html')) {
+    return new Response('Not found\n', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } })
+  }
+  return response
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname
     if (path === '/mcp' || path === '/.well-known/oauth-protected-resource' || path === '/.well-known/oauth-protected-resource/mcp') return handleConnector(request, env)
     if (path === '/api/scan') return handleScan(request, env)
-    if (new URL(request.url).pathname !== '/api/travel-ai') return env.ASSETS.fetch(request)
+    if (path.startsWith('/api/') && path !== '/api/travel-ai') return json({ error: 'Not found' }, 404)
+    if (path !== '/api/travel-ai') return assetOrNotFound(request, env)
     if (request.method !== 'POST') return json({ error: 'Use POST for AI planning.' }, 405)
     if (!env.AI || !env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY || !env.AI_RATE_LIMITER) return json({ error: 'AI planning is not connected on this server yet. You can still set preferences manually.' }, 503)
     const origin = request.headers.get('origin')
