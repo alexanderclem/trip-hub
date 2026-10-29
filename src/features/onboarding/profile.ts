@@ -61,13 +61,10 @@ export async function quizStillNeeded(): Promise<boolean> {
   return true
 }
 
-/**
- * Where to go right after creating or joining a trip: the quiz first for someone new, then on to
- * `path`. Only asked at that moment, so opening a saved ticket or link later is never interrupted.
- * Offline, the trip opens and the overview offers the quiz instead.
- */
+/** Open the requested trip immediately. Adopt a restored profile when available; Home offers the optional quiz. */
 export async function afterEntry(path: string): Promise<string> {
-  return navigator.onLine && (await quizStillNeeded()) ? `/quiz?next=${encodeURIComponent(path)}` : path
+  await quizStillNeeded()
+  return path
 }
 
 /**

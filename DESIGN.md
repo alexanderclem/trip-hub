@@ -100,13 +100,22 @@ to group content; reserve shadows for existing overlays and floating app actions
 
 ## Page patterns
 
-The homepage follows: category and promise → concrete capabilities → interactive
-itinerary → three planning steps with product examples → offline preparation →
-questions → create action. Do not add a second manifesto or a string of taglines.
+The homepage follows: category and promise beside an interactive sample trip →
+concrete capabilities → three planning steps → offline preparation with the
+destination photograph → questions → create action. The sample trip (Ideas, Vote,
+Plan, Essentials) is local-only and demonstrates the product before sign-up. Do
+not add a second manifesto or a string of taglines.
 
-The welcome screen uses the same fonts, colors, controls, and quiet surface
-language. Create and join stay prominent on mobile. The trip workspace retains
-its existing routes and shared primitives; its records inherit these tokens.
+`/app` is a task, not another marketing page: a compact introduction and direct
+create/join actions. An invite link (`#join`) gives priority to the invite field.
+Installation is always an explicit choice. Creation starts with a trip name and
+traveler name; dates and destination are optional and editable later in Settings.
+
+Trip workspace: Home prioritizes decisions during planning, offline preparation
+within seven destination-calendar days of departure, and the next event during
+travel. Plan defaults to a compact agenda; the proportional timeline remains
+available through a labeled toggle. Routes, tabs, and shared primitives are
+unchanged; records inherit these tokens.
 
 ## Imagery and motion
 
@@ -114,6 +123,18 @@ Use destination photography to express travel, and product examples to explain
 function. Serve the existing lake photo locally. Its caption identifies it as
 inspiration rather than an actual offered itinerary. The suitcase illustration
 belongs in onboarding and offline preparation; keep ordinary forms uncluttered.
+
+Website-only effects live in `src/features/website/effects.tsx` and CSS. They adapt
+patterns from React Bits, Magic UI, Motion Primitives, Animate UI and Animata on
+the existing `motion/react` runtime, with no copied code or added dependency: a
+blur-fade as sections first enter view, a word-by-word reveal of the hero's
+italic line, a highlight that slides between sample-trip tabs, a number ticker
+on the cost share, an underline that tightens and warms on hover, and one sheen
+across the primary action on hover. Sections start readable (60% opacity);
+the hero line settles within 0.75s. Nothing loops, and reduced motion disables
+all of it. Particles, shader
+backgrounds, globes and cursor effects are out: they add weight, ignore touch,
+and compete with the product example.
 
 No entrance or scroll animation is required to read the website. Brief control
 feedback uses 160ms and the shared easing. Existing day transitions communicate

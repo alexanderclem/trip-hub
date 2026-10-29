@@ -16,6 +16,7 @@ import { NotificationsCard } from '@/features/notifications/NotificationsCard'
 import { save } from '@/data/repo'
 import { Button, Card, Disclosure, ErrorNote, PageHeader, SectionTitle, Segmented } from '@/ui'
 import { rotateShareToken } from './actions'
+import { TripDetailsForm } from './TripDetailsForm'
 
 export function SettingsScreen() {
   const confirm = useConfirm()
@@ -48,6 +49,7 @@ export function SettingsScreen() {
     <div className="pb-10">
       <PageHeader title="Trip settings" back={`/t/${tripId}/more`} />
       <div className="mx-auto max-w-md space-y-4 p-4">
+        <Card><Disclosure summary="Trip details"><TripDetailsForm trip={trip} memberId={me} /></Disclosure></Card>
         <Card>
           <SectionTitle>Invite the group</SectionTitle>
           <div className="mt-2"><InviteTripCard trip={trip} bare /></div>

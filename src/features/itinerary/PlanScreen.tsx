@@ -24,6 +24,7 @@ import { dayLocations, useWeather, useWeatherRefresh, weatherFor } from './weath
 import { WeatherGlyph, WeatherLine } from './WeatherLine'
 import { useDaySuggestions } from '@/features/suggest/data'
 import { SuggestionsCard } from '@/features/suggest/SuggestionsCard'
+import { Agenda } from './Agenda'
 
 const HOUR_PX = 60
 const GUTTER = '3.25rem'
@@ -38,6 +39,7 @@ export function PlanScreen() {
   const legCtx = useLegContext(tripId)
   const { zone } = useDisplayZone(trip)
   const [params, setParams] = useSearchParams()
+  const [view, setView] = useState<'agenda' | 'timeline'>('agenda')
 
   const days = useMemo(() => planDays(trip?.start_date ?? null, trip?.end_date ?? null, items ?? [], zone), [trip, items, zone])
   const today = DateTime.now().setZone(zone).toISODate()!
@@ -110,6 +112,9 @@ export function PlanScreen() {
           )}
         </div>
 
+        <div role="group" aria-label="Plan view" className="flex w-fit gap-1 rounded-xl border border-stone-200 bg-surface p-1">
+          {(['agenda', 'timeline'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)} className={`min-h-11 rounded-lg px-4 text-sm font-medium ${view === mode ? 'bg-brand-700 text-white' : 'text-stone-600 hover:bg-brand-50'}`}>{mode === 'agenda' ? 'Agenda' : 'Timeline'}</button>)}
+        </div>
         <WeatherLine day={weatherOf(day)} />
         <DayNoteEditor tripId={tripId} day={day} />
 
@@ -146,6 +151,8 @@ export function PlanScreen() {
               <Plus aria-hidden="true" className="size-4" /> Add to this day
             </LinkButton>
           </Empty>
+        ) : view === 'agenda' ? (
+          <Agenda blocks={layout.blocks} zone={zone} tripId={tripId} placeOf={placeOf} />
         ) : (
           <Timeline blocks={layout.blocks} fromHour={layout.fromHour} toHour={layout.toHour} zone={zone} day={day} tripId={tripId} placeOf={placeOf} />
         )}

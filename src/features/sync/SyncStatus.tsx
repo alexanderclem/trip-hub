@@ -111,7 +111,7 @@ export function SyncStatusButton({ tripId, full = false, className = '' }: { tri
   const Icon = offline ? CloudOff : trouble ? TriangleAlert : sync.phase === 'syncing' || details?.pending.length ? CloudUpload : CheckCircle2
   const worded = full || offline || trouble
   return <>
-    <button type="button" aria-haspopup="dialog" onClick={() => setOpen(true)} className={`${worded ? `inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-medium hover:bg-brand-50 ${trouble ? 'bg-red-50 text-red-800' : offline ? 'bg-amber-100 text-amber-900' : 'text-brand-900'}` : 'ui-icon-button text-stone-600'} shrink-0 ${className}`}><Icon aria-hidden="true" className={worded ? 'size-4 shrink-0' : 'size-5'} /><span aria-live="polite" className={worded ? '' : 'sr-only'}>{label}</span><span className="sr-only">. View sync details</span></button>
+    <button type="button" aria-haspopup="dialog" onClick={() => setOpen(true)} className={`${worded ? `inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-medium hover:bg-brand-50 ${trouble ? 'bg-red-50 text-red-800' : offline ? 'bg-brand-50 text-brand-900' : 'text-brand-900'}` : 'ui-icon-button text-stone-600'} shrink-0 ${className}`}><Icon aria-hidden="true" className={worded ? 'size-4 shrink-0' : 'size-5'} /><span aria-live="polite" className={worded ? '' : 'sr-only'}>{label}</span><span className="sr-only">. View sync details</span></button>
     <Dialog open={open} onClose={() => setOpen(false)} title="Sync & saved changes"><SyncDetails tripId={tripId} /></Dialog>
   </>
 }

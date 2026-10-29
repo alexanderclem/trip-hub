@@ -1,16 +1,20 @@
 import { devices, expect, test, type Page } from '@playwright/test'
 
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Take Stowaway with you' })
+test.use({ serviceWorkers: 'block' })
 
 test.beforeEach(async ({ page, baseURL }) => {
   // These checks use only this browser's data, with no server-side trips or sign-ins.
   await page.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL!).origin, (route) => route.abort())
 })
 
-test('mobile app entry shows iPhone instructions and remembers dismissal for the session', async ({ page }) => {
+test('mobile app entry is uninterrupted and iPhone guidance opens only on request', async ({ page }) => {
   await page.goto('/')
   await expect(dialog(page)).not.toBeVisible()
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app' }).click()
+  await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
+  await expect(dialog(page)).not.toBeVisible()
+  await page.getByRole('button', { name: 'Add to Home Screen', exact: true }).click()
   await expect(dialog(page)).toBeVisible()
   await expect(dialog(page)).toContainText('Safari')
   await expect(dialog(page)).toContainText('Add to Home Screen')
@@ -25,8 +29,10 @@ test('mobile app entry shows iPhone instructions and remembers dismissal for the
   await expect(dialog(page)).not.toBeVisible()
 })
 
-test('direct mobile entry traps focus, supports Escape, and restores the join field', async ({ page }) => {
+test('explicit mobile guidance traps focus, supports Escape, and preserves the join route', async ({ page }) => {
   await page.goto('/app#join')
+  await expect(page.getByLabel('Trip link', { exact: true })).toBeFocused()
+  await page.getByRole('button', { name: 'Add to Home Screen', exact: true }).click()
   await expect(dialog(page)).toBeVisible()
   const close = dialog(page).getByRole('button', { name: 'Close dialog' })
   await close.focus()
@@ -41,7 +47,8 @@ test('direct mobile entry traps focus, supports Escape, and restores the join fi
   await expect(close).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(dialog(page)).not.toBeVisible()
-  await expect(page.getByLabel('Trip link', { exact: true })).toBeFocused()
+  await expect(page).toHaveURL(/\/app#join$/)
+  await expect(page.getByRole('button', { name: 'Add to Home Screen', exact: true })).toBeFocused()
 })
 
 test('Home Screen launches skip installation guidance', async ({ page }) => {
@@ -56,6 +63,7 @@ test('mobile guidance reflows at 320px and enlarged text with reduced motion', a
   await page.setViewportSize({ width: 320, height: 640 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/app')
+  await page.getByRole('button', { name: 'Add to Home Screen', exact: true }).click()
   await expect(dialog(page)).toBeVisible()
   if (process.env.SHOTS_DIR) await page.screenshot({ path: `${process.env.SHOTS_DIR}/install-iphone-320.png` })
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
@@ -70,6 +78,7 @@ test('dismissal still works when session storage is unavailable', async ({ page 
     Object.defineProperty(window, 'sessionStorage', { get() { throw new Error('Storage blocked') } })
   })
   await page.goto('/app')
+  await page.getByRole('button', { name: 'Add to Home Screen', exact: true }).click()
   await expect(dialog(page)).toBeVisible()
   await dialog(page).getByRole('button', { name: 'Close dialog' }).click()
   await expect(dialog(page)).not.toBeVisible()
@@ -79,6 +88,7 @@ test('dismissal still works when session storage is unavailable', async ({ page 
 })
 
 test('trip settings keep destination and offline tools without the import section', async ({ page }) => {
+  await page.route('**/*.supabase.co/**', (route) => route.abort())
   // This screen opens the app database before the local fixture writes its records.
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
@@ -98,7 +108,7 @@ test('trip settings keep destination and offline tools without the import sectio
       transaction.onerror = () => reject(transaction.error)
     })
     database.close()
-    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { trips: { [tripId]: { tripId, memberId, joinedAt: '2026-10-08T12:00:00Z' } }, quizSeen: true }, version: 1 }))
+    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { trips: { [tripId]: { tripId, memberId, joinedAt: '2027-03-01T12:00:00Z' } }, quizSeen: true }, version: 1 }))
   })
   await page.goto('/t/00000000-0000-4000-8000-000000000901/more/settings')
   await expect(page.getByRole('heading', { name: 'Trip settings', exact: true })).toBeVisible()
@@ -145,6 +155,9 @@ test.describe('Android', () => {
     expect(await offerInstall(page, 'accepted')).toBe(true)
     await expect(dialog(page)).not.toBeVisible()
     await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app' }).click()
+    await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
+    await expect(dialog(page)).not.toBeVisible()
+    await page.getByRole('button', { name: 'Add to Home Screen', exact: true }).click()
     await expect(dialog(page)).toBeVisible()
     if (process.env.SHOTS_DIR) await page.screenshot({ path: `${process.env.SHOTS_DIR}/install-android.png` })
     await dialog(page).getByRole('button', { name: 'Install Stowaway' }).click()
@@ -154,6 +167,7 @@ test.describe('Android', () => {
 
   test('a declined native install can continue in the browser without reusing the event', async ({ page }) => {
     await page.goto('/app')
+    await page.getByRole('button', { name: 'Add to Home Screen', exact: true }).click()
     await expect(dialog(page)).toBeVisible()
     expect(await offerInstall(page, 'dismissed')).toBe(true)
     await dialog(page).getByRole('button', { name: 'Install Stowaway' }).click()
@@ -166,6 +180,7 @@ test.describe('Android', () => {
 
   test('native installation failure gives manual instructions and recovery', async ({ page }) => {
     await page.goto('/app')
+    await page.getByRole('button', { name: 'Add to Home Screen', exact: true }).click()
     await expect(dialog(page)).toBeVisible()
     await offerInstall(page, 'error')
     await dialog(page).getByRole('button', { name: 'Install Stowaway' }).click()
@@ -177,6 +192,7 @@ test.describe('Android', () => {
 
   test('installation through the browser closes the popup', async ({ page }) => {
     await page.goto('/app')
+    await page.getByRole('button', { name: 'Add to Home Screen', exact: true }).click()
     await expect(dialog(page)).toBeVisible()
     await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')))
     await expect(dialog(page)).not.toBeVisible()

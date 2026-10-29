@@ -127,6 +127,7 @@ test('preferences become a radar profile, generate ideas, filter, refine and sur
   await page.getByRole('button', { name: 'Build this trip' }).first().click()
   await page.waitForURL(/\/new\?draft=/)
   await expect(page.getByLabel('Trip name', { exact: true })).toHaveValue(result.ideas[0]!.title)
+  await page.getByText('Time zone & currencies', { exact: true }).click()
   await expect(page.getByLabel('Destination time zone')).toHaveValue('America/Los_Angeles')
   await page.getByLabel('Your name').fill('Alex')
   await page.getByLabel('Starts', { exact: true }).fill('2027-03-14')
