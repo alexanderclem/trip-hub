@@ -1,14 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ ensureSession: vi.fn(), rpc: vi.fn(), setMember: vi.fn(), pull: vi.fn(), tripGet: vi.fn() }))
+const mocks = vi.hoisted(() => ({ ensureSession: vi.fn(), rpc: vi.fn(), setMember: vi.fn(), setAccess: vi.fn(), pull: vi.fn(), tripGet: vi.fn(), access: {} as Record<string, unknown> }))
 vi.mock('@/data/db', () => ({ db: { trips: { get: mocks.tripGet } } }))
 vi.mock('@/lib/supabase', () => ({ ensureSession: mocks.ensureSession, supabase: { rpc: mocks.rpc } }))
-vi.mock('@/data/device', () => ({ useDevice: { getState: () => ({ setMember: mocks.setMember }) } }))
+vi.mock('@/data/device', () => ({ useDevice: { getState: () => ({ setMember: mocks.setMember, setAccess: mocks.setAccess, access: mocks.access }) } }))
 vi.mock('@/data/sync/engine', () => ({ pull: mocks.pull }))
 import { claimMember, createMemberAndClaim, joinTargetQuery, parseJoinTarget, parseShareToken } from './actions'
 
 beforeEach(() => {
   vi.clearAllMocks()
+  for (const k of Object.keys(mocks.access)) delete mocks.access[k]
   mocks.ensureSession.mockResolvedValue('signed-in-user')
   mocks.rpc.mockResolvedValue({ error: null })
   mocks.pull.mockResolvedValue({ error: null })
@@ -55,6 +56,21 @@ describe('claiming a trip identity', () => {
       .mockResolvedValueOnce({ error: { message: 'This trip link is invalid or has been replaced' } })
     await expect(claimMember('trip-id', 'member-id')).rejects.toThrow('invalid or has been replaced')
     expect(mocks.setMember).not.toHaveBeenCalled()
+  })
+  it('never joins again for someone who was removed', async () => {
+    mocks.access['trip-id'] = { role: null, mode: 'group', epoch: 0, removed: true, canRemove: false, organized: false, removedMembers: [] }
+    mocks.tripGet.mockResolvedValue({ share_token: 'savedInviteToken0001' })
+    mocks.rpc.mockResolvedValueOnce({ error: { message: 'No access to this trip', code: '42501' } })
+    await expect(claimMember('trip-id', 'member-id')).rejects.toThrow('No access')
+    expect(mocks.rpc.mock.calls.map((c) => c[0])).toEqual(['claim_member'])
+  })
+  it('remembers a removal the server reports while joining again', async () => {
+    mocks.tripGet.mockResolvedValue({ share_token: 'savedInviteToken0001' })
+    mocks.rpc
+      .mockResolvedValueOnce({ error: { message: 'No access to this trip', code: '42501' } })
+      .mockResolvedValueOnce({ error: { message: 'You were removed from this trip', code: 'TH403' } })
+    await expect(claimMember('trip-id', 'member-id')).rejects.toThrow('removed')
+    expect(mocks.setAccess).toHaveBeenCalledWith('trip-id', expect.objectContaining({ removed: true, role: null }))
   })
 })
 

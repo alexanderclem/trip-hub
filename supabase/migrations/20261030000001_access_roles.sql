@@ -534,6 +534,7 @@ language sql stable security definer set search_path = '' as $$
     'epoch', t.access_epoch,
     'removed', exists (select 1 from private.trip_revocations r where r.trip_id = p_trip_id and r.user_id = (select auth.uid())),
     'can_remove', private.can_remove(p_trip_id),
+    'organized', private.has_staff(p_trip_id),
     'removed_members', case when private.can_remove(p_trip_id) then coalesce((
       select jsonb_agg(distinct r.member_id) from private.trip_revocations r where r.trip_id = p_trip_id and r.member_id is not null), '[]') end
   )

@@ -2,6 +2,7 @@ import { ensureSession, supabase } from '@/lib/supabase'
 import { newId } from '@/lib/ids'
 import { db } from '@/data/db'
 import { useDevice } from '@/data/device'
+import { GROUP_ACCESS, REMOVED_CODE } from '@/data/access'
 import { save } from '@/data/repo'
 import type { TripArea } from '@/features/destinations/destinations'
 import { pull } from '@/data/sync/engine'
@@ -119,10 +120,15 @@ export async function joinTrip(token: string): Promise<{ tripId: string; memberI
  */
 async function withTripAccess(tripId: string, call: () => PromiseLike<{ error: { message: string; code?: string } | null }>) {
   let { error } = await call()
-  if (error?.code === '42501') {
+  // A person who was removed must not slip back in with the link saved on this phone.
+  if (error?.code === '42501' && !useDevice.getState().access[tripId]?.removed) {
     const token = (await db.trips.get(tripId))?.share_token
     if (token) {
       const rejoin = await supabase.rpc('join_trip', { p_token: token })
+      if (rejoin.error?.code === REMOVED_CODE) {
+        const device = useDevice.getState()
+        device.setAccess(tripId, { ...(device.access[tripId] ?? GROUP_ACCESS), role: null, removed: true })
+      }
       if (rejoin.error) throw new Error(rejoin.error.message)
       ;({ error } = await call())
     }
@@ -155,3 +161,29 @@ export async function rotateShareToken(tripId: string): Promise<string> {
   await initialPull(tripId)
   return data as string
 }
+
+// ─── Organizing: roles and removing people (supabase/migrations/20261030000001_access_roles.sql) ───
+
+async function rpc(name: string, args: Record<string, unknown>): Promise<unknown> {
+  await ensureSession()
+  const { data, error } = await supabase.rpc(name, args)
+  if (error) throw new Error(error.message)
+  return data
+}
+
+/** Removes a person and, by default, replaces the invite link. Returns the new link token, if replaced. */
+export async function removeFromTrip(tripId: string, memberId: string, replaceLink = true): Promise<string | null> {
+  const token = (await rpc('remove_from_trip', { p_trip_id: tripId, p_member_id: memberId, p_replace_link: replaceLink })) as string | null
+  await initialPull(tripId)
+  return token
+}
+
+export const undoRemove = (tripId: string, memberId: string) => rpc('undo_remove', { p_trip_id: tripId, p_member_id: memberId })
+
+/** The trip's creator, signed in with an account, becomes its organizer. */
+export const claimTrip = (tripId: string) => rpc('claim_trip', { p_trip_id: tripId })
+
+export const setAccessMode = (tripId: string, mode: 'group' | 'hosted') => rpc('set_access_mode', { p_trip_id: tripId, p_mode: mode })
+
+export const setMemberRole = (tripId: string, memberId: string, role: 'admin' | 'traveler' | 'viewer' | 'pending' | 'member') =>
+  rpc('set_member_role', { p_trip_id: tripId, p_member_id: memberId, p_role: role })

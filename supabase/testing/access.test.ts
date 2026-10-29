@@ -203,7 +203,7 @@ describe('hosted trips', () => {
       expect(await sel(`select id k from public.places order by 1`)).toEqual([P.p1, P.p2])
       expect(await attempt(pg, `select public.claim_member('${T1}', '${M.B}')`)).toBe('error')
       const access = await pg.query<{ a: Record<string, unknown> }>(`select public.my_trip_access('${T1}') as a`)
-      expect(access.rows[0]!.a).toMatchObject({ role: 'traveler', mode: 'hosted', epoch: 1, removed: false, can_remove: false })
+      expect(access.rows[0]!.a).toMatchObject({ role: 'traveler', mode: 'hosted', epoch: 1, removed: false, can_remove: false, organized: true })
     })
   })
 

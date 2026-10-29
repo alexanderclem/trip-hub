@@ -32,7 +32,15 @@ export interface Trip extends SyncColumns {
   offline_pack: unknown
   share_token: string
   settings: Record<string, unknown>
+  /** 'group': everyone who joined edits (every trip until its organizer switches). 'hosted': roles apply. */
+  access_mode?: AccessMode
+  /** Bumped when the mode changes; phones then drop what they may no longer see and pull again. */
+  access_epoch?: number
 }
+
+export type AccessMode = 'group' | 'hosted'
+export type TripRole = 'owner' | 'admin' | 'member' | 'traveler' | 'viewer' | 'pending'
+export type AttachmentVisibility = 'trip' | 'staff' | 'owner'
 
 export interface Member extends SyncColumns {
   trip_id: string
@@ -338,6 +346,9 @@ export interface Attachment extends SyncColumns {
   text_source?: 'pdf' | 'ocr' | 'ai' | 'edited' | null
   /** Details pulled out by AI (merchant, amount, date, confirmation code, flight). */
   details?: ScanDetails | null
+  /** Who can open it in a hosted trip; group trips show everything to everyone. */
+  visibility?: AttachmentVisibility
+  owner_member_id?: string | null
 }
 
 export const COMMENT_SUBJECTS = ['poll', 'place', 'item'] as const

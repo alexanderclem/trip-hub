@@ -5,6 +5,9 @@ import { db } from '../db'
 import { pull, push, resetBackoff, SYNCED_TABLES } from './engine'
 import { supabaseRemote } from './remote'
 import { publishReminders } from '@/features/notifications/reminders'
+import { fetchAccess, needsRefetch } from '../access'
+import { useDevice } from '../device'
+import { dropTrip } from '../reset'
 
 export type SyncPhase = 'idle' | 'syncing' | 'offline' | 'error'
 
@@ -64,6 +67,10 @@ async function cycle(tripId: string) {
   }
   setStatus(tripId, { phase: 'syncing', lastError: null })
   const pushed = await push(supabaseRemote)
+  if ((await checkAccess(tripId)) === 'removed') {
+    setStatus(tripId, { phase: 'idle', lastError: null })
+    return
+  }
   const pulled = await pull(supabaseRemote, tripId)
   if (pulled.error) {
     setStatus(tripId, {
@@ -81,6 +88,33 @@ async function cycle(tripId: string) {
   } catch (error) {
     setStatus(tripId, { phase: navigator.onLine ? 'error' : 'offline', lastError: error instanceof Error ? error.message : 'Could not finish syncing. Try again.' })
   }
+}
+
+/**
+ * Re-reads what this phone may do on the trip. If its person was removed, the trip's data leaves
+ * the phone. If its role or the trip's mode changed, the local copy is dropped so the pull that
+ * follows brings back only what the phone may now see. Waits while changes are still queued, so
+ * nothing typed on this phone is thrown away.
+ */
+async function checkAccess(tripId: string): Promise<'ok' | 'removed'> {
+  const access = await fetchAccess(tripId)
+  if (access === 'unknown') return 'ok'
+  const device = useDevice.getState()
+  const before = device.access[tripId]
+  if (access.removed) {
+    device.setAccess(tripId, access)
+    await dropTrip(tripId)
+    return 'removed'
+  }
+  // No role and not removed: the server forgot this phone; "Who are you?" re-joins it (actions.ts).
+  if (!access.role) return 'ok'
+  if (needsRefetch(before, access)) {
+    const waiting = await db._outbox.filter((e) => e.rowId === tripId || e.payload.trip_id === tripId).count()
+    if (waiting > 0) return 'ok' // try again on the next cycle, after these are pushed
+    await dropTrip(tripId)
+  }
+  device.setAccess(tripId, access)
+  return 'ok'
 }
 
 /** Starts background sync for a trip. Returns a function that stops it. */

@@ -5,6 +5,13 @@ type Row<T extends TableName> = Tables[T]
 
 const SERVER_MANAGED = new Set(['created_at', 'updated_at'])
 
+/** Returns why the server would refuse this write, or null. Set at startup (src/data/access.ts). */
+export type WriteGuard = (table: TableName, row: Record<string, unknown>, memberId: string | null) => string | null
+let writeGuard: WriteGuard | null = null
+export function setWriteGuard(guard: WriteGuard | null) {
+  writeGuard = guard
+}
+
 /** What gets sent to the server: no local bookkeeping, no server-managed timestamps. */
 export function toPayload(row: object): Record<string, unknown> {
   const out: Record<string, unknown> = {}
@@ -34,6 +41,11 @@ export async function saveMany<T extends TableName>(
   memberId: string | null,
   database: TripDb = defaultDb,
 ): Promise<void> {
+  // Refuse here, with a reason the form can show, what the server would only dead-letter later.
+  for (const row of rows) {
+    const refusal = writeGuard?.(table, row as unknown as Record<string, unknown>, memberId)
+    if (refusal) throw new Error(refusal)
+  }
   const t = database.table(table)
   await database.transaction('rw', t, database._outbox, async () => {
     const now = new Date().toISOString()
