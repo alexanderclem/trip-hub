@@ -8,10 +8,12 @@ import { clearPreResetTrips } from './data/reset'
 import { setWriteGuard } from './data/repo'
 import { useDevice } from './data/device'
 import { writeRefusal } from './data/access'
+import { rememberSource } from './features/funnel/events'
 import './styles/index.css'
 import './styles/journal.css'
 
 initializeInstallPrompt()
+rememberSource(location.search)
 
 // Saves the server would refuse for this phone's role fail at once, with a reason the form shows.
 setWriteGuard((table, row, me) => {

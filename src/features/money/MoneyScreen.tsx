@@ -17,6 +17,8 @@ import { parseMinor } from './build'
 import { deleteSettlement, saveSettlement, useFxRefresh, useMoney } from './data'
 import { useMoneyFormat } from './format'
 import { TripCostCard } from './TripCostCard'
+import { moneyMoment } from './moment'
+import { CollectPaymentsRow } from './CollectPayments'
 import { Stowie } from '@/features/stowie/Stowie'
 import { NumberTicker } from '@/ui/effects'
 
@@ -52,6 +54,7 @@ export function MoneyScreen() {
   }, [money])
 
   if (!trip || !money) return <LoadingState fullScreen title="Loading shared expenses…" />
+  const moment = moneyMoment({ me, createdBy: trip.created_by, people: members.length, baseCurrency: base, expenses: money.expenses, transfers })
   const empty = money.expenses.length === 0 && money.settlements.length === 0
   const scan = `/t/${tripId}/tickets/new?kind=receipt&expense=1`
 
@@ -120,6 +123,8 @@ export function MoneyScreen() {
             </Card>
           </>
         )}
+
+        {moment && <CollectPaymentsRow tripId={tripId} reason={moment} />}
 
         {trip && me && money && (
           <TripCostCard trip={trip} me={me} memberIds={members.map((m) => m.id)} expenses={money.expenses} snapshot={money.snapshot} fmt={(v) => fmt(v)} />

@@ -6,6 +6,7 @@ import { fetchAccess, GROUP_ACCESS, REMOVED_CODE } from '@/data/access'
 import { save } from '@/data/repo'
 import type { TripArea } from '@/features/destinations/destinations'
 import { pull } from '@/data/sync/engine'
+import { trackTripSource } from '@/features/funnel/events'
 import { supabaseRemote } from '@/data/sync/remote'
 
 export const MEMBER_COLORS = [
@@ -49,6 +50,7 @@ export async function createTrip(t: NewTrip): Promise<string> {
   })
   if (error) throw new Error(error.message)
   useDevice.getState().rememberTrip(tripId, memberId)
+  void trackTripSource(tripId)
   await initialPull(tripId)
   if (t.areas?.length) {
     const trip = await db.trips.get(tripId)

@@ -25,6 +25,15 @@ export interface DeadLetter {
   at: number
 }
 
+/** A funnel event waiting to be sent (src/features/funnel/events.ts). This phone only, never synced. */
+export interface QueuedEvent {
+  seq?: number
+  kind: string
+  trip_id: string | null
+  props: Record<string, unknown>
+  at: number
+}
+
 /** Offline map files, when the browser can't write them to OPFS. */
 export interface StoredFile {
   name: string
@@ -68,6 +77,8 @@ export class TripDb extends Dexie {
   files!: EntityTable<StoredFile, 'name'>
   /** Weather for plan days; this phone only, never synced. */
   weather!: EntityTable<WeatherRow, 'id'>
+  /** Funnel events waiting for a connection; this phone only, never synced. */
+  _events!: EntityTable<QueuedEvent, 'seq'>
 
   constructor(name = 'trip-hub') {
     super(name)
@@ -108,6 +119,7 @@ export class TripDb extends Dexie {
     this.version(12).stores({ member_safety: 'id, trip_id, member_id' })
     this.version(13).stores({ comments: 'id, trip_id, [subject_type+subject_id]' })
     this.version(14).stores({ stowie_threads: 'scope' })
+    this.version(15).stores({ _events: '++seq, trip_id' })
   }
 }
 

@@ -8,6 +8,7 @@ import { publishReminders } from '@/features/notifications/reminders'
 import { fetchAccess, needsRefetch } from '../access'
 import { useDevice } from '../device'
 import { dropTrip } from '../reset'
+import { flushEvents, sendToSupabase } from '@/features/funnel/events'
 
 export type SyncPhase = 'idle' | 'syncing' | 'offline' | 'error'
 
@@ -84,6 +85,7 @@ async function cycle(tripId: string) {
     setStatus(tripId, { phase: 'idle', lastSyncedAt: new Date().toISOString(), lastError: null })
     // With fresh plans and travel times, refresh this phone's leave-by reminders (push on only).
     void publishReminders(tripId).catch((e) => console.warn('leave-by reminders failed', e))
+    void flushEvents(sendToSupabase).catch((e) => console.warn('sending funnel events failed', e))
   }
   } catch (error) {
     setStatus(tripId, { phase: navigator.onLine ? 'error' : 'offline', lastError: error instanceof Error ? error.message : 'Could not finish syncing. Try again.' })

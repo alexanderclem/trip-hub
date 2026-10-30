@@ -3,6 +3,7 @@ import { Check, Copy, Share2 } from 'lucide-react'
 import type { Trip } from '@/data/types'
 import { Button, Card, ErrorNote, SectionTitle } from '@/ui'
 import { shareLink } from './actions'
+import { track } from '@/features/funnel/events'
 
 /** The trip's invite link with Share and Copy. `bare` leaves out the card and heading, for use inside another section. */
 export function InviteTripCard({ trip, bare = false }: { trip: Trip; bare?: boolean }) {
@@ -23,9 +24,11 @@ export function InviteTripCard({ trip, bare = false }: { trip: Trip; bare?: bool
       if (method === 'copy') {
         await navigator.clipboard.writeText(link)
         setCopied(true)
+        void track('invite_shared', trip.id, { method: 'copy' })
       } else {
         // The link goes in one field only: with both `text` and `url`, the iPhone share sheet's Copy pastes the link twice.
         await navigator.share({ title: `Join “${trip.name}” on Stowaway`, url: link })
+        void track('invite_shared', trip.id, { method: 'share' })
       }
     } catch (e) {
       if (!(method === 'share' && e instanceof Error && e.name === 'AbortError')) {
