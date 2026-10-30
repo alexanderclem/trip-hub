@@ -1,5 +1,58 @@
 # Stowaway: The Switch — implementation plan
 
+## Status (31 Oct 2026)
+
+| Piece | Code | Live |
+|---|---|---|
+| Plan, real 404s for agent files, PGlite harness | ✅ | needs merge to `main` |
+| 1A roles, removal, private documents (`20261030000001_access_roles.sql`) | ✅ | **migration not applied** (needs the owner's go-ahead) |
+| Funnel events and the "collect payments" offer (`20261030000002_product_events.sql`) | ✅ | **migration not applied** |
+| Live connector drift reconstructed (`20261008000002_connector_editing.sql`) | ✅ | already on live |
+| 1B organizer profiles and claiming (`20261031000001_organizers.sql`) | ✅ | **migration not applied** |
+| 1B `/pricing` with fee calculator, `/operators` | ✅ | needs merge to `main` |
+| Phase 0 interviews, concierge trip, Stripe platform application | owner | – |
+| 1C payments | next | – |
+
+Apply the three migrations in filename order, with the before/after per-phone check described below.
+
+## Now building: Phase 1B, organizer claim, operators page, pricing and fee calculator (about 16 h build)
+
+**Why.** 1B makes the paid tier real without moving money yet: a trip's creator can claim the trip as its organizer (with an account and a business profile), operators get a page that speaks to them, and anyone can see exactly what they'd pay. Done so far on `claude/keen-ptolemy-y4goja`: plan, real 404s, PGlite harness, 1A (roles, removal, private documents), funnel tracking and the "payments are coming" offer. None of it is live yet.
+
+**What I found on the live project (read-only):** its migration history doesn't match the repo. Several repo migrations (account linking, push, comments, poll upgrades, member preferences) were applied outside the tracked history, and live has three connector-editing migrations the repo doesn't (`connector_editing`, `connector_two_clients`, `connector_places_undo`: functions `connector_edit_access`, `connector_mutate_itinerary`, `connector_undo_change`, `connector_list_changes`, table `private.connector_changes`). Every table, helper function and policy name the 1A migration relies on is present, and live has 8 trips (2 are test trips) and 22 joined phones.
+
+### Step 1: put 1A and the funnel live, safely (about 2 h)
+1. **Reconstruct the drift into the repo first:** read the live definitions of the connector-editing objects (`pg_get_functiondef`, table and grant definitions) and commit them as `supabase/migrations/20261003010000_connector_editing.sql` (one file, recording that it reproduces what live already has), so the PGlite harness and future migrations see the real schema. Re-run the access suite with it.
+2. **Live equivalence check, before:** for every real phone (`trip_devices.user_id`), run inside a transaction that is rolled back: `set local role authenticated`, set its JWT claims, and count the rows it can see in every trip table. Save the counts.
+3. **Apply** `20261030000001_access_roles.sql`, then `20261030000002_product_events.sql`, with the Supabase `apply_migration` tool on `croqjdvzbpcscdcshnet`.
+4. **Live equivalence check, after:** the same counts must match exactly for every phone. If any differs, apply a prepared rollback migration (restores the old `has_trip_access`, policies and RPCs) and stop.
+5. Run `get_advisors` (security), and expect only the two known warning kinds from CLAUDE.md.
+
+The app code still isn't deployed until you merge to `main`; the database changes are invisible to today's app (group mode behaves as before).
+
+### Step 2: organizer profile and claiming in place (about 6 h)
+- **Migration `20261031000001_organizers.sql`:** `public.organizers` (id, owner_user_id unique, display_name, support_email, slug unique, created_at, updated_at), RLS owner-only, no delete policy; `public.save_organizer(p_display_name, p_support_email)` (non-anonymous accounts only; slug made from the name); `trips.organizer_id` (protected by the sync guard like the access columns); `claim_trip` also sets `organizer_id` when the caller has a profile.
+- **Return after sign-in:** a validated return path (`/t/<uuid>/…` only) kept in sessionStorage and used by `signedInDestination()` in `src/features/account/account.ts`, the way `takeConnectorReturn()` works, so "Sign in" from a trip comes back to that trip instead of `/app`.
+- **Claim flow** (`src/features/trips/PeopleCard.tsx`, "Organize this trip"): sign in if needed → organizer name and support email (prefilled from the account) → claim. Then the card shows the organizer controls already built in 1A. The payments sheet (`src/features/money/CollectPayments.tsx`) gets a second, quieter action for the creator: "Become the organizer now", leading to the same flow; early access stays the main action.
+- Events: `organizer_claimed` (server trigger on the role change to owner) added to the funnel; `private.funnel_daily` gains a column.
+
+### Step 3: pricing, fee calculator and the operators page (about 6 h)
+- **`src/lib/fees.ts`** (pure, unit- and property-tested with fast-check): `quote({ pricePerPerson, travelers, deposit, method: 'card' | 'ach', internationalShare, feeMode: 'absorb' | 'pass' })` returns per-traveler charges (deposit, then balance), Stripe's fee, Stowaway's 1%, and what the organizer keeps. Stripe US rates are dated constants with their source (card 2.9% + 30¢, international cards +1.5%, ACH 0.8% capped at $5), labelled "as of" a date with "your Stripe account may differ". `pass` adds a booking fee, grossed up so the organizer keeps the trip price; it applies to every payment method (never a card surcharge). Properties: kept + Stripe + Stowaway = collected, to the cent; `pass` keeps the price within a cent.
+- **`/pricing`** (`src/features/website/PricingScreen.tsx`): planning free forever (create, invite, vote, plan, split costs, tickets, offline); collecting payments a flat 1% plus Stripe's fee, money straight to your own Stripe account, Stowaway never holds it; Pro (templates, reminders, CRM) "coming later" with no price shown. The calculator sits on the page, keyboard and screen-reader usable, results announced politely.
+- **`/operators`** (`src/features/website/OperatorsScreen.tsx`): for people who run group trips. Plan it with the group, collect deposits without chasing, see exactly what you pay, your money isn't held. Calls to action: "Start a trip" and "Get early access" (the same early-access RPC without a trip; the anonymous session is created only on submit, never on page load, to stay clear of the sign-in rate limit).
+- Both pages use the website styles of `LandingScreen.tsx`, are lazy-loaded routes in `src/router.tsx`, and are linked from the landing page footer only (no new tab or banner in the app). No events are sent from marketing pages; Cloudflare's own analytics counts visits.
+
+### Step 4: housekeeping (about 1 h)
+- **CLAUDE.md:** the $0 rule's new exceptions (Stripe platform account and Gmail for email, approved 29 Oct 2026); layout additions (`supabase/testing`, `src/features/funnel`, `src/data/access.ts`); the roles model in the sync contract; production domain `joinstowaway.app`.
+- `docs/PLAN_THE_SWITCH.md` status update.
+
+### Verification
+- Unit: `fees.ts` properties and worked examples (a $1,500 trip for 20 people, $300 deposit: card fees $882, Stowaway $300, organizer keeps $28,818; ACH fees $148, keeps $29,552).
+- PGlite: organizers RLS, claim with and without a profile, the sync guard on `organizer_id`, the group-mode equivalence suite (with the reconstructed connector migration) still identical.
+- Live: the before/after per-phone row counts match exactly; advisors clean.
+- Offline Playwright: claim flow screens, `/pricing` (calculator updates, no horizontal scroll, 390 and 1280 px screenshots inspected), `/operators`.
+- `npm run typecheck`, full `npm test`, `npm run build`.
+
 ## Context
 
 Stowaway (repo `trip-hub`) is a free, offline-first group trip planner: no accounts, an invite link plus "Who are you?". It has 1,400+ visitors a month and $0 revenue. The goal is to make it the operating system for people who run group trips for a living (operators), and later for corporate offsites, without breaking the free planner, which becomes the funnel. The organizer upgrades in place, inside a trip they already built.

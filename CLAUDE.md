@@ -2,7 +2,8 @@
 
 A shared trip-planning PWA for a group of 8+ friends. The first trip is spring break 2027 in
 Guatemala (Antigua + Lake Atitlán), but nothing may be Guatemala-specific except seed data.
-Live at https://trip-hub.alexanderclem12.workers.dev. Repo: github.com/alexanderclem/trip-hub.
+Live at https://joinstowaway.app (also https://trip-hub.alexanderclem12.workers.dev). Repo: github.com/alexanderclem/trip-hub.
+It is becoming an operating system for people who run group trips; the plan is `docs/PLAN_THE_SWITCH.md`.
 
 ## Hard constraints
 
@@ -11,13 +12,21 @@ Live at https://trip-hub.alexanderclem12.workers.dev. Repo: github.com/alexander
   **One approved exception (8 Oct 2026):** Google Routes for the on-demand "Check driving
   traffic" button (`docs/TRAFFIC_ROUTING.md`). Low GCP cost is accepted for that button only;
   no background or all-pairs requests, and nothing else paid without asking.
+  **Approved 29 Oct 2026 for organizer payments:** a Stripe platform account (Connect, facilitator
+  model: operators' own Stripe accounts, Stowaway never holds money; sole proprietor; US and USD
+  only at launch) and a dedicated Stowaway Gmail account for transactional email (Gmail API from
+  Edge Functions, which can't use SMTP ports 25/587; about 500 recipients a day). Supabase Pro only
+  once revenue covers it.
+- **The free planner stays free.** Never paywall creating trips, inviting, voting, planning,
+  expenses, tickets or offline. Only organizer tools (collecting payments, templates, reminders,
+  CRM) are paid, and they are offered only at the moment someone needs them, never as banners.
 - **Offline-first.** The UI reads only from IndexedDB, and the network is an enhancement.
   Everything must keep working with no signal (rural Guatemala, airports, lanchas).
 - **iPhone Safari installed to the Home Screen** is the primary target. Touch targets are at
   least 44 px (`min-h-11`).
 - **Access is a secret trip link plus "Who are you?".** No password is ever required. Each device
   signs in anonymously with Supabase. An account is optional (Google, or email with a one-time
-  code or a password) and only exists so trips come back on another phone.
+  code or a password) and only exists so trips come back on another phone, or to organize a trip.
 - **Ratings:** no third-party star ratings. Google, Yelp and TripAdvisor all need a card or
   forbid offline caching. Use group ratings plus keyless deep links (`googleMapsUrl`,
   `tripadvisorUrl` in `src/lib/geo.ts`).
@@ -40,14 +49,17 @@ directly (`node scripts/x.ts`).
 ```
 src/lib/          pure helpers: money.ts, time.ts, geo.ts, ids.ts, supabase.ts (+ *.test.ts)
 src/data/         types.ts (row types), db.ts (Dexie schema), repo.ts (save/saveMany/softDelete),
-                  hooks.ts (live queries), device.ts (Zustand: joined trips, my member id, prefs)
+                  hooks.ts (live queries), device.ts (Zustand: joined trips, my member id, prefs, access),
+                  access.ts (roles: mirror of private.can, write guard, my_trip_access)
 src/data/sync/    engine.ts (push/pull), remote.ts (Supabase adapter), controller.ts (timers, realtime)
 src/features/     onboarding/ (welcome, travel quiz) trips/ places/ map/ map/offline/ routing/ polls/ ratings/ itinerary/ money/ tickets/ offline/
                   packing/ notifications/ (push) emergency/ scan/ (photo → text) wrapped/ (trip recap)
                   suggest/ (ideas for a free day, from the idea pool) activity/ (what's new, derived on the phone)
                   discovery/ (profiles, drafts, hand editor) stowie/ (the mascot chat over discovery; docs/STOWIE.md)
+                  funnel/ (anonymous funnel events, docs/FUNNEL.md) website/ (landing, /pricing, /operators)
 src/ui/           index.tsx (Button, Field, Input, Card, PageHeader…), collection.tsx (adapted shadcn)
 supabase/migrations/          SQL, applied in filename order
+supabase/testing/             PGlite with every migration applied (db.ts); access, funnel, organizer tests
 supabase/functions/route-legs Edge Function (routing.ts is pure and unit-tested)
 supabase/functions/push-dispatch, ticket-cleanup   called by pg_cron (docs/NOTIFICATIONS.md)
 scripts/          overpass-seed.ts, basemap-extract.ps1, fetch-map-assets.ts, smoke-test.ts
@@ -74,6 +86,12 @@ docs/             NEW_TRIP.md (new destination runbook), UI_COMPONENTS.md
 - **Realtime** is only a hint to pull now; the data always comes through `pull()`.
 - **Multi-author collections are separate rows**, never arrays on a parent row.
 - **Hard deletes:** no table has a delete policy.
+- **Roles** (`20261030000001_access_roles.sql`, `src/data/access.ts`): every trip is `group`
+  (everyone who joined edits, exactly as before) until its organizer switches it to `hosted`
+  (owner/admin, traveler, viewer, pending). Policies ask `private.can(trip, capability)`;
+  `has_trip_access` means `can(trip, 'read')`. Group-mode behaviour is pinned by the equivalence
+  test in `supabase/testing/access.test.ts`: keep it passing. A role or mode change makes phones
+  drop the trip and pull again; a removed person is never re-joined with the saved link.
 
 ### Adding a synced table (checklist)
 
@@ -81,12 +99,16 @@ docs/             NEW_TRIP.md (new destination runbook), UI_COMPONENTS.md
    (`id uuid pk, trip_id, created_at, updated_at, deleted_at, created_by, updated_by`). Add:
    - the `sync_guard` trigger
    - a `(trip_id, updated_at)` index
-   - RLS with `select` / `insert` / `update` policies `to authenticated` using
-     `(select private.has_trip_access(trip_id))`, and no delete policy
+   - RLS with `select` / `insert` / `update` policies `to authenticated`: reads with
+     `(select private.has_trip_access(trip_id))`, writes with `(select private.can(trip_id, 'plan'))`
+     for planning data or `private.can_as(trip_id, 'plan', member_id)` for one person's rows; no
+     delete policy. Add the table to the group-mode equivalence test.
    - `alter publication supabase_realtime add table …`
 
    The `do $$ … foreach t in array[...]` block in `20261001000001_route_legs.sql` is the template.
-2. **Apply it** with the Supabase MCP `apply_migration` tool, project `croqjdvzbpcscdcshnet`.
+2. **Apply it** with the Supabase MCP `apply_migration` tool, project `croqjdvzbpcscdcshnet`, and
+   commit the file first: the live history once drifted from the repo (reconstructed in
+   `20261008000002_connector_editing.sql`).
 3. **Types:** add the row type to `src/data/types.ts` and to `Tables`.
 4. **Dexie:** add a new `this.version(N).stores({...})` in `src/data/db.ts`. Never edit old versions.
 5. **Sync:** add the table to `SYNCED_TABLES` in `src/data/sync/engine.ts`, parents before children.
