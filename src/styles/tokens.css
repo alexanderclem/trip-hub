@@ -1,18 +1,18 @@
 :root {
   --stowaway-feedback-duration: 160ms;
   --stowaway-feedback-ease: cubic-bezier(.16, 1, .3, 1);
-  --stowaway-canvas: #f8f5ee;
-  --stowaway-surface: #fffdf8;
-  --stowaway-ink: #183e4b;
-  --stowaway-muted: #586467;
-  --stowaway-action: #295361;
-  --stowaway-border: #dcded5;
-  --stowaway-control-border: #687e83;
+  --stowaway-canvas: #f7f9f9;
+  --stowaway-surface: #ffffff;
+  --stowaway-ink: #17343f;
+  --stowaway-muted: #53646c;
+  --stowaway-action: #245b69;
+  --stowaway-border: #dce4e6;
+  --stowaway-control-border: #71858d;
   --stowaway-radius-control: 6px;
   --stowaway-radius-surface: 10px;
-  --stowaway-mist: #d6e4e5;
+  --stowaway-mist: #e8f0f1;
   --stowaway-coral: #ef9477;
-  --stowaway-on-action: #fffdf8;
+  --stowaway-on-action: #ffffff;
   /* Status keeps its meaning and a visible label; each pair passes AA on canvas and surface. */
   --stowaway-warning-bg: #f6ebd3;
   --stowaway-warning-ink: #7a4b10;
@@ -20,10 +20,10 @@
   --stowaway-danger-ink: #9a2f22;
   --stowaway-success-bg: #e2ede0;
   --stowaway-success-ink: #2e5c3c;
-  --stowaway-font-display: Georgia, 'Times New Roman', serif;
-  --stowaway-font-body: system-ui, sans-serif;
-  --stowaway-text-hero: clamp(3rem, 5.7vw, 5rem);
-  --stowaway-text-section: clamp(2.25rem, 3.7vw, 3.5rem);
+  --stowaway-font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --stowaway-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --stowaway-text-hero: clamp(2.75rem, 5.2vw, 4.75rem);
+  --stowaway-text-section: clamp(1.875rem, 3vw, 2.75rem);
   --stowaway-gutter: clamp(1.25rem, 4.5vw, 4rem);
   --stowaway-content-width: 1200px;
   --stowaway-section-space: clamp(4rem, 7vw, 6rem);

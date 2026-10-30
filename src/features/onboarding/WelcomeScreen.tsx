@@ -18,22 +18,20 @@ export function StartScreen() {
 /** App entry is a task, not another marketing page. The quiz and installation are optional. */
 export function WelcomeScreen() {
   const joining = useLocation().hash === '#join'
+  const startTrip = <section className="app-start-trip" aria-labelledby="start-trip-title">
+    <h2 id="start-trip-title" className="travel-heading">Start a trip</h2>
+    <p>You only need a trip name and your name. Invite everyone afterward.</p>
+    <LinkButton to="/new" variant={joining ? 'secondary' : 'primary'} className="mt-5 w-full"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
+  </section>
+  const joinTrip = <div id="join" className="scroll-mt-6"><JoinByLink /></div>
   return (
     <main className="app-entry app-entry-compact">
       <header className="app-entry-header"><Link to="/" aria-label="Stowaway home"><Brand /></Link><Link to="/app" className="ui-link">Your trips</Link></header>
       <div className="app-entry-intro">
-        <p className="app-kicker">The shared trip planner</p>
-        <h1 className="travel-heading">{joining ? 'Join your friends.' : 'Your next trip starts here.'}</h1>
-        <p>{joining ? 'Paste your invite link, then choose your name. No password needed.' : 'Create a shared plan or join one.'}</p>
+        <h1 className="travel-heading">{joining ? 'Join your group' : 'Create or join a trip'}</h1>
       </div>
       <div className={`app-entry-routes ${joining ? 'is-joining' : ''}`}>
-        <section className="app-start-trip" aria-labelledby="start-trip-title">
-          <img src="/brand/stowaway-mark.svg" alt="" width="40" height="40" />
-          <h2 id="start-trip-title" className="travel-heading">Start a trip</h2>
-          <p>You only need a trip name and your name. Invite everyone afterward.</p>
-          <LinkButton to="/new" className="mt-5 w-full"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
-        </section>
-        <div id="join" className="scroll-mt-6"><JoinByLink /></div>
+        {joining ? <>{joinTrip}{startTrip}</> : <>{startTrip}{joinTrip}</>}
       </div>
       <div className="app-entry-extras"><AccountCard /><Link to="/inspire" className="ui-link">Need ideas? Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link></div>
       <footer className="app-entry-footer"><Link to="/">Back to Stowaway</Link><InstallAppButton /></footer>

@@ -140,7 +140,7 @@ export const Textarea = (props: TextareaHTMLAttributes<HTMLTextAreaElement>) => 
 
 /**
  * A distinct object, laid out like the website's sample trip. `title` (with an optional
- * `eyebrow` and `action`) gives it a Georgia heading; `footer` adds a ruled caption strip.
+ * `eyebrow` and `action`) gives it a section heading; `footer` adds a ruled caption strip.
  * `framed` sets the one hero object on a screen in a mist frame.
  */
 export function Card({ children, className, eyebrow, title, action, footer, framed, labelledBy }: {
@@ -171,6 +171,7 @@ export function Status({ tone, className, ...props }: ComponentProps<'span'> & {
 
 /** What the trip shell adds to the end of every screen header (sync status, Stowie). Empty outside a trip. */
 export const HeaderTools = createContext<ReactNode>(null)
+export const HeaderTripName = createContext<string | undefined>(undefined)
 
 /**
  * The one header a screen has: back, title, the screen's own action, then the shell's tools.
@@ -178,6 +179,8 @@ export const HeaderTools = createContext<ReactNode>(null)
  */
 export function PageHeader({ title, eyebrow, back, action, below }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode }) {
   const tools = useContext(HeaderTools)
+  const tripName = useContext(HeaderTripName)
+  const context = eyebrow ?? tripName
   return (
     <header className="app-page-header pt-safe sticky top-0 z-10 border-b border-line bg-canvas/95 backdrop-blur-sm">
       <div className="flex min-h-16 items-center gap-1 px-3 py-2 lg:px-8">
@@ -189,10 +192,10 @@ export function PageHeader({ title, eyebrow, back, action, below }: { title: str
           <span className="w-2" />
         )}
         <div className="min-w-0 flex-1">
-          {eyebrow && <p className="ui-eyebrow truncate">{eyebrow}</p>}
+          {context && <p className="ui-eyebrow truncate" title={context}>{context}</p>}
           <h1 className="ui-page-title break-words">{title}</h1>
         </div>
-        {action}
+        {action && <div className="page-header-action">{action}</div>}
         {tools}
       </div>
       {below}
@@ -200,7 +203,7 @@ export function PageHeader({ title, eyebrow, back, action, below }: { title: str
   )
 }
 
-/** A card or section heading. One style everywhere. */
+/** A compact heading for a card or section. */
 export function SectionTitle({ className, ...props }: ComponentProps<'h2'>) {
   return <h2 {...props} className={cx('ui-section-title', className)} />
 }
@@ -211,10 +214,22 @@ export function Segmented<T extends string>({ label, value, options, onChange, c
 }) {
   const { ref, style } = useSlidingHighlight<HTMLDivElement>(value, '[aria-checked="true"]')
   return (
-    <div ref={ref} role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+    <div ref={ref} role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }} onKeyDown={(event) => {
+      const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']
+      if (!keys.includes(event.key) || !options.length) return
+      const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]'))
+      const current = buttons.indexOf(document.activeElement as HTMLButtonElement)
+      if (current < 0) return
+      event.preventDefault()
+      const rtl = getComputedStyle(event.currentTarget).direction === 'rtl'
+      const forward = event.key === 'ArrowDown' || event.key === (rtl ? 'ArrowLeft' : 'ArrowRight')
+      const index = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (current + (forward ? 1 : -1) + options.length) % options.length
+      onChange(options[index]!.value)
+      buttons[index]?.focus()
+    }}>
       <span className="ui-highlight" style={style} aria-hidden="true" />
       {options.map((o) => (
-        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} title={o.title} onClick={() => onChange(o.value)}>{o.label}</button>
+        <button key={o.value} type="button" role="radio" tabIndex={value === o.value ? 0 : -1} aria-checked={value === o.value} title={o.title} onClick={() => onChange(o.value)}>{o.label}</button>
       ))}
     </div>
   )

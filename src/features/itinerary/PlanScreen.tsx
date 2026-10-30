@@ -154,7 +154,7 @@ export function PlanScreen() {
             <CalendarDays aria-hidden="true" className="size-8 text-action" />
             <EmptyHeader>
               <EmptyTitle>Know what’s next</EmptyTitle>
-              <EmptyDescription>Start with the flight you booked, a dinner everyone picked, or a day you want to explore. Add it to the plan so your friends can follow along, even offline.</EmptyDescription>
+              <EmptyDescription>Add flights, meals, and activities to this day so everyone can follow the plan.</EmptyDescription>
             </EmptyHeader>
             <LinkButton to={`/t/${tripId}/plan/new?day=${day}`}>
               <Plus aria-hidden="true" className="size-4" /> Add to this day

@@ -2,11 +2,11 @@
 import type { ComponentProps } from 'react'
 
 export function Empty({ className = '', ...props }: ComponentProps<'div'>) {
-  return <div data-slot="empty" className={`flex min-w-0 flex-col items-center justify-center gap-4 rounded-surface bg-mist/55 px-6 py-10 text-center ${className}`} {...props} />
+  return <div data-slot="empty" className={`flex min-w-0 flex-col items-start justify-start gap-4 rounded-surface border border-line bg-surface px-6 py-8 text-start ${className}`} {...props} />
 }
 
 export function EmptyHeader({ className = '', ...props }: ComponentProps<'div'>) {
-  return <div data-slot="empty-header" className={`flex max-w-sm flex-col items-center gap-2 ${className}`} {...props} />
+  return <div data-slot="empty-header" className={`flex max-w-sm flex-col items-start gap-2 ${className}`} {...props} />
 }
 
 export function EmptyTitle(props: ComponentProps<'h3'>) {

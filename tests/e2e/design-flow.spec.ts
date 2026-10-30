@@ -144,7 +144,7 @@ for (const [phase, date] of [['planning', '2027-03-01'], ['preparing', '2027-03-
       await expect(headings.first()).toHaveText('Book the shuttle')
       await expect(page.getByRole('button', { name: 'Download all', exact: true })).toHaveCount(0)
     } else {
-      await expect(headings.first()).toHaveText(phase === 'traveling' ? 'Up next for you' : 'A little preparation. A smoother trip.')
+      await expect(headings.first()).toHaveText(phase === 'traveling' ? 'Up next for you' : 'Get ready for offline')
       await expect(page.getByRole('button', { name: 'Download all', exact: true })).toBeVisible()
     }
     const tabs = page.getByRole('navigation', { name: 'Trip navigation' }).filter({ visible: true }).getByRole('link')
