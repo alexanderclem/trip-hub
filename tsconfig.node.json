@@ -19,7 +19,8 @@
     "vite.config.ts",
     "supabase/functions/**/routing*.ts",
     "supabase/functions/**/dispatch*.ts",
-    "supabase/testing"
+    "supabase/testing",
+    "supabase/functions/_shared"
   ],
   "exclude": []
 }
