@@ -5,7 +5,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { HandCoins } from 'lucide-react'
 import { DateTime } from 'luxon'
-import { useDevice } from '@/data/device'
+import { Link } from 'react-router'
+import { useDevice, useTripAccess } from '@/data/device'
 import { ensureSession, supabase } from '@/lib/supabase'
 import { useAccount } from '@/features/account/account'
 import { track } from '@/features/funnel/events'
@@ -47,6 +48,7 @@ export function CollectPaymentsRow({ tripId, reason }: { tripId: string; reason:
 
 function PaymentsSheet({ tripId, reason, open, onClose }: { tripId: string; reason: MomentReason; open: boolean; onClose: () => void }) {
   const account = useAccount()
+  const organized = useTripAccess(tripId).organized
   const setDone = useDevice((s) => s.setPaymentsOfferDone)
   const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
@@ -94,6 +96,7 @@ function PaymentsSheet({ tripId, reason, open, onClose }: { tripId: string; reas
           <Button type="button" variant="secondary" onClick={() => { void track('money_moment_dismissed', tripId, { reason }); setDone(tripId); onClose() }}>Not now</Button>
           <Button type="submit" disabled={busy} aria-busy={busy}>{busy ? 'Sending…' : 'Get early access'}</Button>
         </div>
+        {!organized && <p className="text-sm text-muted">Getting ready? <Link className="ui-link" to={`/t/${tripId}/more/settings`} onClick={onClose}>Become this trip’s organizer now</Link></p>}
       </form>}
     </Dialog>
   )

@@ -188,6 +188,12 @@ export const undoRemove = (tripId: string, memberId: string) => rpc('undo_remove
 /** The trip's creator, signed in with an account, becomes its organizer. */
 export const claimTrip = (tripId: string) => rpc('claim_trip', { p_trip_id: tripId })
 
+/** Saves the organizer profile travelers will see, then claims the trip with it. */
+export async function becomeOrganizer(tripId: string, displayName: string, supportEmail: string) {
+  await rpc('save_organizer', { p_display_name: displayName, p_support_email: supportEmail })
+  await claimTrip(tripId)
+}
+
 export const setAccessMode = (tripId: string, mode: 'group' | 'hosted') => rpc('set_access_mode', { p_trip_id: tripId, p_mode: mode })
 
 export const setMemberRole = (tripId: string, memberId: string, role: 'admin' | 'traveler' | 'viewer' | 'pending' | 'member') =>

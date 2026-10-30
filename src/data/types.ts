@@ -36,6 +36,8 @@ export interface Trip extends SyncColumns {
   access_mode?: AccessMode
   /** Bumped when the mode changes; phones then drop what they may no longer see and pull again. */
   access_epoch?: number
+  /** The organizer profile running this trip, once its creator claims it. */
+  organizer_id?: string | null
 }
 
 export type AccessMode = 'group' | 'hosted'

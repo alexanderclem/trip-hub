@@ -11,6 +11,7 @@ import { supabaseRemote } from '@/data/sync/remote'
 import { supabase } from '@/lib/supabase'
 import { quizStillNeeded } from '@/features/onboarding/profile'
 import { takeConnectorReturn } from './connector'
+import { takeSignInReturn } from './returnTo'
 
 const LINK_CODE_KEY = 'stowaway-link-code'
 const GOOGLE_KEY = 'stowaway-google-enabled'
@@ -159,7 +160,10 @@ export async function setPassword(password: string): Promise<void> {
 /** Where a newly signed-in phone goes: back to a waiting connection, to the travel quiz, or home. */
 export async function signedInDestination(): Promise<string> {
   // A first sign-in continues to the travel quiz, unless a restored trip already has this person's answers.
-  return takeConnectorReturn() ?? ((await quizStillNeeded()) ? '/quiz?next=%2Fapp' : '/app')
+  const connector = takeConnectorReturn()
+  if (connector) return connector
+  const next = takeSignInReturn() ?? '/app'
+  return (await quizStillNeeded()) ? `/quiz?next=${encodeURIComponent(next)}` : next
 }
 
 /** Brings the account's trips onto this phone: who you are on each, then the data. */

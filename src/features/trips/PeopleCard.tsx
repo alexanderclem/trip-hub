@@ -2,7 +2,7 @@
 // removing people, roles, letting people in, and who can edit. The server enforces all of it
 // (supabase/migrations/20261030000001_access_roles.sql); this only offers what it would allow.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useTripAccess } from '@/data/device'
 import { can, isStaff } from '@/data/access'
@@ -11,9 +11,10 @@ import { supabase } from '@/lib/supabase'
 import { syncNow } from '@/data/sync/controller'
 import { useAccount } from '@/features/account/account'
 import { useConfirm } from '@/ui/ConfirmProvider'
-import { Button, Card, ErrorNote, Segmented, Select } from '@/ui'
+import { Button, Card, ErrorNote, Field, Input, Segmented, Select } from '@/ui'
+import { rememberSignInReturn } from '@/features/account/returnTo'
 import { TravelerLink } from './TravelerLink'
-import { claimTrip, removeFromTrip, setAccessMode, setMemberRole, undoRemove } from './actions'
+import { becomeOrganizer, removeFromTrip, setAccessMode, setMemberRole, undoRemove } from './actions'
 
 const ROLE_LABEL: Record<TripRole, string> = {
   owner: 'Organizer', admin: 'Organizer', member: '', traveler: 'Traveler', viewer: 'Can view', pending: 'Waiting to join',
@@ -188,8 +189,9 @@ export function PeopleCard({ trip, members, me }: { trip: Trip; members: Member[
           <h3 className="text-sm font-semibold text-ink">Organize this trip</h3>
           <p className="mt-1 text-sm text-muted">You created this trip. As its organizer you can decide who changes the plan, let people in, and give others roles. Nothing changes for your group until you do.</p>
           {account.kind === 'signed-in'
-            ? <Button variant="secondary" className="mt-3 w-full" disabled={busy} onClick={() => void run(async () => { await claimTrip(tripId); return 'You’re now this trip’s organizer.' })}>Become the organizer</Button>
-            : <><p className="mt-2 text-sm">Organizers need an account, so the trip stays yours on any phone.</p><Link className="ui-link" to="/signin">Sign in or create an account</Link></>}
+            ? <OrganizeForm busy={busy} email={account.email} name={members.find((m) => m.id === me)?.display_name ?? ''}
+                onClaim={(name, email) => void run(async () => { await becomeOrganizer(tripId, name, email); return 'You’re now this trip’s organizer.' })} />
+            : <><p className="mt-2 text-sm">Organizers need an account, so the trip stays yours on any phone.</p><Link className="ui-link" to="/signin" onClick={() => rememberSignInReturn(`/t/${tripId}/more/settings`)}>Sign in or create an account</Link></>}
         </div>
       )}
 
@@ -200,5 +202,23 @@ export function PeopleCard({ trip, members, me }: { trip: Trip; members: Member[
         </div>
       )}
     </Card>
+  )
+}
+
+/** The organizer profile travelers will see, then the claim. Prefilled, filled in once. */
+function OrganizeForm({ busy, email, name, onClaim }: { busy: boolean; email: string | null; name: string; onClaim: (name: string, email: string) => void }) {
+  const [displayName, setDisplayName] = useState(name)
+  const [supportEmail, setSupportEmail] = useState(email ?? '')
+  const submit = (e: FormEvent) => { e.preventDefault(); onClaim(displayName.trim(), supportEmail.trim()) }
+  return (
+    <form onSubmit={submit} className="mt-3 space-y-3">
+      <Field label="Organizer name" hint="What travelers see on trip pages and receipts. A business name or your own.">
+        <Input required maxLength={80} value={displayName} onChange={(e) => setDisplayName(e.target.value)} autoComplete="organization" />
+      </Field>
+      <Field label="Email travelers can write to">
+        <Input type="email" required value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} autoComplete="email" />
+      </Field>
+      <Button type="submit" variant="secondary" className="w-full" disabled={busy}>Become the organizer</Button>
+    </form>
   )
 }
