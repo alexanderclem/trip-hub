@@ -57,11 +57,14 @@ src/features/     onboarding/ (welcome, travel quiz) trips/ places/ map/ map/off
                   suggest/ (ideas for a free day, from the idea pool) activity/ (what's new, derived on the phone)
                   discovery/ (profiles, drafts, hand editor) stowie/ (the mascot chat over discovery; docs/STOWIE.md)
                   funnel/ (anonymous funnel events, docs/FUNNEL.md) website/ (landing, /pricing, /operators)
+                  payments/ (organizer setup, /go/:slug trip page, /b booking page, /organize; docs/PAYMENTS.md)
 src/ui/           index.tsx (Button, Field, Input, Card, PageHeader…), collection.tsx (adapted shadcn)
 supabase/migrations/          SQL, applied in filename order
 supabase/testing/             PGlite with every migration applied (db.ts); access, funnel, organizer tests
 supabase/functions/route-legs Edge Function (routing.ts is pure and unit-tested)
 supabase/functions/push-dispatch, ticket-cleanup   called by pg_cron (docs/NOTIFICATIONS.md)
+supabase/functions/_shared    tested payment logic (stripe, checkout, process, email, fees); _deno/ is Deno-only glue
+supabase/functions/stripe-connect, checkout-create, stripe-webhook, stripe-process, email-dispatch   (docs/PAYMENTS.md)
 scripts/          overpass-seed.ts, basemap-extract.ps1, fetch-map-assets.ts, smoke-test.ts
 seed/<trip>/      areas.json (hand-edited), places.json (generated), region.geojson
 public/packs/     offline map .pmtiles (shipped with the app; each must be under 25 MiB)

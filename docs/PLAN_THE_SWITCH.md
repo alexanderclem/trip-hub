@@ -11,9 +11,10 @@
 | 1B organizer profiles and claiming (`20261031000001_organizers.sql`) | ✅ | **migration not applied** |
 | 1B `/pricing` with fee calculator, `/operators` | ✅ | needs merge to `main` |
 | Phase 0 interviews, concierge trip, Stripe platform application | owner | – |
-| 1C payments | next | – |
+| 1C payments: schema, Edge Functions, screens (`20261101000001_payments.sql`, `…02_payments_cron.sql`, `docs/PAYMENTS.md`) | ✅ | **migrations not applied, functions not deployed; Stripe and Gmail setup is the owner's (runbook)** |
+| Phase 2 repeat-business tooling | next | – |
 
-Apply the three migrations in filename order, with the before/after per-phone check described below.
+Apply the five migrations in filename order, with the before/after per-phone check described below; then follow `docs/PAYMENTS.md`. The `/pricing` page keeps "coming soon" until the first organizer is live.
 
 ## Now building: Phase 1B, organizer claim, operators page, pricing and fee calculator (about 16 h build)
 
