@@ -3,7 +3,8 @@ import { Link, Navigate, Outlet, useLocation, useNavigate, useNavigationType, us
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Backpack, CalendarDays, ClipboardCheck, Compass, Home, Map, MapPin, MoreHorizontal, Settings, ShieldPlus, Sparkles, Ticket, Vote, Wallet } from 'lucide-react'
 import { db } from '@/data/db'
-import { useDevice } from '@/data/device'
+import { useDevice, useTripAccess } from '@/data/device'
+import { PendingScreen, RemovedScreen } from '@/features/trips/AccessScreens'
 import { useTrip } from '@/data/hooks'
 import { adoptProfile, useMyTripProfile, useSeedMyProfile } from '@/features/onboarding/profile'
 import { startSync } from '@/data/sync/controller'
@@ -69,6 +70,7 @@ export function TripLayout() {
   const memberId = joined?.memberId ?? null
   const needsProfile = useDevice((s) => !s.quizSeen && s.travelProfile === null)
   const savedProfile = useMyTripProfile(tripId, memberId, needsProfile)
+  const access = useTripAccess(tripId)
 
   useEffect(() => {
     if (!joined) return
@@ -82,7 +84,9 @@ export function TripLayout() {
   useAttachmentSync(tripId, memberId)
 
   if (!joined) return <Navigate to="/app" replace />
+  if (access.removed) return <RemovedScreen tripId={tripId} />
   if (!memberId) return <Navigate to={`/t/${tripId}/who`} replace />
+  if (access.role === 'pending') return <PendingScreen tripId={tripId} />
   // Looking up optional preferences never blocks a saved ticket or trip deep link.
   return <TripShell tripId={tripId} />
 }

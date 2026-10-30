@@ -2,7 +2,7 @@ import { ensureSession, supabase } from '@/lib/supabase'
 import { newId } from '@/lib/ids'
 import { db } from '@/data/db'
 import { useDevice } from '@/data/device'
-import { GROUP_ACCESS, REMOVED_CODE } from '@/data/access'
+import { fetchAccess, GROUP_ACCESS, REMOVED_CODE } from '@/data/access'
 import { save } from '@/data/repo'
 import type { TripArea } from '@/features/destinations/destinations'
 import { pull } from '@/data/sync/engine'
@@ -109,6 +109,9 @@ export async function joinTrip(token: string): Promise<{ tripId: string; memberI
     .maybeSingle()
   const memberId = (device?.member_id as string | null) ?? null
   useDevice.getState().rememberTrip(tripId, memberId)
+  // Know the role before the trip opens, so someone waiting for approval goes straight to that page.
+  const access = await fetchAccess(tripId)
+  if (access !== 'unknown' && access.role) useDevice.getState().setAccess(tripId, access)
   await initialPull(tripId)
   return { tripId, memberId }
 }

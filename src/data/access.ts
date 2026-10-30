@@ -117,3 +117,12 @@ export function writeRefusal(access: TripAccess, table: TableName, row: Record<s
     default: return null
   }
 }
+
+/**
+ * Who a newly added ticket or document is visible to, and whose it is. Only hosted trips (which
+ * exist only on a server with roles) get these columns, so older servers never receive them.
+ */
+export function newAttachmentAccess(access: TripAccess, me: string | null): { visibility?: 'trip' | 'owner'; owner_member_id?: string | null } {
+  if (access.mode !== 'hosted') return {}
+  return { visibility: isStaff(access) ? 'trip' : 'owner', owner_member_id: me }
+}

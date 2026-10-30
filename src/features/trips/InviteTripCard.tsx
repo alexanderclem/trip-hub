@@ -39,7 +39,9 @@ export function InviteTripCard({ trip, bare = false }: { trip: Trip; bare?: bool
 
   const body = <>
     {!bare && <p className="mt-2 break-words text-sm font-medium text-action">You’re invited to {trip.name}.</p>}
-    <p className={`${bare ? '' : 'mt-2 '}text-sm leading-relaxed text-muted`}>Anyone with this link can see and edit the whole trip, so keep it in your group.</p>
+    <p className={`${bare ? '' : 'mt-2 '}text-sm leading-relaxed text-muted`}>{trip.access_mode === 'hosted'
+      ? 'People who open this link ask to join, and wait for an organizer to let them in.'
+      : 'Anyone with this link can see and edit the whole trip, so keep it in your group.'}</p>
     <p className="mt-3 select-all rounded-surface bg-mist/60 p-3 font-mono text-xs break-all">{link}</p>
     <div className="mt-3 grid grid-cols-2 gap-2">
       <Button variant={bare ? 'secondary' : 'primary'} disabled={pending !== null} aria-busy={pending === 'share'} onClick={() => void send('share')}><Share2 aria-hidden="true" className="size-4" />{pending === 'share' ? 'Sharing…' : 'Share'}</Button>

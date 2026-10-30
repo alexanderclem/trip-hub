@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { can, GROUP_ACCESS, needsRefetch, parseAccess, writeRefusal, type Capability, type TripAccess } from './access'
+import { can, GROUP_ACCESS, needsRefetch, newAttachmentAccess, parseAccess, writeRefusal, type Capability, type TripAccess } from './access'
 
 const CAPS: Capability[] = ['read', 'participate', 'plan', 'money', 'docs', 'roster', 'staff']
 const hosted = (role: TripAccess['role']): TripAccess => ({ ...GROUP_ACCESS, mode: 'hosted', role })
@@ -62,5 +62,13 @@ describe('refusing writes the server would refuse', () => {
     expect(writeRefusal(hosted('viewer'), 'poll_votes', { member_id: me }, me)).toMatch(/look at/)
     expect(writeRefusal(hosted('pending'), 'members', { id: me }, me)).toMatch(/let you in/)
     expect(writeRefusal({ ...GROUP_ACCESS, removed: true }, 'places', {}, me)).toMatch(/removed/)
+  })
+})
+
+describe('new documents', () => {
+  it('stay private to a hosted traveler, shared for organizers, and untouched in group trips', () => {
+    expect(newAttachmentAccess(GROUP_ACCESS, 'me')).toEqual({})
+    expect(newAttachmentAccess(hosted('traveler'), 'me')).toEqual({ visibility: 'owner', owner_member_id: 'me' })
+    expect(newAttachmentAccess(hosted('owner'), 'me')).toEqual({ visibility: 'trip', owner_member_id: 'me' })
   })
 })

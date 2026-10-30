@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { Link, useParams } from 'react-router'
 import { ArrowUpRight, MapPin, Navigation, Plus, Search } from 'lucide-react'
 import { usePlaces } from '@/data/hooks'
@@ -13,6 +15,7 @@ import { StarsSummary } from '@/features/ratings/Stars'
 
 export function PlacesScreen() {
   const { tripId } = useParams() as { tripId: string }
+  const mayPlan = can(useTripAccess(tripId), 'plan')
   const places = usePlaces(tripId)
   const [q, setQ] = useState('')
   const [cat, setCat] = useState<PlaceCategory | null>(null)
@@ -40,7 +43,7 @@ export function PlacesScreen() {
       <PageHeader
         title="Places"
         back={`/t/${tripId}/more`}
-        action={
+        action={mayPlan &&
           <Link to="new" className="flex size-10 items-center justify-center rounded-full text-action active:bg-brand-50" aria-label="Add place">
             <Plus className="size-6" />
           </Link>

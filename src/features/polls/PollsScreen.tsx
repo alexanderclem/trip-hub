@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react'
+import { useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Check, ChevronRight, Plus } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
@@ -15,6 +17,7 @@ import { travelersStillVoting } from '@/features/trips/decisions'
 
 export function PollsScreen() {
   const { tripId } = useParams() as { tripId: string }
+  const mayPlan = can(useTripAccess(tripId), 'plan')
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
   const polls = usePolls(tripId)
@@ -50,14 +53,14 @@ export function PollsScreen() {
     <div className="min-h-full pb-8">
       <PageHeader
         title="Votes"
-        action={!!polls?.length && (
+        action={!!polls?.length && mayPlan && (
           <button type="button" onClick={() => setCreating((v) => !v)} className="ui-icon-button text-action" aria-label="New vote" aria-expanded={creating}>
             <Plus aria-hidden="true" className="size-6" />
           </button>
         )}
       />
       <div className="mx-auto max-w-2xl space-y-4 p-4">
-        {(creating || polls?.length === 0) && (
+        {mayPlan && (creating || polls?.length === 0) && (
           <Card>
             <form onSubmit={submit} className="space-y-3">
               <SectionTitle>New vote</SectionTitle>

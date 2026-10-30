@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { AlertTriangle, BedDouble, CalendarDays, CalendarPlus, Map, Plus, StickyNote } from 'lucide-react'
@@ -32,6 +34,7 @@ const GUTTER = '3.25rem'
 
 export function PlanScreen() {
   const { tripId } = useParams() as { tripId: string }
+  const mayPlan = can(useTripAccess(tripId), 'plan')
   const trip = useTrip(tripId)
   const items = useItems(tripId)
   const places = usePlaces(tripId) ?? []
@@ -155,9 +158,9 @@ export function PlanScreen() {
               <EmptyTitle>Know what’s next</EmptyTitle>
               <EmptyDescription>Start with the flight you booked, a dinner everyone picked, or a day you want to explore. Add it to the plan so your friends can follow along, even offline.</EmptyDescription>
             </EmptyHeader>
-            <LinkButton to={`/t/${tripId}/plan/new?day=${day}`}>
+            {mayPlan && <LinkButton to={`/t/${tripId}/plan/new?day=${day}`}>
               <Plus aria-hidden="true" className="size-4" /> Add to this day
-            </LinkButton>
+            </LinkButton>}
           </Empty>
         ) : view === 'agenda' ? (
           <Agenda blocks={layout.blocks} zone={zone} tripId={tripId} placeOf={placeOf} />
@@ -177,7 +180,7 @@ export function PlanScreen() {
       </div>
 
       {/* An empty day already offers the same action in the middle of the screen. */}
-      {!empty && <Fab to={`/t/${tripId}/plan/new?day=${day}`} label="Add to plan" />}
+      {!empty && mayPlan && <Fab to={`/t/${tripId}/plan/new?day=${day}`} label="Add to plan" />}
     </div>
   )
 }

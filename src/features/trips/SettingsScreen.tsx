@@ -1,9 +1,10 @@
-import { TravelerLink } from './TravelerLink'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { RefreshCw } from 'lucide-react'
-import { useDevice, useMyMemberId } from '@/data/device'
+import { useDevice, useMyMemberId, useTripAccess } from '@/data/device'
+import { isStaff } from '@/data/access'
+import { PeopleCard } from './PeopleCard'
 import { useMembers, useTrip } from '@/data/hooks'
 import { SyncCard } from '@/features/sync/SyncStatus'
 import { InviteTripCard } from './InviteTripCard'
@@ -32,6 +33,9 @@ export function SettingsScreen() {
   const [legs, setLegs] = useState<{ busy: boolean; msg: string | null; error: string | null }>({ busy: false, msg: null, error: null })
   const tempUnit = useDevice((s) => s.tempUnit)
   const setTempUnit = useDevice((s) => s.setTempUnit)
+  const access = useTripAccess(tripId)
+  // Once a trip has an organizer, only organizers replace its link (rotate_share_token).
+  const mayReplaceLink = !access.organized || isStaff(access)
   const [msg, setMsg] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -57,11 +61,11 @@ export function SettingsScreen() {
         <Card>
           <SectionTitle>Invite the group</SectionTitle>
           <div className="mt-2"><InviteTripCard trip={trip} bare /></div>
-          <button
+          {mayReplaceLink && <button
             type="button"
             className="ui-link"
             onClick={async () => {
-              if (await confirm('Make a new link? The old link stops working. People who already joined keep access.')) {
+              if (await confirm('Make a new link? The old link stops working. People who already joined keep access. To take someone off the trip, use Remove under People.')) {
                 void run(async () => {
                   await rotateShareToken(tripId)
                   return 'New link created.'
@@ -70,7 +74,7 @@ export function SettingsScreen() {
             }}
           >
             Replace link
-          </button>
+          </button>}
           {(msg || error) && (
             <div className="space-y-2">
               {msg && <p role="status" className="rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink">{msg}</p>}
@@ -79,19 +83,7 @@ export function SettingsScreen() {
           )}
         </Card>
 
-        <Card>
-          <h2 className="mb-3 ui-section-title">People ({members.length})</h2>
-          <ul className="space-y-2">
-            {members.map((m) => (
-              <li key={m.id} className="flex items-center gap-3">
-                <TravelerLink member={m} you={m.id === me} />
-              </li>
-            ))}
-          </ul>
-          <Link className="ui-link" to={`/t/${tripId}/who`}>
-            I'm not {members.find((m) => m.id === me)?.display_name ?? 'that person'}
-          </Link>
-        </Card>
+        <PeopleCard trip={trip} members={members} me={me} />
 
         <DestinationsCard trip={trip} me={me} />
 
