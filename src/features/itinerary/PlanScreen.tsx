@@ -124,6 +124,7 @@ export function PlanScreen() {
           {(['agenda', 'timeline'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)} className="min-h-11 px-5">{mode === 'agenda' ? 'Agenda' : 'Timeline'}</button>)}
         </div>
         <WeatherLine day={weatherOf(day)} />
+        <HolidayNotice trip={trip} day={day} />
         <DayNoteEditor tripId={tripId} day={day} />
 
         {layout.stays.map((s) => (
@@ -273,3 +274,4 @@ function DayNoteEditor({ tripId, day }: { tripId: string; day: string }) {
     />
   )
 }
+import { HolidayNotice } from '@/features/travel/HolidayNotice'

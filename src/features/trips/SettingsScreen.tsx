@@ -1,3 +1,4 @@
+import { coverPhoto } from './covers'
 import { TravelerLink } from './TravelerLink'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
@@ -52,7 +53,7 @@ export function SettingsScreen() {
     <div className="pb-10">
       <PageHeader title="Trip settings" back={`/t/${tripId}/more`} />
       <div className="mx-auto max-w-md space-y-4 p-4">
-        <Card><SectionTitle>Make it yours</SectionTitle><p className="mt-1 text-sm text-muted">A familiar cover for your shared adventure.</p><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} /></div><TripCoverPicker trip={trip} memberId={me} /></Card>
+        <Card><SectionTitle>Make it yours</SectionTitle><p className="mt-1 text-sm text-muted">A familiar cover for your shared adventure.</p><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} photo={coverPhoto(trip)} /></div><TripCoverPicker trip={trip} memberId={me} /></Card>
         <Card><Disclosure summary="Trip details"><TripDetailsForm trip={trip} memberId={me} /></Disclosure></Card>
         <Card>
           <SectionTitle>Invite the group</SectionTitle>

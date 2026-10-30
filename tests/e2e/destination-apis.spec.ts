@@ -1,0 +1,78 @@
+import { expect, test, type Page } from '@playwright/test'
+const trip = '00000000-0000-4000-8000-000000000901'
+const member = '00000000-0000-4000-8000-000000000902'
+const user = '00000000-0000-4000-8000-000000000903'
+const root = `/t/${trip}`
+async function seed(page: Page) {
+  await page.route('https://**/*', (r) => r.request().url().includes('/auth/v1/user') ? r.fulfill({ json: { id: user, aud: 'authenticated', app_metadata: {}, user_metadata: {} } }) : r.abort())
+  await page.goto('/inspire/manual')
+  await expect(page.getByRole('heading', { name: 'Trip ideas', exact: true })).toBeVisible()
+  await page.evaluate(async ({ trip, member, user }) => {
+    const database = await new Promise<IDBDatabase>((resolve) => { const r = indexedDB.open('trip-hub'); r.onsuccess = () => resolve(r.result) })
+    const tx = database.transaction(['trips', 'members', 'itinerary_items'], 'readwrite')
+    tx.objectStore('trips').put({ id: trip, name: 'E2E TEST destination APIs', timezone: 'Europe/Paris', start_date: '2026-11-01', end_date: '2026-11-03', base_currency: 'USD', local_currency: 'EUR', route_factor_low: 1.4, route_factor_high: 2, bbox: null, offline_pack: null, share_token: 'local-only', settings: { destination_country: 'FR', destination_city: 'Paris' } })
+    tx.objectStore('members').put({ id: member, trip_id: trip, display_name: 'Alex', color: null, avatar_emoji: null, home_timezone: null })
+    tx.objectStore('itinerary_items').put({ id: 'flight', trip_id: trip, title: 'Flight to Paris', kind: 'flight', place_id: null, to_place_id: null, all_day: false, start_local: '2026-11-01T09:00', start_tz: 'Europe/Paris', end_local: null, end_tz: null, start_at: '2026-11-01T08:00:00Z', end_at: null, status: 'confirmed', confirmation_code: null, attendee_ids: null, details: {}, notes: null, est_cost_minor: null, est_cost_currency: null })
+    await new Promise<void>((resolve) => { tx.oncomplete = () => resolve() }); database.close()
+    localStorage.setItem('trip-hub-device', JSON.stringify({ version: 1, state: { trips: { [trip]: { tripId: trip, memberId: member, joinedAt: new Date().toISOString() } }, quizSeen: true, timeView: 'trip', travelProfile: null } }))
+    localStorage.setItem('sb-croqjdvzbpcscdcshnet-auth-token', JSON.stringify({ access_token: 'test-token', refresh_token: 'test-refresh', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: user, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {} } }))
+  }, { trip, member, user })
+  await page.route('**/api/travel-info?**', (r) => {
+    const action = new URL(r.request().url()).searchParams.get('action')
+    const data = action === 'country' ? { name: 'France', currencies: ['EUR'], languages: ['French'], callingCodes: ['33'] }
+      : action === 'holidays' ? [{ date: '2026-11-01', name: 'All Saints’ Day', regional: false, regions: [] }]
+      : action === 'flight' ? [{ number: 'UA123', date: '2026-11-01', status: 'active', departure: 'SFO', arrival: 'CDG', gate: 'G4', terminal: '2', scheduled: null, estimated: null, delay: 20 }]
+      : ['Jazz by the river', 'Evening concert'].map((name, i) => ({ id: String(i), name, date: '2026-11-02', time: '19:30', zone: 'Europe/Paris', venue: 'Paris music hall', url: `https://ticketmaster.com/event/${i}` }))
+    return r.fulfill({ json: { data, fetchedAt: new Date().toISOString() } })
+  })
+}
+test('destination context, event votes, itinerary prefill, holiday notice, and flight lookup', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', (e) => errors.push(e.message))
+  await seed(page)
+  await page.goto(`${root}/more/explore`)
+  await expect(page.getByText('French', { exact: true })).toBeVisible()
+  await expect(page.getByText('All Saints’ Day', { exact: false })).toBeVisible()
+  await expect(page.getByText('Jazz by the river', { exact: true })).toBeVisible()
+  await page.getByRole('combobox', { name: 'Country', exact: true }).selectOption('FR')
+  await page.getByRole('button', { name: 'Explore destination', exact: true }).click()
+  await expect(page.getByText('Jazz by the river', { exact: true })).toBeVisible()
+  await page.screenshot({ path: 'test-results/destination-apis-mobile.png', fullPage: true })
+  await expect(page.getByRole('button', { name: 'Start a vote' })).toBeDisabled()
+  await page.getByRole('checkbox').nth(0).check(); await page.getByRole('checkbox').nth(1).check()
+  await page.getByRole('button', { name: 'Start a vote' }).click()
+  await page.waitForURL(/\/more\/vote\//)
+  await expect(page.getByText('Jazz by the river', { exact: true })).toBeVisible()
+  await page.goto(`${root}/more/explore`)
+  await page.getByRole('button', { name: 'Add to plan', exact: true }).first().click()
+  await page.waitForURL(/\/plan\/new\?/)
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Jazz by the river')
+  await expect(page.getByRole('combobox', { name: 'Status', exact: true })).toHaveValue('tentative')
+  await page.goto(`${root}/plan?day=2026-11-01`)
+  await expect(page.getByText('All Saints’ Day', { exact: true })).toBeVisible()
+  await page.goto(`${root}/plan/flight`)
+  await page.getByLabel('Flight number').fill('UA123')
+  await page.getByRole('button', { name: 'Check flight status' }).click()
+  await expect(page.getByText('Gate: G4 · Terminal: 2')).toBeVisible()
+  await page.reload()
+  await expect(page.getByLabel('Flight number')).toHaveValue('UA123')
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto(`${root}/more/explore`)
+  await expect(page.getByText('French', { exact: true })).toBeVisible()
+  await page.screenshot({ path: 'test-results/destination-apis-desktop.png', fullPage: true })
+  await page.setViewportSize({ width: 320, height: 720 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  expect(errors).toEqual([])
+})
+test('keeps saved essentials offline and shows refresh failures without replacing them', async ({ page, context }) => {
+  await seed(page); await page.goto(`${root}/more/explore`)
+  await expect(page.getByText('French', { exact: true })).toBeVisible()
+  await context.setOffline(true)
+  await page.getByRole('button', { name: 'Refresh essentials' }).click()
+  await expect(page.getByText('You’re offline. Showing saved information when available.')).toBeVisible()
+  await expect(page.getByText('French', { exact: true })).toBeVisible()
+  await context.setOffline(false)
+  await page.route('**/api/travel-info?**', (r) => r.fulfill({ status: 503, json: { error: 'Events need a Ticketmaster API key on the server.' } }))
+  await page.getByRole('button', { name: 'Refresh events' }).click()
+  await expect(page.getByText('Events need a Ticketmaster API key on the server.')).toBeVisible()
+  await expect(page.getByText('Jazz by the river', { exact: true })).toBeVisible()
+})

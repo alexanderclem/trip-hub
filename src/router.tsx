@@ -46,6 +46,7 @@ export const router = createBrowserRouter([
           { path: 'money/new', lazy: () => import('./features/money/ExpenseFormScreen').then((m) => ({ Component: m.ExpenseFormScreen })) },
           { path: 'money/:expenseId', lazy: () => import('./features/money/ExpenseFormScreen').then((m) => ({ Component: m.ExpenseFormScreen })) },
           { path: 'more', lazy: () => import('./features/trips/MoreScreen').then((m) => ({ Component: m.MoreScreen })) },
+          { path: 'more/explore', lazy: () => import('./features/travel/TravelScreen').then((m) => ({ Component: m.TravelScreen })) },
           { path: 'more/ideas', lazy: () => import('./features/stowie/StowieScreen').then((m) => ({ Component: m.StowieScreen })) },
           { path: 'more/ideas/manual', lazy: () => import('./features/discovery/DiscoveryScreen').then((m) => ({ Component: m.DiscoveryScreen })) },
           { path: 'more/tasks', lazy: () => import('./features/tasks/TasksScreen').then((m) => ({ Component: m.TasksScreen })) },

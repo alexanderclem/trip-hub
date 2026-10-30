@@ -1,3 +1,4 @@
+import { coverPhoto } from './covers'
 import { Link } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ArrowRight, CalendarDays, Compass, MapPin, Plus, Users } from 'lucide-react'
@@ -23,7 +24,7 @@ function TripCard({ trip, members, now }: { trip: Trip; members: Member[]; now: 
   const cover = tripCover(trip)
   return (
     <Link to={`/t/${trip.id}`} className="saved-trip-card group block">
-      {cover !== 'none' && <div className="saved-trip-art"><TripArtwork cover={cover} /></div>}
+      {cover !== 'none' && <div className="saved-trip-art"><TripArtwork cover={cover} photo={coverPhoto(trip)} /></div>}
       <div className="saved-trip-body">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className={`trip-phase trip-phase-${status.phase}`}>{status.phase === 'traveling' && <span aria-hidden="true" className="trip-phase-dot" />}{status.label}</span>

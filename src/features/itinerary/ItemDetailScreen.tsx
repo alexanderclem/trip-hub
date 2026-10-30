@@ -1,4 +1,5 @@
 import { TravelerLink } from '@/features/trips/TravelerLink'
+import { FlightStatus } from '@/features/travel/FlightStatus'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -119,6 +120,8 @@ export function ItemDetailScreen() {
             </div>
           </Card>
         )}
+
+        {item.kind === 'flight' && <FlightStatus key={item.id} item={item} />}
 
         {(place || to) && (
           <Card className="space-y-2">
