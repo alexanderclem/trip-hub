@@ -1,3 +1,4 @@
+import { coverPhoto } from './covers'
 import { use, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
@@ -122,7 +123,7 @@ export function TripOverviewScreen() {
           <div className="overview-meta"><span><CalendarDays aria-hidden="true" className="size-4" />{dateRange(trip.start_date, trip.end_date) || 'Dates to be decided'}</span><span className={`trip-phase trip-phase-${phase}`}>{phaseLabel}</span></div>
           {destinations && <p className="mt-2 flex items-start gap-2 text-sm text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="wrap-anywhere">{destinations}</span></p>}
         </div>
-        {cover !== 'none' && <div key={cover} className="overview-art"><TripArtwork cover={cover} /></div>}
+        {cover !== 'none' && <div key={cover} className="overview-art"><TripArtwork cover={cover} photo={coverPhoto(trip)} /></div>}
       </div>
     </header>
 

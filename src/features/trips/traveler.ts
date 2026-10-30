@@ -1,3 +1,5 @@
+import { imagePhoto, type PhotoCrop } from './imagePhoto'
+
 /** First and last initials, including names with middle names. */
 export function travelerInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -18,17 +20,6 @@ export function normalizeVenmo(input: string): string | null {
 }
 
 /** Keep profile photos small enough to save and sync offline with the member. */
-export async function profilePhoto(file: File): Promise<string> {
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Choose a JPG, PNG, or WebP photo.')
-  if (file.size > 10 * 1024 * 1024) throw new Error('Choose a photo smaller than 10 MB.')
-  const bitmap = await createImageBitmap(file)
-  try {
-    const canvas = document.createElement('canvas')
-    canvas.width = canvas.height = 256
-    const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('Could not read this photo. Try another image.')
-    const side = Math.min(bitmap.width, bitmap.height)
-    ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, 256, 256)
-    return canvas.toDataURL('image/jpeg', 0.8)
-  } finally { bitmap.close() }
+export function profilePhoto(file: File, crop?: PhotoCrop): Promise<string> {
+  return imagePhoto(file, 'profile', crop)
 }
