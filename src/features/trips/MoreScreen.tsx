@@ -29,7 +29,7 @@ export function MoreScreen() {
           <Row to="settings" icon={icon(Settings)} title="Trip settings & sharing" />
           <Row to={`${root}/wrapped`} icon={icon(Sparkles)} title="Trip recap" trailing={trip && isRecapTime(trip, Date.now()) ? 'Ready' : 'Preview'} />
         </RowGroup>
-        <p className="text-center"><Link to="/app" className="ui-link lg:hidden">All trips</Link></p>
+        <p><Link to="/app" className="ui-link lg:hidden">All trips</Link></p>
       </div>
     </div>
   )

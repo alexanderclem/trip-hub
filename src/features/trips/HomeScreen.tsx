@@ -68,14 +68,13 @@ export function HomeScreen() {
 
   return (
     <main className="app-home mx-auto max-w-7xl px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-8 sm:pb-16">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/15 pb-5">
+      <header className="home-header flex flex-wrap items-center justify-between gap-3 border-b border-ink/15 pb-5">
         <Link to="/" aria-label="Stowaway home"><Brand /></Link>
+        <Link to="/app#join" className="ui-link">Join a trip<ArrowRight aria-hidden="true" className="size-4" /></Link>
       </header>
       <div className="mb-8 mt-8 flex flex-wrap items-end justify-between gap-5 sm:mt-12">
         <div>
-          <p className="app-kicker mb-2">A little closer to going.</p>
           <h1 className="travel-heading text-4xl text-ink sm:text-5xl">Your trips.</h1>
-          <p className="mt-3 text-sm leading-relaxed text-muted">The places you’re going. The people coming along.</p>
         </div>
         <LinkButton to="/new"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
       </div>
@@ -106,12 +105,10 @@ export function HomeScreen() {
         </section>
 
         <div className="space-y-6">
-        <Card>
+        <div className="home-discover">
           <Compass aria-hidden="true" className="size-5 text-action" />
-          <h2 className="travel-heading mt-3 text-2xl">Need ideas?</h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted">Describe how you like to travel and get trip ideas.</p>
-          <Link to="/inspire" className="mt-4 inline-flex min-h-11 items-center gap-2 font-medium text-action">Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link>
-        </Card>
+          <div><h2>Still choosing where to go?</h2><p>Find a starting point for your next trip.</p><Link to="/inspire" className="ui-link">Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link></div>
+        </div>
         <div id="join" className="scroll-mt-6"><JoinByLink /></div>
         <AccountCard />
         </div>

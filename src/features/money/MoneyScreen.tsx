@@ -65,7 +65,7 @@ export function MoneyScreen() {
             <Stowie size={64} />
             <EmptyHeader>
               <EmptyTitle>See who owes what</EmptyTitle>
-              <EmptyDescription>Someone picked up dinner or booked the stay? Add what they paid and who’s sharing it. Stowaway works out everyone’s share and helps you settle up.</EmptyDescription>
+              <EmptyDescription>Record who paid and who’s sharing the cost. Stowaway calculates each person’s share.</EmptyDescription>
             </EmptyHeader>
             <div className="flex flex-wrap justify-center gap-2">
               <LinkButton to="new"><Plus aria-hidden="true" className="size-4" />Add an expense</LinkButton>

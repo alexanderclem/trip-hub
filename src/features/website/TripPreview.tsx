@@ -4,7 +4,7 @@ import { m, useInView } from 'motion/react'
 import { useMotionPreference } from '@/ui/MotionProvider'
 import { motionTiming } from '@/ui/motion'
 import { useSlidingHighlight } from '@/ui/effects'
-import { NumberTicker } from './effects'
+import { NumberTicker } from '@/ui/effects'
 
 const days = [
   {
@@ -67,7 +67,7 @@ export function TripPreview() {
   return (
     <figure ref={figure} className="website-preview" aria-labelledby="preview-caption">
       <div className="preview-heading">
-        <div><span className="website-eyebrow">Try a sample trip</span><h2>A few days in NYC</h2></div>
+        <div><span className="website-eyebrow">Explore a sample trip</span><h2>A few days in NYC</h2></div>
         <span className="preview-tag"><Users size={15} aria-hidden="true" /> 6 friends</span>
       </div>
       <div className="preview-stages" role="group" aria-label="Explore the sample trip">
@@ -100,7 +100,7 @@ export function TripPreview() {
             </Segment>
           </div>
           <div className="preview-map" aria-hidden="true">
-            <svg viewBox="0 0 560 260" preserveAspectRatio="xMidYMid slice">
+            <svg viewBox="0 0 560 260" preserveAspectRatio="xMidYMid meet">
               <rect width="560" height="260" fill="var(--color-website-map-ground)" />
               <path d="M0 0H120L65 95 90 170 35 260H0ZM470 0H560V260H405L455 170 430 95Z" fill="var(--color-website-map-park)" opacity="0.65" />
               <path d="M0 10L190 0 155 75 40 130 0 95ZM390 0L560 0 560 100 450 135 390 85ZM0 225L120 170 175 210 160 260 0 260ZM420 195L510 160 560 200 560 260 380 260Z" fill="var(--color-website-map-blocks)" />

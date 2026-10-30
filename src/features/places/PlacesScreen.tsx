@@ -83,7 +83,7 @@ export function PlacesScreen() {
             <MapPin aria-hidden="true" className="size-8 text-action" />
             <EmptyHeader>
               <EmptyTitle>{places.length ? 'No places in this view' : 'Where should we go?'}</EmptyTitle>
-              <EmptyDescription>{places.length ? 'Try another search or category, or include the idea pool.' : 'That restaurant from the group chat? The beach you can’t stop thinking about? Save it here and let your friends add their favorites.'}</EmptyDescription>
+              <EmptyDescription>{places.length ? 'Try another search or category, or include the idea pool.' : 'Save places you want to visit and share them with your group.'}</EmptyDescription>
             </EmptyHeader>
             {places.length ? <button className={placeActionClass} onClick={() => { setQ(''); setCat(null); setShowPool(true) }}>Show all places</button> : <Link to="new" className={placeActionClass}><Plus aria-hidden="true" className="size-4" />Add a place</Link>}
           </Empty>

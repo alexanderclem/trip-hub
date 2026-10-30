@@ -23,7 +23,7 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
   await page.waitForURL('**/app')
   await expect(page.getByRole('dialog', { name: 'Take Stowaway with you' })).not.toBeVisible()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
-  await page.getByRole('link', { name: 'Create a trip', exact: true }).click()
+  await page.getByRole('link', { name: 'Create a trip', exact: true }).first().click()
   await page.waitForURL('**/new')
   await expect(page.getByLabel('Trip name')).toBeVisible()
   await page.getByRole('link', { name: 'Back', exact: true }).click()
@@ -38,8 +38,8 @@ test('the sample demonstrates ideas, a practice vote, the plan and shared essent
   await expect(page.getByText('Food · Added by Alex', { exact: true })).toBeVisible()
   await stages.getByRole('button', { name: 'Vote', exact: true }).click()
   await page.getByRole('group', { name: 'Try a sample vote' }).getByRole('button', { name: 'Must-do', exact: true }).click()
-  await expect(page.getByRole('status')).toHaveText('Your sample score: Must-do. Nothing is saved to a real trip.')
-  await page.getByRole('button', { name: 'See the favorite on the plan' }).click()
+  await expect(page.getByRole('status')).toHaveText('Your sample score: Must-do.')
+  await page.getByRole('button', { name: 'See it on the plan' }).click()
   await expect(stages.getByRole('button', { name: 'Plan', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('heading', { name: 'Dinner in Chinatown', exact: true })).toBeVisible()
   await stages.getByRole('button', { name: 'Essentials', exact: true }).click()
@@ -89,7 +89,7 @@ test('the homepage reflows and its FAQ works at narrow and wide widths', async (
     expect(wrappedLabels).toEqual([])
     const question = page.locator('summary', { hasText: 'Can I use it without a connection?' })
     await question.click()
-    await expect(page.getByText(/Yes, after preparing your trip while online/)).toBeVisible()
+    await expect(page.getByText(/Yes, once you’ve prepared the trip while online/)).toBeVisible()
     if (process.env.SHOTS_DIR) await page.screenshot({ path: `${process.env.SHOTS_DIR}/website-${width}.png`, fullPage: true })
   }
 })
@@ -103,7 +103,7 @@ test('keyboard users can skip the header and open FAQ disclosures', async ({ pag
   const question = page.locator('summary', { hasText: 'Do I need to download an app?' })
   await question.focus()
   await page.keyboard.press('Enter')
-  await expect(page.getByText(/You can create and plan a trip right in your browser/)).toBeVisible()
+  await expect(page.getByText(/You can create and plan a trip in your browser/)).toBeVisible()
 })
 
 test('returning travelers get the website at root and their workspace in the app', async ({ page }) => {
@@ -126,7 +126,7 @@ test('the homepage keeps its content at 200 percent text scaling', async ({ page
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
   const sizes = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }))
   expect(sizes.scroll).toBeLessThanOrEqual(sizes.width)
-  await expect(page.getByRole('link', { name: 'Create a trip', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Create a trip', exact: true }).first()).toBeVisible()
 })
 
 test('an existing iPhone Home Screen shortcut opens the app', async ({ page }) => {
@@ -158,7 +158,7 @@ test('the homepage preserves long headings and immediate feedback with reduced m
   const box = await heading.boundingBox()
   expect(box!.x + box!.width).toBeLessThanOrEqual(320)
   await expect(heading).toHaveCSS('overflow-wrap', 'anywhere')
-  const create = page.getByRole('link', { name: 'Create a trip', exact: true })
+  const create = page.getByRole('link', { name: 'Create a trip', exact: true }).first()
   await create.focus()
   await expect(create).toHaveCSS('outline-style', 'solid')
   await expect(create).toHaveCSS('transition-duration', '0s')
@@ -167,7 +167,7 @@ test('the homepage preserves long headings and immediate feedback with reduced m
 test('the introduction and primary action fit a 1280 by 800 laptop', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
-  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.website-intro'), page.getByRole('link', { name: 'Create a trip', exact: true }), page.locator('.website-preview')]) {
+  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.website-intro'), page.getByRole('link', { name: 'Create a trip', exact: true }).first(), page.locator('.website-preview')]) {
     const box = await locator.boundingBox()
     expect(box!.y).toBeGreaterThanOrEqual(0)
     expect(box!.y + box!.height).toBeLessThanOrEqual(800)
@@ -203,4 +203,23 @@ test('website text and the outlined app action meet contrast thresholds', async 
   })
   expect(contrast.failures).toEqual([])
   expect(contrast.border).toBeGreaterThanOrEqual(3)
+})
+
+test('entry follows create or join intent in both reading and visual order', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  for (const joining of [false, true]) {
+    await page.goto(joining ? '/app#join' : '/app')
+    const routes = page.locator('.app-entry-routes')
+    await expect(routes.getByRole('heading', { name: 'Start a trip' })).toBeVisible()
+    const order = await routes.evaluate((element) => Array.from(element.children).map(child => child.id || child.className))
+    expect(order).toEqual(joining ? ['join', 'app-start-trip'] : ['app-start-trip', 'join'])
+    const first = await routes.locator(':scope > :first-child').boundingBox()
+    const second = await routes.locator(':scope > :last-child').boundingBox()
+    expect(first!.y).toBeLessThan(second!.y)
+    if (joining) await expect(page.getByLabel('Trip link', { exact: true })).toBeFocused()
+    else {
+      await page.getByRole('link', { name: 'Create a trip', exact: true }).click()
+      await expect(page.getByLabel('Trip name', { exact: true })).toBeVisible()
+    }
+  }
 })
