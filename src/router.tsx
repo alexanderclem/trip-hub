@@ -15,6 +15,8 @@ export const router = createBrowserRouter([
       { path: '/', element: <LandingScreen /> },
       { path: '/privacy', element: <LegalScreen policy="privacy" /> },
       { path: '/terms', element: <LegalScreen policy="terms" /> },
+      { path: '/pricing', lazy: () => import('./features/website/PricingScreen').then((m) => ({ Component: m.PricingScreen })) },
+      { path: '/operators', lazy: () => import('./features/website/OperatorsScreen').then((m) => ({ Component: m.OperatorsScreen })) },
       { path: '/app', lazy: () => import('./features/onboarding/WelcomeScreen').then((m) => ({ Component: m.StartScreen })) },
       { path: '/quiz', lazy: () => import('./features/onboarding/QuizScreen').then((m) => ({ Component: m.QuizScreen })) },
       { path: '/new', lazy: () => import('./features/trips/CreateTripScreen').then((m) => ({ Component: m.CreateTripScreen })) },
