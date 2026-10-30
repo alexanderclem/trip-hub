@@ -249,3 +249,25 @@ describe('hosted trips', () => {
     await db.close()
   }, 60000)
 })
+
+describe('connected apps follow the roles', () => {
+  it('cannot edit a hosted trip’s plan for a traveler, and still can for an organizer', async () => {
+    const db = await migratedDb()
+    await seed(db)
+    const client = '66666666-6666-4666-8666-666666666666'
+    await db.exec(`insert into private.connector_oauth_config (client_id, resource_url) values ('${client}', 'https://stowaway.example/mcp');
+      insert into private.connector_edit_grants values ('${U.A}', '${client}'), ('${U.B}', '${client}');`)
+    await asUserCommit(db, U.A, async () => {
+      await db.query(`select public.claim_trip('${T1}')`)
+      await db.query(`select public.set_access_mode('${T1}', 'hosted')`)
+    }, { anonymous: false })
+    const edit = (user: string, id: string) => db.exec(`begin; set local role postgres;
+      select set_config('request.jwt.claims', '{"sub":"${user}","role":"stowaway_connector","is_anonymous":false,"client_id":"${client}","aud":"https://stowaway.example/mcp"}', true);
+      select public.connector_mutate_itinerary('create', '${T1}', '${id}', null, '{"title":"Kayak","start_local":"2027-03-15 09:00","start_tz":"America/Guatemala"}');
+      commit;`).catch(async (e) => { await db.exec('rollback'); throw e })
+    await expect(edit(U.B, fresh(50))).rejects.toThrow(/organizers/)
+    await edit(U.A, fresh(51))
+    expect((await db.query(`select title from public.itinerary_items where id = '${fresh(51)}'`)).rows).toEqual([{ title: 'Kayak' }])
+    await db.close()
+  }, 60000)
+})

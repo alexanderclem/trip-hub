@@ -332,6 +332,25 @@ create policy "attachments: replace in own trips" on storage.objects for update 
   using (bucket_id = 'attachments' and (select private.object_writable(name)))
   with check (bucket_id = 'attachments' and (select private.object_writable(name)));
 
+-- ─── Connected apps (20261008000002_connector_editing.sql) ──────────────────
+
+-- A connected app edits the plan through this function as the signed-in person, so it must follow
+-- the same rule as the app: in a hosted trip only organizers change the plan. The original check
+-- stays, under a new name; the connector RPCs call this one by name.
+alter function private.connector_mutate_itinerary_base(text, uuid, uuid, timestamptz, jsonb)
+  rename to connector_mutate_itinerary_unchecked;
+create function private.connector_mutate_itinerary_base(p_action text, p_trip_id uuid, p_item_id uuid,
+  p_expected_updated_at timestamptz default null, p_changes jsonb default '{}')
+returns jsonb
+language plpgsql security definer set search_path = '' as $$
+begin
+  if not private.can(p_trip_id, 'plan') then
+    raise exception 'Only the trip''s organizers can change its plan' using errcode = '42501';
+  end if;
+  return private.connector_mutate_itinerary_unchecked(p_action, p_trip_id, p_item_id, p_expected_updated_at, p_changes);
+end $$;
+revoke all on function private.connector_mutate_itinerary_base(text, uuid, uuid, timestamptz, jsonb) from public, anon, authenticated;
+
 -- ─── Joining and "Who are you?" ─────────────────────────────────────────────
 
 -- Removed people can't come back through an old link. New people get the trip's join role.
