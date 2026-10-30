@@ -3,6 +3,7 @@ import type { Draft } from '@/features/discovery/model'
 import type { Thread } from '@/features/stowie/script'
 import type { WeatherRow } from '@/features/itinerary/weather'
 import type { MemberPreference } from './types'
+import type { Booking, BookingPayment, TripOffer } from './types'
 import type { Attachment, DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip, TripTask, PackingItem, PackingCheck, MemberSafety, Comment } from './types'
 
 export interface OutboxEntry {
@@ -77,6 +78,9 @@ export class TripDb extends Dexie {
   files!: EntityTable<StoredFile, 'name'>
   /** Weather for plan days; this phone only, never synced. */
   weather!: EntityTable<WeatherRow, 'id'>
+  trip_offers!: EntityTable<TripOffer & LocalColumns, 'id'>
+  bookings!: EntityTable<Booking & LocalColumns, 'id'>
+  booking_payments!: EntityTable<BookingPayment & LocalColumns, 'id'>
   /** Funnel events waiting for a connection; this phone only, never synced. */
   _events!: EntityTable<QueuedEvent, 'seq'>
 
@@ -120,6 +124,7 @@ export class TripDb extends Dexie {
     this.version(13).stores({ comments: 'id, trip_id, [subject_type+subject_id]' })
     this.version(14).stores({ stowie_threads: 'scope' })
     this.version(15).stores({ _events: '++seq, trip_id' })
+    this.version(16).stores({ trip_offers: 'id, trip_id', bookings: 'id, trip_id, member_id', booking_payments: 'id, trip_id, booking_id' })
   }
 }
 

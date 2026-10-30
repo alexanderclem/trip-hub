@@ -365,6 +365,61 @@ export interface Comment extends SyncColumns {
   body: string
 }
 
+/** A trip's page for collecting payments (20261101000001_payments.sql). Written only through RPCs. */
+export interface TripOffer extends SyncColumns {
+  trip_id: string
+  organizer_id: string
+  status: 'draft' | 'published' | 'closed'
+  slug: string
+  title: string
+  summary: string
+  currency: 'usd'
+  price_minor: number
+  deposit_minor: number
+  balance_due_date: string | null
+  capacity: number
+  cancellation_policy: string
+  policy_version: number
+  fee_mode: 'absorb' | 'pass'
+  allow_bank: boolean
+  published_at: string | null
+}
+
+export type BookingStatus = 'pending' | 'active' | 'paid' | 'cancelled' | 'refunded' | 'expired'
+
+/** One traveler's place on a hosted trip. Written only by the server. */
+export interface Booking extends SyncColumns {
+  trip_id: string
+  offer_id: string
+  organizer_id: string
+  member_id: string | null
+  traveler_name: string
+  traveler_email: string
+  status: BookingStatus
+  price_minor: number
+  deposit_minor: number
+  paid_minor: number
+  refunded_minor: number
+  balance_due_date: string | null
+  fee_mode: 'absorb' | 'pass'
+  policy_version: number
+  policy_accepted_at: string
+  started_by_user: string | null
+}
+
+export interface BookingPayment extends SyncColumns {
+  trip_id: string
+  booking_id: string
+  kind: 'deposit' | 'balance' | 'full'
+  base_minor: number
+  charged_minor: number
+  application_fee_minor: number
+  stripe_fee_minor: number | null
+  refunded_minor: number
+  status: 'open' | 'processing' | 'succeeded' | 'failed' | 'expired' | 'refunded' | 'partially_refunded' | 'disputed'
+  paid_at: string | null
+}
+
 export interface Tables {
   trips: Trip
   members: Member
@@ -388,5 +443,8 @@ export interface Tables {
   packing_items: PackingItem
   packing_checks: PackingCheck
   member_safety: MemberSafety
+  trip_offers: TripOffer
+  bookings: Booking
+  booking_payments: BookingPayment
 }
 export type TableName = keyof Tables

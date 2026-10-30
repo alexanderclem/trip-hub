@@ -91,7 +91,7 @@ test('trip settings keep destination and offline tools without the import sectio
   await page.route('**/*.supabase.co/**', (route) => route.abort())
   // This screen opens the app database before the local fixture writes its records.
   await page.goto('/inspire/manual')
-  await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trip ideas', level: 1 })).toBeVisible()
   await page.evaluate(async () => {
     const tripId = '00000000-0000-4000-8000-000000000901'
     const memberId = '00000000-0000-4000-8000-000000000902'

@@ -546,7 +546,7 @@ begin
     'traveler_name', b.traveler_name, 'trip_name', t.name, 'organizer', o.display_name, 'amount_minor', p.charged_minor,
     'kind', p.kind, 'paid_minor', b.paid_minor, 'price_minor', b.price_minor, 'balance_due_date', b.balance_due_date,
     'trip_url', p_site || '/t/' || b.trip_id || '/overview',
-    'manage_url', p_site || '/b/' || (select token from private.booking_tokens where booking_id = b.id)));
+    'manage_url', p_site || '/b#t=' || (select token from private.booking_tokens where booking_id = b.id)));
   perform private.enqueue_email('paid:' || p.id || ':organizer', o.support_email, null, 'organizer_payment', jsonb_build_object(
     'traveler_name', b.traveler_name, 'trip_name', t.name, 'amount_minor', p.charged_minor, 'kind', p.kind,
     'paid_minor', b.paid_minor, 'price_minor', b.price_minor));
@@ -719,7 +719,7 @@ begin
       perform private.enqueue_email('reminder:' || r.id || ':' || v_days, r.traveler_email, r.support_email, 'balance_reminder',
         jsonb_build_object('traveler_name', r.traveler_name, 'trip_name', r.trip_name, 'organizer', r.display_name,
           'due_minor', r.price_minor - r.paid_minor, 'balance_due_date', r.balance_due_date, 'days', v_days,
-          'manage_url', p_site || '/b/' || (select token from private.booking_tokens where booking_id = r.id)));
+          'manage_url', p_site || '/b#t=' || (select token from private.booking_tokens where booking_id = r.id)));
       n := n + 1;
     end if;
   end loop;

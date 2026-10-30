@@ -7,6 +7,7 @@ import { HandCoins } from 'lucide-react'
 import { DateTime } from 'luxon'
 import { Link } from 'react-router'
 import { useDevice, useTripAccess } from '@/data/device'
+import { isStaff } from '@/data/access'
 import { ensureSession, supabase } from '@/lib/supabase'
 import { useAccount } from '@/features/account/account'
 import { track } from '@/features/funnel/events'
@@ -19,6 +20,7 @@ export function CollectPaymentsRow({ tripId, reason }: { tripId: string; reason:
   const seen = useDevice((s) => s.paymentsOfferSeen[tripId])
   const setSeen = useDevice((s) => s.setPaymentsOfferSeen)
   const [open, setOpen] = useState(false)
+  const organizer = isStaff(useTripAccess(tripId))
 
   // Counted as shown at most once a day per trip.
   useEffect(() => {
@@ -30,6 +32,15 @@ export function CollectPaymentsRow({ tripId, reason }: { tripId: string; reason:
   }, [done, seen, setSeen, tripId, reason])
 
   if (done) return null
+  if (organizer) {
+    return (
+      <Link to={`/t/${tripId}/more/payments`} onClick={() => void track('money_moment_clicked', tripId, { reason })}
+        className="flex min-h-11 w-full items-center gap-3 rounded-surface border border-line bg-surface px-4 py-3 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action">
+        <HandCoins aria-hidden="true" className="size-5 shrink-0 text-action" />
+        <span className="min-w-0 flex-1"><span className="block font-semibold text-ink">Collect payments for this trip</span><span className="block text-sm text-muted">Deposits from everyone, straight to your Stripe account.</span></span>
+      </Link>
+    )
+  }
   return <>
     <button
       type="button"

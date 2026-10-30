@@ -53,6 +53,8 @@ export const supabaseRemote: Remote = {
         .order('updated_at', { ascending: true })
         .order('id', { ascending: true })
         .range(offset, offset + limit - 1)
+      // A table the server doesn't have yet (the app can ship before its migration) has no rows.
+      if (error && (status === 404 || error.code === 'PGRST205' || error.code === '42P01')) return { rows: [] }
       if (error) return { error: toRemoteError(status, error.message) }
       return { rows: data ?? [] }
     } catch (e) {

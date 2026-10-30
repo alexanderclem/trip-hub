@@ -19,6 +19,7 @@ import { useMoneyFormat } from './format'
 import { TripCostCard } from './TripCostCard'
 import { moneyMoment } from './moment'
 import { CollectPaymentsRow } from './CollectPayments'
+import { MyBookingCard } from '@/features/payments/MyBookingCard'
 import { Stowie } from '@/features/stowie/Stowie'
 import { NumberTicker } from '@/ui/effects'
 
@@ -123,6 +124,8 @@ export function MoneyScreen() {
             </Card>
           </>
         )}
+
+        <MyBookingCard tripId={tripId} />
 
         {moment && <CollectPaymentsRow tripId={tripId} reason={moment} />}
 

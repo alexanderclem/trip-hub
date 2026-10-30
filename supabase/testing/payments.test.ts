@@ -97,7 +97,7 @@ describe('a traveler books and pays', () => {
     expect(await ledgerSums()).toEqual({ operator_stripe_balance: 28800, stripe_fees: 900, stowaway_fees: 300, traveler_receivable: -30000 })
     const emails = await pg.query<{ template: string; to_email: string; data: { manage_url: string } }>(`select template, to_email, data from private.email_outbox order by id`)
     expect(emails.rows.map((e) => [e.template, e.to_email])).toEqual([['payment_received', 'ola@example.com'], ['organizer_payment', 'ana@example.com']])
-    expect(emails.rows[0]!.data.manage_url).toBe(`${SITE}/b/${token}`)
+    expect(emails.rows[0]!.data.manage_url).toBe(`${SITE}/b#t=${token}`)
   })
 
   it('shows the booking to its traveler and the organizer only', async () => {
