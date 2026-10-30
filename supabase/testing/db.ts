@@ -77,3 +77,22 @@ export async function asUser<T>(pg: PGlite, userId: string, fn: () => Promise<T>
 /** Runs `fn` as a signed-in user and keeps what it wrote. */
 export const asUserCommit = <T>(pg: PGlite, userId: string, fn: () => Promise<T>, opts: { anonymous?: boolean } = {}) =>
   asUser(pg, userId, fn, { ...opts, keep: true })
+
+/** Runs `fn` as the Edge Functions do (service role), and keeps what it wrote. */
+export async function asService<T>(pg: PGlite, fn: () => Promise<T>): Promise<T> {
+  await pg.exec(`begin; set local role service_role;`)
+  try {
+    const result = await fn()
+    await pg.exec('commit')
+    return result
+  } catch (e) {
+    await pg.exec('rollback')
+    throw e
+  }
+}
+
+/** Runs `fn` as someone who isn't signed in (role anon), rolled back. */
+export async function asAnon<T>(pg: PGlite, fn: () => Promise<T>): Promise<T> {
+  await pg.exec(`begin; set local role anon; select set_config('request.jwt.claims', '', true);`)
+  try { return await fn() } finally { await pg.exec('rollback') }
+}
