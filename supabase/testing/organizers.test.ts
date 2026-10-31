@@ -36,3 +36,17 @@ describe('organizers', () => {
     expect((await pg.query(`select trips_claimed from private.funnel_daily limit 1`)).rows[0]).toEqual({ trips_claimed: 1 })
   })
 })
+
+describe('Pro', () => {
+  it('is free for every organizer during the beta, and off when the beta ends', async () => {
+    const me = await asUser(pg, U.A, async () => (await pg.query<{ o: { pro: boolean; beta: boolean } }>(`select public.my_organizer() as o`)).rows[0]!.o, account)
+    expect(me).toMatchObject({ pro: true, beta: true })
+    await pg.exec(`update private.app_settings set value = 'false' where key = 'pro_free_beta'`)
+    const after = await asUser(pg, U.A, async () => (await pg.query<{ o: { pro: boolean } }>(`select public.my_organizer() as o`)).rows[0]!.o, account)
+    expect(after.pro).toBe(false)
+    await pg.exec(`update public.organizers set plan = 'pro' where owner_user_id = '${U.A}'`)
+    expect((await asUser(pg, U.A, async () => (await pg.query<{ o: { pro: boolean } }>(`select public.my_organizer() as o`)).rows[0]!.o, account)).pro).toBe(true)
+    await pg.exec(`update private.app_settings set value = 'true' where key = 'pro_free_beta'; update public.organizers set plan = 'free'`)
+    expect(await asUser(pg, U.B, async () => (await pg.query(`select public.my_organizer() as o`)).rows[0])).toEqual({ o: null })
+  })
+})
