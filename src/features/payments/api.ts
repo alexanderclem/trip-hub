@@ -4,6 +4,7 @@
 import { ensureSession, supabase } from '@/lib/supabase'
 import type { TripOffer } from '@/data/types'
 import type { DisputeRow, PayoutRow, StripeAccountRow } from './notices'
+import type { RefundTier } from '../../../supabase/functions/_shared/refunds'
 
 async function invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> {
   if (!navigator.onLine) throw new Error('Connect to the internet to continue.')
@@ -93,6 +94,8 @@ export interface PublicOffer {
   allow_bank: boolean
   cancellation_policy: string
   policy_version: number
+  schedule?: { due_date: string; amount_minor: number }[]
+  refund_tiers?: RefundTier[]
   spots_left: number
   trip: { name: string; start_date: string | null; end_date: string | null; timezone: string }
   organizer: { name: string; email: string }
@@ -119,14 +122,18 @@ export interface BookingView {
   balance_due_date: string | null
   fee_mode: 'absorb' | 'pass'
   processing: boolean
-  offer: { slug: string; title: string; allow_bank: boolean; status: string }
+  offer: { slug: string; title: string; allow_bank: boolean; status: string; refund_tiers?: RefundTier[] }
   organizer: { name: string; email: string }
+  schedule?: { due_date: string; amount_minor: number }[]
+  next_minor?: number
+  next_date?: string | null
 }
 
 export const getBooking = (token: string) => rpc<BookingView | null>('get_booking', { p_token: token })
 
-export async function payBalance(token: string): Promise<void> {
-  const { url } = await invoke<{ url: string }>('checkout-create', { token })
+/** Pays the next installment (or the balance), or everything left with `all`. */
+export async function payBalance(token: string, all = false): Promise<void> {
+  const { url } = await invoke<{ url: string }>('checkout-create', { token, all })
   location.assign(url)
 }
 
@@ -147,3 +154,33 @@ export function bookingLink(bookingId: string): string | null {
 
 /** The token from a booking page's URL fragment (#t=…), which never reaches a server. */
 export const tokenFromHash = (hash: string) => new URLSearchParams(hash.replace(/^#/, '')).get('t')
+
+// ─── Phase 2a: plans, refunds, running a trip again, reports, invites ───────
+
+export const saveOfferPlan = (tripId: string, schedule: { due_date: string; amount_minor: number }[], refundTiers: RefundTier[]) =>
+  rpc<TripOffer>('save_offer_plan', { p_trip_id: tripId, p_schedule: schedule, p_refund_tiers: refundTiers })
+
+/** Refunds (and optionally cancels) a booking on the organizer's Stripe account. */
+export const refundBooking = (bookingId: string, amountMinor: number, cancel: boolean) =>
+  invoke<{ refunded: number; cancelled: boolean }>('refund-create', { booking_id: bookingId, amount_minor: amountMinor, cancel })
+
+export const getOfferPolicy = (offerId: string, version: number) =>
+  rpc<{ version: number; text: string; refund_tiers: RefundTier[]; since: string } | null>('get_offer_policy', { p_offer_id: offerId, p_version: version })
+
+/** Runs a trip again (Pro): returns the new trip, already joined by this account as its owner. */
+export const cloneTrip = (sourceTripId: string, name: string, startDate: string) =>
+  rpc<{ trip_id: string; member_id: string; share_token: string }>('clone_trip', { p_source: sourceTripId, p_name: name, p_start_date: startDate })
+
+export interface ReportRow { trip_id: string; title: string; collected: number; stripe_fees: number; stowaway_fees: number; refunds: number; net: number }
+export const organizerReport = (from: string, to: string) => rpc<{ trips: ReportRow[]; payouts: number }>('organizer_report', { p_from: from, p_to: to })
+
+export interface InviteRow { id: string; role: 'traveler' | 'viewer'; label: string | null; expires_at: string | null; max_uses: number | null; uses: number; revoked_at: string | null; created_at: string }
+export const createInvite = (tripId: string, role: InviteRow['role'], label: string, expiresInDays: number, maxUses: number | null) =>
+  rpc<string>('create_invite', { p_trip_id: tripId, p_role: role, p_label: label, p_expires_in_days: expiresInDays, p_max_uses: maxUses })
+export const revokeInvite = (id: string) => rpc<void>('revoke_invite', { p_invite_id: id })
+export async function listInvites(tripId: string): Promise<InviteRow[]> {
+  if (!navigator.onLine) return []
+  const { data, error } = await supabase.from('trip_invites').select('id, role, label, expires_at, max_uses, uses, revoked_at, created_at').eq('trip_id', tripId).order('created_at', { ascending: false })
+  if (error) return []
+  return data as InviteRow[]
+}

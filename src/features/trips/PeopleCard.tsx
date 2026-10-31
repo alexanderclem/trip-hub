@@ -6,6 +6,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useTripAccess } from '@/data/device'
 import { can, isStaff } from '@/data/access'
+import { InviteLinks } from './InviteLinks'
 import type { Member, Trip, TripRole } from '@/data/types'
 import { supabase } from '@/lib/supabase'
 import { syncNow } from '@/data/sync/controller'
@@ -183,6 +184,8 @@ export function PeopleCard({ trip, members, me }: { trip: Trip; members: Member[
           />
         </div>
       )}
+
+      {staff && hosted && <InviteLinks tripId={tripId} />}
 
       {creator && !access.organized && can(access, 'read') && (
         <div className="mt-4 border-t border-line pt-4">

@@ -16,6 +16,9 @@ import { syncNow } from '@/data/sync/controller'
 import { connectStripe, loadOrganizerMoney, refreshStripe, saveOffer, setOfferStatus, type OrganizerMoney } from './api'
 import { accountNotices, scheduleText, type Notice } from './notices'
 import { bookingsCsv, useTripBookings, useTripOffer } from './data'
+import { PlanCard } from './PlanCard'
+import { RefundSheet } from './RefundSheet'
+import { RunAgainCard } from './RunAgainCard'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 const cents = (text: string) => Math.round((Number.parseFloat(text) || 0) * 100)
@@ -71,7 +74,11 @@ export function PaymentsScreen() {
 
         {offer && <PublishCard tripId={tripId} offer={offer} canPublish={canPublish} reviewed={money ? !!money.organizer?.reviewed_at : null} />}
 
-        {offer && <BookingsCard bookings={bookings ?? []} capacity={offer.capacity} tripName={trip.name} />}
+        {offer && <PlanCard key={offer.id} tripId={tripId} offer={offer} />}
+
+        {offer && <BookingsCard bookings={bookings ?? []} offer={offer} tripName={trip.name} tripStart={trip.start_date} tripZone={trip.timezone} />}
+
+        <RunAgainCard tripId={tripId} tripName={trip.name} />
 
         {money && money.payouts.length > 0 && (
           <Card>
@@ -205,7 +212,9 @@ function PublishCard({ tripId, offer, canPublish, reviewed }: { tripId: string; 
   )
 }
 
-function BookingsCard({ bookings, capacity, tripName }: { bookings: Booking[]; capacity: number; tripName: string }) {
+function BookingsCard({ bookings, offer, tripName, tripStart, tripZone }: { bookings: Booking[]; offer: TripOffer; tripName: string; tripStart: string | null; tripZone: string }) {
+  const capacity = offer.capacity
+  const [open, setOpen] = useState<Booking | null>(null)
   const live = bookings.filter((b) => b.status === 'active' || b.status === 'paid')
   const collected = live.reduce((a, b) => a + b.paid_minor - b.refunded_minor, 0)
   const due = live.reduce((a, b) => a + Math.max(0, b.price_minor - b.paid_minor), 0)
@@ -224,15 +233,18 @@ function BookingsCard({ bookings, capacity, tripName }: { bookings: Booking[]; c
       {live.length > 0 && (
         <ul className="mt-2 divide-y divide-line text-sm">
           {live.map((b) => (
-            <li key={b.id} className="flex flex-wrap justify-between gap-2 py-2">
-              <span className="min-w-0 break-words">{b.traveler_name}</span>
-              <span className="tabular-nums">{b.status === 'paid' ? <span className="text-success-ink">Paid {usd(b.paid_minor)}</span> : <>{usd(b.paid_minor)} of {usd(b.price_minor)}{b.balance_due_date ? <span className="text-muted"> · due {b.balance_due_date}</span> : null}</>}</span>
+            <li key={b.id}>
+              <button type="button" className="flex min-h-11 w-full flex-wrap items-center justify-between gap-2 py-2 text-left" aria-label={`${b.traveler_name}: refund, cancel or dispute evidence`} onClick={() => setOpen(b)}>
+                <span className="min-w-0 break-words text-action">{b.traveler_name}</span>
+                <span className="tabular-nums">{b.status === 'paid' ? <span className="text-success-ink">Paid {usd(b.paid_minor)}</span> : <>{usd(b.paid_minor)} of {usd(b.price_minor)}{b.balance_due_date ? <span className="text-muted"> · due {b.balance_due_date}</span> : null}</>}{b.refunded_minor > 0 && <span className="text-muted"> · {usd(b.refunded_minor)} refunded</span>}</span>
+              </button>
             </li>
           ))}
         </ul>
       )}
       {bookings.length > 0 && <button type="button" className="ui-link mt-2 inline-flex min-h-11 items-center gap-2" onClick={download}><Download aria-hidden="true" className="size-4" />Download as CSV</button>}
-      <p className="mt-2 text-xs text-muted">Refunds and disputes are handled in your Stripe Dashboard; they show here automatically, and we return our 1% on refunds.</p>
+      <p className="mt-2 text-xs text-muted">Tap a traveler to refund or cancel. Refunds made in your Stripe Dashboard show here too, and we return our 1% on every refund.</p>
+      {open && <RefundSheet booking={open} offer={offer} tripStart={tripStart} tripZone={tripZone} onClose={() => setOpen(null)} />}
     </Card>
   )
 }

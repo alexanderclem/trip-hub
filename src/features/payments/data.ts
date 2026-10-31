@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/data/db'
 import type { Booking, BookingPayment, TripOffer } from '@/data/types'
+import type { ReportRow } from './api'
 
 /** The trip's payment page settings, as synced to this phone. */
 export const useTripOffer = (tripId: string | undefined): TripOffer | null | undefined =>
@@ -28,5 +29,13 @@ export function bookingsCsv(bookings: Booking[]): string {
     rows.push([b.traveler_name, b.traveler_email, b.status, dollars(b.price_minor), dollars(b.paid_minor), dollars(b.refunded_minor),
       dollars(Math.max(0, b.price_minor - b.paid_minor)), b.balance_due_date ?? '', (b.created_at ?? '').slice(0, 10)])
   }
+  return rows.map((r) => r.map(cell).join(',')).join('\r\n')
+}
+
+/** A period's per-trip money as CSV, one fixed column order for QuickBooks or Xero imports. */
+export function reportCsv(from: string, to: string, trips: ReportRow[]): string {
+  const dollars = (cents: number) => (cents / 100).toFixed(2)
+  const rows = [['From', 'To', 'Trip', 'Collected', 'Stripe fees', 'Stowaway fees', 'Refunds', 'Net']]
+  for (const r of trips) rows.push([from, to, r.title, dollars(r.collected), dollars(r.stripe_fees), dollars(r.stowaway_fees), dollars(r.refunds), dollars(r.net)])
   return rows.map((r) => r.map(cell).join(',')).join('\r\n')
 }

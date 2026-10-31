@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase'
 import { useDevice } from '@/data/device'
 import { fetchAccess } from '@/data/access'
 import { WebsiteFrame } from '@/features/website/WebsiteFrame'
+import type { RefundTier } from '../../../supabase/functions/_shared/refunds'
 import { getBooking, getPublicOffer, payBalance, rememberBookingLink, startBooking, tokenFromHash, type BookingView, type PublicOffer } from './api'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
@@ -50,7 +51,9 @@ export function PublicTripScreen() {
       {offer.summary && <p className="whitespace-pre-line text-muted">{offer.summary}</p>}
       <div className="marketing-plan">
         <p className="marketing-price">{usd(offer.price_minor)} <span className="marketing-muted" style={{ fontSize: '1rem', letterSpacing: 0 }}>per person</span></p>
-        <p className="mt-2 text-sm">{offer.deposit_minor ? `${usd(offer.deposit_minor)} deposit now, the remaining ${usd(offer.price_minor - offer.deposit_minor)} by ${date(offer.balance_due_date)}.` : 'Paid in one payment.'}
+        <p className="mt-2 text-sm">{offer.schedule?.length
+          ? `${usd(offer.deposit_minor || offer.price_minor)} ${offer.deposit_minor ? 'deposit ' : ''}now, then ${offer.schedule.map((s) => `${usd(s.amount_minor)} by ${date(s.due_date)}`).join(', ')}.`
+          : offer.deposit_minor ? `${usd(offer.deposit_minor)} deposit now, the remaining ${usd(offer.price_minor - offer.deposit_minor)} by ${date(offer.balance_due_date)}.` : 'Paid in one payment.'}
           {first.bookingFee > 0 && ` Each payment includes a booking fee (${usd(first.bookingFee)} on the first).`}</p>
         <p className="mt-1 text-sm text-muted">{offer.spots_left > 0 ? `${offer.spots_left} ${offer.spots_left === 1 ? 'place' : 'places'} left.` : 'This trip is full.'}</p>
       </div>
@@ -62,7 +65,7 @@ export function PublicTripScreen() {
           </ol>
         </div>
       )}
-      <details className="marketing-plan"><summary className="cursor-pointer font-semibold">Cancellation and refund policy</summary><p className="mt-2 whitespace-pre-line text-sm">{offer.cancellation_policy}</p></details>
+      <details className="marketing-plan"><summary className="cursor-pointer font-semibold">Cancellation and refund policy</summary><p className="mt-2 whitespace-pre-line text-sm">{offer.cancellation_policy}</p><RefundSteps tiers={offer.refund_tiers} /></details>
       {offer.spots_left > 0 && <BookingForm offer={offer} firstCharge={first.charged} />}
       <p className="calc-note">Payments go to {offer.organizer.name} through Stripe. Stowaway never holds your money. Questions: <a className="underline" href={`mailto:${offer.organizer.email}`}>{offer.organizer.email}</a></p>
     </Page>
@@ -200,19 +203,43 @@ export function ManageBookingScreen() {
       <div className="marketing-plan">
         <p className="marketing-price">{usd(booking.paid_minor)} <span className="marketing-muted" style={{ fontSize: '1rem', letterSpacing: 0 }}>of {usd(booking.price_minor)} paid</span></p>
         {booking.refunded_minor > 0 && <p className="mt-1 text-sm">{usd(booking.refunded_minor)} refunded.</p>}
-        <p className="mt-2 text-sm">{booking.status === 'paid' ? 'Paid in full.' : booking.status === 'refunded' ? 'This booking was refunded.' : booking.status === 'cancelled' ? 'This booking was cancelled.' : booking.processing ? 'A bank payment is on its way.' : owed ? `${usd(due)} is due by ${date(booking.balance_due_date)}.` : 'Waiting for your first payment.'}</p>
+        <p className="mt-2 text-sm">{booking.status === 'paid' ? 'Paid in full.' : booking.status === 'refunded' ? 'This booking was refunded.' : booking.status === 'cancelled' ? 'This booking was cancelled.' : booking.processing ? 'A bank payment is on its way.' : owed ? (booking.next_minor && booking.next_minor < due ? `Next: ${usd(booking.next_minor)}${booking.next_date ? ` by ${date(booking.next_date)}` : ''}. ${usd(due)} left in all.` : `${usd(due)} is due${booking.next_date || booking.balance_due_date ? ` by ${date(booking.next_date ?? booking.balance_due_date)}` : ''}.`) : 'Waiting for your first payment.'}</p>
+        {booking.schedule && booking.schedule.length > 0 && <PlanList schedule={booking.schedule} />}
       </div>
       {owed && !booking.processing && (
-        <button type="button" className="website-button website-button-primary" disabled={busy} onClick={async () => { setBusy(true); try { await payBalance(token) } catch (e) { setError(e instanceof Error ? e.message : String(e)); setBusy(false) } }}>
-          {busy ? 'Opening secure checkout…' : `Pay the balance`}
-        </button>
+        <div className="website-actions">
+          <button type="button" className="website-button website-button-primary" disabled={busy} onClick={async () => { setBusy(true); try { await payBalance(token) } catch (e) { setError(e instanceof Error ? e.message : String(e)); setBusy(false) } }}>
+            {busy ? 'Opening secure checkout…' : booking.next_minor && booking.next_minor < due ? `Pay ${usd(booking.next_minor)} now` : 'Pay the balance'}
+          </button>
+          {!!booking.next_minor && booking.next_minor < due && <button type="button" className="website-text-link" disabled={busy} onClick={async () => { setBusy(true); try { await payBalance(token, true) } catch (e) { setError(e instanceof Error ? e.message : String(e)); setBusy(false) } }}>Pay everything left ({usd(due)})</button>}
+        </div>
       )}
       <div className="website-actions">
         <button type="button" className="website-text-link" onClick={async () => { if (await openTrip(booking.trip_id)) navigate(`/t/${booking.trip_id}/overview`); else setError('This phone isn’t on the trip. Use the trip link from your confirmation email.') }}>Open the trip</button>
         <a className="website-text-link" href={`mailto:${booking.organizer.email}`}>Contact {booking.organizer.name}</a>
       </div>
       <p className="calc-note">Refunds follow the cancellation policy you accepted and are made by {booking.organizer.name}.</p>
+      {booking.offer.refund_tiers && booking.offer.refund_tiers.length > 0 && <div className="calc-note"><RefundSteps tiers={booking.offer.refund_tiers} /></div>}
       <p className="calc-note"><Link to={`/go/${booking.offer.slug}`} className="underline">The trip page</Link></p>
     </Page>
+  )
+}
+
+function PlanList({ schedule }: { schedule: { due_date: string; amount_minor: number }[] }) {
+  return (
+    <ul className="mt-2 text-sm">
+      {schedule.map((s) => <li key={s.due_date}>{usd(s.amount_minor)} by {date(s.due_date)}</li>)}
+    </ul>
+  )
+}
+
+function RefundSteps({ tiers }: { tiers?: RefundTier[] }) {
+  if (!tiers?.length) return null
+  const sorted = [...tiers].sort((a, b) => b.days_before - a.days_before)
+  return (
+    <ul className="mt-2 text-sm">
+      {sorted.map((t) => <li key={t.days_before}>{t.percent}% back if you cancel {t.days_before} or more days before the trip</li>)}
+      {!sorted.some((t) => t.days_before === 0) && <li>Later than that, no refund unless the policy above says otherwise.</li>}
+    </ul>
   )
 }

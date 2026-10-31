@@ -405,4 +405,31 @@ begin
   return v_trip;
 end $$;
 
+-- The trip page shows the payment plan and refund steps travelers agree to.
+create or replace function public.get_public_offer(p_slug text) returns jsonb
+language sql stable security definer set search_path = '' as $$
+  select jsonb_build_object(
+    'slug', f.slug, 'title', f.title, 'summary', f.summary, 'currency', f.currency,
+    'price_minor', f.price_minor, 'deposit_minor', f.deposit_minor, 'balance_due_date', f.balance_due_date,
+    'fee_mode', f.fee_mode, 'allow_bank', f.allow_bank,
+    'cancellation_policy', f.cancellation_policy, 'policy_version', f.policy_version,
+    'schedule', f.schedule, 'refund_tiers', f.refund_tiers,
+    'spots_left', greatest(0, f.capacity - private.spots_taken(f.id)),
+    'trip', jsonb_build_object('name', t.name, 'start_date', t.start_date, 'end_date', t.end_date, 'timezone', t.timezone),
+    'organizer', jsonb_build_object('name', o.display_name, 'email', o.support_email),
+    'days', coalesce((
+      select jsonb_agg(jsonb_build_object('date', d.day, 'items', d.items) order by d.day)
+      from (
+        select i.start_local::date as day, jsonb_agg(i.title order by i.start_local) as items
+        from public.itinerary_items i
+        where i.trip_id = t.id and i.deleted_at is null and i.status <> 'cancelled' and i.kind <> 'free'
+        group by 1 order by 1 limit 30
+      ) d), '[]')
+  )
+  from public.trip_offers f
+  join public.trips t on t.id = f.trip_id and t.deleted_at is null
+  join public.organizers o on o.id = f.organizer_id and o.reviewed_at is not null
+  where f.slug = p_slug and f.status = 'published' and f.deleted_at is null
+$$;
+
 notify pgrst, 'reload schema';

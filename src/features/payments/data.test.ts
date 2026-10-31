@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Booking } from '@/data/types'
-import { bookingsCsv } from './data'
+import { bookingsCsv, reportCsv } from './data'
 
 const b = (over: Partial<Booking>): Booking => ({
   id: 'b', trip_id: 't', offer_id: 'o', organizer_id: 'g', member_id: null, traveler_name: 'Ola', traveler_email: 'ola@example.com', status: 'active',
@@ -20,5 +20,15 @@ describe('bookings CSV', () => {
 
   it('keeps a traveler’s name from running as a spreadsheet formula', () => {
     expect(bookingsCsv([b({ traveler_name: '=HYPERLINK("x")' })]).split('\r\n')[1]).toMatch(/^"'=HYPERLINK\(""x""\)"/)
+  })
+})
+
+describe('report CSV', () => {
+  it('keeps one column order and neutralises formulas in trip names', () => {
+    const csv = reportCsv('2027-01-01', '2027-12-31', [{ trip_id: 't', title: '=Lake week', collected: 300000, stripe_fees: 9000, stowaway_fees: 3000, refunds: 15000, net: 273000 }])
+    expect(csv.split('\r\n')).toEqual([
+      '"From","To","Trip","Collected","Stripe fees","Stowaway fees","Refunds","Net"',
+      `"2027-01-01","2027-12-31","'=Lake week","3000.00","90.00","30.00","150.00","2730.00"`,
+    ])
   })
 })

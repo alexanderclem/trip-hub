@@ -72,6 +72,7 @@ export const router = createBrowserRouter([
           { path: 'more/places/:placeId', lazy: () => import('./features/places/PlaceDetailScreen').then((m) => ({ Component: m.PlaceDetailScreen })) },
           { path: 'more/places/:placeId/edit', lazy: () => import('./features/places/PlaceFormScreen').then((m) => ({ Component: m.PlaceFormScreen })) },
           { path: 'more/payments', lazy: () => import('./features/payments/PaymentsScreen').then((m) => ({ Component: m.PaymentsScreen })) },
+          { path: 'more/payments/evidence/:bookingId', lazy: () => import('./features/payments/EvidenceScreen').then((m) => ({ Component: m.EvidenceScreen })) },
           { path: 'more/settings', lazy: () => import('./features/trips/SettingsScreen').then((m) => ({ Component: m.SettingsScreen })) },
           { path: 'more/vote', lazy: () => import('./features/polls/PollsScreen').then((m) => ({ Component: m.PollsScreen })) },
           { path: 'more/vote/:pollId', lazy: () => import('./features/polls/PollScreen').then((m) => ({ Component: m.PollScreen })) },

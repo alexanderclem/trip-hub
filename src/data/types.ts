@@ -383,6 +383,10 @@ export interface TripOffer extends SyncColumns {
   fee_mode: 'absorb' | 'pass'
   allow_bank: boolean
   published_at: string | null
+  /** Payments after the deposit (an installment plan); empty means one balance payment. */
+  schedule?: { due_date: string; amount_minor: number }[]
+  /** How much of what was paid comes back when cancelling at least `days_before` days out. */
+  refund_tiers?: { days_before: number; percent: number }[]
 }
 
 export type BookingStatus = 'pending' | 'active' | 'paid' | 'cancelled' | 'refunded' | 'expired'
@@ -405,12 +409,13 @@ export interface Booking extends SyncColumns {
   policy_version: number
   policy_accepted_at: string
   started_by_user: string | null
+  schedule?: { due_date: string; amount_minor: number }[]
 }
 
 export interface BookingPayment extends SyncColumns {
   trip_id: string
   booking_id: string
-  kind: 'deposit' | 'balance' | 'full'
+  kind: 'deposit' | 'balance' | 'full' | 'installment'
   base_minor: number
   charged_minor: number
   application_fee_minor: number

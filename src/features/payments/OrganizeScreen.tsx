@@ -10,6 +10,7 @@ import { Card, ErrorNote, PageHeader, SectionTitle } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { loadOrganizerMoney, type OrganizerMoney } from './api'
 import { accountNotices } from './notices'
+import { ReportsCard } from './ReportsCard'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 
@@ -77,6 +78,7 @@ export function OrganizeScreen() {
             </ul>
           </Card>
         )}
+        {money?.organizer && <ReportsCard />}
         {money && money.payouts.length > 0 && (
           <Card>
             <SectionTitle>Payouts</SectionTitle>

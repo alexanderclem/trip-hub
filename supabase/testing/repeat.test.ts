@@ -3,7 +3,7 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { PGlite } from '@electric-sql/pglite'
-import { asService, asUser, asUserCommit, migratedDb } from './db'
+import { asAnon, asService, asUser, asUserCommit, migratedDb } from './db'
 import { P, T1, U, seed } from './fixtures'
 
 const account = { anonymous: false }
@@ -82,6 +82,10 @@ describe('installments', () => {
       JSON.stringify([{ due_date: '2026-12-01', amount_minor: 60000 }, { due_date: '2099-02-01', amount_minor: 60000 }]),
       JSON.stringify([{ days_before: 60, percent: 100 }, { days_before: 30, percent: 50 }])]))
     expect(await one(`select balance_due_date::text from public.trip_offers where trip_id = '${T1}'`)).toEqual({ balance_due_date: '2099-02-01' })
+    // The public trip page shows the plan and the refund steps travelers agree to.
+    const page = await asAnon(pg, () => one<{ o: { schedule: unknown[]; refund_tiers: unknown[] } }>(`select public.get_public_offer('lake-week') as o`))
+    expect(page.o.schedule).toHaveLength(2)
+    expect(page.o.refund_tiers).toEqual([{ days_before: 60, percent: 100 }, { days_before: 30, percent: 50 }])
   })
 
   it('keeps the schedule a traveler booked under and says what is due next', async () => {
