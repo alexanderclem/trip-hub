@@ -69,7 +69,7 @@ export function TicketsScreen() {
             <Stowie size={64} />
             <EmptyHeader>
               <EmptyTitle>Keep every ticket handy</EmptyTitle>
-              <EmptyDescription>Booked something? Add the boarding pass, stay confirmation, or tour ticket as a PDF or photo. Download your tickets before you leave so they’re ready without signal.</EmptyDescription>
+              <EmptyDescription>Save booking confirmations as PDFs or photos. Download them before you travel for offline access.</EmptyDescription>
             </EmptyHeader>
             <LinkButton to="new"><Plus aria-hidden="true" className="size-4" />Add a ticket</LinkButton>
           </Empty>

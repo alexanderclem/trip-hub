@@ -88,7 +88,7 @@ test('overview shows live decision counts and opens exactly the unassigned task 
   await expect(page.getByRole('button', { name: 'Unassigned', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('link', { name: 'Book the airport transfer' })).toBeVisible()
   await page.goBack()
-  await expect(page.getByRole('heading', { name: 'Keep things moving' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Group decisions' })).toBeVisible()
   await expect.poll(() => page.locator('#trip-content').evaluate(el => el.scrollTop)).toBeCloseTo(scroll, 0)
 })
 
@@ -97,7 +97,7 @@ test('quick add works by keyboard, restores focus, and reaches every creation fl
   await page.goto(`${root}/overview`)
   const trigger = page.getByRole('button', { name: 'Add', exact: true })
   await trigger.focus(); await page.keyboard.press('Enter')
-  const dialog = page.getByRole('dialog', { name: 'Something for the trip?' })
+  const dialog = page.getByRole('dialog', { name: 'Add to your trip' })
   await expect(dialog).toBeVisible()
   if (shots) { await expect(dialog.locator(':scope > div')).toHaveCSS('opacity', '1'); await dialog.screenshot({ path: `${shots}/quick-add.png` }) }
   await page.keyboard.press('Escape')
@@ -233,7 +233,7 @@ for (const phase of ['planning', 'preparing', 'traveling', 'empty'] as const) {
       await expect(page.locator('.up-next-guidance > div')).toBeVisible()
       await page.locator('.up-next-guidance > summary').click()
     }
-    if (phase === 'preparing') await expect(page.getByRole('heading', { name: 'A little preparation. A smoother trip.' })).toBeVisible()
+    if (phase === 'preparing') await expect(page.getByRole('heading', { name: 'Get ready for offline' })).toBeVisible()
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 960 })
       if (await page.locator('#trip-content').count()) await page.locator('#trip-content').evaluate(el => { el.scrollTop = 0 })
@@ -247,7 +247,7 @@ for (const phase of ['planning', 'preparing', 'traveling', 'empty'] as const) {
     await page.evaluate(() => { document.documentElement.style.fontSize = '' })
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.getByRole('button', { name: 'Add', exact: true }).click()
-    await expect(page.getByRole('dialog', { name: 'Something for the trip?' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Add to your trip' })).toBeVisible()
     await expect(page.locator('.quick-add-list a').first()).toHaveCSS('transition-duration', '0s')
     await page.keyboard.press('Escape')
     expect(errors).toEqual([])
@@ -260,3 +260,43 @@ for (const phase of ['planning', 'preparing', 'traveling', 'empty'] as const) {
     }
   })
 }
+
+test('planning shortcuts lead to the real trip screens and preserve trip context', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await page.goto(`${root}/overview`)
+  const planning = page.getByRole('navigation', { name: 'Trip planning', exact: true })
+  await expect(planning.locator('.planning-count')).toHaveText(['1', '1 open', '1'])
+  for (const [label, path, title] of [['Places', 'more/places', 'Places'], ['Votes', 'more/vote', 'Votes'], ['Plan', 'plan', 'Plan']]) {
+    await planning.getByRole('link', { name: new RegExp(`^${label}`) }).click()
+    await expect(page).toHaveURL(new RegExp(`${root}/${path}(\\?|$)`))
+    await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible()
+    await expect(page.locator('.app-page-header .ui-eyebrow')).toHaveText('A long weekend in Lisbon')
+    if (path === 'more/places') {
+      await expect(page.getByRole('link', { name: 'Add place', exact: true })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeHidden()
+    }
+    await page.goBack()
+    await expect(planning).toBeVisible()
+  }
+})
+
+test('segmented settings support arrow keys, wraparound, and a single tab stop', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await page.goto(`${root}/more/settings`)
+  const group = page.getByRole('radiogroup', { name: 'Temperatures', exact: true })
+  const fahrenheit = group.getByRole('radio', { name: '°F', exact: true })
+  const celsius = group.getByRole('radio', { name: '°C', exact: true })
+  await fahrenheit.click()
+  await page.keyboard.press('ArrowRight')
+  await expect(celsius).toBeFocused()
+  await expect(celsius).toHaveAttribute('aria-checked', 'true')
+  await expect(fahrenheit).toHaveAttribute('tabindex', '-1')
+  await page.keyboard.press('ArrowRight')
+  await expect(fahrenheit).toBeFocused()
+  await expect(fahrenheit).toHaveAttribute('aria-checked', 'true')
+  await page.keyboard.press('End')
+  await expect(celsius).toBeFocused()
+  await expect(celsius).toHaveAttribute('aria-checked', 'true')
+  await page.reload()
+  await expect(group.getByRole('radio', { name: '°C', exact: true })).toHaveAttribute('aria-checked', 'true')
+})

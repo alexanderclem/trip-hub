@@ -1,3 +1,7 @@
+# Crawlers must receive the robots file as plain text.
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+
 # The service worker and manifest must always be revalidated, or phones keep old app versions.
 /sw.js
   Cache-Control: no-cache

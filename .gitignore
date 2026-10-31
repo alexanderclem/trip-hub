@@ -3,6 +3,8 @@ dist
 dev-dist
 .env
 .env.local
+.dev.vars
+.dev.vars.*
 .env.*.local
 /tools/
 /packs/

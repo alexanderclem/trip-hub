@@ -21,8 +21,8 @@ export default defineConfig({
         name: 'Stowaway',
         short_name: 'Stowaway',
         description: 'Your group trip, all in one place. Save places, vote on favorites, and keep your itinerary, tickets, and shared costs together.',
-        theme_color: '#183e4b',
-        background_color: '#f8f5ee',
+        theme_color: '#17343f',
+        background_color: '#f7f9f9',
         display: 'standalone',
         start_url: '/app',
         icons: [
@@ -33,7 +33,7 @@ export default defineConfig({
       },
       workbox: {
         // Includes the offline map's fonts and sprites, so labels render with no network.
-        globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2,ttf}', 'map-assets/**/*.{pbf,json}'], // mjs: pdf.js worker
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,jpg,woff2,ttf}', 'map-assets/**/*.{pbf,json}'], // mjs: pdf.js worker
         globIgnores: ['**/tesseract-core-lstm*'], // the OCR core is cached when first used, not precached
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/mcp$/, /^\/\.well-known\//, /^\/oauth\//, /^\/auth\//],

@@ -18,6 +18,7 @@ export function MoreScreen() {
       <PageHeader title="More" />
       <div className="mx-auto max-w-md space-y-6 p-4">
         <RowGroup label="On the trip">
+          <Row to="explore" icon={icon(Compass)} title="Explore your destination" />
           <Row to={`${root}/tickets`} icon={icon(Ticket)} title="Tickets" />
           <Row to={`${root}/money`} icon={icon(Wallet)} title="Shared expenses" />
           <Row to="places" icon={icon(MapPin)} title="Places" />
@@ -33,7 +34,7 @@ export function MoreScreen() {
           <Row to="settings" icon={icon(Settings)} title="Trip settings & sharing" />
           <Row to={`${root}/wrapped`} icon={icon(Sparkles)} title="Trip recap" trailing={trip && isRecapTime(trip, Date.now()) ? 'Ready' : 'Preview'} />
         </RowGroup>
-        <p className="text-center"><Link to="/app" className="ui-link lg:hidden">All trips</Link></p>
+        <p><Link to="/app" className="ui-link lg:hidden">All trips</Link></p>
       </div>
     </div>
   )

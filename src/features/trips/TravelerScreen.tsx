@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
@@ -10,7 +10,9 @@ import { useTasks } from '@/features/tasks/data'
 import { usePacking } from '@/features/packing/data'
 import { formatMoney } from '@/lib/money'
 import { Avatar, Button, Card, ErrorNote, Field, Input, LinkButton, PageHeader, Select } from '@/ui'
-import { normalizeVenmo, profilePhoto } from './traveler'
+import { normalizeVenmo } from './traveler'
+import { PhotoUpload } from './PhotoUpload'
+import { db } from '@/data/db'
 import { formatDate } from '@/lib/time'
 import { ListSkeleton } from '@/ui/collection'
 
@@ -72,29 +74,31 @@ function ProfileEditor({ member, me }: { member: Member; me: string | null }) {
   const [name, setName] = useState(member.display_name)
   const [venmo, setVenmo] = useState(member.venmo_username ?? '')
   const [photo, setPhoto] = useState(member.avatar_url ?? null)
+  const [uploading, setUploading] = useState(false)
+  const [photoVersion, setPhotoVersion] = useState(0)
+  const saving = useRef(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   return <Card><details><summary className="min-h-11 cursor-pointer py-2 font-medium text-action">Edit traveler profile</summary><form className="mt-3 space-y-4" onSubmit={async (e) => {
-    e.preventDefault(); setBusy(true); setError(null); setMessage(null)
+    e.preventDefault(); if (saving.current || uploading) return
+    saving.current = true; setBusy(true); setError(null); setMessage(null)
     try {
       if (!name.trim() || name.trim().length > 100) throw new Error('Use a name between 1 and 100 characters.')
-      await save('members', { ...member, display_name: name.trim(), venmo_username: normalizeVenmo(venmo), avatar_url: photo }, me)
+      const latest = await db.members.get(member.id)
+      if (!latest || latest.deleted_at) throw new Error('This traveler is no longer in the trip.')
+      await save('members', { ...latest, display_name: name.trim(), venmo_username: normalizeVenmo(venmo), avatar_url: photo }, me)
       setMessage('Profile saved on this device. Changes sync when online.')
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not save your profile. Try again.') }
-    finally { setBusy(false) }
+    finally { saving.current = false; setBusy(false) }
   }}>
-    <Field label="Traveler name"><Input value={name} maxLength={100} required onChange={(e) => setName(e.target.value)} /></Field>
-    <Field label="Venmo username or profile link"><Input value={venmo} placeholder="@your-username" onChange={(e) => setVenmo(e.target.value)} /><p className="mt-1 text-sm text-muted">Visible to your trip group. Opens your Venmo profile to pay in Venmo.</p></Field>
-    <div className="flex flex-wrap items-center gap-3"><Avatar name={name} color={member.color} photo={photo} /><Field label="Profile photo"><Input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async (e) => {
-      const file = e.target.files?.[0]; if (!file) return
-      setBusy(true); setError(null); setMessage(null)
-      try { setPhoto(await profilePhoto(file)) } catch (err) { setError(err instanceof Error ? err.message : 'Could not read photo.') } finally { setBusy(false) }
-      e.target.value = ''
-    }} /></Field></div>
-    <p className="text-sm text-muted">Photos are cropped to a square. Without a photo, your bubble shows your initials.</p>
-    {photo && <Button type="button" variant="ghost" disabled={busy} onClick={() => setPhoto(null)}>Remove photo</Button>}
+    <Field label="Traveler name"><Input disabled={busy || uploading} value={name} maxLength={100} required onChange={(e) => setName(e.target.value)} /></Field>
+    <Field label="Venmo username or profile link"><Input disabled={busy || uploading} value={venmo} placeholder="@your-username" onChange={(e) => setVenmo(e.target.value)} /><p className="mt-1 text-sm text-muted">Visible to your trip group. Opens your Venmo profile to pay in Venmo.</p></Field>
+    <div className="profile-photo-preview"><Avatar name={name} color={member.color} photo={photo} /><span className="text-sm text-muted">Your preview · visible to your trip group</span></div>
+    <PhotoUpload key={photoVersion} label="Profile photo" kind="profile" disabled={busy} onChange={(value) => { setPhoto(value); setMessage(null) }} onBusy={setUploading} />
+    <p className="text-sm text-muted">Frame your photo with the crop controls. Without a photo, your bubble shows your initials.</p>
+    {photo && <Button type="button" variant="ghost" disabled={busy || uploading} onClick={() => { setPhoto(null); setPhotoVersion((version) => version + 1); setMessage(null) }}>Remove photo</Button>}
     <ErrorNote error={error} />{message && <p role="status" className="text-sm text-action">{message}</p>}
-    <Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save profile'}</Button>
+    <Button type="submit" disabled={busy || uploading}>{uploading ? 'Preparing photo…' : busy ? 'Saving…' : 'Save profile'}</Button>
   </form></details></Card>
 }

@@ -35,8 +35,8 @@ export function JoinScreen() {
     history.replaceState(null, '', '/join')
     void attempt()
   }, [attempt])
-  return <div className="pt-safe mx-auto flex min-h-full max-w-md flex-col justify-center p-6 text-center">
-    <Link to="/" aria-label="Stowaway home" className="mx-auto mb-8"><Brand /></Link>
+  return <div className="pt-safe mx-auto flex min-h-full max-w-md flex-col justify-center p-6 text-start">
+    <Link to="/" aria-label="Stowaway home" className="mb-8 self-start"><Brand /></Link>
     {error ? <div className="space-y-4">
       <h1 className="text-xl font-semibold">Couldn't join the trip</h1>
       <ErrorNote error={error} />

@@ -127,6 +127,7 @@ export function PlanScreen() {
           {(['agenda', 'timeline'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)} className="min-h-11 px-5">{mode === 'agenda' ? 'Agenda' : 'Timeline'}</button>)}
         </div>
         <WeatherLine day={weatherOf(day)} />
+        <HolidayNotice trip={trip} day={day} />
         <DayNoteEditor tripId={tripId} day={day} />
 
         {layout.stays.map((s) => (
@@ -156,7 +157,7 @@ export function PlanScreen() {
             <CalendarDays aria-hidden="true" className="size-8 text-action" />
             <EmptyHeader>
               <EmptyTitle>Know what’s next</EmptyTitle>
-              <EmptyDescription>Start with the flight you booked, a dinner everyone picked, or a day you want to explore. Add it to the plan so your friends can follow along, even offline.</EmptyDescription>
+              <EmptyDescription>Add flights, meals, and activities to this day so everyone can follow the plan.</EmptyDescription>
             </EmptyHeader>
             {mayPlan && <LinkButton to={`/t/${tripId}/plan/new?day=${day}`}>
               <Plus aria-hidden="true" className="size-4" /> Add to this day
@@ -276,3 +277,4 @@ function DayNoteEditor({ tripId, day }: { tripId: string; day: string }) {
     />
   )
 }
+import { HolidayNotice } from '@/features/travel/HolidayNotice'

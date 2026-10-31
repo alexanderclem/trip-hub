@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { ArrowRight, ClipboardPaste, Link2 } from 'lucide-react'
+import { ArrowRight, ClipboardPaste } from 'lucide-react'
 import { Button, Card, Input } from '@/ui'
 import { CardDescription, CardHeader, CardTitle } from '@/ui/collection'
 import { joinTargetQuery, parseJoinTarget, parseShareToken } from './actions'
@@ -40,7 +40,6 @@ export function JoinByLink() {
   return (
     <Card>
       <CardHeader>
-        <Link2 aria-hidden="true" className="mb-2 size-5 text-action" />
         <CardTitle>Have an invite?</CardTitle>
         <CardDescription>Paste the link your group shared to join their trip.</CardDescription>
       </CardHeader>

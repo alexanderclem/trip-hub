@@ -43,9 +43,10 @@ Do not fabricate missing details. Product demonstrations must be labeled example
 
 ## Visual identity
 
-The design is a shared travel journal: cream paper, ocean ink, sea-glass mist,
-and a small coral accent. Georgia provides the editorial voice; system sans-serif
-keeps trip details and actions clear. Use sentence case. The exact palette,
+The interface is a calm trip workspace: cool off-white, white surfaces, ocean
+ink, and a small coral brand accent. Native system sans-serif, clear weight and
+spacing hierarchy, and a consistent left reading edge keep trip details and
+actions associated. Use sentence case. The exact palette,
 typography, layout, and component states are in [DESIGN.md](../DESIGN.md).
 
 ### Logo and character
