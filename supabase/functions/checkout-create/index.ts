@@ -13,16 +13,19 @@ Deno.serve(async (req) => {
   if (!user) return json({ error: 'Open the trip page again and retry.' }, 401)
   const rpc = rpcOf(admin())
   const s = stripe()
-  let body: { slug?: string; name?: string; email?: string; policy_version?: number; token?: string }
+  let body: { slug?: string; name?: string; email?: string; policy_version?: number; token?: string; all?: boolean }
   try { body = await req.json() } catch { return json({ error: 'Bad request' }, 400) }
 
   try {
     let booking: { bookingId: string; kind: PaymentKind; base: number; title: string; feeMode: 'absorb' | 'pass'; allowBank: boolean; email: string; slug: string; token: string; account: string }
     if (body.token) {
-      const due = await rpc('pay_booking_due', { p_token: body.token }) as { booking_id: string; due_minor: number; paid_minor: number; title: string; slug: string; fee_mode: 'absorb' | 'pass'; allow_bank: boolean; stripe_account_id: string; traveler_email: string } | null
+      const due = await rpc('pay_booking_due', { p_token: body.token }) as { booking_id: string; due_minor: number; next_minor: number; installments: boolean; paid_minor: number; title: string; slug: string; fee_mode: 'absorb' | 'pass'; allow_bank: boolean; stripe_account_id: string; traveler_email: string } | null
       if (!due) return json({ error: 'This booking can’t take a payment right now. Contact your organizer.' }, 404)
       if (due.due_minor <= 0) return json({ error: 'Nothing is left to pay.' }, 400)
-      booking = { bookingId: due.booking_id, kind: due.paid_minor > 0 ? 'balance' : 'full', base: due.due_minor, title: due.title, feeMode: due.fee_mode,
+      // The next payment by default (overdue ones included); everything left when the traveler asks.
+      const base = body.all || !due.installments ? due.due_minor : Math.min(due.next_minor, due.due_minor)
+      const kind: PaymentKind = due.paid_minor === 0 ? 'full' : due.installments && base < due.due_minor ? 'installment' : 'balance'
+      booking = { bookingId: due.booking_id, kind, base, title: due.title, feeMode: due.fee_mode,
         allowBank: due.allow_bank, email: due.traveler_email, slug: due.slug, token: body.token, account: due.stripe_account_id }
     } else {
       const name = (body.name ?? '').trim()

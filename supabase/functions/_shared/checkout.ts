@@ -4,7 +4,7 @@
 
 import { quote, stowawayFee, type FeeMode } from './fees.ts'
 
-export type PaymentKind = 'deposit' | 'balance' | 'full'
+export type PaymentKind = 'deposit' | 'balance' | 'full' | 'installment'
 
 export interface CheckoutInput {
   bookingId: string
@@ -22,7 +22,7 @@ export interface CheckoutInput {
   nowSeconds: number
 }
 
-const LABEL: Record<PaymentKind, string> = { deposit: 'Deposit', balance: 'Balance', full: 'Trip' }
+const LABEL: Record<PaymentKind, string> = { deposit: 'Deposit', balance: 'Balance', full: 'Trip', installment: 'Installment' }
 /** Stripe's shortest allowed session lifetime; the place is held a little longer (35 min). */
 export const SESSION_SECONDS = 30 * 60
 
