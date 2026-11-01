@@ -2,7 +2,7 @@
 // template and data, sent through the Gmail API from a dedicated Stowaway account. Edge Functions
 // can't use SMTP ports 25/587, so this is HTTPS only. Every link points at joinstowaway.app.
 
-export interface Rendered { subject: string; text: string; fromName: string }
+export interface Rendered { subject: string; text: string; fromName: string; listUnsubscribe?: string }
 
 const usd = (cents: unknown) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(cents ?? 0) / 100)
 const day = (iso: unknown) => (typeof iso === 'string' && iso ? new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '')
@@ -59,6 +59,16 @@ export function renderEmail(template: string, d: Record<string, unknown>): Rende
           `It’s held for you until ${moment(d.hold_until, d.timezone)}. After that it goes to the next person.`, '',
           `Book it here: ${s(d.url)}`, '', 'This link is yours alone; please don’t pass it on.', '', footer].join('\n'),
       }
+    case 'campaign':
+      // The organizer's own words, then what the law asks for: who sent it, their postal address, and a way out.
+      return {
+        fromName: `${s(d.organizer)} via Stowaway`,
+        subject: s(d.subject),
+        text: [s(d.body).trim(), '', '—', `${s(d.organizer)}`, s(d.postal_address),
+          '', `You’re getting this because you asked ${s(d.organizer)} to email you about future trips when you booked.`,
+          `Stop these emails (one tap): ${s(d.unsubscribe_url)}`].join('\n'),
+        listUnsubscribe: s(d.unsubscribe_url),
+      }
     case 'organizer_payment':
       return {
         fromName: 'Stowaway',
@@ -99,7 +109,7 @@ const b64url = (text: string) => b64(text).replace(/\+/g, '-').replace(/\//g, '_
 /** RFC 2047 for headers that aren't plain ASCII. */
 const header = (v: string) => (/^[\x20-\x7e]*$/.test(v) ? v : `=?UTF-8?B?${b64(v)}?=`)
 
-export interface Message { fromName: string; fromAddress: string; to: string; replyTo?: string | null; subject: string; text: string }
+export interface Message { fromName: string; fromAddress: string; to: string; replyTo?: string | null; subject: string; text: string; listUnsubscribe?: string }
 
 /** An RFC 2822 message, base64url-encoded as Gmail's `raw` field. Header values can't inject lines. */
 export function rawMessage(m: Message): string {
@@ -108,6 +118,7 @@ export function rawMessage(m: Message): string {
     `To: ${clean(m.to)}`,
     ...(m.replyTo ? [`Reply-To: ${clean(m.replyTo)}`] : []),
     `Subject: ${header(clean(m.subject))}`,
+    ...(m.listUnsubscribe ? [`List-Unsubscribe: <${clean(m.listUnsubscribe)}>`] : []),
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset=UTF-8',
     'Content-Transfer-Encoding: base64',

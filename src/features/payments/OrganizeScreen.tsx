@@ -6,12 +6,13 @@ import { Link, useNavigate } from 'react-router'
 import { supabase } from '@/lib/supabase'
 import { useDevice } from '@/data/device'
 import { useAccount } from '@/features/account/account'
-import { Card, ErrorNote, PageHeader, SectionTitle } from '@/ui'
+import { Card, ErrorNote, PageHeader, SectionTitle, Textarea } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { loadOrganizerMoney, type OrganizerMoney } from './api'
 import { accountNotices } from './notices'
 import { ReportsCard } from './ReportsCard'
-import { ProBadge } from './pro'
+import { ProBadge, useMyOrganizer } from './pro'
+import { saveOrganizerAddress } from './api'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 
@@ -83,8 +84,11 @@ export function OrganizeScreen() {
           <Card>
             <Link to="/organize/travelers" className="flex min-h-11 items-center justify-between gap-2 font-semibold text-action"><span>Past travelers<ProBadge /></span><span aria-hidden="true">›</span></Link>
             <p className="text-sm text-muted">Everyone who has booked with you, with tags, notes and who’s happy to hear about new trips.</p>
+            <Link to="/organize/campaigns" className="mt-2 flex min-h-11 items-center justify-between gap-2 border-t border-line pt-2 font-semibold text-action"><span>Campaigns<ProBadge /></span><span aria-hidden="true">›</span></Link>
+            <p className="text-sm text-muted">Email past travelers who asked to hear about your next trips.</p>
           </Card>
         )}
+        {money?.organizer && <AddressCard />}
         {money?.organizer && <ReportsCard />}
         {money && money.payouts.length > 0 && (
           <Card>
@@ -96,5 +100,30 @@ export function OrganizeScreen() {
         )}
       </div>
     </div>
+  )
+}
+
+/** The postal address that ends every marketing email (CAN-SPAM). Asked for once, before a campaign. */
+function AddressCard() {
+  const me = useMyOrganizer()
+  const [address, setAddress] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const value = address ?? me?.postal_address ?? ''
+  async function save() {
+    setBusy(true); setError(null); setMsg(null)
+    try { await saveOrganizerAddress(value); setMsg('Saved.') } catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setBusy(false) }
+  }
+  return (
+    <Card>
+      <SectionTitle>Postal address</SectionTitle>
+      <p className="mt-1 text-sm text-muted">Shown at the end of campaign emails, as US law requires. A PO box is fine. Not shown anywhere else.</p>
+      <label htmlFor="postal" className="sr-only">Postal address</label>
+      <Textarea id="postal" rows={3} maxLength={300} className="mt-2" value={value} onChange={(e) => setAddress(e.target.value)} placeholder="12 Main St, Austin, TX 78701" />
+      <ErrorNote error={error} />
+      {msg && <p role="status" className="text-sm text-success-ink">{msg}</p>}
+      <button type="button" className="ui-link mt-1 inline-flex min-h-11 items-center" disabled={busy || value.trim().length < 10} onClick={() => void save()}>{busy ? 'Saving…' : 'Save address'}</button>
+    </Card>
   )
 }

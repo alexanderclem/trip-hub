@@ -230,3 +230,28 @@ export async function listContacts(): Promise<ContactRow[]> {
   return (data as ContactRow[]).map((c) => ({ ...c, total_paid_minor: Number(c.total_paid_minor) }))
 }
 export const saveContact = (id: string, tags: string[], notes: string) => rpc<ContactRow>('save_contact', { p_id: id, p_tags: tags, p_notes: notes })
+
+// ─── Phase 2c: campaigns ────────────────────────────────────────────────────
+
+export interface CampaignRow { id: string; subject: string; body: string; audience: { trip_ids?: string[]; tags?: string[] }; status: 'draft' | 'queued'; recipients: number; queued_at: string | null; updated_at: string }
+export async function listCampaigns(): Promise<CampaignRow[]> {
+  if (!navigator.onLine) throw new Error('Connect to the internet to see your campaigns.')
+  const { data, error } = await supabase.from('campaigns').select('id, subject, body, audience, status, recipients, queued_at, updated_at').order('updated_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return data as CampaignRow[]
+}
+export const saveCampaign = (id: string | null, subject: string, body: string, audience: CampaignRow['audience']) =>
+  rpc<CampaignRow>('save_campaign', { p_id: id, p_subject: subject, p_body: body, p_audience: audience })
+export const campaignAudience = (audience: CampaignRow['audience']) =>
+  rpc<{ count: number; first: { name: string; email: string }[] }>('campaign_audience', { p_audience: audience })
+export const sendCampaignTest = (id: string) => rpc<void>('send_campaign_test', { p_id: id })
+export const queueCampaign = (id: string) => rpc<number>('queue_campaign', { p_id: id })
+export const saveOrganizerAddress = (address: string) => rpc<void>('save_organizer_address', { p_address: address })
+export const unsubscribe = (token: string) => rpc<{ organizer: string }>('unsubscribe', { p_token: token })
+
+/** The organizer's trips (for choosing a campaign's audience): id and title of each offer. */
+export async function listMyOffers(organizerId: string): Promise<{ trip_id: string; title: string }[]> {
+  if (!navigator.onLine) return []
+  const { data } = await supabase.from('trip_offers').select('trip_id, title').eq('organizer_id', organizerId).is('deleted_at', null).order('title')
+  return (data as { trip_id: string; title: string }[] | null) ?? []
+}

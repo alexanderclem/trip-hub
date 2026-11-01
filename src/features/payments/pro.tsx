@@ -12,6 +12,9 @@ export interface MyOrganizer {
   reviewed: boolean
   pro: boolean
   beta: boolean
+  postal_address?: string | null
+  /** Campaign mail goes out only once Stowaway has a sender on its own domain. */
+  campaign_sending?: boolean
 }
 
 const KEY = 'stowaway-my-organizer'

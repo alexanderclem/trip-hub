@@ -27,6 +27,14 @@ describe('email templates', () => {
     expect(m.text).toContain('Book it here: https://joinstowaway.app/go/lake-week#hold=abc')
   })
 
+  it('signs campaigns with the organizer’s postal address and an unsubscribe link', () => {
+    const m = renderEmail('campaign', { organizer: 'Ana Trips', postal_address: '12 Main St, Austin, TX 78701', subject: 'Back to the lake', body: 'Same week next year?\n', unsubscribe_url: 'https://joinstowaway.app/unsubscribe#t=abc' })
+    expect(m).toMatchObject({ fromName: 'Ana Trips via Stowaway', subject: 'Back to the lake', listUnsubscribe: 'https://joinstowaway.app/unsubscribe#t=abc' })
+    expect(m.text).toBe(['Same week next year?', '', '—', 'Ana Trips', '12 Main St, Austin, TX 78701', '',
+      'You’re getting this because you asked Ana Trips to email you about future trips when you booked.',
+      'Stop these emails (one tap): https://joinstowaway.app/unsubscribe#t=abc'].join('\n'))
+  })
+
   it('refuses unknown templates', () => {
     expect(() => renderEmail('nope', {})).toThrow(/Unknown/)
   })

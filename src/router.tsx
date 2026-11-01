@@ -20,6 +20,8 @@ export const router = createBrowserRouter([
       { path: '/go/:slug/booked', lazy: () => import('./features/payments/PublicScreens').then((m) => ({ Component: m.BookedScreen })) },
       { path: '/b', lazy: () => import('./features/payments/PublicScreens').then((m) => ({ Component: m.ManageBookingScreen })) },
       { path: '/organize', lazy: () => import('./features/payments/OrganizeScreen').then((m) => ({ Component: m.OrganizeScreen })) },
+      { path: '/organize/campaigns', lazy: () => import('./features/payments/CampaignsScreen').then((m) => ({ Component: m.CampaignsScreen })) },
+      { path: '/unsubscribe', lazy: () => import('./features/payments/UnsubscribeScreen').then((m) => ({ Component: m.UnsubscribeScreen })) },
       { path: '/organize/travelers', lazy: () => import('./features/payments/TravelersScreen').then((m) => ({ Component: m.TravelersScreen })) },
       { path: '/operators', lazy: () => import('./features/website/OperatorsScreen').then((m) => ({ Component: m.OperatorsScreen })) },
       { path: '/app', lazy: () => import('./features/onboarding/WelcomeScreen').then((m) => ({ Component: m.StartScreen })) },

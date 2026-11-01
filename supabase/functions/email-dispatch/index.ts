@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
   for (const row of rows) {
     try {
       const m = renderEmail(row.template, row.data)
-      await gmailSend(token, rawMessage({ fromName: m.fromName, fromAddress: env('GMAIL_SENDER'), to: row.to_email, replyTo: row.reply_to, subject: m.subject, text: m.text }))
+      await gmailSend(token, rawMessage({ fromName: m.fromName, fromAddress: env('GMAIL_SENDER'), to: row.to_email, replyTo: row.reply_to, subject: m.subject, text: m.text, listUnsubscribe: m.listUnsubscribe }))
       await rpc('pay_email_done', { p_id: row.id, p_error: null })
       sent++
     } catch (e) {
