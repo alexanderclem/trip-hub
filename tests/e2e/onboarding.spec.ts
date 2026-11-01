@@ -14,7 +14,7 @@ test('opening sequence: create → trip → optional quiz; a friend joins direct
   await expect(page.getByRole('heading', { name: 'Create or join a trip' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
   await shot(page, '70-welcome')
-  await page.getByRole('link', { name: 'Create a trip' }).click()
+  await page.getByRole('link', { name: 'Create a trip' }).first().click()
   await page.getByLabel('Trip name').fill(`E2E TEST onboarding ${new Date().toISOString()}`)
   await page.getByLabel('Your name').fill('Alex')
   await page.getByRole('button', { name: 'Create trip' }).click()

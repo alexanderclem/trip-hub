@@ -32,7 +32,17 @@ export interface Trip extends SyncColumns {
   offline_pack: unknown
   share_token: string
   settings: Record<string, unknown>
+  /** 'group': everyone who joined edits (every trip until its organizer switches). 'hosted': roles apply. */
+  access_mode?: AccessMode
+  /** Bumped when the mode changes; phones then drop what they may no longer see and pull again. */
+  access_epoch?: number
+  /** The organizer profile running this trip, once its creator claims it. */
+  organizer_id?: string | null
 }
+
+export type AccessMode = 'group' | 'hosted'
+export type TripRole = 'owner' | 'admin' | 'member' | 'traveler' | 'viewer' | 'pending'
+export type AttachmentVisibility = 'trip' | 'staff' | 'owner'
 
 export interface Member extends SyncColumns {
   trip_id: string
@@ -338,6 +348,9 @@ export interface Attachment extends SyncColumns {
   text_source?: 'pdf' | 'ocr' | 'ai' | 'edited' | null
   /** Details pulled out by AI (merchant, amount, date, confirmation code, flight). */
   details?: ScanDetails | null
+  /** Who can open it in a hosted trip; group trips show everything to everyone. */
+  visibility?: AttachmentVisibility
+  owner_member_id?: string | null
 }
 
 export const COMMENT_SUBJECTS = ['poll', 'place', 'item'] as const
@@ -350,6 +363,90 @@ export interface Comment extends SyncColumns {
   subject_id: string
   member_id: string
   body: string
+}
+
+/** A trip's page for collecting payments (20261101000001_payments.sql). Written only through RPCs. */
+export interface TripOffer extends SyncColumns {
+  trip_id: string
+  organizer_id: string
+  status: 'draft' | 'published' | 'closed'
+  slug: string
+  title: string
+  summary: string
+  currency: 'usd'
+  price_minor: number
+  deposit_minor: number
+  balance_due_date: string | null
+  capacity: number
+  cancellation_policy: string
+  policy_version: number
+  fee_mode: 'absorb' | 'pass'
+  allow_bank: boolean
+  published_at: string | null
+  /** Payments after the deposit (an installment plan); empty means one balance payment. */
+  schedule?: { due_date: string; amount_minor: number }[]
+  /** How much of what was paid comes back when cancelling at least `days_before` days out. */
+  refund_tiers?: { days_before: number; percent: number }[]
+  /** What travelers are asked when booking. */
+  questions?: BookingQuestions
+  /** Room choices that change the price (Pro). */
+  room_options?: RoomOption[]
+}
+
+export interface BookingQuestions {
+  dietary?: boolean
+  accessibility?: boolean
+  emergency_contact?: boolean
+  custom?: { id: string; label: string; required: boolean }[]
+}
+
+export interface RoomOption { id: string; label: string; price_delta_minor: number; count: number }
+
+export type BookingStatus = 'pending' | 'active' | 'paid' | 'cancelled' | 'refunded' | 'expired'
+
+/** One traveler's place on a hosted trip. Written only by the server. */
+export interface Booking extends SyncColumns {
+  trip_id: string
+  offer_id: string
+  organizer_id: string
+  member_id: string | null
+  traveler_name: string
+  traveler_email: string
+  status: BookingStatus
+  price_minor: number
+  deposit_minor: number
+  paid_minor: number
+  refunded_minor: number
+  balance_due_date: string | null
+  fee_mode: 'absorb' | 'pass'
+  policy_version: number
+  policy_accepted_at: string
+  started_by_user: string | null
+  schedule?: { due_date: string; amount_minor: number }[]
+  /** Answers to the offer's questions; only staff and this traveler can read them. */
+  answers?: Record<string, string>
+  marketing_consent?: boolean
+  room_option?: string | null
+}
+
+/** Who sleeps where (Pro). One row per booking; room_name null means unassigned. Staff only. */
+export interface RoomAssignment extends SyncColumns {
+  trip_id: string
+  booking_id: string
+  room_name: string | null
+}
+
+export interface BookingPayment extends SyncColumns {
+  trip_id: string
+  booking_id: string
+  kind: 'deposit' | 'balance' | 'full' | 'installment'
+  base_minor: number
+  charged_minor: number
+  application_fee_minor: number
+  stripe_fee_minor: number | null
+  refunded_minor: number
+  status: 'open' | 'processing' | 'succeeded' | 'failed' | 'expired' | 'refunded' | 'partially_refunded' | 'disputed'
+  paid_at: string | null
 }
 
 export interface Tables {
@@ -375,5 +472,9 @@ export interface Tables {
   packing_items: PackingItem
   packing_checks: PackingCheck
   member_safety: MemberSafety
+  trip_offers: TripOffer
+  bookings: Booking
+  booking_payments: BookingPayment
+  room_assignments: RoomAssignment
 }
 export type TableName = keyof Tables

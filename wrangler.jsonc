@@ -8,7 +8,8 @@
   "compatibility_date": "2026-09-01",
   "assets": {
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/mcp", "/.well-known/*"],
+    // Agent and crawler files go to the Worker too, so a missing one is a real 404, not the app's page.
+    "run_worker_first": ["/api/*", "/mcp", "/.well-known/*", "/llms.txt", "/llms-full.txt", "/robots.txt", "/sitemap.xml"],
     "directory": "./dist",
     "not_found_handling": "single-page-application"
   },

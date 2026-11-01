@@ -18,7 +18,7 @@ async function seed(page: Page, baseURL: string, opts: { offline: boolean; rows?
   await page.route((url) => url.protocol === 'https:' && url.origin !== new URL(baseURL).origin, (route) => route.abort())
   if (opts.offline) await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
   await page.goto('/inspire/manual')
-  await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trip ideas', level: 1 })).toBeVisible()
   await page.evaluate(async ({ tripId, alex, sam, token, rows }) => {
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve, reject) => {

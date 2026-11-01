@@ -14,7 +14,8 @@ export function preResetTrips(trips: Record<string, JoinedTrip>, resetAt = RESET
   return Object.values(trips).filter((t) => !(Date.parse(t.joinedAt) >= cutoff)).map((t) => t.tripId)
 }
 
-async function dropTrip(tripId: string): Promise<void> {
+/** Removes everything this phone holds for a trip: rows, files, queued changes and pull cursors. */
+export async function dropTrip(tripId: string): Promise<void> {
   const fileNames = (await db.attachments.where('trip_id').equals(tripId).primaryKeys()).map((id) => `att:${id}`)
   await db.files.bulkDelete(fileNames)
   for (const table of db.tables) {

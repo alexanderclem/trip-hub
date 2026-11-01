@@ -41,7 +41,7 @@ test.use({ timezoneId: 'America/New_York' })
 
 test('itinerary: cross-zone flight, stays, overlaps, local/destination time toggle, day route on the map', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'Create a trip' }).click()
+  await page.getByRole('link', { name: 'Create a trip' }).first().click()
   await page.getByLabel('Trip name').fill(`E2E TEST plan ${new Date().toISOString()}`)
   await page.getByLabel('Your name').fill('Alex')
   await page.getByText('Add dates and destination (optional)', { exact: true }).click()

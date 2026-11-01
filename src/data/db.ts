@@ -3,6 +3,7 @@ import type { Draft } from '@/features/discovery/model'
 import type { Thread } from '@/features/stowie/script'
 import type { WeatherRow } from '@/features/itinerary/weather'
 import type { MemberPreference } from './types'
+import type { Booking, BookingPayment, RoomAssignment, TripOffer } from './types'
 import type { Attachment, DayNote, ExpenseRow, FxSnapshot, SettlementRow, ItineraryItem, LegOverride, LocalColumns, Link, Member, Place, PlaceRating, Poll, PollOption, PollVote, RouteLeg, TableName, Trip, TripTask, PackingItem, PackingCheck, MemberSafety, Comment } from './types'
 
 export interface OutboxEntry {
@@ -22,6 +23,15 @@ export interface DeadLetter {
   rowId: string
   payload: Record<string, unknown>
   error: string
+  at: number
+}
+
+/** A funnel event waiting to be sent (src/features/funnel/events.ts). This phone only, never synced. */
+export interface QueuedEvent {
+  seq?: number
+  kind: string
+  trip_id: string | null
+  props: Record<string, unknown>
   at: number
 }
 
@@ -68,6 +78,12 @@ export class TripDb extends Dexie {
   files!: EntityTable<StoredFile, 'name'>
   /** Weather for plan days; this phone only, never synced. */
   weather!: EntityTable<WeatherRow, 'id'>
+  trip_offers!: EntityTable<TripOffer & LocalColumns, 'id'>
+  bookings!: EntityTable<Booking & LocalColumns, 'id'>
+  booking_payments!: EntityTable<BookingPayment & LocalColumns, 'id'>
+  room_assignments!: EntityTable<RoomAssignment & LocalColumns, 'id'>
+  /** Funnel events waiting for a connection; this phone only, never synced. */
+  _events!: EntityTable<QueuedEvent, 'seq'>
 
   constructor(name = 'trip-hub') {
     super(name)
@@ -108,6 +124,9 @@ export class TripDb extends Dexie {
     this.version(12).stores({ member_safety: 'id, trip_id, member_id' })
     this.version(13).stores({ comments: 'id, trip_id, [subject_type+subject_id]' })
     this.version(14).stores({ stowie_threads: 'scope' })
+    this.version(15).stores({ _events: '++seq, trip_id' })
+    this.version(16).stores({ trip_offers: 'id, trip_id', bookings: 'id, trip_id, member_id', booking_payments: 'id, trip_id, booking_id' })
+    this.version(17).stores({ room_assignments: 'id, trip_id, booking_id' })
   }
 }
 

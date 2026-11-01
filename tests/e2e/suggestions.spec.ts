@@ -16,7 +16,7 @@ async function seed(page: Page) {
   await page.route('https://**/*', (route) => route.abort())
   await page.clock.install({ time: new Date('2027-03-15T15:30:00Z') })
   await page.goto('/inspire/manual') // opens the local database, so the stores below exist
-  await expect(page.getByRole('heading', { name: 'A trip that feels like you.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trip ideas', level: 1 })).toBeVisible()
   // The app creates its stores a moment after the screen appears; opening the database before then would find none.
   await page.waitForFunction(async () => (await indexedDB.databases()).some((d) => d.name === 'trip-hub' && (d.version ?? 0) > 1))
   await page.evaluate(async ({ trip, alex, sam, inn }) => {

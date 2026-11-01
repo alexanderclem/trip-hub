@@ -24,7 +24,7 @@ test('travel times: walking in town, shuttle + padded drive between towns, lanch
   const a = await browser.newContext()
   const page = await a.newPage()
   await page.goto('/')
-  await page.getByRole('link', { name: 'Create a trip' }).click()
+  await page.getByRole('link', { name: 'Create a trip' }).first().click()
   await page.getByLabel('Trip name').fill(`E2E TEST travel ${new Date().toISOString()}`)
   await page.getByLabel('Your name').fill('Alex')
   await page.getByRole('button', { name: 'Create trip' }).click()

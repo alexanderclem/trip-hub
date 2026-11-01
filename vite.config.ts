@@ -68,6 +68,6 @@ export default defineConfig({
   ],
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts', 'supabase/functions/**/*.test.ts', 'worker/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'supabase/functions/**/*.test.ts', 'supabase/testing/**/*.test.ts', 'worker/**/*.test.ts'],
   },
 })

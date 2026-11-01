@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/data/db'
 import { save, softDelete } from '@/data/repo'
+import { useDevice } from '@/data/device'
+import { GROUP_ACCESS, newAttachmentAccess } from '@/data/access'
 import type { Attachment, AttachmentKind } from '@/data/types'
 import { newId } from '@/lib/ids'
 import { supabase } from '@/lib/supabase'
@@ -79,6 +81,8 @@ export async function addAttachment(a: NewAttachment, memberId: string | null): 
     text: a.text?.trim() ? a.text.trim().slice(0, 20_000) : null,
     text_source: a.text?.trim() ? (a.textSource ?? 'edited') : null,
     details: a.details ?? null,
+    // A traveler's own upload in a hosted trip is theirs and private; organizers share with everyone.
+    ...newAttachmentAccess(useDevice.getState().access[a.tripId] ?? GROUP_ACCESS, memberId),
   }
   await save('attachments', row, memberId)
   return id

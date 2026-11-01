@@ -12,7 +12,7 @@ test('self-serve setup: pick a destination, load its places, save its map, use i
   page.on('pageerror', (e) => errors.push(e.message))
 
   await page.goto('/')
-  await page.getByRole('link', { name: 'Create a trip' }).click()
+  await page.getByRole('link', { name: 'Create a trip' }).first().click()
   await page.getByLabel('Trip name').fill(`E2E TEST destinations ${new Date().toISOString()}`)
   await page.getByLabel('Your name').fill('Alex')
 

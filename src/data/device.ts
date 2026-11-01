@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Profile } from '@/features/discovery/model'
 import { defaultTempUnit, type TempUnit } from '@/lib/weather'
+import { GROUP_ACCESS, type TripAccess } from './access'
 
 export interface PushPrefs {
   leave: boolean
@@ -51,6 +52,15 @@ interface DeviceState {
   setMember: (tripId: string, memberId: string) => void
   forgetTrip: (tripId: string) => void
   setTimeView: (v: 'trip' | 'device') => void
+  /** What this phone may do on each trip, as the server last said (src/data/access.ts). */
+  access: Record<string, TripAccess>
+  setAccess: (tripId: string, access: TripAccess) => void
+  /** Trips where the creator said "Not now" to collecting payments, or already asked for early access. */
+  paymentsOfferDone: Record<string, boolean>
+  setPaymentsOfferDone: (tripId: string) => void
+  /** The last day (YYYY-MM-DD) the payments offer was counted as shown, per trip. */
+  paymentsOfferSeen: Record<string, string>
+  setPaymentsOfferSeen: (tripId: string, day: string) => void
 }
 
 /** Per-device preferences and identity. Trip data itself lives in IndexedDB. */
@@ -100,9 +110,16 @@ export const useDevice = create<DeviceState>()(
       forgetTrip: (tripId) =>
         set((s) => {
           const { [tripId]: _removed, ...rest } = s.trips
-          return { trips: rest }
+          const { [tripId]: _access, ...access } = s.access
+          return { trips: rest, access }
         }),
       setTimeView: (timeView) => set({ timeView }),
+      access: {},
+      setAccess: (tripId, access) => set((s) => ({ access: { ...s.access, [tripId]: access } })),
+      paymentsOfferDone: {},
+      setPaymentsOfferDone: (tripId) => set((s) => ({ paymentsOfferDone: { ...s.paymentsOfferDone, [tripId]: true } })),
+      paymentsOfferSeen: {},
+      setPaymentsOfferSeen: (tripId, day) => set((s) => ({ paymentsOfferSeen: { ...s.paymentsOfferSeen, [tripId]: day } })),
     }),
     { name: 'trip-hub-device', version: 1 },
   ),
@@ -113,3 +130,7 @@ export const useQuizPending = () => useDevice((s) => !s.quizSeen && s.travelProf
 
 export const useMyMemberId =(tripId: string | undefined) =>
   useDevice((s) => (tripId ? (s.trips[tripId]?.memberId ?? null) : null))
+
+/** What this phone may do on a trip. Trips the server hasn't answered for yet are group trips. */
+export const useTripAccess = (tripId: string | undefined): TripAccess =>
+  useDevice((s) => (tripId ? s.access[tripId] : undefined) ?? GROUP_ACCESS)

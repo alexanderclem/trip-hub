@@ -18,7 +18,9 @@
     "worker",
     "vite.config.ts",
     "supabase/functions/**/routing*.ts",
-    "supabase/functions/**/dispatch*.ts"
+    "supabase/functions/**/dispatch*.ts",
+    "supabase/testing",
+    "supabase/functions/_shared"
   ],
   "exclude": []
 }

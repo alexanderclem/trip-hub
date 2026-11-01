@@ -33,7 +33,7 @@ test('tickets: attach a PDF to a flight, it syncs to a second phone, opens with 
   const a = await browser.newContext()
   const pageA = await a.newPage()
   await pageA.goto('/')
-  await pageA.getByRole('link', { name: 'Create a trip' }).click()
+  await pageA.getByRole('link', { name: 'Create a trip' }).first().click()
   await pageA.getByLabel('Trip name').fill(`E2E TEST tickets ${new Date().toISOString()}`)
   await pageA.getByLabel('Your name').fill('Alex')
   await pageA.getByText('Add dates and destination (optional)', { exact: true }).click()
