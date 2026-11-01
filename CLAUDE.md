@@ -57,10 +57,13 @@ src/features/     onboarding/ (welcome, travel quiz) trips/ places/ map/ map/off
                   suggest/ (ideas for a free day, from the idea pool) activity/ (what's new, derived on the phone)
                   discovery/ (profiles, drafts, hand editor) stowie/ (the mascot chat over discovery; docs/STOWIE.md)
                   funnel/ (anonymous funnel events, docs/FUNNEL.md) website/ (landing, /pricing, /operators)
-                  payments/ (organizer setup, /go/:slug trip page, /b booking page, /organize; docs/PAYMENTS.md)
+                  payments/ (organizer setup, /go/:slug trip page, /b booking page, /organize; docs/PAYMENTS.md;
+                  Pro tools: run again, reports, travelers, waitlist, rooms + rooming board, campaigns,
+                  referrals, CSV import; pro.tsx gates them, free during beta)
 src/ui/           index.tsx (Button, Field, Input, Card, PageHeader…), collection.tsx (adapted shadcn)
 supabase/migrations/          SQL, applied in filename order
-supabase/testing/             PGlite with every migration applied (db.ts); access, funnel, organizer tests
+supabase/testing/             PGlite with every migration applied (db.ts); access, funnel, organizer, payments,
+                              repeat, travelers, campaigns, referrals and imports tests
 supabase/functions/route-legs Edge Function (routing.ts is pure and unit-tested)
 supabase/functions/push-dispatch, ticket-cleanup   called by pg_cron (docs/NOTIFICATIONS.md)
 supabase/functions/_shared    tested payment logic (stripe, checkout, process, email, fees); _deno/ is Deno-only glue

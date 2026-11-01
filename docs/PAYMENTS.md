@@ -101,5 +101,9 @@ select account, sum(amount_minor) from private.ledger_entries where organizer_id
 ```
 
 - **Refunds and disputes** are handled in the organizer's own Stripe Dashboard (they have the full dashboard). Stowaway mirrors them and returns its fee on refunds automatically.
+- **Campaigns** queue on the `campaign` email channel and wait. Gmail mustn't send bulk mail, so turn them on only after `email-dispatch` sends that channel through a sender on the `joinstowaway.app` domain: `update private.app_settings set value = 'true' where key = 'campaign_sending';`. Every campaign email carries the organizer's postal address (required before queueing), the reason they're receiving it, a one-tap `/unsubscribe#t=…` link and a `List-Unsubscribe` header.
+- **Waitlist holds** are offered every minute from `payments_tick` and emailed with links to `private.app_settings.site_url`.
+- **Referral credits** are a discount on the referrer's next booking, never cash. Nothing is paid out.
+- **Pro** is free while `pro_free_beta` is true. Turning it off makes Pro tools check `organizers.plan = 'pro'` and `pro_until`; there is no billing yet.
 - **Payout schedule** belongs to the organizer, in their Stripe settings. Stowaway shows it but can't change it.
 - **If the database were lost**, the ledger can be rebuilt from Stripe. Replay each connected account's Checkout Sessions with `reconcileAccount` and its payouts through `processEvent`.

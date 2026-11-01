@@ -1,6 +1,6 @@
 # Stowaway: The Switch — implementation plan
 
-## Status (31 Oct 2026)
+## Status (1 Nov 2026)
 
 | Piece | Code | Live |
 |---|---|---|
@@ -15,9 +15,13 @@
 | 2.0 Pro gating, free during beta (`20261102000001_pro.sql`) | ✅ | **migration not applied** |
 | 2a run a trip again, installments, refunds, evidence pack, reports, invite links (`20261102000002_repeat_business.sql`, `refund-create`) | ✅ | **migration not applied, function not deployed** |
 | 2b questions at booking, past travelers, waitlist with 48 h holds, rooms and rooming board (`20261103000001_travelers.sql`) | ✅ | **migration not applied; redeploy `checkout-create` and `email-dispatch` after it** |
-| 2c campaigns (sending off) and referral credits | next | – |
+| 2c campaigns, held until a domain sender exists (`20261104000001_campaigns.sql`) | ✅ | **migration not applied; redeploy `email-dispatch`; `campaign_sending` stays off until you approve a sender** |
+| 2c referral credits (`20261104000002_referrals.sql`) | ✅ | **migration not applied; redeploy `checkout-create`** |
+| 4 switch tooling: import past travelers (Pro) and a plan (free) from CSV (`20261105000001_imports.sql`) | ✅ | **migration not applied** |
+| 4 comparison page, migration offer, outbound | owner | needs dated, sourced claims and a legal check before anything is published |
+| 3 supplier layer and corporate tier | not started | waits for revenue or a signed pilot (plan section 6) |
 
-Apply the five migrations in filename order, with the before/after per-phone check described below; then follow `docs/PAYMENTS.md`. The `/pricing` page keeps "coming soon" until the first organizer is live.
+Apply the ten new migrations in filename order (`20261008000002` is already live), with the before/after per-phone check described below; then follow `docs/PAYMENTS.md`. The `/pricing` page keeps "coming soon" until the first organizer is live.
 
 ## Now building: Phase 1B, organizer claim, operators page, pricing and fee calculator (about 16 h build)
 
