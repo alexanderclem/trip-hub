@@ -19,6 +19,7 @@ import { bookingsCsv, useTripBookings, useTripOffer } from './data'
 import { PlanCard } from './PlanCard'
 import { RefundSheet } from './RefundSheet'
 import { RunAgainCard } from './RunAgainCard'
+import { AnswersButton, QuestionsCard, RoomsCard, WaitlistCard } from './TravelerCards'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 const cents = (text: string) => Math.round((Number.parseFloat(text) || 0) * 100)
@@ -76,7 +77,13 @@ export function PaymentsScreen() {
 
         {offer && <PlanCard key={offer.id} tripId={tripId} offer={offer} />}
 
+        {offer && <QuestionsCard key={`q-${offer.id}`} tripId={tripId} offer={offer} />}
+
+        {offer && <RoomsCard key={`r-${offer.id}`} tripId={tripId} offer={offer} />}
+
         {offer && <BookingsCard bookings={bookings ?? []} offer={offer} tripName={trip.name} tripStart={trip.start_date} tripZone={trip.timezone} />}
+
+        {offer && offer.status !== 'draft' && <WaitlistCard tripId={tripId} full={(bookings ?? []).filter((b) => b.status === 'active' || b.status === 'paid').length >= offer.capacity} />}
 
         <RunAgainCard tripId={tripId} tripName={trip.name} />
 
@@ -242,7 +249,7 @@ function BookingsCard({ bookings, offer, tripName, tripStart, tripZone }: { book
           ))}
         </ul>
       )}
-      {bookings.length > 0 && <button type="button" className="ui-link mt-2 inline-flex min-h-11 items-center gap-2" onClick={download}><Download aria-hidden="true" className="size-4" />Download as CSV</button>}
+      {bookings.length > 0 && <div className="mt-2 flex flex-wrap gap-x-4"><button type="button" className="ui-link inline-flex min-h-11 items-center gap-2" onClick={download}><Download aria-hidden="true" className="size-4" />Download as CSV</button><AnswersButton bookings={bookings} offer={offer} tripName={tripName} /></div>}
       <p className="mt-2 text-xs text-muted">Tap a traveler to refund or cancel. Refunds made in your Stripe Dashboard show here too, and we return our 1% on every refund.</p>
       {open && <RefundSheet booking={open} offer={offer} tripStart={tripStart} tripZone={tripZone} onClose={() => setOpen(null)} />}
     </Card>

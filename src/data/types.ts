@@ -387,7 +387,20 @@ export interface TripOffer extends SyncColumns {
   schedule?: { due_date: string; amount_minor: number }[]
   /** How much of what was paid comes back when cancelling at least `days_before` days out. */
   refund_tiers?: { days_before: number; percent: number }[]
+  /** What travelers are asked when booking. */
+  questions?: BookingQuestions
+  /** Room choices that change the price (Pro). */
+  room_options?: RoomOption[]
 }
+
+export interface BookingQuestions {
+  dietary?: boolean
+  accessibility?: boolean
+  emergency_contact?: boolean
+  custom?: { id: string; label: string; required: boolean }[]
+}
+
+export interface RoomOption { id: string; label: string; price_delta_minor: number; count: number }
 
 export type BookingStatus = 'pending' | 'active' | 'paid' | 'cancelled' | 'refunded' | 'expired'
 
@@ -410,6 +423,17 @@ export interface Booking extends SyncColumns {
   policy_accepted_at: string
   started_by_user: string | null
   schedule?: { due_date: string; amount_minor: number }[]
+  /** Answers to the offer's questions; only staff and this traveler can read them. */
+  answers?: Record<string, string>
+  marketing_consent?: boolean
+  room_option?: string | null
+}
+
+/** Who sleeps where (Pro). One row per booking; room_name null means unassigned. Staff only. */
+export interface RoomAssignment extends SyncColumns {
+  trip_id: string
+  booking_id: string
+  room_name: string | null
 }
 
 export interface BookingPayment extends SyncColumns {
@@ -451,5 +475,6 @@ export interface Tables {
   trip_offers: TripOffer
   bookings: Booking
   booking_payments: BookingPayment
+  room_assignments: RoomAssignment
 }
 export type TableName = keyof Tables

@@ -103,7 +103,7 @@ export function writeRefusal(access: TripAccess, table: TableName, row: Record<s
   const mine = (id: unknown) => me !== null && id === me
   const part = can(access, 'participate')
   const involves = (list: unknown) => Array.isArray(list) && list.some((x) => mine((x as { member_id?: unknown })?.member_id))
-  if (PLAN_TABLES.has(table)) return NOT_ORGANIZER
+  if (PLAN_TABLES.has(table) || table === 'room_assignments') return NOT_ORGANIZER
   if (table === 'route_legs' || table === 'fx_snapshots') return null // derived caches any phone may fill
   if (!part) return 'You can look at this trip but not change it.'
   if (OWN_ROW_TABLES.has(table) || SELF_ONLY_TABLES.has(table)) return mine(row.member_id) ? null : NOT_YOURS

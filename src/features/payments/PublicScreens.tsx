@@ -12,7 +12,8 @@ import { useDevice } from '@/data/device'
 import { fetchAccess } from '@/data/access'
 import { WebsiteFrame } from '@/features/website/WebsiteFrame'
 import type { RefundTier } from '../../../supabase/functions/_shared/refunds'
-import { getBooking, getPublicOffer, payBalance, rememberBookingLink, startBooking, tokenFromHash, type BookingView, type PublicOffer } from './api'
+import { getBooking, getHold, getPublicOffer, joinWaitlist, payBalance, rememberBookingLink, startBooking, tokenFromHash, updateBookingAnswers, type BookingView, type PublicOffer } from './api'
+import { questionList } from './data'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 const date = (iso: string | null) => (iso ? DateTime.fromISO(iso).toLocaleString(DateTime.DATE_MED) : '')
@@ -35,12 +36,16 @@ export function PublicTripScreen() {
   const { slug } = useParams() as { slug: string }
   const [offer, setOffer] = useState<PublicOffer | null | undefined>(undefined)
   const [loadError, setLoadError] = useState<string | null>(null)
+  // A held waitlist place arrives as #hold=… (from the email); like booking links, it never reaches a server log.
+  const [holdToken] = useState(() => new URLSearchParams(location.hash.replace(/^#/, '')).get('hold'))
+  const [hold, setHold] = useState<Hold | null | undefined>(holdToken ? undefined : null)
   useEffect(() => {
     getPublicOffer(slug).then(setOffer, (e: unknown) => setLoadError(e instanceof Error ? e.message : String(e)))
-  }, [slug])
+    if (holdToken) getHold(slug, holdToken).then((h) => setHold(h ? { ...h, token: holdToken } : null), () => setHold(null))
+  }, [slug, holdToken])
 
   if (loadError) return <Page title="This trip page needs a connection">{<p>{navigator.onLine ? loadError : 'Connect to the internet to see the trip and book.'}</p>}</Page>
-  if (offer === undefined) return <Page title="Loading the trip…">{null}</Page>
+  if (offer === undefined || hold === undefined) return <Page title="Loading the trip…">{null}</Page>
   if (offer === null) return <Page title="This trip page isn’t available">{<p>It may not be published yet, or bookings have closed. Ask the organizer for the latest link.</p>}</Page>
 
   const first = quote({ price: offer.deposit_minor || offer.price_minor, travelers: 1, deposit: 0, method: 'card', internationalShare: 0, feeMode: offer.fee_mode }).charges[0]!
@@ -55,6 +60,11 @@ export function PublicTripScreen() {
           ? `${usd(offer.deposit_minor || offer.price_minor)} ${offer.deposit_minor ? 'deposit ' : ''}now, then ${offer.schedule.map((s) => `${usd(s.amount_minor)} by ${date(s.due_date)}`).join(', ')}.`
           : offer.deposit_minor ? `${usd(offer.deposit_minor)} deposit now, the remaining ${usd(offer.price_minor - offer.deposit_minor)} by ${date(offer.balance_due_date)}.` : 'Paid in one payment.'}
           {first.bookingFee > 0 && ` Each payment includes a booking fee (${usd(first.bookingFee)} on the first).`}</p>
+        {offer.rooms && offer.rooms.length > 0 && (
+          <ul className="mt-2 text-sm">
+            {offer.rooms.map((r) => <li key={r.id}>{r.label}{r.price_delta_minor > 0 ? ` (+${usd(r.price_delta_minor)})` : ''}: {r.left > 0 ? `${r.left} left` : 'none left'}</li>)}
+          </ul>
+        )}
         <p className="mt-1 text-sm text-muted">{offer.spots_left > 0 ? `${offer.spots_left} ${offer.spots_left === 1 ? 'place' : 'places'} left.` : 'This trip is full.'}</p>
       </div>
       {offer.days.length > 0 && (
@@ -66,22 +76,38 @@ export function PublicTripScreen() {
         </div>
       )}
       <details className="marketing-plan"><summary className="cursor-pointer font-semibold">Cancellation and refund policy</summary><p className="mt-2 whitespace-pre-line text-sm">{offer.cancellation_policy}</p><RefundSteps tiers={offer.refund_tiers} /></details>
-      {offer.spots_left > 0 && <BookingForm offer={offer} firstCharge={first.charged} />}
+      {hold && <p role="status" className="marketing-plan">Your place is held, {hold.name}, until {DateTime.fromISO(hold.hold_until).setZone(offer.trip.timezone).toFormat('cccc d LLLL, h:mm a')} ({offer.trip.timezone.split('/').pop()!.replace(/_/g, ' ')} time).</p>}
+      {(offer.spots_left > 0 || hold) && <BookingForm offer={offer} hold={hold} />}
+      {offer.spots_left === 0 && !hold && offer.waitlist && <WaitlistForm slug={offer.slug} />}
       <p className="calc-note">Payments go to {offer.organizer.name} through Stripe. Stowaway never holds your money. Questions: <a className="underline" href={`mailto:${offer.organizer.email}`}>{offer.organizer.email}</a></p>
     </Page>
   )
 }
 
-function BookingForm({ offer, firstCharge }: { offer: PublicOffer; firstCharge: number }) {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+interface Hold { name: string; email: string; hold_until: string; token: string }
+
+function BookingForm({ offer, hold }: { offer: PublicOffer; hold: Hold | null }) {
+  const [name, setName] = useState(hold?.name ?? '')
+  const [email, setEmail] = useState(hold?.email ?? '')
   const [accepted, setAccepted] = useState(false)
+  const [consent, setConsent] = useState(false)
+  const [room, setRoom] = useState(() => offer.rooms?.find((r) => r.left > 0)?.id ?? '')
+  const [answers, setAnswers] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const questions = questionList(offer.questions)
+  const rooms = offer.rooms ?? []
+  const price = offer.price_minor + (rooms.find((r) => r.id === room)?.price_delta_minor ?? 0)
+  // The first payment is the deposit, or the whole price when there is none (as checkout-create does).
+  const firstBase = offer.deposit_minor > 0 && offer.deposit_minor < price ? offer.deposit_minor : price
+  const charge = quote({ price: firstBase, travelers: 1, deposit: 0, method: 'card', internationalShare: 0, feeMode: offer.fee_mode }).charges[0]!.charged
   async function submit(e: FormEvent) {
     e.preventDefault()
     setBusy(true); setError(null)
-    try { await startBooking({ slug: offer.slug, name: name.trim(), email: email.trim(), policyVersion: offer.policy_version }) } catch (err) { setError(err instanceof Error ? err.message : String(err)); setBusy(false) }
+    try {
+      await startBooking({ slug: offer.slug, name: name.trim(), email: email.trim(), policyVersion: offer.policy_version,
+        extra: { answers, consent, ...(room ? { room_option: room } : {}), ...(hold ? { hold: hold.token } : {}) } })
+    } catch (err) { setError(err instanceof Error ? err.message : String(err)); setBusy(false) }
   }
   return (
     <form className="marketing-form" onSubmit={submit} aria-labelledby="book-title">
@@ -90,9 +116,56 @@ function BookingForm({ offer, firstCharge }: { offer: PublicOffer; firstCharge: 
       <input id="book-name" required maxLength={40} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
       <label htmlFor="book-email" className="website-eyebrow">Email, for your receipt and booking link</label>
       <input id="book-email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      {rooms.length > 0 && (
+        <fieldset className="space-y-1">
+          <legend className="website-eyebrow">Room</legend>
+          {rooms.map((r) => (
+            <label key={r.id} className="flex min-h-11 items-center gap-3 text-sm">
+              <input type="radio" name="room" required className="size-5" value={r.id} checked={room === r.id} disabled={r.left <= 0} onChange={() => setRoom(r.id)} />
+              <span>{r.label}{r.price_delta_minor > 0 ? ` (+${usd(r.price_delta_minor)})` : ''}{r.left <= 0 ? ' · none left' : ''}</span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {questions.map((q) => (
+        <div key={q.id} className="contents">
+          <label htmlFor={`q-${q.id}`} className="website-eyebrow">{q.label}{q.required ? '' : ' (optional)'}</label>
+          <input id={`q-${q.id}`} required={q.required} maxLength={500} value={answers[q.id] ?? ''} onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })} />
+        </div>
+      ))}
+      {questions.length > 0 && <p className="calc-note">Only {offer.organizer.name} and you see these answers. You can change them later from your booking link.</p>}
       <label className="flex min-h-11 items-start gap-3 text-sm"><input type="checkbox" required className="mt-1 size-5" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />I’ve read and accept the cancellation and refund policy.</label>
-      <button type="submit" className="website-button website-button-primary" disabled={busy}>{busy ? 'Opening secure checkout…' : `Pay ${usd(firstCharge)} and reserve`}</button>
+      <label className="flex min-h-11 items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />Email me about future trips from {offer.organizer.name}. (Optional; unsubscribe any time.)</label>
+      <button type="submit" className="website-button website-button-primary" disabled={busy}>{busy ? 'Opening secure checkout…' : `Pay ${usd(charge)} and reserve`}</button>
       <p className="calc-note">You’ll pay on Stripe’s secure page. No account needed; afterwards you join the trip’s plan straight away.</p>
+      {error && <p role="alert" className="marketing-status">{error}</p>}
+    </form>
+  )
+}
+
+function WaitlistForm({ slug }: { slug: string }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [place, setPlace] = useState<number | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    setBusy(true); setError(null)
+    try { setPlace(await joinWaitlist(slug, name.trim(), email.trim())) } catch (err) { setError(err instanceof Error ? err.message : String(err)) } finally { setBusy(false) }
+  }
+  if (place !== null) {
+    return <p role="status" className="marketing-plan">You’re on the waitlist{place > 0 ? `, number ${place}` : ''}. If a place opens, we’ll email you a link that holds it for you for 48 hours.</p>
+  }
+  return (
+    <form className="marketing-form" onSubmit={submit} aria-labelledby="wait-title">
+      <h2 id="wait-title" className="text-xl font-semibold">Join the waitlist</h2>
+      <p className="text-sm">If someone cancels, the next person on the list gets an email and 48 hours to book the place. Nothing is charged until then.</p>
+      <label htmlFor="wait-name" className="website-eyebrow">Your name</label>
+      <input id="wait-name" required maxLength={40} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
+      <label htmlFor="wait-email" className="website-eyebrow">Email</label>
+      <input id="wait-email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <button type="submit" className="website-button website-button-primary" disabled={busy}>{busy ? 'Adding you…' : 'Join the waitlist'}</button>
       {error && <p role="alert" className="marketing-status">{error}</p>}
     </form>
   )
@@ -220,6 +293,7 @@ export function ManageBookingScreen() {
       </div>
       <p className="calc-note">Refunds follow the cancellation policy you accepted and are made by {booking.organizer.name}.</p>
       {booking.offer.refund_tiers && booking.offer.refund_tiers.length > 0 && <div className="calc-note"><RefundSteps tiers={booking.offer.refund_tiers} /></div>}
+      {questionList(booking.offer.questions).length > 0 && booking.status !== 'cancelled' && booking.status !== 'refunded' && <AnswersForm booking={booking} token={token} />}
       <p className="calc-note"><Link to={`/go/${booking.offer.slug}`} className="underline">The trip page</Link></p>
     </Page>
   )
@@ -241,5 +315,30 @@ function RefundSteps({ tiers }: { tiers?: RefundTier[] }) {
       {sorted.map((t) => <li key={t.days_before}>{t.percent}% back if you cancel {t.days_before} or more days before the trip</li>)}
       {!sorted.some((t) => t.days_before === 0) && <li>Later than that, no refund unless the policy above says otherwise.</li>}
     </ul>
+  )
+}
+
+function AnswersForm({ booking, token }: { booking: BookingView; token: string }) {
+  const questions = questionList(booking.offer.questions)
+  const [answers, setAnswers] = useState<Record<string, string>>(booking.answers ?? {})
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    setBusy(true); setMsg(null)
+    try { setAnswers(await updateBookingAnswers(token, answers)); setMsg('Saved. Your organizer sees the change.') } catch (err) { setMsg(err instanceof Error ? err.message : String(err)) } finally { setBusy(false) }
+  }
+  return (
+    <form className="marketing-form" onSubmit={submit} aria-labelledby="answers-title">
+      <h2 id="answers-title" className="text-xl font-semibold">What {booking.organizer.name} asked</h2>
+      {questions.map((q) => (
+        <div key={q.id} className="contents">
+          <label htmlFor={`a-${q.id}`} className="website-eyebrow">{q.label}{q.required ? '' : ' (optional)'}</label>
+          <input id={`a-${q.id}`} required={q.required} maxLength={500} value={answers[q.id] ?? ''} onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })} />
+        </div>
+      ))}
+      <button type="submit" className="website-button" disabled={busy}>{busy ? 'Saving…' : 'Save answers'}</button>
+      {msg && <p role="status" className="marketing-status">{msg}</p>}
+    </form>
   )
 }

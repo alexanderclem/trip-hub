@@ -20,6 +20,13 @@ describe('email templates', () => {
     expect(renderEmail('balance_reminder', { ...base, days: -3 }).subject).toContain('overdue')
   })
 
+  it('offers a held waitlist place until a time in the trip’s zone', () => {
+    const m = renderEmail('waitlist_offer', { traveler_name: 'Wen', trip_name: 'Lake week', organizer: 'Ana Trips', hold_until: '2027-01-14T20:00:00Z', timezone: 'America/Guatemala', url: 'https://joinstowaway.app/go/lake-week#hold=abc' })
+    expect(m.subject).toBe('Lake week: a place is yours if you want it')
+    expect(m.text).toContain('held for you until Thursday, January 14 at 2:00 PM (Guatemala time)')
+    expect(m.text).toContain('Book it here: https://joinstowaway.app/go/lake-week#hold=abc')
+  })
+
   it('refuses unknown templates', () => {
     expect(() => renderEmail('nope', {})).toThrow(/Unknown/)
   })

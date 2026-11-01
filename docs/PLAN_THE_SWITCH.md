@@ -12,7 +12,10 @@
 | 1B `/pricing` with fee calculator, `/operators` | ✅ | needs merge to `main` |
 | Phase 0 interviews, concierge trip, Stripe platform application | owner | – |
 | 1C payments: schema, Edge Functions, screens (`20261101000001_payments.sql`, `…02_payments_cron.sql`, `docs/PAYMENTS.md`) | ✅ | **migrations not applied, functions not deployed; Stripe and Gmail setup is the owner's (runbook)** |
-| Phase 2 repeat-business tooling | next | – |
+| 2.0 Pro gating, free during beta (`20261102000001_pro.sql`) | ✅ | **migration not applied** |
+| 2a run a trip again, installments, refunds, evidence pack, reports, invite links (`20261102000002_repeat_business.sql`, `refund-create`) | ✅ | **migration not applied, function not deployed** |
+| 2b questions at booking, past travelers, waitlist with 48 h holds, rooms and rooming board (`20261103000001_travelers.sql`) | ✅ | **migration not applied; redeploy `checkout-create` and `email-dispatch` after it** |
+| 2c campaigns (sending off) and referral credits | next | – |
 
 Apply the five migrations in filename order, with the before/after per-phone check described below; then follow `docs/PAYMENTS.md`. The `/pricing` page keeps "coming soon" until the first organizer is live.
 

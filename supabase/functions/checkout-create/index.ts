@@ -4,6 +4,18 @@
 import { admin, caller, cors, json, rpcOf, site, stripe } from '../_deno/server.ts'
 import { checkoutSession, firstPayment, type PaymentKind } from '../_shared/checkout.ts'
 
+/** Only what a booking may carry: answers, a room choice, consent, a waitlist hold. The database checks each. */
+function extraOf(v: unknown): Record<string, unknown> {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return {}
+  const x = v as Record<string, unknown>
+  const out: Record<string, unknown> = {}
+  if (x.answers && typeof x.answers === 'object' && !Array.isArray(x.answers)) out.answers = x.answers
+  if (typeof x.room_option === 'string') out.room_option = x.room_option.slice(0, 20)
+  if (x.consent === true) out.consent = true
+  if (typeof x.hold === 'string') out.hold = x.hold.slice(0, 200)
+  return out
+}
+
 const email = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 Deno.serve(async (req) => {
@@ -13,7 +25,7 @@ Deno.serve(async (req) => {
   if (!user) return json({ error: 'Open the trip page again and retry.' }, 401)
   const rpc = rpcOf(admin())
   const s = stripe()
-  let body: { slug?: string; name?: string; email?: string; policy_version?: number; token?: string; all?: boolean }
+  let body: { slug?: string; name?: string; email?: string; policy_version?: number; token?: string; all?: boolean; extra?: Record<string, unknown> }
   try { body = await req.json() } catch { return json({ error: 'Bad request' }, 400) }
 
   try {
@@ -33,7 +45,8 @@ Deno.serve(async (req) => {
       if (!body.slug || !name || name.length > 40 || !email.test(address) || typeof body.policy_version !== 'number') {
         return json({ error: 'Add your name and email, and accept the cancellation policy.' }, 400)
       }
-      const r = await rpc('pay_reserve_booking', { p_slug: body.slug, p_user: user.id, p_name: name, p_email: address, p_policy_version: body.policy_version }) as
+      const r = await rpc('pay_reserve_booking', { p_slug: body.slug, p_user: user.id, p_name: name, p_email: address, p_policy_version: body.policy_version,
+        p_extra: extraOf(body.extra) }) as
         { booking_id: string; manage_token: string; title: string; slug: string; stripe_account_id: string; price_minor: number; deposit_minor: number; fee_mode: 'absorb' | 'pass'; allow_bank: boolean; traveler_email: string }
       const first = firstPayment(r.price_minor, r.deposit_minor)
       booking = { bookingId: r.booking_id, kind: first.kind, base: first.base, title: r.title, feeMode: r.fee_mode, allowBank: r.allow_bank,
@@ -47,7 +60,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     // Messages raised by pay_reserve_booking are written for travelers (full, policy changed, …).
-    if ((e as { code?: string }).code && ['P0002', '40001'].includes((e as { code: string }).code)) return json({ error: message }, 409)
+    if ((e as { code?: string }).code && ['P0002', '40001', '22023'].includes((e as { code: string }).code)) return json({ error: message }, 409)
     console.error('[checkout-create]', message)
     return json({ error: 'Payments are unavailable for a moment. Nothing was charged; try again.' }, 502)
   }

@@ -91,8 +91,15 @@ export async function asService<T>(pg: PGlite, fn: () => Promise<T>): Promise<T>
   }
 }
 
-/** Runs `fn` as someone who isn't signed in (role anon), rolled back. */
-export async function asAnon<T>(pg: PGlite, fn: () => Promise<T>): Promise<T> {
+/** Runs `fn` as someone who isn't signed in (role anon), rolled back unless `keep`. */
+export async function asAnon<T>(pg: PGlite, fn: () => Promise<T>, opts: { keep?: boolean } = {}): Promise<T> {
   await pg.exec(`begin; set local role anon; select set_config('request.jwt.claims', '', true);`)
-  try { return await fn() } finally { await pg.exec('rollback') }
+  try {
+    const result = await fn()
+    await pg.exec(opts.keep ? 'commit' : 'rollback')
+    return result
+  } catch (e) {
+    await pg.exec('rollback')
+    throw e
+  }
 }

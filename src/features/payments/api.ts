@@ -2,7 +2,7 @@
 // online. What a phone may see offline (its trips' offers, bookings, payments) arrives through sync.
 
 import { ensureSession, supabase } from '@/lib/supabase'
-import type { TripOffer } from '@/data/types'
+import type { BookingQuestions, RoomOption, TripOffer } from '@/data/types'
 import type { DisputeRow, PayoutRow, StripeAccountRow } from './notices'
 import type { RefundTier } from '../../../supabase/functions/_shared/refunds'
 
@@ -96,6 +96,10 @@ export interface PublicOffer {
   policy_version: number
   schedule?: { due_date: string; amount_minor: number }[]
   refund_tiers?: RefundTier[]
+  questions?: BookingQuestions
+  rooms?: (RoomOption & { left: number })[]
+  /** The organizer has Pro, so a full trip takes a waitlist. */
+  waitlist?: boolean
   spots_left: number
   trip: { name: string; start_date: string | null; end_date: string | null; timezone: string }
   organizer: { name: string; email: string }
@@ -105,8 +109,10 @@ export interface PublicOffer {
 export const getPublicOffer = (slug: string) => rpc<PublicOffer | null>('get_public_offer', { p_slug: slug })
 
 /** Holds a place and goes to Stripe Checkout. A guest session is made now, not on page load. */
-export async function startBooking(input: { slug: string; name: string; email: string; policyVersion: number }): Promise<void> {
-  const { url } = await invoke<{ url: string }>('checkout-create', { slug: input.slug, name: input.name, email: input.email, policy_version: input.policyVersion })
+export interface BookingExtra { answers?: Record<string, string>; room_option?: string; consent?: boolean; hold?: string }
+
+export async function startBooking(input: { slug: string; name: string; email: string; policyVersion: number; extra?: BookingExtra }): Promise<void> {
+  const { url } = await invoke<{ url: string }>('checkout-create', { slug: input.slug, name: input.name, email: input.email, policy_version: input.policyVersion, extra: input.extra ?? {} })
   location.assign(url)
 }
 
@@ -122,7 +128,9 @@ export interface BookingView {
   balance_due_date: string | null
   fee_mode: 'absorb' | 'pass'
   processing: boolean
-  offer: { slug: string; title: string; allow_bank: boolean; status: string; refund_tiers?: RefundTier[] }
+  offer: { slug: string; title: string; allow_bank: boolean; status: string; refund_tiers?: RefundTier[]; questions?: BookingQuestions; room_options?: RoomOption[] }
+  answers?: Record<string, string>
+  room_option?: string | null
   organizer: { name: string; email: string }
   schedule?: { due_date: string; amount_minor: number }[]
   next_minor?: number
@@ -184,3 +192,41 @@ export async function listInvites(tripId: string): Promise<InviteRow[]> {
   if (error) return []
   return data as InviteRow[]
 }
+
+// ─── Phase 2b: questions, rooms, waitlist, traveler list ────────────────────
+
+export const saveOfferQuestions = (tripId: string, questions: BookingQuestions) =>
+  rpc<TripOffer>('save_offer_questions', { p_trip_id: tripId, p_questions: questions })
+export const saveRoomOptions = (tripId: string, options: RoomOption[]) =>
+  rpc<TripOffer>('save_room_options', { p_trip_id: tripId, p_options: options })
+/** A traveler changes their answers from their booking link. */
+export const updateBookingAnswers = (token: string, answers: Record<string, string>) =>
+  rpc<Record<string, string>>('update_booking_answers', { p_token: token, p_answers: answers })
+
+/** Joins a full trip's waitlist; returns the place in the queue (1 = next). */
+export const joinWaitlist = (slug: string, name: string, email: string) => rpc<number>('join_waitlist', { p_slug: slug, p_name: name, p_email: email })
+export const getHold = (slug: string, hold: string) => rpc<{ name: string; email: string; hold_until: string } | null>('get_hold', { p_slug: slug, p_hold: hold })
+export const offerWaitlistPlace = (entryId: string) => rpc<void>('offer_waitlist_place', { p_entry: entryId })
+export const removeWaitlistEntry = (entryId: string) => rpc<void>('remove_waitlist_entry', { p_entry: entryId })
+
+export interface WaitlistRow { id: string; name: string; email: string; status: 'waiting' | 'offered' | 'booked' | 'expired' | 'left'; hold_until: string | null; created_at: string }
+export async function listWaitlist(tripId: string): Promise<WaitlistRow[]> {
+  if (!navigator.onLine) throw new Error('Connect to the internet to see the waitlist.')
+  const { data, error } = await supabase.from('waitlist_entries').select('id, name, email, status, hold_until, created_at')
+    .eq('trip_id', tripId).in('status', ['waiting', 'offered', 'booked']).order('created_at')
+  if (error) throw new Error(error.message)
+  return data as WaitlistRow[]
+}
+
+export interface ContactRow {
+  id: string; email: string; name: string; trips: number; total_paid_minor: number; last_trip_on: string | null
+  tags: string[]; notes: string; marketing_consent: boolean; unsubscribed_at: string | null
+}
+export async function listContacts(): Promise<ContactRow[]> {
+  if (!navigator.onLine) throw new Error('Connect to the internet to see your travelers.')
+  const { data, error } = await supabase.from('organizer_contacts')
+    .select('id, email, name, trips, total_paid_minor, last_trip_on, tags, notes, marketing_consent, unsubscribed_at').order('name')
+  if (error) throw new Error(error.message)
+  return (data as ContactRow[]).map((c) => ({ ...c, total_paid_minor: Number(c.total_paid_minor) }))
+}
+export const saveContact = (id: string, tags: string[], notes: string) => rpc<ContactRow>('save_contact', { p_id: id, p_tags: tags, p_notes: notes })

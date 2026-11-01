@@ -7,6 +7,15 @@ export interface Rendered { subject: string; text: string; fromName: string }
 const usd = (cents: unknown) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(cents ?? 0) / 100)
 const day = (iso: unknown) => (typeof iso === 'string' && iso ? new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '')
 const s = (v: unknown) => (typeof v === 'string' ? v : '')
+/** A moment in the trip's own time zone, e.g. "Thursday, March 4 at 2:00 PM (Guatemala time)". */
+const moment = (iso: unknown, zone: unknown) => {
+  if (typeof iso !== 'string' || !iso) return ''
+  const tz = typeof zone === 'string' && zone ? zone : 'UTC'
+  try {
+    const at = new Date(iso).toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: tz })
+    return `${at.replace(/, (\d{1,2}:\d{2})/, ' at $1')} (${tz.split('/').pop()!.replace(/_/g, ' ')} time)`
+  } catch { return iso }
+}
 
 const footer = 'Sent by Stowaway (joinstowaway.app). Reply to this email to reach your organizer.'
 
@@ -42,6 +51,14 @@ export function renderEmail(template: string, d: Record<string, unknown>): Rende
         text: [`Hi ${s(d.traveler_name)},`, '', `Your balance of ${usd(d.due_minor)} for ${s(d.trip_name)} ${when}.`, '', `Pay it here: ${s(d.manage_url)}`, '', footer].join('\n'),
       }
     }
+    case 'waitlist_offer':
+      return {
+        fromName: `Stowaway for ${s(d.organizer)}`,
+        subject: `${s(d.trip_name)}: a place is yours if you want it`,
+        text: [`Hi ${s(d.traveler_name)},`, '', `A place opened up on ${s(d.trip_name)}, and you were next on the waitlist.`,
+          `It’s held for you until ${moment(d.hold_until, d.timezone)}. After that it goes to the next person.`, '',
+          `Book it here: ${s(d.url)}`, '', 'This link is yours alone; please don’t pass it on.', '', footer].join('\n'),
+      }
     case 'organizer_payment':
       return {
         fromName: 'Stowaway',

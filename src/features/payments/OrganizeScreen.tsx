@@ -11,6 +11,7 @@ import { LoadingState } from '@/ui/LoadingState'
 import { loadOrganizerMoney, type OrganizerMoney } from './api'
 import { accountNotices } from './notices'
 import { ReportsCard } from './ReportsCard'
+import { ProBadge } from './pro'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 
@@ -76,6 +77,12 @@ export function OrganizeScreen() {
                 </li>
               ))}
             </ul>
+          </Card>
+        )}
+        {money?.organizer && (
+          <Card>
+            <Link to="/organize/travelers" className="flex min-h-11 items-center justify-between gap-2 font-semibold text-action"><span>Past travelers<ProBadge /></span><span aria-hidden="true">›</span></Link>
+            <p className="text-sm text-muted">Everyone who has booked with you, with tags, notes and who’s happy to hear about new trips.</p>
           </Card>
         )}
         {money?.organizer && <ReportsCard />}

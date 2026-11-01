@@ -53,7 +53,7 @@ test('the trip page shows the price, plan and policy, and asks for name, email a
   await page.getByLabel(/Your name/).fill('Ola')
   await page.getByLabel(/Email, for your receipt/).fill('ola@example.com')
   await page.getByRole('button', { name: 'Pay $300.00 and reserve' }).click()
-  expect(await page.getByRole('checkbox').evaluate((el: HTMLInputElement) => el.validity.valueMissing)).toBe(true)
+  expect(await page.getByRole('checkbox', { name: /I’ve read and accept/ }).evaluate((el: HTMLInputElement) => el.validity.valueMissing)).toBe(true)
 })
 
 test('a page that isn’t published says so', async ({ page }) => {

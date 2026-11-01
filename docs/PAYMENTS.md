@@ -62,7 +62,7 @@ Supabase → Edge Functions → Secrets:
 
 ### 5. Database and functions
 1. Apply the migrations in filename order (the access, funnel and organizer migrations come first).
-2. Deploy the five functions. Turn **off** "Verify JWT" for `stripe-webhook`, `stripe-process` and `email-dispatch`; they check the Stripe signature or the cron token themselves.
+2. Deploy the functions (`stripe-connect`, `checkout-create`, `stripe-webhook`, `stripe-process`, `email-dispatch`, `refund-create`). After the 2b migration, redeploy `checkout-create` (booking answers, rooms, consent, waitlist holds) and `email-dispatch` (the `waitlist_offer` email). The old `checkout-create` keeps working against the new database in the meantime. Waitlist emails link to `private.app_settings.site_url` (default `https://joinstowaway.app`). Turn **off** "Verify JWT" for `stripe-webhook`, `stripe-process` and `email-dispatch`; they check the Stripe signature or the cron token themselves.
 3. Run `get_advisors` (security) and expect only the known warnings (CLAUDE.md).
 
 ### 6. Letting an organizer go live
