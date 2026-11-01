@@ -29,7 +29,7 @@ test('packing: everyone ticks, claimed gear and personal items sync between two 
   const a = await browser.newContext()
   const pageA = await a.newPage()
   await pageA.goto('/')
-  await pageA.getByRole('link', { name: 'Create a trip' }).click()
+  await pageA.getByRole('link', { name: 'Create a trip' }).first().click()
   await pageA.getByLabel('Trip name').fill(`E2E TEST packing ${new Date().toISOString()}`)
   await pageA.getByLabel('Your name').fill('Alex')
   await pageA.getByRole('button', { name: 'Create trip' }).click()

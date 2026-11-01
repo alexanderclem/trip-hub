@@ -22,7 +22,7 @@ test('create a trip, load starter places, see them on the map, and sync a shortl
   const pageA = await a.newPage()
   await pageA.goto('/')
   await shot(pageA, '01-home')
-  await pageA.getByRole('link', { name: 'Create a trip' }).click()
+  await pageA.getByRole('link', { name: 'Create a trip' }).first().click()
   await pageA.getByLabel('Trip name').fill(`E2E TEST ${new Date().toISOString()}`)
   await pageA.getByLabel('Your name').fill('Alex')
   await pageA.getByRole('button', { name: 'Create trip' }).click()

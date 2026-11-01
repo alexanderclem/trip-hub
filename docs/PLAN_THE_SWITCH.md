@@ -4,12 +4,12 @@
 
 | Piece | Code | Live |
 |---|---|---|
-| Plan, real 404s for agent files, PGlite harness | ✅ | needs merge to `main` |
+| Plan, real 404s for agent files, PGlite harness | ✅ | live (merged 1 Nov 2026) |
 | 1A roles, removal, private documents (`20261030000001_access_roles.sql`) | ✅ | **migration not applied** (needs the owner's go-ahead) |
 | Funnel events and the "collect payments" offer (`20261030000002_product_events.sql`) | ✅ | **migration not applied** |
 | Live connector drift reconstructed (`20261008000002_connector_editing.sql`) | ✅ | already on live |
 | 1B organizer profiles and claiming (`20261031000001_organizers.sql`) | ✅ | **migration not applied** |
-| 1B `/pricing` with fee calculator, `/operators` | ✅ | needs merge to `main` |
+| 1B `/pricing` with fee calculator, `/operators` | ✅ | live (merged 1 Nov 2026) |
 | Phase 0 interviews, concierge trip, Stripe platform application | owner | – |
 | 1C payments: schema, Edge Functions, screens (`20261101000001_payments.sql`, `…02_payments_cron.sql`, `docs/PAYMENTS.md`) | ✅ | **migrations not applied, functions not deployed; Stripe and Gmail setup is the owner's (runbook)** |
 | 2.0 Pro gating, free during beta (`20261102000001_pro.sql`) | ✅ | **migration not applied** |
@@ -21,7 +21,7 @@
 | 4 comparison page, migration offer, outbound | owner | needs dated, sourced claims and a legal check before anything is published |
 | 3 supplier layer and corporate tier | not started | waits for revenue or a signed pilot (plan section 6) |
 
-Apply the ten new migrations in filename order (`20261008000002` is already live), with the before/after per-phone check described below; then follow `docs/PAYMENTS.md`. The `/pricing` page keeps "coming soon" until the first organizer is live.
+Merged into `main` on 1 Nov 2026. **Your steps are in `docs/OWNER_SETUP.md`:** apply the eleven new migrations in filename order (everything up to `20261012000004` is already live), with the before/after per-phone check described below; then follow `docs/PAYMENTS.md`. The `/pricing` page keeps "coming soon" until the first organizer is live.
 
 ## Now building: Phase 1B, organizer claim, operators page, pricing and fee calculator (about 16 h build)
 
