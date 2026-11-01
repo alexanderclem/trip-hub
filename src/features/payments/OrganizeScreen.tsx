@@ -6,13 +6,13 @@ import { Link, useNavigate } from 'react-router'
 import { supabase } from '@/lib/supabase'
 import { useDevice } from '@/data/device'
 import { useAccount } from '@/features/account/account'
-import { Card, ErrorNote, PageHeader, SectionTitle, Textarea } from '@/ui'
+import { Card, ErrorNote, Input, PageHeader, SectionTitle, Textarea } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { loadOrganizerMoney, type OrganizerMoney } from './api'
 import { accountNotices } from './notices'
 import { ReportsCard } from './ReportsCard'
 import { ProBadge, useMyOrganizer } from './pro'
-import { saveOrganizerAddress } from './api'
+import { saveOrganizerAddress, saveReferralSettings } from './api'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 
@@ -89,6 +89,7 @@ export function OrganizeScreen() {
           </Card>
         )}
         {money?.organizer && <AddressCard />}
+        {money?.organizer && <ReferralCard />}
         {money?.organizer && <ReportsCard />}
         {money && money.payouts.length > 0 && (
           <Card>
@@ -124,6 +125,35 @@ function AddressCard() {
       <ErrorNote error={error} />
       {msg && <p role="status" className="text-sm text-success-ink">{msg}</p>}
       <button type="button" className="ui-link mt-1 inline-flex min-h-11 items-center" disabled={busy || value.trim().length < 10} onClick={() => void save()}>{busy ? 'Saving…' : 'Save address'}</button>
+    </Card>
+  )
+}
+
+/** Referral credits (Pro): what a past traveler earns, as money off their next trip, for each friend who books. */
+function ReferralCard() {
+  const me = useMyOrganizer()
+  const [amount, setAmount] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  if (me && !me.pro) return null
+  const value = amount ?? String((me?.referral_credit_minor ?? 0) / 100)
+  async function save() {
+    setBusy(true); setError(null); setMsg(null)
+    const cents = Math.round((Number.parseFloat(value) || 0) * 100)
+    try { await saveReferralSettings(cents); setMsg(cents ? `Travelers now earn ${usd(cents)} for each friend who books.` : 'Referral credits are off.') } catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setBusy(false) }
+  }
+  return (
+    <Card>
+      <SectionTitle>Referral credit<ProBadge beta={me?.beta ?? true} /></SectionTitle>
+      <p className="mt-1 text-sm text-muted">Each past traveler gets their own link. When a friend books with it, the traveler gets this much off their next trip with you. It’s a discount, never cash. 0 turns it off.</p>
+      <label htmlFor="ref-credit" className="mt-2 block text-sm font-[550]">Credit per friend ($)</label>
+      <div className="mt-1 flex items-center gap-2">
+        <Input id="ref-credit" inputMode="decimal" className="w-28" value={value} onChange={(e) => setAmount(e.target.value)} />
+        <button type="button" className="ui-link inline-flex min-h-11 items-center" disabled={busy} onClick={() => void save()}>{busy ? 'Saving…' : 'Save'}</button>
+      </div>
+      <ErrorNote error={error} />
+      {msg && <p role="status" className="text-sm text-success-ink">{msg}</p>}
     </Card>
   )
 }

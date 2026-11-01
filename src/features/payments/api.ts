@@ -109,7 +109,7 @@ export interface PublicOffer {
 export const getPublicOffer = (slug: string) => rpc<PublicOffer | null>('get_public_offer', { p_slug: slug })
 
 /** Holds a place and goes to Stripe Checkout. A guest session is made now, not on page load. */
-export interface BookingExtra { answers?: Record<string, string>; room_option?: string; consent?: boolean; hold?: string }
+export interface BookingExtra { answers?: Record<string, string>; room_option?: string; consent?: boolean; hold?: string; ref?: string }
 
 export async function startBooking(input: { slug: string; name: string; email: string; policyVersion: number; extra?: BookingExtra }): Promise<void> {
   const { url } = await invoke<{ url: string }>('checkout-create', { slug: input.slug, name: input.name, email: input.email, policy_version: input.policyVersion, extra: input.extra ?? {} })
@@ -131,6 +131,9 @@ export interface BookingView {
   offer: { slug: string; title: string; allow_bank: boolean; status: string; refund_tiers?: RefundTier[]; questions?: BookingQuestions; room_options?: RoomOption[] }
   answers?: Record<string, string>
   room_option?: string | null
+  credit_minor?: number
+  /** The traveler's own referral link details, when the organizer gives credits. */
+  referral?: { code: string; credit_minor: number } | null
   organizer: { name: string; email: string }
   schedule?: { due_date: string; amount_minor: number }[]
   next_minor?: number
@@ -221,13 +224,20 @@ export async function listWaitlist(tripId: string): Promise<WaitlistRow[]> {
 export interface ContactRow {
   id: string; email: string; name: string; trips: number; total_paid_minor: number; last_trip_on: string | null
   tags: string[]; notes: string; marketing_consent: boolean; unsubscribed_at: string | null
+  referral_code?: string
+  /** Referral credit earned and not yet used. */
+  credit_minor?: number
 }
 export async function listContacts(): Promise<ContactRow[]> {
   if (!navigator.onLine) throw new Error('Connect to the internet to see your travelers.')
   const { data, error } = await supabase.from('organizer_contacts')
-    .select('id, email, name, trips, total_paid_minor, last_trip_on, tags, notes, marketing_consent, unsubscribed_at').order('name')
+    .select('id, email, name, trips, total_paid_minor, last_trip_on, tags, notes, marketing_consent, unsubscribed_at, referral_code').order('name')
   if (error) throw new Error(error.message)
-  return (data as ContactRow[]).map((c) => ({ ...c, total_paid_minor: Number(c.total_paid_minor) }))
+  // Older servers have no referral credits table; then nobody has credit.
+  const credits = await supabase.from('referral_credits').select('contact_id, amount_minor').is('used_booking_id', null)
+  const credit = new Map<string, number>()
+  for (const c of (credits.data ?? []) as { contact_id: string; amount_minor: number }[]) credit.set(c.contact_id, (credit.get(c.contact_id) ?? 0) + Number(c.amount_minor))
+  return (data as ContactRow[]).map((c) => ({ ...c, total_paid_minor: Number(c.total_paid_minor), credit_minor: credit.get(c.id) ?? 0 }))
 }
 export const saveContact = (id: string, tags: string[], notes: string) => rpc<ContactRow>('save_contact', { p_id: id, p_tags: tags, p_notes: notes })
 
@@ -255,3 +265,5 @@ export async function listMyOffers(organizerId: string): Promise<{ trip_id: stri
   const { data } = await supabase.from('trip_offers').select('trip_id, title').eq('organizer_id', organizerId).is('deleted_at', null).order('title')
   return (data as { trip_id: string; title: string }[] | null) ?? []
 }
+
+export const saveReferralSettings = (creditMinor: number) => rpc<void>('save_referral_settings', { p_credit_minor: creditMinor })

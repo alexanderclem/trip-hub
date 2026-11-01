@@ -4,7 +4,7 @@
 import { admin, caller, cors, json, rpcOf, site, stripe } from '../_deno/server.ts'
 import { checkoutSession, firstPayment, type PaymentKind } from '../_shared/checkout.ts'
 
-/** Only what a booking may carry: answers, a room choice, consent, a waitlist hold. The database checks each. */
+/** Only what a booking may carry: answers, a room choice, consent, a waitlist hold, a referral code. The database checks each. */
 function extraOf(v: unknown): Record<string, unknown> {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return {}
   const x = v as Record<string, unknown>
@@ -13,6 +13,7 @@ function extraOf(v: unknown): Record<string, unknown> {
   if (typeof x.room_option === 'string') out.room_option = x.room_option.slice(0, 20)
   if (x.consent === true) out.consent = true
   if (typeof x.hold === 'string') out.hold = x.hold.slice(0, 200)
+  if (typeof x.ref === 'string') out.ref = x.ref.slice(0, 12)
   return out
 }
 

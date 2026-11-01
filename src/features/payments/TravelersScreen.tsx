@@ -48,9 +48,10 @@ export function TravelersScreen() {
                     <li key={c.id} className="py-2">
                       <button type="button" aria-expanded={open === c.id} className="flex min-h-11 w-full flex-wrap items-center justify-between gap-2 text-left" onClick={() => setOpen(open === c.id ? null : c.id)}>
                         <span className="min-w-0 break-words"><span className="font-semibold text-action">{c.name}</span> <span className="text-sm text-muted">{c.email}</span></span>
-                        <span className="text-sm tabular-nums">{c.trips} {c.trips === 1 ? 'trip' : 'trips'} · {usd(c.total_paid_minor)}{c.marketing_consent && !c.unsubscribed_at ? ' · emails OK' : ''}</span>
+                        <span className="text-sm tabular-nums">{c.trips} {c.trips === 1 ? 'trip' : 'trips'} · {usd(c.total_paid_minor)}{c.marketing_consent && !c.unsubscribed_at ? ' · emails OK' : ''}{c.credit_minor ? ` · ${usd(c.credit_minor)} credit` : ''}</span>
                       </button>
                       {c.tags.length > 0 && <p className="text-xs text-muted">{c.tags.join(' · ')}</p>}
+                      {open === c.id && c.referral_code && <p className="mt-1 text-xs text-muted">Referral code {c.referral_code}</p>}
                       {open === c.id && <ContactEditor contact={c} onSaved={(n) => setRows(rows.map((r) => (r.id === n.id ? { ...r, tags: n.tags, notes: n.notes } : r)))} />}
                     </li>
                   ))}

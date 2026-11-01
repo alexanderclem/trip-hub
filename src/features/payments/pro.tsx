@@ -15,6 +15,8 @@ export interface MyOrganizer {
   postal_address?: string | null
   /** Campaign mail goes out only once Stowaway has a sender on its own domain. */
   campaign_sending?: boolean
+  /** The credit a traveler earns for each friend who books (0 = off). */
+  referral_credit_minor?: number
 }
 
 const KEY = 'stowaway-my-organizer'

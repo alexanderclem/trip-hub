@@ -38,6 +38,8 @@ export function PublicTripScreen() {
   const [loadError, setLoadError] = useState<string | null>(null)
   // A held waitlist place arrives as #hold=… (from the email); like booking links, it never reaches a server log.
   const [holdToken] = useState(() => new URLSearchParams(location.hash.replace(/^#/, '')).get('hold'))
+  // A referral link (?ref=CODE) is passed on with the booking; the server checks it.
+  const [ref] = useState(() => new URLSearchParams(location.search).get('ref')?.slice(0, 12) ?? null)
   const [hold, setHold] = useState<Hold | null | undefined>(holdToken ? undefined : null)
   useEffect(() => {
     getPublicOffer(slug).then(setOffer, (e: unknown) => setLoadError(e instanceof Error ? e.message : String(e)))
@@ -77,7 +79,7 @@ export function PublicTripScreen() {
       )}
       <details className="marketing-plan"><summary className="cursor-pointer font-semibold">Cancellation and refund policy</summary><p className="mt-2 whitespace-pre-line text-sm">{offer.cancellation_policy}</p><RefundSteps tiers={offer.refund_tiers} /></details>
       {hold && <p role="status" className="marketing-plan">Your place is held, {hold.name}, until {DateTime.fromISO(hold.hold_until).setZone(offer.trip.timezone).toFormat('cccc d LLLL, h:mm a')} ({offer.trip.timezone.split('/').pop()!.replace(/_/g, ' ')} time).</p>}
-      {(offer.spots_left > 0 || hold) && <BookingForm offer={offer} hold={hold} />}
+      {(offer.spots_left > 0 || hold) && <BookingForm offer={offer} hold={hold} referral={ref} />}
       {offer.spots_left === 0 && !hold && offer.waitlist && <WaitlistForm slug={offer.slug} />}
       <p className="calc-note">Payments go to {offer.organizer.name} through Stripe. Stowaway never holds your money. Questions: <a className="underline" href={`mailto:${offer.organizer.email}`}>{offer.organizer.email}</a></p>
     </Page>
@@ -86,7 +88,7 @@ export function PublicTripScreen() {
 
 interface Hold { name: string; email: string; hold_until: string; token: string }
 
-function BookingForm({ offer, hold }: { offer: PublicOffer; hold: Hold | null }) {
+function BookingForm({ offer, hold, referral }: { offer: PublicOffer; hold: Hold | null; referral: string | null }) {
   const [name, setName] = useState(hold?.name ?? '')
   const [email, setEmail] = useState(hold?.email ?? '')
   const [accepted, setAccepted] = useState(false)
@@ -106,7 +108,7 @@ function BookingForm({ offer, hold }: { offer: PublicOffer; hold: Hold | null })
     setBusy(true); setError(null)
     try {
       await startBooking({ slug: offer.slug, name: name.trim(), email: email.trim(), policyVersion: offer.policy_version,
-        extra: { answers, consent, ...(room ? { room_option: room } : {}), ...(hold ? { hold: hold.token } : {}) } })
+        extra: { answers, consent, ...(room ? { room_option: room } : {}), ...(hold ? { hold: hold.token } : {}), ...(referral ? { ref: referral } : {}) } })
     } catch (err) { setError(err instanceof Error ? err.message : String(err)); setBusy(false) }
   }
   return (
@@ -276,6 +278,7 @@ export function ManageBookingScreen() {
       <div className="marketing-plan">
         <p className="marketing-price">{usd(booking.paid_minor)} <span className="marketing-muted" style={{ fontSize: '1rem', letterSpacing: 0 }}>of {usd(booking.price_minor)} paid</span></p>
         {booking.refunded_minor > 0 && <p className="mt-1 text-sm">{usd(booking.refunded_minor)} refunded.</p>}
+        {!!booking.credit_minor && <p className="mt-1 text-sm">Includes {usd(booking.credit_minor)} off for friends you referred.</p>}
         <p className="mt-2 text-sm">{booking.status === 'paid' ? 'Paid in full.' : booking.status === 'refunded' ? 'This booking was refunded.' : booking.status === 'cancelled' ? 'This booking was cancelled.' : booking.processing ? 'A bank payment is on its way.' : owed ? (booking.next_minor && booking.next_minor < due ? `Next: ${usd(booking.next_minor)}${booking.next_date ? ` by ${date(booking.next_date)}` : ''}. ${usd(due)} left in all.` : `${usd(due)} is due${booking.next_date || booking.balance_due_date ? ` by ${date(booking.next_date ?? booking.balance_due_date)}` : ''}.`) : 'Waiting for your first payment.'}</p>
         {booking.schedule && booking.schedule.length > 0 && <PlanList schedule={booking.schedule} />}
       </div>
@@ -293,6 +296,7 @@ export function ManageBookingScreen() {
       </div>
       <p className="calc-note">Refunds follow the cancellation policy you accepted and are made by {booking.organizer.name}.</p>
       {booking.offer.refund_tiers && booking.offer.refund_tiers.length > 0 && <div className="calc-note"><RefundSteps tiers={booking.offer.refund_tiers} /></div>}
+      {booking.referral && <ReferralCard booking={booking} referral={booking.referral} />}
       {questionList(booking.offer.questions).length > 0 && booking.status !== 'cancelled' && booking.status !== 'refunded' && <AnswersForm booking={booking} token={token} />}
       <p className="calc-note"><Link to={`/go/${booking.offer.slug}`} className="underline">The trip page</Link></p>
     </Page>
@@ -340,5 +344,20 @@ function AnswersForm({ booking, token }: { booking: BookingView; token: string }
       <button type="submit" className="website-button" disabled={busy}>{busy ? 'Saving…' : 'Save answers'}</button>
       {msg && <p role="status" className="marketing-status">{msg}</p>}
     </form>
+  )
+}
+
+function ReferralCard({ booking, referral }: { booking: BookingView; referral: { code: string; credit_minor: number } }) {
+  const [copied, setCopied] = useState(false)
+  const url = `${location.origin}/go/${booking.offer.slug}?ref=${referral.code}`
+  return (
+    <div className="marketing-plan">
+      <p className="font-semibold">Bring a friend</p>
+      <p className="mt-1 text-sm">When someone books with your link, you get {usd(referral.credit_minor)} off your next trip with {booking.organizer.name}.</p>
+      <p className="mt-2 select-all break-all font-mono text-xs">{url}</p>
+      <button type="button" className="website-text-link" onClick={async () => { try { await navigator.clipboard.writeText(url); setCopied(true) } catch { /* select and copy */ } }}>
+        {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}{copied ? 'Copied' : 'Copy your link'}
+      </button>
+    </div>
   )
 }
