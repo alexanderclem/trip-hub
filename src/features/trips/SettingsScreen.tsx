@@ -1,7 +1,7 @@
 import { coverPhoto } from './covers'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { RefreshCw } from 'lucide-react'
 import { useDevice, useMyMemberId, useTripAccess } from '@/data/device'
 import { isStaff } from '@/data/access'
@@ -59,6 +59,7 @@ export function SettingsScreen() {
       <div className="mx-auto max-w-md space-y-4 p-4">
         <Card><SectionTitle>Make it yours</SectionTitle><p className="mt-1 text-sm text-muted">A familiar cover for your shared adventure.</p><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} photo={coverPhoto(trip)} /></div><TripCoverPicker trip={trip} memberId={me} /></Card>
         <Card><Disclosure summary="Trip details"><TripDetailsForm trip={trip} memberId={me} /></Disclosure></Card>
+        <Card><Link className="ui-link inline-flex min-h-11 items-center" to={`/t/${tripId}/more/import`}>Import a plan from a spreadsheet</Link><p className="text-sm text-muted">Moving from another tool? Bring the itinerary in as a CSV.</p></Card>
         <Card>
           <SectionTitle>Invite the group</SectionTitle>
           <div className="mt-2"><InviteTripCard trip={trip} bare /></div>

@@ -267,3 +267,7 @@ export async function listMyOffers(organizerId: string): Promise<{ trip_id: stri
 }
 
 export const saveReferralSettings = (creditMinor: number) => rpc<void>('save_referral_settings', { p_credit_minor: creditMinor })
+
+/** Past travelers from another tool's CSV (Pro); consent never carries over. */
+export const importContacts = (rows: { name: string; email: string; tags: string[] }[]) =>
+  rpc<{ added: number; updated: number }>('import_contacts', { p_rows: rows })

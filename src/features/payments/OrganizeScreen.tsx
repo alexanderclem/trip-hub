@@ -84,6 +84,7 @@ export function OrganizeScreen() {
           <Card>
             <Link to="/organize/travelers" className="flex min-h-11 items-center justify-between gap-2 font-semibold text-action"><span>Past travelers<ProBadge /></span><span aria-hidden="true">›</span></Link>
             <p className="text-sm text-muted">Everyone who has booked with you, with tags, notes and who’s happy to hear about new trips.</p>
+            <Link to="/organize/import" className="ui-link inline-flex min-h-11 items-center text-sm">Import past travelers from a spreadsheet</Link>
             <Link to="/organize/campaigns" className="mt-2 flex min-h-11 items-center justify-between gap-2 border-t border-line pt-2 font-semibold text-action"><span>Campaigns<ProBadge /></span><span aria-hidden="true">›</span></Link>
             <p className="text-sm text-muted">Email past travelers who asked to hear about your next trips.</p>
           </Card>
