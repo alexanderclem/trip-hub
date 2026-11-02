@@ -10,7 +10,7 @@ import { useDevice } from '../device'
 import { dropTrip } from '../reset'
 import { flushEvents, sendToSupabase } from '@/features/funnel/events'
 
-export type SyncPhase = 'idle' | 'syncing' | 'offline' | 'error'
+export type SyncPhase = 'idle' | 'syncing' | 'refreshing' | 'offline' | 'error'
 
 interface SyncStatus {
   tripId: string | null
@@ -68,6 +68,7 @@ async function cycle(tripId: string) {
   }
   setStatus(tripId, { phase: 'syncing', lastError: null })
   const pushed = await push(supabaseRemote)
+  setStatus(tripId, { phase: 'refreshing' })
   if ((await checkAccess(tripId)) === 'removed') {
     setStatus(tripId, { phase: 'idle', lastError: null })
     return
@@ -75,7 +76,7 @@ async function cycle(tripId: string) {
   const pulled = await pull(supabaseRemote, tripId)
   if (pulled.error) {
     setStatus(tripId, {
-      phase: pulled.error.status === 0 ? 'offline' : 'error',
+      phase: navigator.onLine ? 'error' : 'offline',
       lastError: pulled.error.message,
     })
   } else if (pushed.retryLater) {

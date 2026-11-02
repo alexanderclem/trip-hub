@@ -26,3 +26,6 @@ supabase/.temp/
 
 # Project-local Impeccable skill installation (reinstall with npx impeccable install)
 .agents/skills/impeccable/
+
+# Local captures from the guest-evaluation regression pass
+.design/screenshots/guest-fixes/

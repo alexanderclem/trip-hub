@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { areaBbox, currencyFor, toDestinations, tripAreas, type PhotonFeature } from './destinations'
+import { tripDestination, areaBbox, currencyFor, toDestinations, tripAreas, type PhotonFeature } from './destinations'
 
 const feature = (name: string, osm_value: string, coordinates: [number, number], over: Partial<PhotonFeature['properties']> = {}): PhotonFeature => ({
   geometry: { coordinates },
@@ -62,5 +62,16 @@ describe('currencyFor', () => {
     expect(currencyFor('FR')).toBe('EUR')
     expect(currencyFor('ZZ')).toBeNull()
     expect(currencyFor(null)).toBeNull()
+  })
+})
+
+
+describe('destination handoff', () => {
+  it('reuses saved destination country and city without guessing from the currency', () => {
+    expect(tripDestination({ settings: { areas: [{ name: 'Paris', countryCode: 'FR', lat: 48.85, lng: 2.35, bbox: [48.8, 2.3, 48.9, 2.4] }] } })).toEqual({ country: 'FR', city: 'Paris' })
+  })
+  it('keeps an explicit Explore choice, and supports older destinations without country metadata', () => {
+    expect(tripDestination({ settings: { destination_country: 'JP', destination_city: 'Kyoto' } })).toEqual({ country: 'JP', city: 'Kyoto' })
+    expect(tripDestination({ settings: { areas: [{ name: 'Paris', lat: 48.85, lng: 2.35, bbox: [48.8, 2.3, 48.9, 2.4] }] } })).toEqual({ country: '', city: 'Paris' })
   })
 })

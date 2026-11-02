@@ -9,6 +9,7 @@ import { overpassQuery, toSeedPlaces, type Bbox, type OsmElement, type SeedPlace
 /** A town or neighbourhood the trip covers, kept in trips.settings.areas. */
 export interface TripArea {
   name: string
+  countryCode?: string | null
   bbox: Bbox // south, west, north, east
   lat: number
   lng: number
@@ -29,6 +30,17 @@ export function tripAreas(trip: Pick<Trip, 'settings'> | undefined | null): Trip
   if (!Array.isArray(raw)) return []
   return raw.filter((a): a is TripArea => !!a && typeof a === 'object' && typeof (a as TripArea).name === 'string' && isBbox((a as TripArea).bbox)
     && typeof (a as TripArea).lat === 'number' && typeof (a as TripArea).lng === 'number')
+}
+
+/** Explicit Explore choices win; otherwise reuse the first saved destination. */
+export function tripDestination(trip: Pick<Trip, 'settings'> | undefined | null) {
+  const area = tripAreas(trip)[0]
+  const settings = trip?.settings
+  const saved = typeof settings?.destination_country === 'string' ? settings.destination_country : ''
+  const areaCountry = typeof area?.countryCode === 'string' && /^[A-Z]{2}$/i.test(area.countryCode) ? area.countryCode.toUpperCase() : ''
+  const country = /^[A-Z]{2}$/.test(saved) ? saved : areaCountry
+  const city = typeof settings?.destination_city === 'string' && settings.destination_city.trim() ? settings.destination_city : area?.name ?? ''
+  return { country, city }
 }
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))

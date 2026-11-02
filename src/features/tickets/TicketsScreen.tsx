@@ -61,7 +61,7 @@ export function TicketsScreen() {
         </label>
       )} />
       <div className="mx-auto max-w-lg space-y-4 p-4 lg:p-6">
-        {trip && <OfflineReadyCard trip={trip} compact />}
+        {rows.length > 0 && <OfflineReadyCard trip={trip} compact />}
         {query && groups.length === 0 && <p className="py-6 text-center text-sm text-muted">Nothing matches “{q.trim()}”.</p>}
 
         {rows && rows.length === 0 ? (

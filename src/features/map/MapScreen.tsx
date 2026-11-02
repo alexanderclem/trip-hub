@@ -67,6 +67,8 @@ export default function MapScreen() {
   const [showPool, setShowPool] = useState(false)
   const [me, setMe] = useState<LatLng | null>(null)
   const [pending, setPending] = useState<LatLng | null>(null)
+  const [mapLoaded, setMapLoaded] = useState(false)
+  const [mapSlow, setMapSlow] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
   const [originId, setOriginId] = useState<string | null>(null) // null = pick a sensible default
   const [measuring, setMeasuring] = useState<Place | null>(null)
@@ -171,6 +173,10 @@ export default function MapScreen() {
       dragRotate: false,
       pitchWithRotate: false,
     })
+    setMapLoaded(false)
+    setMapSlow(false)
+    const loadingTimer = setTimeout(() => setMapSlow(true), 10_000)
+    map.once('load', () => { setMapLoaded(true); clearTimeout(loadingTimer) })
     map.touchZoomRotate.disableRotation()
     mapRef.current = map
 
@@ -186,7 +192,10 @@ export default function MapScreen() {
       if (!navigator.onLine && styleMode.current === 'online') {
         setMapError("You're offline, so only map areas you've already viewed will show. Download the offline map in Trip settings.")
       }
-      else console.warn('map error', e.error)
+      else {
+        setMapError('Some map tiles could not load. Your saved places are still available in the list.')
+        console.warn('map error', e.error)
+      }
     })
 
     // Pins, clusters and the measure line sit on top of whichever basemap is showing, so they're
@@ -342,6 +351,7 @@ export default function MapScreen() {
     })
 
     return () => {
+      clearTimeout(loadingTimer)
       cancel()
       map.remove()
       mapRef.current = null
@@ -484,10 +494,19 @@ export default function MapScreen() {
 
   return (
     <div className="absolute inset-0">
+      <h1 className="sr-only">Trip map</h1>
       <div className="absolute inset-0">
         <div ref={container} className="h-full w-full" />
       </div>
 
+      {!mapLoaded && <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4">
+        <div role="status" className="pointer-events-auto max-w-sm rounded-surface border border-line bg-surface p-5 text-ink shadow-lg">
+          <h2 className="ui-section-title">{mapSlow || mapError ? 'Map is taking longer to load' : 'Loading your trip map…'}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted">{mapSlow || mapError ? 'Your saved places are available while the map reconnects.' : 'Loading the map tiles and your saved places.'}</p>
+          <Link to="../more/places" className="ui-link mt-2">Open saved places</Link>
+          {(mapSlow || mapError) && <Button variant="secondary" className="mt-2 w-full" onClick={() => window.location.reload()}>Retry map</Button>}
+        </div>
+      </div>}
       {/* One row of controls over the map; the category filters open beneath it only when asked for. */}
       <div className="pt-safe pointer-events-none absolute inset-x-0 top-0 z-10">
         <div className="flex items-start gap-2 px-3 pt-3">

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
@@ -59,6 +60,7 @@ export function WrappedScreen() {
   const [paused, setPaused] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [note, setNote] = useState<string | null>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const held = useRef(false)
 
@@ -135,6 +137,13 @@ export function WrappedScreen() {
 
   const slide = slides[Math.min(index, slides.length - 1)]
   const last = index >= slides.length - 1
+  const visible = Boolean(data && slide)
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!visible || !dialog) return
+    dialog.showModal()
+    return () => { if (dialog.open) dialog.close() }
+  }, [visible])
 
   // Auto-advance unless paused, holding, or the person prefers less motion.
   useEffect(() => { setElapsed(0) }, [index])
@@ -156,7 +165,6 @@ export function WrappedScreen() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') setIndex((i) => Math.min(i + 1, slides.length - 1))
       if (e.key === 'ArrowLeft') setIndex((i) => Math.max(i - 1, 0))
-      if (e.key === 'Escape') navigate(-1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -188,8 +196,8 @@ export function WrappedScreen() {
     }
   }
 
-  return (
-    <div role="dialog" aria-modal="true" aria-label="Trip recap" className="fixed inset-0 z-50 flex flex-col text-white select-none" style={{ background: `linear-gradient(160deg, ${from}, ${to})` }}>
+  return createPortal(
+    <dialog ref={dialogRef} aria-label="Trip recap" onCancel={(event) => { event.preventDefault(); navigate(-1) }} className="fixed inset-0 z-50 m-0 h-dvh max-h-none w-dvw max-w-none flex-col border-0 p-0 text-white select-none open:flex" style={{ background: `linear-gradient(160deg, ${from}, ${to})` }}>
       <style>{'@keyframes wrapped-in { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }'}</style>
       <div className="pt-safe flex gap-1 px-3 pt-3" aria-hidden="true">
         {slides.map((s, i) => (
@@ -228,7 +236,7 @@ export function WrappedScreen() {
         </button>
         <p className="text-xs text-white/70">Tap the right side for next, left for back. Hold to pause.</p>
       </div>
-    </div>
+    </dialog>, document.body
   )
 }
 

@@ -30,6 +30,20 @@ const addMe = async (page: Page) => {
   await page.getByRole('button', { name: 'Add me' }).click()
 }
 
+test('a stalled identity request returns an error and preserves the name for retry', async ({ page }) => {
+  await stub(page)
+  await page.route('**/rest/v1/rpc/create_member_and_claim', () => { /* Deliberately leave this request unanswered. */ })
+  await page.goto(`/join#t=${shareToken}`)
+  await expect(page.getByRole('button', { name: 'Add me', exact: true })).toBeVisible()
+  await page.clock.install()
+  await addMe(page)
+  await expect(page.getByText('Connecting you to the group…', { exact: true })).toBeVisible()
+  await page.clock.fastForward(16_000)
+  await expect(page.getByRole('alert')).toContainText(/timed out|abort/i)
+  await expect(page.getByPlaceholder('Your name')).toHaveValue('Sam')
+  await expect(page.getByRole('button', { name: 'Add me', exact: true })).toBeEnabled()
+})
+
 test('joining opens the trip immediately and offers preferences without blocking the welcome', async ({ page }) => {
   await stub(page)
   await page.goto(`/join#t=${shareToken}`)

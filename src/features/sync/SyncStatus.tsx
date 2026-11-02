@@ -8,6 +8,7 @@ import { retrySync, useSyncStatus } from '@/data/sync/controller'
 import { useOnline } from '@/lib/useOnline'
 import { Button, Card, ErrorNote } from '@/ui'
 import { Dialog } from '@/ui/Dialog'
+import { syncLabel } from './presentation'
 
 const belongsTo = (entry: { table: string; payload: Record<string, unknown> }, tripId: string) =>
   entry.table === 'trips' ? entry.payload.id === tripId : entry.payload.trip_id === tripId
@@ -19,14 +20,6 @@ function useSyncDetails(tripId: string) {
     const [pending, rejected] = await Promise.all([db._outbox.orderBy('seq').toArray(), db._deadletter.toArray()])
     return { pending, rejected: rejected.filter((entry) => belongsTo(entry, tripId)) }
   }, [tripId])
-}
-
-function syncLabel(online: boolean, phase: string, pending: number, rejected: number) {
-  if (!online || phase === 'offline') return 'Offline'
-  if (phase === 'syncing') return 'Syncing…'
-  if (phase === 'error' || rejected) return 'Needs attention'
-  if (pending) return `${pending} waiting to sync`
-  return 'Up to date'
 }
 
 /** Shared by the shell and settings: queue counts explicitly describe this device. */
@@ -62,7 +55,7 @@ export function SyncDetails({ tripId }: { tripId: string }) {
         <p className="mt-1 text-sm leading-relaxed text-muted">
           {!online || sync.phase === 'offline' ? 'Saved trip data is available on this device. Waiting changes will retry when the connection returns.' :
             sync.phase === 'error' ? 'Sync could not finish. Waiting changes stay in the local queue while you retry.' :
-              pending.length ? 'Your edits are saved on this device. Your group sees them after they sync.' : 'There are no waiting uploads on this device.'}
+              pending.length ? 'Your edits are saved on this device. Your group sees them after they sync.' : sync.phase === 'refreshing' ? 'There are no waiting uploads. Checking for changes from your group.' : 'There are no waiting uploads on this device.'}
         </p>
       </div>
       <dl className="space-y-2 text-sm">

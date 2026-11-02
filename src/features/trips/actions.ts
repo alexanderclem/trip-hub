@@ -16,7 +16,8 @@ export const MEMBER_COLORS = [
 
 /** Pulls the latest copy of a trip into IndexedDB. Throws if it can't reach the server. */
 async function initialPull(tripId: string) {
-  const r = await pull(supabaseRemote, tripId)
+  // Entry needs identity and trip context; the workspace sync loads the remaining records.
+  const r = await pull(supabaseRemote, tripId, db, ['trips', 'members'])
   if (r.error) throw new Error(`Could not download the trip: ${r.error.message}`)
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { useMembers, useTrip } from '@/data/hooks'
@@ -19,6 +19,13 @@ export function WhoScreen() {
   const [newName, setNewName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    setSlow(false)
+    if (!busy) return
+    const timer = setTimeout(() => setSlow(true), 8_000)
+    return () => clearTimeout(timer)
+  }, [busy])
 
   async function run(fn: () => Promise<void>) {
     setBusy(true)
@@ -83,7 +90,7 @@ export function WhoScreen() {
         </form>
       </Card>
       <div className="mt-3">
-        {busy && <p role="status" className="mb-2 text-sm text-muted">Connecting you to the group…</p>}
+        {busy && <p role="status" className="mb-2 text-sm text-muted">{slow ? 'The connection is taking longer than usual. Your name stays here; if it cannot finish, you can retry.' : 'Connecting you to the group…'}</p>}
         <ErrorNote error={error} />
       </div>
     </main>

@@ -94,7 +94,7 @@ export function CreateTripScreen() {
         timezone: form.timezone,
         baseCurrency: form.baseCurrency.toUpperCase(),
         localCurrency: form.localCurrency.toUpperCase() || null,
-        areas: areas.map((a) => ({ name: a.name, bbox: a.bbox, lat: a.lat, lng: a.lng })),
+        areas: areas.map((a) => ({ name: a.name, bbox: a.bbox, lat: a.lat, lng: a.lng, countryCode: a.countryCode })),
       })
       setCreatedTripId(tripId)
       if (draft) {
@@ -140,7 +140,7 @@ export function CreateTripScreen() {
         </div>
         <div>
           <p className="text-sm font-medium text-ink">Where are you going?</p>
-          <p className="mt-1 text-xs text-muted">Optional. Sets the time zone and currency.</p>
+          <p className="mt-1 text-xs text-muted">Optional. Sets the time zone and local currency. Settle-up currency is chosen separately.</p>
           {areas.length > 0 && (
             <ul aria-label="Destinations" className="mt-2 flex flex-wrap gap-2">
               {areas.map((a) => (

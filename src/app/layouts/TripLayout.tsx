@@ -73,10 +73,11 @@ export function TripLayout() {
   const savedProfile = useMyTripProfile(tripId, memberId, needsProfile)
   const access = useTripAccess(tripId)
 
+  const hasJoined = Boolean(joined)
   useEffect(() => {
-    if (!joined) return
+    if (!hasJoined) return
     return startSync(tripId)
-  }, [tripId, joined])
+  }, [tripId, hasJoined])
   useEffect(() => {
     if (savedProfile) adoptProfile(savedProfile)
   }, [savedProfile])
@@ -110,6 +111,8 @@ function TripShell({ tripId }: { tripId: string }) {
     let frame = 0
     if (previousPath.current !== pathname) {
       const saved = navigationType === 'POP' ? scrollPositions.current.get(locationKey) ?? 0 : 0
+      // Browser anchoring must not add its own offset while IndexedDB restores this view.
+      if (saved > 0) scroller.classList.add('[overflow-anchor:none]')
       const restore = () => {
         cancelAnimationFrame(frame)
         frame = requestAnimationFrame(() => {
@@ -134,7 +137,7 @@ function TripShell({ tripId }: { tripId: string }) {
     } else {
       scrollPositions.current.set(locationKey, scroller.scrollTop)
     }
-    const cancelRestore = () => { observer?.disconnect(); resize?.disconnect(); cancelAnimationFrame(frame) }
+    const cancelRestore = () => { observer?.disconnect(); resize?.disconnect(); cancelAnimationFrame(frame); scroller.classList.remove('[overflow-anchor:none]') }
     scroller.addEventListener('pointerdown', cancelRestore, { once: true })
     scroller.addEventListener('wheel', cancelRestore, { once: true, passive: true })
     scroller.addEventListener('keydown', cancelRestore, { once: true })
@@ -166,12 +169,15 @@ function TripShell({ tripId }: { tripId: string }) {
         </select>
         <p className="mt-2 text-sm text-muted">{dateRange(trip?.start_date, trip?.end_date)}</p>
         <nav aria-label="Trip navigation" className="mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto pb-2">
-          {desktopGroups.map(({ label: groupLabel, items }) => <div key={groupLabel}>
+          {desktopGroups.slice(0, 2).map(({ label: groupLabel, items }) => <div key={groupLabel}>
             <p className="mb-1 px-3 text-xs font-semibold text-muted">{groupLabel}</p>
             <div className="space-y-1">
               {items.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={desktopCurrent === to ? 'page' : undefined} className={`flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium ${desktopCurrent === to ? 'bg-mist text-ink' : 'text-muted hover:bg-brand-50 hover:text-ink'}`}><Icon aria-hidden="true" className="size-5 shrink-0" /><span className="flex-1">{label}</span>{to === 'overview' && news}</Link>)}
             </div>
           </div>)}
+        </nav>
+        <nav aria-label="Trip settings" className="shrink-0 border-t border-line pt-2">
+          {desktopGroups[2]!.items.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={desktopCurrent === to ? 'page' : undefined} className={`flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium ${desktopCurrent === to ? 'bg-mist text-ink' : 'text-muted hover:bg-mist'}`}><Icon aria-hidden="true" className="size-5 shrink-0" />{label}</Link>)}
         </nav>
         <div className="mt-auto pt-6">
           <SyncStatusButton tripId={tripId} full className="w-full justify-start" />

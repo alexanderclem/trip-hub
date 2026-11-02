@@ -8,6 +8,7 @@ import { dateOrder, formatTypedDate, parseTypedDate } from '@/lib/time'
 import { m, type HTMLMotionProps } from 'motion/react'
 import { useMotionPreference } from './MotionProvider'
 import { motionTiming } from './motion'
+import { avatarPalette } from './avatarPalette'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 const MotionLink = m.create(Link)
@@ -42,11 +43,13 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   const hintId = useId()
   return (
     <FieldDescription value={hint ? hintId : undefined}>
-      <label className="block">
-        <span className="text-sm font-[550] text-ink">{label}</span>
-        <div className="mt-1.5">{children}</div>
-        {hint && <span id={hintId} className="mt-1.5 block text-sm leading-relaxed text-muted">{hint}</span>}
-      </label>
+      <div className="block min-w-0">
+        <label className="block">
+          <span className="text-sm font-[550] text-ink">{label}</span>
+          <div className="mt-1.5">{children}</div>
+        </label>
+        {hint && <span id={hintId} className="mt-1.5 block wrap-anywhere text-sm leading-relaxed text-muted">{hint}</span>}
+      </div>
     </FieldDescription>
   )
 }
@@ -224,7 +227,7 @@ export function SectionTitle({ className, ...props }: ComponentProps<'h2'>) {
 
 /** A two-to-four way switch. One selected value, shown as a radio group. */
 export function Segmented<T extends string>({ label, value, options, onChange, className }: {
-  label: string; value: T; options: readonly { value: T; label: ReactNode; title?: string }[]; onChange: (value: T) => void; className?: string
+  label: string; value: T; options: readonly { value: T; label: ReactNode; title?: string; ariaLabel?: string }[]; onChange: (value: T) => void; className?: string
 }) {
   return (
     <div role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} onKeyDown={(event) => {
@@ -241,7 +244,7 @@ export function Segmented<T extends string>({ label, value, options, onChange, c
       buttons[index]?.focus()
     }}>
       {options.map((o) => (
-        <button key={o.value} type="button" role="radio" tabIndex={value === o.value ? 0 : -1} aria-checked={value === o.value} title={o.title} onClick={() => onChange(o.value)}>{o.label}</button>
+        <button key={o.value} type="button" role="radio" tabIndex={value === o.value ? 0 : -1} aria-checked={value === o.value} title={o.title} aria-label={o.ariaLabel} onClick={() => onChange(o.value)}>{o.label}</button>
       ))}
     </div>
   )
@@ -314,13 +317,15 @@ export function Avatar({ name, color, photo, size = 'md' }: { name: string; colo
   const [failed, setFailed] = useState(false)
   useEffect(() => setFailed(false), [photo])
   const initials = travelerInitials(name)
+  const palette = avatarPalette(color)
   return (
     <span
       className={cx(
-        'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white',
+        'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold',
+        palette.lightText ? 'text-white' : 'text-black',
         size === 'md' ? 'size-10 text-sm' : 'size-7 text-xs',
       )}
-      style={{ background: color ?? 'var(--stowaway-control-border)' }}
+      style={{ background: palette.background }}
     >
       {photo && !failed ? <img src={photo} alt="" className="size-full object-cover" onError={() => setFailed(true)} /> : initials}
     </span>
