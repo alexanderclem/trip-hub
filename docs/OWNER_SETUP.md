@@ -14,15 +14,25 @@ Cloudflare deployed `main` within about 90 seconds of the merge. People can see 
 
 - **New pages:** `/operators` (for organizers) and `/pricing` (with the fee calculator). The landing page footer links to them. The pricing page says payments are "coming soon".
 - **Trip settings → "Import a plan from a spreadsheet":** works now, entirely on the phone.
-- **Money tab, for the creator of a trip with 10+ people (or a big shared expense):** a quiet "Collect payments for this trip" row. Tapping it opens an "early access" sheet. **Until step 1 is done, submitting that sheet shows an error**, because the server function it calls doesn't exist yet.
+- **Money tab, for the creator of a trip with 10+ people (or a big shared expense):** a quiet "Collect payments for this trip" row. Tapping it opens an "early access" sheet. It works now that step 1 is done.
 
 Everything else stays hidden until the database has the new tables: roles and hosted trips, organizer claiming, the payments screens, trip pages, bookings, and every Pro tool. The app was built to cope with a server that doesn't have them yet. Existing group trips behave exactly as before.
 
-**One test-only caveat:** `tests/e2e/cleanup.sql` now deletes from the new tables. It fails until step 1 is done. Until then, use `git show 187e23c:tests/e2e/cleanup.sql`, the version from before the merge.
+`tests/e2e/cleanup.sql` also deletes from the new tables, which exist now that step 1 is done.
 
 ---
 
-## 1. Apply the 11 database migrations (this week, about 30 minutes)
+## 1. Apply the 11 database migrations — ✅ done 2 Nov 2026
+
+Claude applied all 11 in filename order, plus a 12th, `20261106000001_organizer_rpcs_signed_in.sql`. That one stops visitors who aren't signed in from calling the organizer-only functions.
+
+**Checked before and after:**
+- **Counts unchanged:** 8 trips, 22 phones, 14 people, 7 places, 20 plan items, 2 expenses. The phone-to-trip fingerprint is identical.
+- **Access unchanged:** for every phone and every trip (152 pairs), read, plan, money and documents access is exactly as before. Every trip is in group mode and nobody holds organizer rights.
+- **Security advisors:** only the expected kinds of warning. People who aren't signed in can call just the six traveler-facing functions (trip page, booking page, held place, waitlist, booking answers, unsubscribe).
+
+The rest of this section is kept for reference, in case the migrations ever need applying to another project (for example a staging one).
+
 
 **What's live today:** every migration up to and including `20261012000004_traveler_profiles.sql`. Some of them were applied without a history entry, so `list_migrations` shows other names and dates. That's fine.
 

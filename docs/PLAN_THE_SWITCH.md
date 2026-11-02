@@ -5,19 +5,19 @@
 | Piece | Code | Live |
 |---|---|---|
 | Plan, real 404s for agent files, PGlite harness | ✅ | live (merged 1 Nov 2026) |
-| 1A roles, removal, private documents (`20261030000001_access_roles.sql`) | ✅ | **migration not applied** (needs the owner's go-ahead) |
-| Funnel events and the "collect payments" offer (`20261030000002_product_events.sql`) | ✅ | **migration not applied** |
+| 1A roles, removal, private documents (`20261030000001_access_roles.sql`) | ✅ | **live (applied 2 Nov 2026)** (needs the owner's go-ahead) |
+| Funnel events and the "collect payments" offer (`20261030000002_product_events.sql`) | ✅ | **live (applied 2 Nov 2026)** |
 | Live connector drift reconstructed (`20261008000002_connector_editing.sql`) | ✅ | already on live |
-| 1B organizer profiles and claiming (`20261031000001_organizers.sql`) | ✅ | **migration not applied** |
+| 1B organizer profiles and claiming (`20261031000001_organizers.sql`) | ✅ | **live (applied 2 Nov 2026)** |
 | 1B `/pricing` with fee calculator, `/operators` | ✅ | live (merged 1 Nov 2026) |
 | Phase 0 interviews, concierge trip, Stripe platform application | owner | – |
-| 1C payments: schema, Edge Functions, screens (`20261101000001_payments.sql`, `…02_payments_cron.sql`, `docs/PAYMENTS.md`) | ✅ | **migrations not applied, functions not deployed; Stripe and Gmail setup is the owner's (runbook)** |
-| 2.0 Pro gating, free during beta (`20261102000001_pro.sql`) | ✅ | **migration not applied** |
-| 2a run a trip again, installments, refunds, evidence pack, reports, invite links (`20261102000002_repeat_business.sql`, `refund-create`) | ✅ | **migration not applied, function not deployed** |
-| 2b questions at booking, past travelers, waitlist with 48 h holds, rooms and rooming board (`20261103000001_travelers.sql`) | ✅ | **migration not applied; redeploy `checkout-create` and `email-dispatch` after it** |
-| 2c campaigns, held until a domain sender exists (`20261104000001_campaigns.sql`) | ✅ | **migration not applied; redeploy `email-dispatch`; `campaign_sending` stays off until you approve a sender** |
-| 2c referral credits (`20261104000002_referrals.sql`) | ✅ | **migration not applied; redeploy `checkout-create`** |
-| 4 switch tooling: import past travelers (Pro) and a plan (free) from CSV (`20261105000001_imports.sql`) | ✅ | **migration not applied** |
+| 1C payments: schema, Edge Functions, screens (`20261101000001_payments.sql`, `…02_payments_cron.sql`, `docs/PAYMENTS.md`) | ✅ | **migrations live; functions not deployed; Stripe and Gmail setup is the owner's (runbook)** |
+| 2.0 Pro gating, free during beta (`20261102000001_pro.sql`) | ✅ | **live (applied 2 Nov 2026)** |
+| 2a run a trip again, installments, refunds, evidence pack, reports, invite links (`20261102000002_repeat_business.sql`, `refund-create`) | ✅ | **migration live; function not deployed** |
+| 2b questions at booking, past travelers, waitlist with 48 h holds, rooms and rooming board (`20261103000001_travelers.sql`) | ✅ | **migration live; redeploy `checkout-create` and `email-dispatch` after it** |
+| 2c campaigns, held until a domain sender exists (`20261104000001_campaigns.sql`) | ✅ | **migration live; redeploy `email-dispatch`; `campaign_sending` stays off until you approve a sender** |
+| 2c referral credits (`20261104000002_referrals.sql`) | ✅ | **migration live; redeploy `checkout-create`** |
+| 4 switch tooling: import past travelers (Pro) and a plan (free) from CSV (`20261105000001_imports.sql`) | ✅ | **live (applied 2 Nov 2026)** |
 | 4 comparison page, migration offer, outbound | owner | needs dated, sourced claims and a legal check before anything is published |
 | 3 supplier layer and corporate tier | not started | waits for revenue or a signed pilot (plan section 6) |
 
