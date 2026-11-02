@@ -61,7 +61,11 @@ export function TicketFormScreen() {
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!file) return setError('Choose a PDF or a photo.')
+    if (!file) {
+      setError('Choose a PDF or photo before saving. A name or confirmation code alone does not include the ticket.')
+      fileRef.current?.closest('form')?.querySelector<HTMLButtonElement>('button')?.focus()
+      return
+    }
     setSaving(true)
     setError(null)
     try {
@@ -79,8 +83,9 @@ export function TicketFormScreen() {
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4">
         <input ref={fileRef} type="file" accept="application/pdf,image/*" hidden aria-label="Choose file" onChange={(e) => pick(e.target.files?.[0])} />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden aria-label="Take photo" onChange={(e) => pick(e.target.files?.[0])} />
+        <p id="ticket-file-help" className="text-sm leading-relaxed text-muted">A PDF or photo is required. Add the file first, then give it a name and confirmation code.</p>
         <div className="grid grid-cols-2 gap-2">
-          <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}><FileUp aria-hidden="true" className="size-4" />PDF or photo</Button>
+          <Button type="button" aria-describedby="ticket-file-help" variant="secondary" onClick={() => fileRef.current?.click()}><FileUp aria-hidden="true" className="size-4" />PDF or photo</Button>
           <Button type="button" variant="secondary" onClick={() => cameraRef.current?.click()}><Camera aria-hidden="true" className="size-4" />Take a photo</Button>
         </div>
         {file && <p className="rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink">{file.name} · {(file.size / 1024 / 1024).toFixed(1)} MB</p>}
@@ -120,7 +125,7 @@ export function TicketFormScreen() {
           </Select>
         </Field>
         <ErrorNote error={error} />
-        <Button type="submit" className="w-full" disabled={saving || !file}>{saving ? 'Saving…' : forExpense && kind === 'receipt' ? 'Save and log the expense' : 'Save'}</Button>
+        <Button type="submit" className="w-full" disabled={saving}>{saving ? 'Saving…' : forExpense && kind === 'receipt' ? 'Save and log the expense' : 'Save'}</Button>
         <p className="text-center text-xs text-muted">Saved on this phone right away, then shared with the group when there's signal.</p>
       </form>
     </div>

@@ -70,7 +70,7 @@ export function DestinationsCard({ trip, me }: { trip: Trip; me: string | null }
             placeholder={areas.length ? 'Add another town' : 'Search for a town or city'}
             onPick={(d) => {
               if (areas.some((a) => a.name === d.name)) return
-              void setAreas([...areas, { name: d.name, bbox: d.bbox, lat: d.lat, lng: d.lng }])
+              void setAreas([...areas, { name: d.name, bbox: d.bbox, lat: d.lat, lng: d.lng, countryCode: d.countryCode }])
             }}
           />
         </div>

@@ -281,3 +281,25 @@ describe('deletes', () => {
     expect((await db.places.get('p1'))!.deleted_at).toBeTruthy()
   })
 })
+
+
+it('fetches at most four first pages together while committing parents before children', async () => {
+  let active = 0
+  let peak = 0
+  const applied: string[] = []
+  db.trips.hook('creating', () => { applied.push('trips') })
+  db.members.hook('creating', () => { applied.push('members') })
+  const remote: Remote = {
+    write: async () => null,
+    pull: async (table) => {
+      active++
+      peak = Math.max(peak, active)
+      await new Promise((resolve) => setTimeout(resolve, table === 'trips' ? 15 : 1))
+      active--
+      return { rows: table === 'trips' || table === 'members' ? [{ id: table === 'trips' ? TRIP : 'member', trip_id: TRIP, updated_at: '2027-01-01T12:00:00Z' }] : [] }
+    },
+  }
+  expect(await pull(remote, TRIP, db, ['trips', 'members', 'places', 'links', 'itinerary_items'])).toEqual({ received: 2 })
+  expect(peak).toBe(4)
+  expect(applied).toEqual(['trips', 'members'])
+})

@@ -145,29 +145,35 @@ export async function pull(
   tables: TableName[] = SYNCED_TABLES,
 ): Promise<PullResult> {
   let received = 0
-  for (const table of tables) {
-    const key = cursorKey(tripId, table)
-    const cursor = (await database._meta.get(key))?.value ?? EPOCH
-    const since = new Date(Math.max(0, Date.parse(cursor) - OVERLAP_MS)).toISOString()
-    let maxSeen = cursor
-    for (let offset = 0; ; offset += PAGE) {
-      const res = await remote.pull(table, tripId, since, offset, PAGE)
-      if ('error' in res) return { received, error: res.error }
-      const t = database.table(table)
-      await database.transaction('rw', t, async () => {
-        for (const row of res.rows) {
-          const id = row.id as string
-          const local = await t.get(id)
-          if (local?._dirty) continue // unpushed local edit wins until it's pushed
-          await t.put({ ...row, _dirty: 0, _lrev: local?._lrev ?? 0 })
-          const u = row.updated_at as string
-          if (Date.parse(u) > Date.parse(maxSeen)) maxSeen = u
-        }
-      })
-      received += res.rows.length
-      if (res.rows.length < PAGE) break
+  // Fetch independent first pages together, but apply parent rows before child rows as before.
+  for (let start = 0; start < tables.length; start += 4) {
+    const batch = await Promise.all(tables.slice(start, start + 4).map(async (table) => {
+      const key = cursorKey(tripId, table)
+      const cursor = (await database._meta.get(key))?.value ?? EPOCH
+      const since = new Date(Math.max(0, Date.parse(cursor) - OVERLAP_MS)).toISOString()
+      return { table, key, cursor, since, first: await remote.pull(table, tripId, since, 0, PAGE) }
+    }))
+    for (const { table, key, cursor, since, first } of batch) {
+      let maxSeen = cursor
+      for (let offset = 0; ; offset += PAGE) {
+        const res = offset === 0 ? first : await remote.pull(table, tripId, since, offset, PAGE)
+        if ('error' in res) return { received, error: res.error }
+        const t = database.table(table)
+        await database.transaction('rw', t, async () => {
+          for (const row of res.rows) {
+            const id = row.id as string
+            const local = await t.get(id)
+            if (local?._dirty) continue // unpushed local edit wins until it's pushed
+            await t.put({ ...row, _dirty: 0, _lrev: local?._lrev ?? 0 })
+            const u = row.updated_at as string
+            if (Date.parse(u) > Date.parse(maxSeen)) maxSeen = u
+          }
+        })
+        received += res.rows.length
+        if (res.rows.length < PAGE) break
+      }
+      if (maxSeen !== cursor) await database._meta.put({ key, value: maxSeen })
     }
-    if (maxSeen !== cursor) await database._meta.put({ key, value: maxSeen })
   }
   return { received }
 }

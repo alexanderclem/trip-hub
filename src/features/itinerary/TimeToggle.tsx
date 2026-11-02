@@ -28,8 +28,8 @@ export function TimeToggle({ trip }: { trip: Trip | undefined }) {
       value={view}
       onChange={setTimeView}
       options={[
-        { value: 'trip', title: label(tripZone), label: <>{city(tripZone)} time<span className="ml-1 font-normal text-muted">{zoneLabel(tripZone, now)}</span></> },
-        { value: 'device', title: label(phoneZone), label: <>My phone<span className="ml-1 font-normal text-muted">{zoneLabel(phoneZone, now)}</span></> },
+        { value: 'trip', title: label(tripZone), ariaLabel: `${city(tripZone)} time, ${zoneLabel(tripZone, now)}`, label: <>{city(tripZone)} time<span className="ml-1 font-normal text-muted">{zoneLabel(tripZone, now)}</span></> },
+        { value: 'device', title: label(phoneZone), ariaLabel: `My phone time, ${zoneLabel(phoneZone, now)}`, label: <>My phone<span className="ml-1 font-normal text-muted">{zoneLabel(phoneZone, now)}</span></> },
       ]}
     />
   )

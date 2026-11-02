@@ -18,3 +18,14 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Install browser for guest-flow regressions
+        run: npx playwright install --with-deps chromium
+      - name: Check guest flows, appearance and keyboard behavior
+        run: >-
+          npx playwright test
+          tests/e2e/guest-evaluation.spec.ts
+          tests/e2e/first-run.spec.ts
+          tests/e2e/appearance.spec.ts
+          tests/e2e/wrapped.spec.ts
+          tests/e2e/journal.spec.ts
+          --workers=1

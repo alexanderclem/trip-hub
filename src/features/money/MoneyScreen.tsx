@@ -86,7 +86,7 @@ export function MoneyScreen() {
               </div>
               {/* Georgia with an italic amount, like the website's headlines; the amount counts up once. */}
               <p className="ui-display mt-1 text-[2.5rem]">
-                {mine === 0 ? 'All settled' : <>{mine > 0 ? "You're owed" : 'You owe'} <em className={mine > 0 ? 'text-success-ink' : 'text-danger-ink'}><NumberTicker value={Math.abs(mine)} format={(v) => fmt(v)} /></em></>}
+                {mine === 0 ? members.length < 2 ? 'No shared balance yet' : 'All settled' : <>{mine > 0 ? "You're owed" : 'You owe'} <em className={mine > 0 ? 'text-success-ink' : 'text-danger-ink'}><NumberTicker value={Math.abs(mine)} format={(v) => fmt(v)} /></em></>}
               </p>
               <p className="mt-2 text-sm text-muted">Group spending so far: <span className="tabular-nums">{fmt(total)}</span></p>
             </section>
@@ -94,7 +94,7 @@ export function MoneyScreen() {
             <Card>
               <SectionTitle>Settle up</SectionTitle>
               {transfers.length === 0 ? (
-                <p className="mt-2 flex items-center gap-2 text-sm text-success-ink"><Check aria-hidden="true" className="size-4" />Everyone is square.</p>
+                <p className="mt-2 flex items-center gap-2 text-sm text-success-ink"><Check aria-hidden="true" className="size-4" />{members.length < 2 ? 'Add another traveler to split costs and track who owes whom.' : 'Everyone is square.'}</p>
               ) : (
                 <ul className="mt-2 divide-y divide-line">
                   {transfers.map((t) => (
@@ -148,7 +148,7 @@ export function MoneyScreen() {
                             <p className="ui-row-title truncate">{r.e.description}</p>
                             <p className="truncate text-sm text-muted">
                               {r.e.payers.map((p) => (p.member_id === me ? 'You' : name(p.member_id))).join(' & ')} paid
-                              {me && computeShares(r.e).get(me)?.owed ? ` · your share ${fmt(computeShares(r.e).get(me)!.owed)}` : ''}
+                              {members.length > 1 && me && computeShares(r.e).get(me)?.owed ? ` · your share ${fmt(computeShares(r.e).get(me)!.owed)}` : ''}
                             </p>
                           </div>
                           <div className="text-right">

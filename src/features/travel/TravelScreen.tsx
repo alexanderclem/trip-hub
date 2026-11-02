@@ -1,3 +1,4 @@
+import { tripDestination } from '@/features/destinations/destinations'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { z } from 'zod'
@@ -33,8 +34,7 @@ export function TravelScreen() {
   useEffect(() => {
     if (!trip || initialized.current) return
     initialized.current = true
-    const c = typeof trip.settings.destination_country === 'string' ? trip.settings.destination_country : ''
-    const cityName = typeof trip.settings.destination_city === 'string' ? trip.settings.destination_city : ''
+    const { country: c, city: cityName } = tripDestination(trip)
     setCountry(c); setCity(cityName)
     if (c && cityName && trip.start_date && trip.end_date) setSelection({ country: c, city: cityName, start: trip.start_date, end: trip.end_date })
   }, [trip])
