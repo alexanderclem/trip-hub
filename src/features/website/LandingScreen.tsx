@@ -1,3 +1,4 @@
+import { AppearancePicker } from '@/ui/AppearancePicker'
 import { ArrowUpRight, Check, MapPin, Receipt, Ticket, Vote } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
 import { Brand } from '@/ui/Brand'
@@ -30,7 +31,6 @@ export function LandingScreen() {
       <main id="main-content" tabIndex={-1}>
         <section className="website-hero website-container" aria-labelledby="hero-title">
           <div className="website-hero-copy">
-            <p className="website-eyebrow website-category">Made for trips with friends</p>
             <h1 id="hero-title">Your group trip.<br />All in one place.</h1>
             <p className="website-intro">Save places, vote on favorites, and build an itinerary together. Keep tickets and shared expenses with the plan.</p>
             <div className="website-actions">
@@ -103,7 +103,7 @@ export function LandingScreen() {
         <section className="website-closing" aria-labelledby="closing-title"><div className="website-container website-closing-inner"><div><h2 id="closing-title">Plan your next trip together.</h2></div><Link to="/new" className="website-button website-button-primary">Create a trip <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
       </main>
 
-      <footer className="website-footer website-container"><div><Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link><p>A shared planner for group trips.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#questions">Questions</a><Link to="/operators">For organizers</Link><Link to="/pricing">Pricing</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/app">Open app</Link></nav></footer>
+      <footer className="website-footer website-container"><AppearancePicker /><div><Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link><p>A shared planner for group trips.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#questions">Questions</a><Link to="/operators">For organizers</Link><Link to="/pricing">Pricing</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/app">Open app</Link></nav></footer>
     </div>
   )
 }

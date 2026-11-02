@@ -279,7 +279,7 @@ export function StowieChat({ tripId, screen = null, subject = null, sheet = fals
               inputMode={numeric ? 'decimal' : 'text'} placeholder={PLACEHOLDER[thread.step] ?? (tripId ? 'Ask about the trip…' : 'Tell Stowie what you’re imagining…')}
               onChange={(e) => setText(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
             />
-            <button type="submit" className="ui-icon-button shrink-0 bg-action text-white disabled:opacity-45" aria-label="Send" disabled={busy || !text.trim()}><SendHorizontal aria-hidden="true" className="size-5" /></button>
+            <button type="submit" className="ui-icon-button shrink-0 bg-action text-on-action disabled:opacity-45" aria-label="Send" disabled={busy || !text.trim()}><SendHorizontal aria-hidden="true" className="size-5" /></button>
           </form>
         </div>
       </div>

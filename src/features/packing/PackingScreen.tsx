@@ -11,7 +11,7 @@ import { addStarters, claim, setMyCheck, setPacked, tally, usePacking } from './
 import { suggestedStarters } from './starters'
 
 const CHIP = 'min-h-11 rounded-control border px-3 text-sm font-medium'
-const chip = (on: boolean) => `${CHIP} ${on ? 'border-action bg-action text-white' : 'border-line bg-surface text-ink hover:bg-brand-50'}`
+const chip = (on: boolean) => `${CHIP} ${on ? 'border-action bg-action text-on-action' : 'border-line bg-surface text-ink hover:bg-brand-50'}`
 
 export function PackingScreen() {
   const { tripId } = useParams() as { tripId: string }

@@ -36,8 +36,9 @@ See [docs/BRAND.md](docs/BRAND.md) for voice and identity rules.
 
 ## Foundation tokens
 
-`src/styles/tokens.css` owns shared values. `src/styles/index.css` maps them to
-semantic Tailwind roles. The root `tokens.css` supplies illustration aliases only.
+`src/styles/tokens.css` owns shared dimensions and typography.
+`src/styles/themes.css` defines the light and dark palettes as custom DaisyUI themes.
+`src/styles/index.css` maps them to semantic Tailwind roles. The root `tokens.css` supplies illustration aliases only.
 
 | Role | Value | Use |
 | --- | --- | --- |
@@ -53,7 +54,7 @@ semantic Tailwind roles. The root `tokens.css` supplies illustration aliases onl
 | On action | `#ffffff` | Text on action and ink backgrounds |
 
 Status retains semantic success/warning/danger tokens and a visible label.
-Use a 6px control radius and 10px surface radius. Reserve shadows for overlays,
+Use a 6px control radius and 12px surface radius. Reserve shadows for overlays,
 floating controls, and the subtle public product-preview elevation.
 
 ## Type and alignment
@@ -127,3 +128,23 @@ phase-specific priorities, offline readiness, and persistence after reload.
 
 Historical `.design` reports record prior decisions. The current implementation
 and `.design/ui-ux-refresh-2026-10-30.md` describe this revision and its verification.
+
+## Appearance and implementation — November 2, 2026
+
+- Shared buttons, cards, inputs, textareas, selects, skeletons and the appearance
+  controller use DaisyUI 5 with Tailwind 4. Generate only the components in use;
+  avoid global resets that could change map, PDF or native dialog behavior.
+- Appearance defaults to the system. Light/Dark overrides persist on this device,
+  synchronize across tabs, and keep working for the session when storage is blocked.
+  The small external `appearance.js` applies the choice before the first paint.
+- Map existing `ink`, `muted`, `action`, `on-action`, status and itinerary roles to
+  each theme. Use `text-on-action` on action backgrounds, `text-danger` on danger-ink
+  backgrounds; fixed-color artwork/avatars retain their own foreground pairs.
+- Tailwind `dark:` follows `data-theme="stowaway-dark"`. Native DaisyUI theme
+  controller radios share that same state. Preserve logo masters on a light backing.
+- Form hints belong to their field's accessible description. Keep input font sizes
+  at least 16px on phones. Controls have a visible focus indicator and 44px targets.
+- Stowie reply suggestions adapt Pasta UI's keyboard pattern using existing native
+  buttons, without adding its separate component runtime or icon library.
+- Impeccable is a development tool. `npm run lint:design` scans all application source;
+  TypeScript and the test suites supply the code and behavior checks.

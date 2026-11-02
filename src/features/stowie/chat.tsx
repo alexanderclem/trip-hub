@@ -1,3 +1,4 @@
+import { ReplySuggestions } from '@/ui/ReplySuggestions'
 import { useEffect, type ReactNode } from 'react'
 import { DateTime } from 'luxon'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -15,7 +16,7 @@ export function Bubble({ from, children }: { from: 'stowie' | 'me'; children: Re
   return (
     <m.div
       initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={motionTiming.enter}
-      className={`w-fit max-w-[88%] rounded-surface px-4 py-2.5 text-[0.95rem] leading-relaxed ${from === 'me' ? 'ml-auto rounded-br-control bg-action text-white' : 'rounded-bl-control border border-line bg-surface text-ink'}`}
+      className={`w-fit max-w-[88%] rounded-surface px-4 py-2.5 text-[0.95rem] leading-relaxed ${from === 'me' ? 'ml-auto rounded-br-control bg-action text-on-action' : 'rounded-bl-control border border-line bg-surface text-ink'}`}
     >
       <span className="sr-only">{from === 'me' ? 'You: ' : 'Stowie: '}</span>{children}
     </m.div>
@@ -24,16 +25,7 @@ export function Bubble({ from, children }: { from: 'stowie' | 'me'; children: Re
 
 /** Reply chips in one sideways-scrolling row, so they never push the conversation off a phone screen. */
 export function ChipRow({ chips, disabled, onPick }: { chips: Chip[]; disabled?: boolean; onPick(chip: Chip): void }) {
-  if (!chips.length) return null
-  return (
-    <div role="group" aria-label="Suggested replies" className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1 [scrollbar-width:none]">
-      {chips.map((chip) => (
-        <button key={chip.id} type="button" disabled={disabled} onClick={() => onPick(chip)} className="min-h-11 shrink-0 whitespace-nowrap rounded-full border border-action bg-surface px-4 text-sm font-medium text-ink hover:bg-brand-50 active:bg-mist disabled:opacity-45">
-          {chip.label}
-        </button>
-      ))}
-    </div>
-  )
+  return <ReplySuggestions items={chips} disabled={disabled} onPick={onPick} />
 }
 
 export function ProfileCard({ scores }: { scores: Scores }) {

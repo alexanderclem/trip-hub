@@ -13,7 +13,8 @@
     "seed:places": "node scripts/overpass-seed.ts",
     "smoke": "node scripts/smoke-test.ts",
     "test:e2e": "playwright test",
-    "fetch:map-assets": "node scripts/fetch-map-assets.ts"
+    "fetch:map-assets": "node scripts/fetch-map-assets.ts",
+    "lint:design": "impeccable detect src/"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.0",
@@ -46,8 +47,10 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "daisyui": "^5.7.50",
     "fake-indexeddb": "^6.2.5",
     "fast-check": "^4.10.2",
+    "impeccable": "^4.8.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",

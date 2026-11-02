@@ -25,7 +25,7 @@ export function PricingScreen() {
           </article>
           <article className="marketing-plan" aria-labelledby="plan-collect">
             <h3 id="plan-collect">Collecting payments <span className="marketing-muted">(coming soon)</span></h3>
-            <p className="marketing-price">1% <span className="marketing-muted" style={{ fontSize: '1rem', letterSpacing: 0 }}>+ Stripe’s fee</span></p>
+            <p className="marketing-price">1% <span className="marketing-muted text-base tracking-normal">+ Stripe’s fee</span></p>
             <ul>
               {['Deposits and balances from every traveler', 'Paid straight to your own Stripe account, on your payout schedule', 'You choose who pays the fees: you, or travelers as a booking fee', 'Refund a traveler and we refund our 1% on it'].map((t) => <li key={t}><Check size={16} aria-hidden="true" />{t}</li>)}
             </ul>

@@ -1,3 +1,4 @@
+import { AppearancePicker } from '@/ui/AppearancePicker'
 import { coverPhoto } from './covers'
 import { Link } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -114,7 +115,7 @@ export function HomeScreen() {
         <AccountCard />
         </div>
       </div>
-      <footer className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-ink/15 pt-5 text-xs text-muted">
+      <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5 text-xs text-muted"><AppearancePicker />
         <InstallAppButton />
         <Link to="/connections" className="inline-flex min-h-11 items-center font-medium text-action">Connected apps</Link>
       </footer>

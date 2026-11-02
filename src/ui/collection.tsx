@@ -18,7 +18,7 @@ export function EmptyDescription(props: ComponentProps<'p'>) {
 }
 
 export function Skeleton({ className = '', ...props }: ComponentProps<'div'>) {
-  return <div data-slot="skeleton" className={`rounded-control bg-mist motion-safe:animate-pulse ${className}`} {...props} />
+  return <div data-slot="skeleton" className={`skeleton rounded-control bg-mist motion-safe:animate-pulse ${className}`} {...props} />
 }
 
 /** Placeholder rows while a list loads from the phone, in place of a line of "Loading…" text. */

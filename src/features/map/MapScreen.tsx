@@ -543,7 +543,7 @@ export default function MapScreen() {
 
       {measuring && (
         <div className="absolute inset-x-0 bottom-6 z-20 p-3">
-          <div className="mx-auto flex max-w-md items-center gap-3 rounded-surface bg-ink p-4 text-white shadow-lg">
+          <div className="mx-auto flex max-w-md items-center gap-3 rounded-surface bg-ink p-4 text-on-action shadow-lg">
             <Ruler className="size-5 shrink-0" />
             <p className="flex-1 text-sm">Tap another place to see travel times from <b>{measuring.name}</b></p>
             <button onClick={() => setMeasuring(null)} aria-label="Cancel measuring" className="rounded-full p-1 active:bg-surface/10">

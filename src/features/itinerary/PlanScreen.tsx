@@ -227,7 +227,7 @@ function BlockCard({ block, top, height, zone, tripId, place, to }: { block: Blo
       <Link
         to={`/t/${tripId}/plan/${item.id}`}
         aria-label={`${item.title}, ${time}${where ? `, ${where}` : ''}${conflict ? ', overlaps another item' : ''}`}
-        className={`flex h-full flex-col overflow-hidden rounded-surface border-l-4 px-2 py-1 text-left ${k.bg} ${k.border} ${k.text} ${dashed ? 'border-dashed opacity-80' : ''} ${conflict ? 'ring-2 ring-danger-ink' : ''}`}
+        className={`flex h-full flex-col overflow-hidden rounded-control border px-2 py-1 text-left ${k.bg} ${k.border} ${k.text} ${dashed ? 'border-dashed opacity-80' : ''} ${conflict ? 'ring-2 ring-danger-ink' : ''}`}
       >
         <span className="flex items-center gap-1 text-xs font-medium opacity-80">
           <k.Icon aria-hidden="true" className="size-3.5 shrink-0" />

@@ -1,3 +1,4 @@
+import { initializeAppearance } from './ui/appearance'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
@@ -12,6 +13,7 @@ import { rememberSource } from './features/funnel/events'
 import './styles/index.css'
 import './styles/journal.css'
 
+initializeAppearance()
 initializeInstallPrompt()
 rememberSource(location.search)
 

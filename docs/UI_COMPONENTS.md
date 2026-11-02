@@ -61,3 +61,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 `PageHeader` reads the current trip from `HeaderTripName` unless a screen supplies its own eyebrow. `Segmented` supports a single tab stop, arrow-key selection, wraparound, and Home/End.
+
+## Shared primitives and themes (November 2026)
+
+The existing public component API now composes DaisyUI 5 semantic primitives with
+Stowaway's Tailwind utilities. `Button`/`LinkButton` use `btn` variants; `Card`,
+`Input`, `Select`, `Textarea`, and `Skeleton` use the corresponding semantic classes.
+Existing call sites keep their behavior. Native dialogs remain native dialogs.
+
+`AppearancePicker` uses native radios, DaisyUI's theme controller and a shared
+`useSyncExternalStore` preference. Use `showLabel={false}` when the parent already
+provides an Appearance heading. `Field` associates its hint with its controls and
+preserves any explicit `aria-describedby` IDs passed by a form.
+
+`ReplySuggestions` adapts the keyboard navigation pattern from
+[Pasta UI Follow-up Suggestions](https://pastaui.com/r/follow-up-suggestions.json)
+to existing native action buttons. Arrow keys wrap; Home/End move to the first/last
+reply. Enter/Space keep native button behavior. It uses the existing Lucide/Motion
+stack; no second primitive or icon library is required. The MIT notice is retained
+in `docs/licenses/pastaui.txt`.
+
+Palette ownership lives in `src/styles/themes.css`, dimensions and type in
+`src/styles/tokens.css`, and Tailwind aliases in `src/styles/index.css`.
+Run `npm run lint:design` for the Impeccable source scan, `npm run typecheck` for
+strict TypeScript validation, and the Playwright appearance suite for persistence,
+keyboard behavior, reflow and theme contrast.

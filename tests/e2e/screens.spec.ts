@@ -79,27 +79,31 @@ const screens: [name: string, path: string][] = [
   ['activity', 'activity'],
 ]
 
-for (const width of [390, 1440]) {
-  test(`trip screens at ${width}px`, async ({ page, baseURL }) => {
-    test.skip(!shots, 'Set SHOTS_DIR to capture screenshots.')
-    test.setTimeout(240_000)
-    await page.setViewportSize({ width, height: width === 390 ? 844 : 900 })
-    await seed(page, baseURL!)
-    const errors: string[] = []
-    page.on('pageerror', e => errors.push(e.message))
-    for (const [name, path] of screens) {
-      await page.goto(`${root}/${path}`)
-      await (name === 'map' ? page.getByRole('button', { name: /Filters/ }) : page.getByRole('heading', { level: 1 }).first()).waitFor()
-      await page.waitForTimeout(900) // lets a balance finish counting up
-      await page.screenshot({ path: `${shots}/${name}-${width}.png` })
-      // The screen itself scrolls inside the shell, so a full-page capture needs the content's own height.
-      const tall = await page.locator('#trip-content').evaluate(el => el.scrollHeight)
-      if (tall > 900) {
-        await page.setViewportSize({ width, height: Math.min(tall + 200, 5000) })
-        await page.screenshot({ path: `${shots}/${name}-${width}-full.png` })
-        await page.setViewportSize({ width, height: width === 390 ? 844 : 900 })
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const width of [390, 1440]) {
+    test(`trip screens in ${colorScheme} mode at ${width}px`, async ({ page, baseURL }) => {
+      test.skip(!shots, 'Set SHOTS_DIR to capture screenshots.')
+      test.setTimeout(240_000)
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
+      await page.setViewportSize({ width, height: width === 390 ? 844 : 900 })
+      await seed(page, baseURL!)
+      const errors: string[] = []
+      page.on('pageerror', e => errors.push(e.message))
+      for (const [name, path] of screens) {
+        await page.goto(`${root}/${path}`)
+        await (name === 'map' ? page.getByRole('button', { name: /Filters/ }) : page.getByRole('heading', { level: 1 }).first()).waitFor()
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `${name} at ${width}px`).toBe(true)
+        await page.waitForTimeout(900) // lets a balance finish counting up
+        await page.screenshot({ path: `${shots}/${colorScheme}-${name}-${width}.png` })
+        // The screen itself scrolls inside the shell, so a full-page capture needs the content's own height.
+        const tall = await page.locator('#trip-content').evaluate(el => el.scrollHeight)
+        if (tall > 900) {
+          await page.setViewportSize({ width, height: Math.min(tall + 200, 5000) })
+          await page.screenshot({ path: `${shots}/${colorScheme}-${name}-${width}-full.png` })
+          await page.setViewportSize({ width, height: width === 390 ? 844 : 900 })
+        }
       }
-    }
-    expect(errors).toEqual([])
-  })
+      expect(errors).toEqual([])
+    })
+  }
 }

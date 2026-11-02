@@ -25,7 +25,7 @@ export function ActivityList({ tripId, events, members, me, since }: {
                 {!author && name && <span className="font-medium">{name} </span>}{e.text}
                 <span className="block text-xs text-muted">{ago(e.at, now)}</span>
               </span>
-              {fresh && <span className="mt-1 shrink-0 rounded-full bg-action px-2 py-0.5 text-xs font-medium text-white">New</span>}
+              {fresh && <span className="mt-1 shrink-0 rounded-full bg-action px-2 py-0.5 text-xs font-medium text-on-action">New</span>}
             </Link>
           </li>
         )

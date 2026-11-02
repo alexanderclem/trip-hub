@@ -37,7 +37,7 @@ export function TravelersScreen() {
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tag">
                 {[null, ...tags].map((t) => (
-                  <button key={t ?? 'all'} type="button" aria-pressed={tag === t} className={`min-h-11 rounded-control border px-3 text-sm ${tag === t ? 'border-action bg-action text-white' : 'border-line'}`} onClick={() => setTag(t)}>{t ?? 'All'}</button>
+                  <button key={t ?? 'all'} type="button" aria-pressed={tag === t} className={`min-h-11 rounded-control border px-3 text-sm ${tag === t ? 'border-action bg-action text-on-action' : 'border-line'}`} onClick={() => setTag(t)}>{t ?? 'All'}</button>
                 ))}
               </div>
             )}

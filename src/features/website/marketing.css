@@ -1,7 +1,7 @@
 /* Pricing and organizers pages. Built from the landing page's tokens (website.css, tokens.css). */
 
 .marketing-hero { padding-block: 2.5rem 1.5rem; }
-.marketing-hero h1 { margin-top: 1rem; max-width: 18ch; font-family: var(--stowaway-font-display); font-size: clamp(2.5rem, 7vw, 4rem); font-weight: 400; line-height: 1.08; letter-spacing: -.05em; }
+.marketing-hero h1 { margin-top: 1rem; max-width: 18ch; font-family: var(--stowaway-font-display); font-size: clamp(2.5rem, 7vw, 4rem); font-weight: 400; line-height: 1.08; letter-spacing: -.03em; }
 .marketing-section { padding-block: var(--stowaway-section-space); border-top: 1px solid var(--stowaway-border); }
 .marketing-section h2 { margin-bottom: 1.5rem; }
 
@@ -17,7 +17,7 @@
 .calc { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; padding: 1.25rem; border-radius: var(--stowaway-radius-surface); background: var(--stowaway-mist); }
 .calc-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1rem; }
 .calc label, .calc legend { display: block; font-size: .8125rem; font-weight: 600; }
-.calc input, .calc select { display: block; width: 100%; min-height: 44px; margin-top: .375rem; padding: .5rem .75rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); background: var(--stowaway-surface); color: var(--stowaway-ink); font: inherit; }
+.calc input, .calc select { display: block; width: 100%; min-height: 44px; margin-top: .375rem; padding: .5rem .75rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); background: var(--stowaway-surface); color: var(--stowaway-ink); font-family: inherit; font-size: 1rem; }
 .calc fieldset { min-width: 0; border: 0; }
 .calc-choice { display: flex; gap: .5rem; margin-top: .375rem; }
 .calc-choice label { display: flex; flex: 1; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: .5rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); background: var(--stowaway-surface); font-weight: 500; cursor: pointer; }
@@ -38,7 +38,7 @@
 .marketing-points h3 { font-size: 1.125rem; font-weight: 600; }
 .marketing-points p { margin-top: .5rem; color: var(--stowaway-muted); line-height: 1.7; }
 .marketing-form { display: grid; gap: .75rem; max-width: 28rem; margin-top: 1.5rem; }
-.marketing-form input { min-height: 50px; padding: .75rem 1rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); background: var(--stowaway-surface); color: var(--stowaway-ink); font: inherit; }
+.marketing-form input { min-height: 50px; padding: .75rem 1rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); background: var(--stowaway-surface); color: var(--stowaway-ink); font-family: inherit; font-size: 1rem; }
 .marketing-status { font-size: .875rem; }
 
 @media (max-width: 759px) {

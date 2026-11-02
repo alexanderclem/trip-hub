@@ -1,14 +1,13 @@
 // Shared UI primitives, styled to match the adapted shadcn collection.
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useId, useRef, useState } from 'react'
 import type { ComponentProps, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router'
 import { travelerInitials } from '@/features/trips/traveler'
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { CircleAlert, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { dateOrder, formatTypedDate, parseTypedDate } from '@/lib/time'
 import { m, type HTMLMotionProps } from 'motion/react'
 import { useMotionPreference } from './MotionProvider'
 import { motionTiming } from './motion'
-import { useSlidingHighlight } from './effects'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 const MotionLink = m.create(Link)
@@ -25,7 +24,7 @@ export function Button({
       transition={motionTiming.feedback}
       {...props}
       className={cx(
-        'ui-button', `ui-button-${variant}`,
+        'btn', variant === 'primary' ? 'btn-primary' : variant === 'danger' ? 'btn-error btn-outline' : variant === 'secondary' ? 'btn-outline' : 'btn-ghost', 'ui-button', `ui-button-${variant}`,
         className,
       )}
     />
@@ -34,17 +33,27 @@ export function Button({
 
 export function LinkButton({ variant = 'primary', className, ...props }: ComponentProps<typeof MotionLink> & { variant?: 'primary' | 'secondary' | 'ghost' }) {
   const reducedMotion = useMotionPreference()
-  return <MotionLink whileTap={reducedMotion ? undefined : { y: 1 }} transition={motionTiming.feedback} {...props} className={cx('ui-button', `ui-button-${variant}`, className)} />
+  return <MotionLink whileTap={reducedMotion ? undefined : { y: 1 }} transition={motionTiming.feedback} {...props} className={cx('btn', variant === 'primary' ? 'btn-primary' : variant === 'secondary' ? 'btn-outline' : 'btn-ghost', 'ui-button', `ui-button-${variant}`, className)} />
 }
 
+const FieldDescription = createContext<string | undefined>(undefined)
+
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  const hintId = useId()
   return (
-    <label className="block">
-      <span className="text-sm font-[550] text-ink">{label}</span>
-      <div className="mt-1.5">{children}</div>
-      {hint && <span className="mt-1.5 block text-xs leading-relaxed text-muted">{hint}</span>}
-    </label>
+    <FieldDescription value={hint ? hintId : undefined}>
+      <label className="block">
+        <span className="text-sm font-[550] text-ink">{label}</span>
+        <div className="mt-1.5">{children}</div>
+        {hint && <span id={hintId} className="mt-1.5 block text-sm leading-relaxed text-muted">{hint}</span>}
+      </label>
+    </FieldDescription>
   )
+}
+
+function useFieldDescription(description?: string) {
+  const hint = useContext(FieldDescription)
+  return [hint, description].filter(Boolean).join(' ') || undefined
 }
 
 // Full width by default; a caller's own width (w-20, w-28, …) replaces it instead of fighting it
@@ -53,9 +62,10 @@ const fieldCls = (className?: string) => cx(/(^|\s)w-/.test(className ?? '') ? '
 const inputCls =
   'ui-field rounded-control border border-control bg-surface px-3 py-2.5 text-base text-ink placeholder:text-muted focus:border-action disabled:cursor-not-allowed disabled:bg-mist/60 disabled:opacity-60 aria-invalid:border-danger-ink'
 
-export const Input = (props: InputHTMLAttributes<HTMLInputElement>) => (
-  <input {...props} className={fieldCls(props.className)} />
-)
+export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
+  const description = useFieldDescription(props['aria-describedby'])
+  return <input {...props} aria-describedby={description} className={cx('input', fieldCls(props.className))} />
+}
 const DATE_HINT = { MDY: 'MM/DD/YYYY', DMY: 'DD/MM/YYYY', YMD: 'YYYY-MM-DD' }
 
 type DateInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange' | 'min' | 'max'> & {
@@ -72,6 +82,7 @@ type DateInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'valu
  * wheel, which is quicker there than a keyboard.
  */
 export function DateInput({ value, onValue, min, max, className, ...props }: DateInputProps) {
+  const description = useFieldDescription(props['aria-describedby'])
   const [touch] = useState(() => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches)
   const [order] = useState(() => dateOrder())
   const [text, setText] = useState(() => formatTypedDate(value, order))
@@ -96,12 +107,13 @@ export function DateInput({ value, onValue, min, max, className, ...props }: Dat
     )
   }, [text, typed, min, max, order])
 
-  if (touch) return <input {...props} type="date" value={value} min={min} max={max} onChange={(e) => onValue(e.target.value)} className={fieldCls(className)} />
+  if (touch) return <input {...props} aria-describedby={description} type="date" value={value} min={min} max={max} onChange={(e) => onValue(e.target.value)} className={fieldCls(className)} />
   return (
     <div className="relative">
       <input
         placeholder={DATE_HINT[order]}
         {...props}
+        aria-describedby={description}
         ref={field}
         type="text"
         inputMode="numeric"
@@ -131,12 +143,14 @@ export function DateInput({ value, onValue, min, max, className, ...props }: Dat
   )
 }
 
-export const Select = (props: SelectHTMLAttributes<HTMLSelectElement>) => (
-  <select {...props} className={fieldCls(props.className)} />
-)
-export const Textarea = (props: TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-  <textarea rows={3} {...props} className={fieldCls(props.className)} />
-)
+export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
+  const description = useFieldDescription(props['aria-describedby'])
+  return <select {...props} aria-describedby={description} className={cx('select', fieldCls(props.className))} />
+}
+export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const description = useFieldDescription(props['aria-describedby'])
+  return <textarea rows={3} {...props} aria-describedby={description} className={cx('textarea', fieldCls(props.className))} />
+}
 
 /**
  * A distinct object, laid out like the website's sample trip. `title` (with an optional
@@ -147,7 +161,7 @@ export function Card({ children, className, eyebrow, title, action, footer, fram
   children?: ReactNode; className?: string; eyebrow?: ReactNode; title?: ReactNode; action?: ReactNode; footer?: ReactNode; framed?: boolean; labelledBy?: string
 }) {
   const card = (
-    <section className={cx('ui-card', className)} aria-labelledby={labelledBy}>
+    <section className={cx('card', 'ui-card', className)} aria-labelledby={labelledBy}>
       {(title || eyebrow || action) && (
         <div className="ui-card-head">
           <div>
@@ -212,9 +226,8 @@ export function SectionTitle({ className, ...props }: ComponentProps<'h2'>) {
 export function Segmented<T extends string>({ label, value, options, onChange, className }: {
   label: string; value: T; options: readonly { value: T; label: ReactNode; title?: string }[]; onChange: (value: T) => void; className?: string
 }) {
-  const { ref, style } = useSlidingHighlight<HTMLDivElement>(value, '[aria-checked="true"]')
   return (
-    <div ref={ref} role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }} onKeyDown={(event) => {
+    <div role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} onKeyDown={(event) => {
       const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']
       if (!keys.includes(event.key) || !options.length) return
       const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]'))
@@ -227,7 +240,6 @@ export function Segmented<T extends string>({ label, value, options, onChange, c
       onChange(options[index]!.value)
       buttons[index]?.focus()
     }}>
-      <span className="ui-highlight" style={style} aria-hidden="true" />
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" tabIndex={value === o.value ? 0 : -1} aria-checked={value === o.value} title={o.title} onClick={() => onChange(o.value)}>{o.label}</button>
       ))}
@@ -295,7 +307,7 @@ export function Disclosure({ summary, children, className, defaultOpen, open, on
 
 export function ErrorNote({ error }: { error: string | null }) {
   if (!error) return null
-  return <p role="alert" className="rounded-control border-l-2 border-danger-ink bg-danger px-3 py-2.5 text-sm leading-relaxed text-danger-ink">{error}</p>
+  return <p role="alert" className="flex items-start gap-2.5 wrap-anywhere rounded-control border border-danger-ink bg-danger px-3 py-2.5 text-sm leading-relaxed text-danger-ink"><CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0">{error}</span></p>
 }
 
 export function Avatar({ name, color, photo, size = 'md' }: { name: string; color: string | null; photo?: string | null; size?: 'sm' | 'md' }) {

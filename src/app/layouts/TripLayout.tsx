@@ -151,7 +151,7 @@ function TripShell({ tripId }: { tripId: string }) {
   const tabBar = useSlidingHighlight<HTMLElement>(current, '.trip-tab[aria-current="page"]')
   const desktopCurrent = desktopTabOf(rest)
   const unseen = useUnseenActivity(tripId, joined[tripId]?.memberId ?? null)
-  const news = unseen > 0 && <span className="rounded-full bg-action px-2 py-0.5 text-xs font-semibold text-white"><span aria-hidden="true">{unseen > 9 ? '9+' : unseen}</span><span className="sr-only"> {unseen === 1 ? '1 new update' : `${unseen} new updates`}</span></span>
+  const news = unseen > 0 && <span className="rounded-full bg-action px-2 py-0.5 text-xs font-semibold text-on-action"><span aria-hidden="true">{unseen > 9 ? '9+' : unseen}</span><span className="sr-only"> {unseen === 1 ? '1 new update' : `${unseen} new updates`}</span></span>
   // Shared actions stay in the header, clear of the map, forms, and floating add buttons.
   const tools = useMemo(() => <div className="trip-header-tools"><QuickAdd tripId={tripId} /><StowieCompanion tripId={tripId} /><span className="trip-header-sync lg:hidden"><SyncStatusButton tripId={tripId} /></span></div>, [tripId])
   return (

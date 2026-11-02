@@ -67,7 +67,7 @@ export function FeeCalculator() {
           <table className="calc-table">
             <caption className="sr-only">Each traveler’s payments and fees</caption>
             <thead>
-              <tr><td /> {q.charges.map((c) => <th key={c.label} scope="col">{c.label}</th>)}<th scope="col">All {people}</th></tr>
+              <tr><td />{q.charges.map((c) => <th key={c.label} scope="col">{c.label}</th>)}<th scope="col">All {people}</th></tr>
             </thead>
             <tbody>
               <tr><th scope="row">Charged</th>{q.charges.map((c) => <td key={c.label}>{usd(c.charged)}</td>)}<td>{usd(q.total.charged)}</td></tr>

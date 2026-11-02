@@ -1,3 +1,4 @@
+import { AppearancePicker } from '@/ui/AppearancePicker'
 import { Link, useLocation } from 'react-router'
 import { ArrowRight, Plus } from 'lucide-react'
 import { useDevice } from '@/data/device'
@@ -34,7 +35,7 @@ export function WelcomeScreen() {
         {joining ? <>{joinTrip}{startTrip}</> : <>{startTrip}{joinTrip}</>}
       </div>
       <div className="app-entry-extras"><AccountCard /><Link to="/inspire" className="ui-link">Need ideas? Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link></div>
-      <footer className="app-entry-footer"><Link to="/">Back to Stowaway</Link><InstallAppButton /></footer>
+      <footer className="app-entry-footer"><AppearancePicker /><Link to="/">Back to Stowaway</Link><InstallAppButton /></footer>
     </main>
   )
 }

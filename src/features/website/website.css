@@ -36,7 +36,7 @@
 .website-category > span { width: .5rem; height: .5rem; flex-shrink: 0; border-radius: 50%; background: var(--stowaway-coral); }
 .website-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; padding-top: 2.5rem; padding-bottom: 2.5rem; }
 .website-hero-copy { min-width: 0; align-self: center; }
-.website-hero h1 { margin-top: 1.5rem; font-family: var(--stowaway-font-display); font-size: var(--stowaway-text-hero); font-weight: 600; line-height: 1.07; letter-spacing: -.045em; }
+.website-hero h1 { margin-top: 0; font-family: var(--stowaway-font-display); font-size: var(--stowaway-text-hero); font-weight: 600; line-height: 1.07; letter-spacing: -.03em; }
 .website-intro { max-width: 39ch; margin-top: 1.75rem; color: var(--stowaway-muted); font-size: 1.0625rem; line-height: 1.7; }
 .website-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; margin-top: 2rem; }
 .website-hero-note { max-width: 45ch; margin-top: 1.25rem; font-size: .75rem; color: var(--stowaway-muted); line-height: 1.7; }
@@ -141,7 +141,7 @@
 .website-skip { position: absolute; inset-inline-start: 1rem; top: -100px; z-index: 50; background: var(--stowaway-surface); padding: 1rem; border: 2px solid var(--stowaway-ink); }
 .website-skip:focus { top: 1rem; }
 .website-notfound-main { padding-block: var(--stowaway-section-space); }
-.website-notfound-main h1 { margin-top: 2rem; max-width: 15ch; font: 400 var(--stowaway-text-hero)/1.1 var(--stowaway-font-display); letter-spacing: -.045em; }
+.website-notfound-main h1 { margin-top: 2rem; max-width: 15ch; font: 400 var(--stowaway-text-hero)/1.1 var(--stowaway-font-display); letter-spacing: -.03em; }
 .website-notfound-main > p { max-width: 48ch; margin-top: 1.5rem; line-height: 1.8; color: var(--stowaway-muted); }
 .website-hero > *, .website-section-heading > *, .website-questions > *, .website-offline-inner > * { min-width: 0; }
 @media (min-width: 760px) {
@@ -185,3 +185,5 @@
 
 /* Product explanation follows the same quiet, ruled layout as the trip itself. */
 .website-hero .website-text-link { min-height: 50px; }
+
+.website-footer > fieldset { flex-basis: 100%; order: 1; padding-top: 1.25rem; border-top: 1px solid var(--stowaway-border); }

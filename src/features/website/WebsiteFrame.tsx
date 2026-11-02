@@ -1,3 +1,4 @@
+import { AppearancePicker } from '@/ui/AppearancePicker'
 import type { ReactNode } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router'
@@ -21,7 +22,7 @@ export function WebsiteFrame({ children }: { children: ReactNode }) {
         </header>
       </div>
       <main id="main-content" tabIndex={-1}>{children}</main>
-      <footer className="website-footer website-container">
+      <footer className="website-footer website-container"><AppearancePicker />
         <div><Link to="/" aria-label="Stowaway home"><Brand variant="website" className="website-logo" /></Link><p>A shared planner for group trips.</p></div>
         <nav aria-label="Footer navigation"><Link to="/operators">For organizers</Link><Link to="/pricing">Pricing</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/app">Open app</Link></nav>
       </footer>

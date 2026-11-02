@@ -13,7 +13,7 @@ const tel = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 
 function CallButton({ label, phone }: { label: string; phone: string }) {
   return (
-    <a href={tel(phone)} className="flex min-h-14 items-center gap-3 rounded-surface bg-danger-ink px-4 py-2 text-white hover:bg-danger-ink">
+    <a href={tel(phone)} className="flex min-h-14 items-center gap-3 rounded-surface bg-danger-ink px-4 py-2 text-danger hover:bg-danger-ink">
       <Phone aria-hidden="true" className="size-5 shrink-0" />
       <span className="min-w-0 flex-1"><span className="block font-semibold">{label}</span><span className="block text-sm tabular-nums text-red-100">{phone}</span></span>
     </a>
@@ -165,7 +165,7 @@ export function MedicalScreen() {
             <div key={label}><dt className="text-sm font-medium text-muted">{label}</dt><dd className="whitespace-pre-line break-words text-2xl">{v || '—'}</dd></div>
           ))}
         </dl>
-        {s?.emergency_phone && <a href={tel(s.emergency_phone)} className="mt-8 flex min-h-14 items-center justify-center gap-2 rounded-surface bg-danger-ink font-semibold text-white"><Phone aria-hidden="true" className="size-5" />Call {s.emergency_name ?? 'emergency contact'}</a>}
+        {s?.emergency_phone && <a href={tel(s.emergency_phone)} className="mt-8 flex min-h-14 items-center justify-center gap-2 rounded-surface bg-danger-ink font-semibold text-danger"><Phone aria-hidden="true" className="size-5" />Call {s.emergency_name ?? 'emergency contact'}</a>}
       </div>
     </div>
   )

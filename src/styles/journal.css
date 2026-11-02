@@ -52,12 +52,12 @@
 
 /* Travel day: the event and departure are the artifact; the explanation is a disclosure. */
 .up-next { min-width: 0; padding: 1.25rem; border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); }
-.up-next-prominent { padding: 1.5rem; border-color: #b5c7c6; background: var(--stowaway-mist); }
+.up-next-prominent { padding: 1.5rem; border-color: var(--stowaway-control-border); background: var(--stowaway-mist); }
 .up-next > div:first-child { gap: .5rem; }
 .up-next-title { display: flex; justify-content: space-between; align-items: center; gap: .75rem; min-height: 44px; margin-top: .5rem; font-family: var(--stowaway-font-display); font-size: 1.65rem; letter-spacing: -.03em; line-height: 1.2; color: var(--stowaway-ink); }
 .up-next-title:hover { text-decoration: underline; text-underline-offset: 4px; }
 .up-next-prominent .up-next-title { font-size: clamp(1.9rem, 3vw, 2.5rem); }
-.up-next-departure { display: flex; gap: .75rem; margin-top: 1rem; padding: .875rem 1rem; border-inline-start: 3px solid var(--stowaway-action); background: var(--stowaway-canvas); border-radius: 0 var(--stowaway-radius-control) var(--stowaway-radius-control) 0; color: var(--stowaway-ink); }
+.up-next-departure { display: flex; gap: .75rem; margin-top: 1rem; padding: .875rem 1rem; border: 1px solid var(--stowaway-control-border); background: var(--stowaway-canvas); border-radius: var(--stowaway-radius-control); color: var(--stowaway-ink); }
 .up-next-actions { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; margin-top: .75rem; }
 .up-next-actions:empty { display: none; }
 .up-next-guidance { margin-top: .5rem; padding-top: .25rem; border-top: 1px solid var(--stowaway-border); }

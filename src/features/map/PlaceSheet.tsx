@@ -86,7 +86,7 @@ export function PlaceSheet({ place, origins, origin, onOrigin, onMeasure, legCtx
                 key={c.place.id}
                 onClick={() => { setReporting(false); onOrigin(c.place.id) }}
                 aria-pressed={origin?.id === c.place.id}
-                className={`min-h-11 shrink-0 rounded-control px-3 py-2 text-sm ${origin?.id === c.place.id ? 'bg-action text-white' : 'border border-line bg-surface text-ink'}`}
+                className={`min-h-11 shrink-0 rounded-control px-3 py-2 text-sm ${origin?.id === c.place.id ? 'bg-action text-on-action' : 'border border-line bg-surface text-ink'}`}
               >
                 From {c.label}
               </button>

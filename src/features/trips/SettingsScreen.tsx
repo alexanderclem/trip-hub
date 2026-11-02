@@ -1,3 +1,4 @@
+import { AppearancePicker } from '@/ui/AppearancePicker'
 import { coverPhoto } from './covers'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
@@ -57,6 +58,7 @@ export function SettingsScreen() {
     <div className="pb-10">
       <PageHeader title="Trip settings" back={`/t/${tripId}/more`} />
       <div className="mx-auto max-w-md space-y-4 p-4">
+        <Card><SectionTitle>Appearance</SectionTitle><p className="mt-1 mb-4 text-sm text-muted">Choose a theme for this device. System follows your display settings.</p><AppearancePicker showLabel={false} /></Card>
         <Card><SectionTitle>Make it yours</SectionTitle><p className="mt-1 text-sm text-muted">A familiar cover for your shared adventure.</p><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} photo={coverPhoto(trip)} /></div><TripCoverPicker trip={trip} memberId={me} /></Card>
         <Card><Disclosure summary="Trip details"><TripDetailsForm trip={trip} memberId={me} /></Disclosure></Card>
         <Card><Link className="ui-link inline-flex min-h-11 items-center" to={`/t/${tripId}/more/import`}>Import a plan from a spreadsheet</Link><p className="text-sm text-muted">Moving from another tool? Bring the itinerary in as a CSV.</p></Card>
