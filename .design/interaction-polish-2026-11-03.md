@@ -56,3 +56,9 @@ Twelve representative images are retained in `screenshots/interaction-polish-fin
 Browser checks use local production assets in headless Chromium with local IndexedDB fixtures. No real trip was modified. Physical iPhone keyboard/pinch gestures, Safari, screen-reader sessions, live multi-device server synchronization, field Core Web Vitals, and traveler task studies were not run. The remaining large map/PDF bundles predate this pass.
 
 The inspected tasks have a concrete quality bar: readable immediately, one clear next action, stable keyboard context, accurate save/download feedback, recovery after failure, and motion that can be interrupted or disabled. A subjective “10/10” is not established by passing automated checks alone.
+
+## Production publication
+
+Published the UI release from `main`, commit `c9a6258`, on 3 November 2026 at `https://joinstowaway.app`. Cloudflare reported a successful build and deployed version `9465e8af-07e8-425f-ae8e-de3e7608d208` to 100% of traffic. The application entry point, stylesheet, overview, Plan, Vote, Tickets, and layout-feature assets matched the tested local build by SHA-256. The service worker returned HTTP 200 with `Cache-Control: no-cache` and precached the current bundle. The workers.dev hostname served the same build.
+
+Eight browser checks passed against production using isolated local fixtures: Quick Add and route focus, voting completion, interruptible dialogs, rapid day navigation, exact balances across tabs, ticket recovery, note-save recovery, and vote-save recovery. The first balance run exposed a test setup that blocked its own HTTPS page; its request filter now permits the app origin, and the focused rerun passed. These checks made no writes to real trip data.

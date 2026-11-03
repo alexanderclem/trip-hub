@@ -179,7 +179,7 @@ test('balances show exact values on entry and across successive changes from ano
   await expect(amount).toHaveText('$50.00')
   // Exercise the actual save path: native fixture writes do not notify Dexie's live queries.
   const editor = await context.newPage()
-  await editor.route('https://**/*', route => route.abort())
+  await editor.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL!).origin, route => route.abort())
   await editor.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
   await editor.goto(`${root}/money/${expense.id}`)
   await editor.getByLabel('Amount', { exact: true }).fill('120')
