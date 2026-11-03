@@ -21,7 +21,7 @@ How organizers collect deposits and balances (`docs/PLAN_THE_SWITCH.md`, section
 
 ## One-time setup (yours)
 
-Do everything in **test mode** first, end to end, then repeat it in live mode.
+Test end to end in a Stripe sandbox with a separate Supabase staging project and frontend. Use live credentials and newly onboarded live connected accounts in production; do not copy test account IDs or bookings into production.
 
 ### 1. Stripe platform account
 1. Create a Stripe account as a sole proprietor, with business name "Stowaway" and your bank account. No card is needed.
@@ -29,10 +29,10 @@ Do everything in **test mode** first, end to end, then repeat it in live mode.
 3. Settings → Connect → Branding: name "Stowaway", icon, and brand color.
 
 ### 2. Webhook endpoints
-The URL for both is `https://croqjdvzbpcscdcshnet.supabase.co/functions/v1/stripe-webhook`.
+Use **Snapshot** payloads in Workbench. The production URL for both is `https://croqjdvzbpcscdcshnet.supabase.co/functions/v1/stripe-webhook`; replace the project ref with the staging ref for sandbox endpoints.
 
 - **Your account** endpoint, with events `account.updated` and `account.application.deauthorized`. Its signing secret becomes `STRIPE_WEBHOOK_SECRET`.
-- **Connected accounts** endpoint, with the checkout, charge, dispute, payout and `account.updated` events listed above. Its signing secret becomes `STRIPE_CONNECT_WEBHOOK_SECRET`.
+- **Connected accounts** endpoint, with the checkout, charge, dispute, payout, `account.updated` and `account.application.deauthorized` events listed above. Its signing secret becomes `STRIPE_CONNECT_WEBHOOK_SECRET`.
 
 ### 3. Gmail sender
 1. Create a dedicated Gmail account for Stowaway (not your personal one). Turn on 2-Step Verification.
@@ -87,7 +87,7 @@ Use your own organizer account with Stripe test data (onboarding accepts test va
 5. **Disputes:** use the dispute test card `4000 0000 0000 0259`. A `disputes` row appears and the organizer gets an email.
 6. **Payouts:** a payout appears in `payouts`.
 7. **Ledger:** `select sum(amount_minor) from private.ledger_entries` is 0.
-8. **Live check:** a real $1 booking on your own account, then refund it. Check that the payout arrives on the date Stripe shows.
+8. **Production observation:** after launch review, monitor a legitimate pilot booking and its payout. Use the sandbox for simulated purchases/refunds; [Stripe prohibits testing in live mode using real payment details](https://docs.stripe.com/testing).
 
 ## Day to day
 

@@ -92,7 +92,7 @@ There are roughly 4–6 hours of your own setup below, plus outside waits: Strip
 
 ## 3. Stripe platform account (about 1 hour, then Stripe's review)
 
-Work in **test mode** first for everything here and in steps 4–7. Repeat it in live mode at step 9.
+Use a separate Stripe **sandbox** and a separate Supabase staging project for steps 4–7. Keep staging connected-account IDs and bookings out of production. Repeat the configuration with live credentials and newly onboarded live connected accounts at step 9.
 
 1. Create a Stripe account at stripe.com:
    - Business type **sole proprietor** (your name and SSN).
@@ -104,7 +104,7 @@ Work in **test mode** first for everything here and in steps 4–7. Repeat it in
    - Make sure organizers get the **full Stripe Dashboard**. Our code creates accounts where they handle their own refunds and disputes, and Stripe carries the losses.
 4. **Settings → Connect → Branding:** name "Stowaway", the suitcase icon, and the brand color `#245b69` (the app's action color).
 5. **Developers → API keys:** copy the **test secret key** (`sk_test_…`). You'll put it in step 5, never in the app or in Git.
-6. **Developers → Webhooks**: add **two** endpoints, both to `https://croqjdvzbpcscdcshnet.supabase.co/functions/v1/stripe-webhook`:
+6. **Workbench → Webhooks → Create an event destination**: use **Snapshot** payloads, which the current handler expects. Add **two** endpoints, both to `https://<staging-project-ref>.supabase.co/functions/v1/stripe-webhook` during testing. Use `croqjdvzbpcscdcshnet` only when configuring production:
    - **"Listen to events on your account"** with events `account.updated` and `account.application.deauthorized`. Copy its signing secret: that's `STRIPE_WEBHOOK_SECRET`.
    - **"Listen to events on Connected accounts"** with these events. Copy its signing secret: that's `STRIPE_CONNECT_WEBHOOK_SECRET`.
      - `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`
@@ -112,6 +112,7 @@ Work in **test mode** first for everything here and in steps 4–7. Repeat it in
      - `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`
      - `payout.created`, `payout.updated`, `payout.paid`, `payout.failed`, `payout.canceled`
      - `account.updated`
+     - `account.application.deauthorized` (connected-account disconnections)
 
 If Stripe asks what you sell, the honest answer is: software for organizers of group trips, who are the merchants of record. Stowaway never holds traveler money.
 
@@ -159,7 +160,7 @@ Supabase dashboard → **Edge Functions → Secrets** (Manage secrets). Add:
 
 Never put any of these in a `VITE_` variable, in `.env.production`, or in Git.
 
-The cron jobs reuse the Vault secrets that push notifications already use (`project_url`, `cron_token`). They're already set, so there's nothing to do there.
+The production cron jobs reuse the Vault secrets that push notifications already use (`project_url`, `cron_token`), reported set in the earlier setup. A new staging project needs its own `project_url` and randomly generated `cron_token` in Vault. Also change both its Edge Function `SITE_URL` secret and `private.app_settings.site_url` to the staging frontend URL.
 
 ---
 
@@ -203,8 +204,10 @@ The last three **must** have "Verify JWT" off. Stripe and the cron job can't sen
 
 ## 7. Test the whole flow in test mode (1–2 hours)
 
+Run this section against the staging frontend and staging Supabase, using the Stripe sandbox. Every `--project-ref` in the function deployment commands must name staging for this test.
+
 1. **Become an organizer:**
-   1. On joinstowaway.app, sign in with Google or email (Settings → account).
+   1. On the staging frontend, sign in with Google or email (Settings → account).
    2. Create a test trip named `E2E TEST my operator trip`.
    3. Trip settings → People → **Organize this trip**: enter your name and support email.
    4. More → **Payments** → **Connect Stripe**. Stripe's test onboarding accepts fake data: phone `000-000-0000`, SMS code `000000`, SSN `000-00-0000`, and test bank routing `110000000`, account `000123456789`.
@@ -257,13 +260,7 @@ Also check whether your state or county needs a **DBA** filing to trade as "Stow
 1. Activate your Stripe account (finish its verification), then switch the dashboard to **Live mode**.
 2. Repeat step 3.5 and step 3.6 in live mode: a live secret key and two live webhook endpoints, each with its own signing secret.
 3. Replace the three Stripe secrets in Supabase with the live values (step 5). No redeploy is needed.
-4. **The $1 test:**
-   1. Publish a real trip page on your own organizer account with a $1 price.
-   2. Pay it with your own card.
-   3. Check the receipt email and the booking in Payments.
-   4. Refund it from the app.
-   5. Confirm Stripe returns our fee.
-   6. Watch for the payout on the date Stripe shows. A new Stripe account's first payout usually takes about 7 days.
+4. **First real booking:** after the launch review and sandbox verification, onboard a live pilot operator and monitor a legitimate traveler booking: receipt, booking, fees and the payout date Stripe reports. Exercise payment/refund scenarios with test cards in the sandbox; handle real refunds when a customer actually needs one. Do not create a live self-payment to test the integration: [Stripe prohibits live-mode testing with real payment details](https://docs.stripe.com/testing).
 5. Change the pricing page's "coming soon" once you're ready for organizers. Ask Claude to do it.
 
 ---
