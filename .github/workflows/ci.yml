@@ -29,3 +29,17 @@ jobs:
           tests/e2e/wrapped.spec.ts
           tests/e2e/journal.spec.ts
           --workers=1
+      - name: Check operator flows with local fixtures
+        run: >-
+          npx playwright test
+          tests/e2e/access-roles.spec.ts
+          tests/e2e/organizers-pricing.spec.ts
+          tests/e2e/operator-dashboard.spec.ts
+          tests/e2e/payments-offer.spec.ts
+          tests/e2e/payments.spec.ts
+          tests/e2e/repeat-business.spec.ts
+          tests/e2e/booking-travelers.spec.ts
+          tests/e2e/campaigns.spec.ts
+          tests/e2e/referrals.spec.ts
+          tests/e2e/imports.spec.ts
+          --workers=1

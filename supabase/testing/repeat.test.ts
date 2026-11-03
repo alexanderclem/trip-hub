@@ -47,14 +47,14 @@ describe('running a trip again', () => {
     expect((await pg.query(`select display_name from public.members where trip_id = $1`, [copy])).rows).toEqual([{ display_name: 'Ana' }])
     expect((await pg.query(`select role from public.trip_devices where trip_id = $1`, [copy])).rows).toEqual([{ role: 'owner' }])
     expect((await one<{ n: number }>(`select count(*)::int as n from public.places where trip_id = $1`, [copy])).n).toBe(2)
-    const items = await pg.query<{ title: string; start_local: string; start_at: string; status: string; place_ok: boolean }>(`select i.title, i.start_local::text, i.start_at::text, i.status,
+    const items = await pg.query<{ title: string; start_local: string; start_at: string; status: string; place_ok: boolean }>(`select i.title, i.start_local::text, (i.start_at at time zone 'UTC')::text as start_at, i.status,
       exists (select 1 from public.places p where p.id = i.place_id and p.trip_id = i.trip_id) as place_ok from public.itinerary_items i where i.trip_id = $1 order by i.start_local`, [copy])
     // 366 days later (2028 is a leap year), same wall-clock times. The New York flight is now after
     // the US DST change (12 Mar 2028), so 09:00 local is 13:00Z; in 2027 it was before it (14:00Z).
     expect(items.rows.map((i) => [i.title, i.start_local, i.status])).toEqual([['Flight to NYC', '2028-03-13 09:00:00', 'tentative'], ['Breakfast', '2028-03-14 08:00:00', 'tentative']])
     expect(items.rows[0]!.place_ok).toBe(true)
     expect(items.rows[0]!.start_at).toMatch(/^2028-03-13 13:00:00/)
-    expect((await one<{ t: string }>(`select start_at::text as t from public.itinerary_items where id = '00000000-0000-4000-a000-000000000001'`)).t).toMatch(/^2027-03-13 14:00:00/)
+    expect((await one<{ t: string }>(`select (start_at at time zone 'UTC')::text as t from public.itinerary_items where id = '00000000-0000-4000-a000-000000000001'`)).t).toMatch(/^2027-03-13 14:00:00/)
     expect((await pg.query(`select title, assignee_id, completed from public.trip_tasks where trip_id = $1`, [copy])).rows).toEqual([{ title: 'Book the shuttle', assignee_id: null, completed: false }])
     expect((await pg.query(`select title from public.packing_items where trip_id = $1`, [copy])).rows).toEqual([{ title: 'Sunscreen' }])
     expect((await one<{ n: number }>(`select count(*)::int as n from public.leg_overrides where trip_id = $1 and place_a_id < place_b_id`, [copy])).n).toBe(1)

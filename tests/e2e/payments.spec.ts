@@ -116,4 +116,28 @@ test('the organizer prices the trip, sees bookings offline, and downloads them',
   await page.getByRole('button', { name: 'Download as CSV' }).click()
   expect((await download).suggestedFilename()).toBe('e2e-test-lake-week-bookings.csv')
   await shoot(page, 'organizer-payments')
+
+  // A cancellation frees a spot, but a retained payment remains collected and refundable.
+  await page.evaluate(async ({ trip, offerId }) => {
+    const request = indexedDB.open('trip-hub')
+    const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
+    const tx = db.transaction('bookings', 'readwrite')
+    tx.objectStore('bookings').put({ id: 'b2', trip_id: trip, offer_id: offerId, organizer_id: 'org', traveler_name: 'Wen', traveler_email: 'wen@example.com', status: 'cancelled', price_minor: 150000, paid_minor: 30000, refunded_minor: 10000, deleted_at: null })
+    tx.objectStore('bookings').put({ id: 'b3', trip_id: trip, offer_id: offerId, organizer_id: 'org', traveler_name: 'Xu', traveler_email: 'xu@example.com', status: 'refunded', price_minor: 150000, paid_minor: 30000, refunded_minor: 30000, deleted_at: null })
+    await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error) })
+    db.close()
+  }, { trip, offerId })
+  // Native fixture writes do not emit Dexie's live-query notifications.
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Bookings (1 of 12)' })).toBeVisible()
+  await expect(page.getByText('Collected $500.00 · still due $1,200.00')).toBeVisible()
+  await page.getByText('Cancelled and refunded (2)', { exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Wen: refund, cancel or dispute evidence' })).toContainText('Cancelled · paid $300.00 · $100.00 refunded')
+  await shoot(page, 'organizer-booking-history')
+  await page.getByRole('button', { name: 'Wen: refund, cancel or dispute evidence' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Wen’s booking' })
+  await expect(sheet.getByText('Paid $300.00, $100.00 already refunded. wen@example.com')).toBeVisible()
+  await sheet.getByLabel('Refund ($)').fill('200')
+  await expect(sheet.getByRole('button', { name: 'Refund only', exact: true })).toBeEnabled()
+  await expect(sheet.getByRole('link', { name: 'Evidence for a dispute' })).toHaveAttribute('href', `/t/${trip}/more/payments/evidence/b2`)
 })

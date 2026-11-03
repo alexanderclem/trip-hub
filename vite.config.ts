@@ -67,6 +67,8 @@ export default defineConfig({
     }),
   ],
   test: {
+    // Each database suite boots Postgres in WASM; unbounded workers exhaust memory on small hosts.
+    maxWorkers: 2,
     environment: 'node',
     include: ['src/**/*.test.ts', 'supabase/functions/**/*.test.ts', 'supabase/testing/**/*.test.ts', 'worker/**/*.test.ts'],
   },

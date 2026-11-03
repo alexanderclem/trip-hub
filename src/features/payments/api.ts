@@ -5,6 +5,7 @@ import { ensureSession, supabase } from '@/lib/supabase'
 import type { BookingQuestions, RoomOption, TripOffer } from '@/data/types'
 import type { DisputeRow, PayoutRow, StripeAccountRow } from './notices'
 import type { RefundTier } from '../../../supabase/functions/_shared/refunds'
+import { summarizeBookings, type BookingAmounts } from './bookingSummary'
 
 async function invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> {
   if (!navigator.onLine) throw new Error('Connect to the internet to continue.')
@@ -60,6 +61,35 @@ export interface OrganizerMoney {
   account: StripeAccountRow | null
   payouts: PayoutRow[]
   disputes: DisputeRow[]
+}
+
+export interface OrganizerTrip {
+  trip_id: string
+  title: string
+  status: string
+  capacity: number
+  booked: number
+  collected: number
+  due: number
+}
+
+/** Reject incomplete reads so a failed bookings request can never appear as zero revenue. */
+export async function loadOrganizerTrips(organizerId: string): Promise<OrganizerTrip[]> {
+  if (!navigator.onLine) throw new Error('Connect to the internet to see your trip totals.')
+  const [offers, bookings] = await Promise.all([
+    supabase.from('trip_offers').select('trip_id, title, status, capacity').eq('organizer_id', organizerId).is('deleted_at', null),
+    supabase.from('bookings').select('trip_id, status, paid_minor, refunded_minor, price_minor').eq('organizer_id', organizerId).is('deleted_at', null),
+  ])
+  if (offers.error) throw new Error(offers.error.message)
+  if (bookings.error) throw new Error(bookings.error.message)
+  const byTrip = new Map<string, BookingAmounts[]>()
+  for (const booking of (bookings.data ?? []) as (BookingAmounts & { trip_id: string })[]) {
+    const rows = byTrip.get(booking.trip_id) ?? []
+    rows.push(booking)
+    byTrip.set(booking.trip_id, rows)
+  }
+  return ((offers.data ?? []) as Pick<OrganizerTrip, 'trip_id' | 'title' | 'status' | 'capacity'>[])
+    .map((offer) => ({ ...offer, ...summarizeBookings(byTrip.get(offer.trip_id) ?? []) }))
 }
 
 /** The signed-in organizer's profile, Stripe account, payouts and open disputes (RLS: their own). */

@@ -16,6 +16,7 @@ import { syncNow } from '@/data/sync/controller'
 import { connectStripe, loadOrganizerMoney, refreshStripe, saveOffer, setOfferStatus, type OrganizerMoney } from './api'
 import { accountNotices, scheduleText, type Notice } from './notices'
 import { bookingsCsv, useTripBookings, useTripOffer } from './data'
+import { summarizeBookings } from './bookingSummary'
 import { PlanCard } from './PlanCard'
 import { RefundSheet } from './RefundSheet'
 import { RunAgainCard } from './RunAgainCard'
@@ -223,8 +224,8 @@ function BookingsCard({ bookings, offer, tripName, tripStart, tripZone }: { book
   const capacity = offer.capacity
   const [open, setOpen] = useState<Booking | null>(null)
   const live = bookings.filter((b) => b.status === 'active' || b.status === 'paid')
-  const collected = live.reduce((a, b) => a + b.paid_minor - b.refunded_minor, 0)
-  const due = live.reduce((a, b) => a + Math.max(0, b.price_minor - b.paid_minor), 0)
+  const history = bookings.filter((b) => b.status === 'cancelled' || b.status === 'refunded')
+  const { collected, due } = summarizeBookings(bookings)
   function download() {
     const blob = new Blob([bookingsCsv(bookings)], { type: 'text/csv;charset=utf-8' })
     const a = document.createElement('a')
@@ -239,19 +240,23 @@ function BookingsCard({ bookings, offer, tripName, tripStart, tripZone }: { book
       <p className="mt-1 text-sm text-muted">Collected {usd(collected)} · still due {usd(due)}</p>
       {live.length > 0 && (
         <ul className="mt-2 divide-y divide-line text-sm">
-          {live.map((b) => (
-            <li key={b.id}>
-              <button type="button" className="flex min-h-11 w-full flex-wrap items-center justify-between gap-2 py-2 text-left" aria-label={`${b.traveler_name}: refund, cancel or dispute evidence`} onClick={() => setOpen(b)}>
-                <span className="min-w-0 break-words text-action">{b.traveler_name}</span>
-                <span className="tabular-nums">{b.status === 'paid' ? <span className="text-success-ink">Paid {usd(b.paid_minor)}</span> : <>{usd(b.paid_minor)} of {usd(b.price_minor)}{b.balance_due_date ? <span className="text-muted"> · due {b.balance_due_date}</span> : null}</>}{b.refunded_minor > 0 && <span className="text-muted"> · {usd(b.refunded_minor)} refunded</span>}</span>
-              </button>
-            </li>
-          ))}
+          {live.map((b) => <BookingRow key={b.id} booking={b} onOpen={setOpen} />)}
         </ul>
       )}
+      {history.length > 0 && <details className="mt-3 border-t border-line"><summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-action">Cancelled and refunded ({history.length})</summary><ul className="divide-y divide-line text-sm">{history.map((b) => <BookingRow key={b.id} booking={b} onOpen={setOpen} />)}</ul></details>}
       {bookings.length > 0 && <div className="mt-2 flex flex-wrap gap-x-4"><button type="button" className="ui-link inline-flex min-h-11 items-center gap-2" onClick={download}><Download aria-hidden="true" className="size-4" />Download as CSV</button><AnswersButton bookings={bookings} offer={offer} tripName={tripName} /></div>}
       <p className="mt-2 text-xs text-muted">Tap a traveler to refund or cancel. Refunds made in your Stripe Dashboard show here too, and we return our 1% on every refund.</p>
       {open && <RefundSheet booking={open} offer={offer} tripStart={tripStart} tripZone={tripZone} onClose={() => setOpen(null)} />}
     </Card>
   )
+}
+
+function BookingRow({ booking: b, onOpen }: { booking: Booking; onOpen: (booking: Booking) => void }) {
+  const inactive = b.status === 'cancelled' || b.status === 'refunded'
+  return <li>
+    <button type="button" className="flex min-h-11 w-full flex-wrap items-center justify-between gap-2 py-2 text-left" aria-label={`${b.traveler_name}: refund, cancel or dispute evidence`} onClick={() => onOpen(b)}>
+      <span className="min-w-0 break-words text-action">{b.traveler_name}</span>
+      <span className="tabular-nums">{inactive ? <>{b.status === 'cancelled' ? 'Cancelled' : 'Refunded'} · paid {usd(b.paid_minor)}</> : b.status === 'paid' ? <span className="text-success-ink">Paid {usd(b.paid_minor)}</span> : <>{usd(b.paid_minor)} of {usd(b.price_minor)}{b.balance_due_date ? <span className="text-muted"> · due {b.balance_due_date}</span> : null}</>}{b.refunded_minor > 0 && <span className="text-muted"> · {usd(b.refunded_minor)} refunded</span>}</span>
+    </button>
+  </li>
 }

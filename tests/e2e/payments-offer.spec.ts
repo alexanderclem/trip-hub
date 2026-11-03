@@ -61,6 +61,8 @@ test('the creator of a 10-person trip is offered payments, honestly, and can say
   await expect(sheet.getByText('Connect to the internet to join the early-access list.')).toBeVisible()
   await sheet.getByRole('button', { name: 'Not now' }).click()
   await expect(row).toBeHidden()
+  // Recording is asynchronous; let the IndexedDB transaction finish before unloading the page.
+  await expect.poll(() => queued(page)).toEqual(['money_moment_shown', 'money_moment_clicked', 'money_moment_clicked', 'money_moment_dismissed'])
   await page.reload()
   await expect(page.getByRole('heading', { name: 'See who owes what' })).toBeVisible()
   await expect(page.getByRole('button', { name: /Collect payments for this trip/ })).toHaveCount(0)

@@ -19,4 +19,15 @@ describe('returning after sign-in', () => {
     rememberSignInReturn('//evil.example')
     expect(takeSignInReturn()).toBeNull()
   })
+
+  it('returns operators to the dashboard while rejecting arbitrary or external destinations', () => {
+    for (const path of ['/organize', '/organize/travelers', '/organize/campaigns', '/organize/import']) {
+      rememberSignInReturn(path)
+      expect(takeSignInReturn()).toBe(path)
+    }
+    for (const path of ['/organize/../app', '/organize?next=https://evil.example', '//evil.example/organize', '/organize/unknown']) {
+      rememberSignInReturn(path)
+      expect(takeSignInReturn()).toBeNull()
+    }
+  })
 })

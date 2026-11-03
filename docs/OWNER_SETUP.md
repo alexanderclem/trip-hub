@@ -16,7 +16,7 @@ Cloudflare deployed `main` within about 90 seconds of the merge. People can see 
 - **Trip settings → "Import a plan from a spreadsheet":** works now, entirely on the phone.
 - **Money tab, for the creator of a trip with 10+ people (or a big shared expense):** a quiet "Collect payments for this trip" row. Tapping it opens an "early access" sheet. It works now that step 1 is done.
 
-Everything else stays hidden until the database has the new tables: roles and hosted trips, organizer claiming, the payments screens, trip pages, bookings, and every Pro tool. The app was built to cope with a server that doesn't have them yet. Existing group trips behave exactly as before.
+The new tables were applied on 2 Nov. Organizer claiming, hosted-trip controls and Pro screens are available to the appropriate roles. Taking payments still requires the account and function setup below. Existing group trips retain their original permissions.
 
 `tests/e2e/cleanup.sql` also deletes from the new tables, which exist now that step 1 is done.
 
@@ -34,9 +34,9 @@ Claude applied all 11 in filename order, plus a 12th, `20261106000001_organizer_
 The rest of this section is kept for reference, in case the migrations ever need applying to another project (for example a staging one).
 
 
-**What's live today:** every migration up to and including `20261012000004_traveler_profiles.sql`. Some of them were applied without a history entry, so `list_migrations` shows other names and dates. That's fine.
+**Before the 2 Nov migration pass:** the live schema included every migration up to `20261012000004_traveler_profiles.sql`. Some were applied without matching history entries; the pass reconstructed this drift before applying the newer migrations.
 
-**What's missing:** these 11 files, applied **in this order** (filename order):
+**Applied on 2 Nov:** these 11 files, **in this order** (filename order), plus `20261106000001_organizer_rpcs_signed_in.sql`:
 
 | # | File | What it adds |
 |---|---|---|
@@ -53,7 +53,7 @@ The rest of this section is kept for reference, in case the migrations ever need
 | 11 | `20261105000001_imports.sql` | Importing past travelers from CSV |
 
 ### The easy way
-Open a Claude Code session on this repo with the Supabase connector, and say **"apply the migrations"**. Claude applies them one at a time with `apply_migration`, checks each one, and runs the security advisors afterwards. It hasn't done this yet only because it needs your explicit go-ahead to change the live database.
+Production is already migrated. For a new staging project, use the Supabase connector to apply the complete repository migration history in filename order, checking each migration and the security advisors. The table above lists the operator additions, not the full history required by a fresh database.
 
 ### By hand (Supabase dashboard → SQL Editor)
 1. **Before:** take a snapshot so you can confirm nothing changed for real trips.
@@ -303,7 +303,7 @@ update private.app_settings set value = 'false' where key = 'pro_free_beta';   -
 - **The real-iPhone check:** airplane mode with the offline map, and push notifications on a Home Screen install.
 - **The `ORS_API_KEY` secret**, so travel times use OpenRouteService instead of the public OSRM server.
 - **Phase 0 of the plan:** the 10 organizer interviews and the concierge trip. These decide whether payments are worth pushing hard (`docs/PLAN_THE_SWITCH.md` section 8).
-- **A staging Supabase project** (second free project) for testing payments away from the live database. Recommended in the plan; optional if you're careful with test mode.
+- **A staging Supabase project** (second free project) for testing payments away from the live database. Required by the plan before payment activation; Stripe test mode alone does not isolate trip data.
 
 ## Quick health checks (any time)
 

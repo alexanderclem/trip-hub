@@ -21,6 +21,13 @@ describe('bookings CSV', () => {
   it('keeps a traveler’s name from running as a spreadsheet formula', () => {
     expect(bookingsCsv([b({ traveler_name: '=HYPERLINK("x")' })]).split('\r\n')[1]).toMatch(/^"'=HYPERLINK\(""x""\)"/)
   })
+
+  it('keeps cancellation payments and refunds in history with no balance still due', () => {
+    const csv = bookingsCsv([b({ status: 'cancelled', refunded_minor: 10000 }), b({ deleted_at: '2026-11-03T00:00:00Z' })])
+    expect(csv.split('\r\n').slice(1)).toEqual([
+      '"Ola","ola@example.com","cancelled","1500.00","300.00","100.00","0.00","2027-02-01","2026-11-01"',
+    ])
+  })
 })
 
 describe('report CSV', () => {

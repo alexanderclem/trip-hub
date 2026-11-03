@@ -1,11 +1,13 @@
 # Stowaway: The Switch — implementation plan
 
-## Status (1 Nov 2026)
+## Status (3 Nov 2026)
+
+Deployment entries below record Claude's 2 Nov migration verification. The operator completion pass on `codex/operator-completion` is local; see `docs/OPERATOR_COMPLETION_2026-11-03.md` for checks and remaining launch requirements.
 
 | Piece | Code | Live |
 |---|---|---|
 | Plan, real 404s for agent files, PGlite harness | ✅ | live (merged 1 Nov 2026) |
-| 1A roles, removal, private documents (`20261030000001_access_roles.sql`) | ✅ | **live (applied 2 Nov 2026)** (needs the owner's go-ahead) |
+| 1A roles, removal, private documents (`20261030000001_access_roles.sql`) | ✅ | **live (applied 2 Nov 2026)** |
 | Funnel events and the "collect payments" offer (`20261030000002_product_events.sql`) | ✅ | **live (applied 2 Nov 2026)** |
 | Live connector drift reconstructed (`20261008000002_connector_editing.sql`) | ✅ | already on live |
 | 1B organizer profiles and claiming (`20261031000001_organizers.sql`) | ✅ | **live (applied 2 Nov 2026)** |
@@ -20,12 +22,13 @@
 | 4 switch tooling: import past travelers (Pro) and a plan (free) from CSV (`20261105000001_imports.sql`) | ✅ | **live (applied 2 Nov 2026)** |
 | 4 comparison page, migration offer, outbound | owner | needs dated, sourced claims and a legal check before anything is published |
 | 3 supplier layer and corporate tier | not started | waits for revenue or a signed pilot (plan section 6) |
+| Operator completion: dashboard recovery, cancellation accounting/history, report exports, sign-in return and CI regressions | ✅ | local branch `codex/operator-completion`; not released |
 
-Merged into `main` on 1 Nov 2026. **Your steps are in `docs/OWNER_SETUP.md`:** apply the eleven new migrations in filename order (everything up to `20261012000004` is already live), with the before/after per-phone check described below; then follow `docs/PAYMENTS.md`. The `/pricing` page keeps "coming soon" until the first organizer is live.
+The original operator implementation merged into `main` on 1 Nov 2026; its migrations were applied on 2 Nov. **Remaining setup is in `docs/OWNER_SETUP.md`, starting at step 2.** Do not reapply the migrations to production. A fresh staging project still needs the complete migration history in filename order. The `/pricing` page keeps "coming soon" until the first organizer is live.
 
-## Now building: Phase 1B, organizer claim, operators page, pricing and fee calculator (about 16 h build)
+## Completed Phase 1B: original implementation notes (historical)
 
-**Why.** 1B makes the paid tier real without moving money yet: a trip's creator can claim the trip as its organizer (with an account and a business profile), operators get a page that speaks to them, and anyone can see exactly what they'd pay. Done so far on `claude/keen-ptolemy-y4goja`: plan, real 404s, PGlite harness, 1A (roles, removal, private documents), funnel tracking and the "payments are coming" offer. None of it is live yet.
+**Why.** 1B lets a trip's creator claim the trip as its organizer (with an account and a business profile), gives operators their own page, and shows anyone exactly what they'd pay. The following steps record the original work on `claude/keen-ptolemy-y4goja`; they are complete, not a current deployment checklist.
 
 **What I found on the live project (read-only):** its migration history doesn't match the repo. Several repo migrations (account linking, push, comments, poll upgrades, member preferences) were applied outside the tracked history, and live has three connector-editing migrations the repo doesn't (`connector_editing`, `connector_two_clients`, `connector_places_undo`: functions `connector_edit_access`, `connector_mutate_itinerary`, `connector_undo_change`, `connector_list_changes`, table `private.connector_changes`). Every table, helper function and policy name the 1A migration relies on is present, and live has 8 trips (2 are test trips) and 22 joined phones.
 
