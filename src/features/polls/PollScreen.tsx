@@ -3,7 +3,7 @@ import { useConfirm } from '@/ui/ConfirmProvider'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { CalendarCheck, CalendarPlus, Clock, Lock, LockOpen, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
+import { CalendarCheck, CalendarPlus, Check, Clock, Lock, LockOpen, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
 import { Stowie } from '@/features/stowie/Stowie'
 import { useMyMemberId } from '@/data/device'
 import { useMembers, usePlaces, useTrip } from '@/data/hooks'
@@ -17,9 +17,10 @@ import { StarsSummary } from '@/features/ratings/Stars'
 import { CommentThread } from '@/features/comments/CommentThread'
 import { addDateOption, addOption, usePoll, useRatingSummaries, vote } from './data'
 import { dateRangeLabel } from './deadline'
-import { leader, rankOptions, scoreLabels, voterCount, votingEnded, type RankedOption } from './rank'
+import { leader, rankOptions, scoreLabels, votingEnded, type RankedOption } from './rank'
 import { closesLabel } from './share'
 import { SharePollCard, useSharePoll } from './SharePoll'
+import { Dialog } from '@/ui/Dialog'
 
 /** The current time, refreshed often enough for a deadline to pass while the page is open. */
 function useNow(everyMs = 30_000) {
@@ -53,6 +54,8 @@ export function PollScreen() {
   const online = useOnline()
   const now = useNow()
   const [tab, setTab] = useState<'vote' | 'results'>('vote')
+  const [shareOpen, setShareOpen] = useState(false)
+  const [votedHere, setVotedHere] = useState(false)
   const tabHighlight = useSlidingHighlight<HTMLDivElement>(tab, '[aria-selected="true"]')
 
   const ranked = useMemo(() => (data ? rankOptions(data.options, data.votes, Math.max(1, members.length)) : []), [data, members.length])
@@ -90,7 +93,6 @@ export function PollScreen() {
   const winnerId = poll.status === 'closed' ? poll.winner_option_id : closed ? (leader(ranked)?.option.id ?? null) : null
   const winner = winnerId ? options.find((o) => o.id === winnerId) : undefined
   const winnerPlace = winner && placeOf(winner)
-  const quiet = !closed && options.length >= 2 && voterCount(votes) < Math.ceil(Math.max(1, members.length) / 2)
 
   async function setStatus(status: Poll['status']) {
     const top = leader(ranked)
@@ -105,7 +107,7 @@ export function PollScreen() {
         title={poll.title}
         back={`/t/${tripId}/more/vote`}
         action={sharing.ready && (
-          <button onClick={() => void sharing.share()} className="ui-icon-button shrink-0 text-action" aria-label="Share this vote">
+          <button onClick={() => { sharing.reset(); setShareOpen(true) }} aria-haspopup="dialog" aria-expanded={shareOpen} className="ui-icon-button shrink-0 text-action" aria-label="Share this vote">
             <Share2 aria-hidden="true" className="size-5" />
           </button>
         )}
@@ -118,11 +120,10 @@ export function PollScreen() {
             {closed ? 'Voting has ended.' : `Voting closes ${closesLabel(poll.closes_at, now, zone)}.`}
           </p>
         )}
-        {quiet && sharing.ready && <SharePollCard sharing={sharing} />}
 
         {winner && (
           <Card framed>
-            <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-medium text-ink"><Trophy aria-hidden="true" className="size-4" />Decided</p><Stowie mood="delighted" size={36} /></div>
+            <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-medium text-ink"><Trophy aria-hidden="true" className="size-4" />Decided</p><Stowie mood="delighted" size={36} animated={false} /></div>
             <p className="ui-section-title mt-1">{winner.label}</p>
             <div className="mt-3">
               {winner.starts_on && trip ? (
@@ -154,10 +155,13 @@ export function PollScreen() {
           ))}
         </div>
 
+        {!closed && options.length > 0 && <div className="poll-progress" role="progressbar" aria-label="Your voting progress" aria-valuemin={0} aria-valuemax={options.length} aria-valuenow={myCount} aria-valuetext={`${myCount} of ${options.length} options scored`}><span style={{ transform: `scaleX(${myCount / options.length})` }} /></div>}
+        {!closed && options.length > 0 && myCount === options.length && <div className="poll-complete" role="status"><span className={votedHere ? 'poll-complete-character' : undefined}><Stowie mood="delighted" size={28} animated={false} /></span><p>All your votes are in.<span className="block text-xs text-muted">You can change your choices anytime before voting closes.</span></p></div>}
+
         {tab === 'vote' ? (
           <ul className="ui-row-group">
             {options.map((o) => (
-              <OptionVoteCard key={o.id} option={o} place={placeOf(o)} rating={o.place_id ? ratings?.get(o.place_id) : undefined} score={myScore(o)} closed={closed} me={me} labels={labels} />
+              <OptionVoteCard key={o.id} option={o} place={placeOf(o)} rating={o.place_id ? ratings?.get(o.place_id) : undefined} score={myScore(o)} closed={closed} me={me} labels={labels} onSaved={() => setVotedHere(true)} />
             ))}
             {options.length === 0 && <li className="p-4 text-sm text-muted">No options yet. Add the first one below.</li>}
           </ul>
@@ -173,6 +177,7 @@ export function PollScreen() {
           {closed ? <><LockOpen aria-hidden="true" className="size-4" />Reopen voting</> : <><Lock aria-hidden="true" className="size-4" />Close voting and pick the winner</>}
         </Button>
       </div>
+      <Dialog open={shareOpen} onClose={() => setShareOpen(false)} title="Share this vote"><SharePollCard sharing={sharing} bare /></Dialog>
     </div>
   )
 }
@@ -192,25 +197,34 @@ function TripDatesAction({ trip, option, me }: { trip: Trip; option: PollOption;
   return <Button className="w-full" onClick={() => void apply()}><CalendarCheck aria-hidden="true" className="size-4" />Set as the trip’s dates</Button>
 }
 
-function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
+function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSaved }: {
   option: PollOption; place?: Place; rating?: Parameters<typeof StarsSummary>[0]['summary']; score: VoteScore | null; closed: boolean; me: string; labels: Record<VoteScore, string>
+  onSaved: () => void
 }) {
   const confirm = useConfirm()
   const inFlight = useRef(false)
   const [saving, setSaving] = useState(false)
+  const [pending, setPending] = useState<{ score: VoteScore | null } | null>(null)
+  const visibleScore = pending ? pending.score : score
   const [message, setMessage] = useState('')
   const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    if (!saving && pending && pending.score === score) setPending(null)
+  }, [score, saving, pending])
 
   async function castVote(next: VoteScore | null) {
     if (closed || inFlight.current) return
     inFlight.current = true
     setSaving(true)
+    setPending({ score: next })
     setMessage('Saving your vote…')
     setError(null)
     try {
       await vote(option, me, next)
       setMessage(next === null ? 'Vote removed from this device. Changes sync when connected.' : 'Vote saved on this device. Changes sync when connected.')
+      onSaved()
     } catch {
+      setPending(null)
       setMessage('')
       setError('Your vote could not be saved. Try again; your previous choice is unchanged.')
     } finally {
@@ -246,17 +260,18 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels }: {
         {VOTE_SCORES.map((s) => (
           <button
             key={s}
-            disabled={closed || saving}
-            aria-pressed={score === s}
-            onClick={() => void castVote(score === s ? null : s)}
-            className={`ui-press min-h-11 rounded-control border px-1 text-[.8125rem] font-semibold disabled:opacity-50 ${score === s ? SCORE_STYLE[s] : 'border-line bg-surface text-ink hover:bg-mist'}`}
+            disabled={closed}
+            aria-disabled={closed || saving}
+            aria-pressed={visibleScore === s}
+            onClick={() => void castVote(visibleScore === s ? null : s)}
+            className={`ui-press min-h-11 rounded-control border px-1 text-[.8125rem] font-semibold disabled:opacity-50 aria-disabled:cursor-wait ${visibleScore === s ? SCORE_STYLE[s] : 'border-line bg-surface text-ink hover:bg-mist'}`}
           >
             {labels[s]}
           </button>
         ))}
       </div>
-      <div className="mt-1.5 min-h-5">
-        <p role="status" className="text-xs leading-5 text-muted">{message}</p>
+      <div className="poll-save-feedback">
+        <p role="status" className="flex items-start gap-1.5 text-xs leading-5 text-muted">{message && !saving && <Check aria-hidden="true" className="poll-feedback-check mt-0.5 size-3.5 shrink-0 text-success-ink" />}<span>{message}</span></p>
         <ErrorNote error={error} />
       </div>
     </li>
@@ -283,7 +298,7 @@ function Results({ ranked, votes, members, groupSize, winnerId, placeOf, labels,
                 {place?.area && <p className="text-xs text-muted">{place.area}</p>}
                 {/* A slim score rule, like the website's sample vote. */}
                 <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-line" aria-hidden="true">
-                  <div className={`h-full rounded-full ${isTop ? 'bg-ink' : 'bg-control'}`} style={{ width: `${((r.mean ?? 0) / 3) * 100}%` }} />
+                  <div className={`poll-result-bar h-full rounded-full ${isTop ? 'bg-ink' : 'bg-control'}`} style={{ transform: `scaleX(${(r.mean ?? 0) / 3})` }} />
                 </div>
                 <p className="mt-1.5 text-sm text-muted">
                   {r.mean != null ? `${r.mean.toFixed(1)} avg · ${r.voters} of ${groupSize} voted` : 'No votes yet'}

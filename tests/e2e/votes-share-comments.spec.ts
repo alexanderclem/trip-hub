@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 // Local-only: fixtures live in this browser's IndexedDB and every outside request is blocked, so
 // nothing here touches a real trip.
+test.use({ serviceWorkers: 'block', storageState: { cookies: [], origins: [] } })
 const tripId = '00000000-0000-4000-8000-000000000a01'
 const alex = '00000000-0000-4000-8000-000000000a02'
 const sam = '00000000-0000-4000-8000-000000000a03'
@@ -40,7 +41,8 @@ async function seed(page: Page, baseURL: string, opts: { offline: boolean; rows?
       transaction.onerror = () => reject(transaction.error)
     })
     database.close()
-    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { trips: { [tripId]: { tripId, memberId: alex, joinedAt: '2026-10-08T12:00:00.000Z' } }, quizSeen: true }, version: 1 }))
+    // Membership must follow the alpha reset; older memberships are intentionally cleared.
+    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { trips: { [tripId]: { tripId, memberId: alex, joinedAt: '2026-10-10T12:00:00.000Z' } }, quizSeen: true }, version: 1 }))
   }, { tripId, alex, sam, token, rows: opts.rows ?? {} })
 }
 
@@ -58,18 +60,27 @@ test('a shared vote link opens the vote with no signal, and bad targets go nowhe
   page.on('pageerror', (error) => errors.push(error.message))
   await seed(page, baseURL!, { offline: true, rows: { polls: [poll()], poll_options: [option(optA, 'Casa del Mundo'), option(optB, 'La Iguana Perdida')] } })
 
+  await page.goto(`${base}/more/vote/${pollId}`)
+  await expect(page.getByRole('heading', { name: 'Where do we stay at the lake?' })).toBeVisible()
+
   await page.goto(`/join?to=vote/${pollId}#t=${token}`)
   await page.waitForURL(`**${base}/more/vote/${pollId}`)
   await expect(page.getByRole('heading', { name: 'Where do we stay at the lake?' })).toBeVisible()
-  // Two options and nobody has voted yet: the page offers to send it to the group.
+  // Scoring takes priority; sharing opens its access warning in a named dialog.
+  await expect(page.getByRole('group', { name: 'Your vote for Casa del Mundo' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Send it to the group' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Share this vote' }).click()
+  await expect(page.getByRole('dialog', { name: 'Share this vote' })).toContainText('anyone who has it join and edit the trip')
   await expect(page.getByRole('heading', { name: 'Send it to the group' })).toBeVisible()
   await page.getByRole('button', { name: 'Copy' }).click()
   await expect(page.getByText('Copied. Paste it into your group chat.')).toBeVisible()
   const copied = await page.evaluate(() => navigator.clipboard.readText())
   expect(copied).toBe(`Vote: “Where do we stay at the lake?” · 2 options\n${new URL(baseURL!).origin}/join?to=vote/${pollId}#t=${token}`)
   await shot(page, 'vote-share-390')
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Share this vote' })).toBeHidden()
 
-  // Once half the group has voted the prompt steps aside; sharing stays in the header.
+  // Voting keeps its focus and sharing stays in the header.
   const choice = page.getByRole('group', { name: 'Your vote for Casa del Mundo' }).getByRole('button', { name: 'Must-do' })
   await choice.click()
   await expect(choice).toHaveAttribute('aria-pressed', 'true')
@@ -132,7 +143,7 @@ test('a date vote with a deadline: add dates, vote, decide, set the trip dates',
   await page.getByRole('button', { name: 'Set as the trip’s dates' }).click()
   await expect(page.getByText('These are the trip’s dates.')).toBeVisible()
   await page.goto(`${base}/overview`)
-  await expect(page.getByText(/Mar 13, 2027 – Mar 20, 2027/)).toBeVisible()
+  await expect(page.getByRole('main').getByText('Mar 13, 2027 – Mar 20, 2027', { exact: true })).toBeVisible()
   expect(errors).toEqual([])
 })
 
@@ -186,7 +197,7 @@ test('comments on a vote, and what’s new on the overview', async ({ page, base
 
   // Sam started a vote and commented since Alex joined: two things are new.
   await page.goto(`${base}/more/vote/${pollId}`)
-  const badge = page.getByRole('link', { name: /E2E TEST votes and comments/ }).filter({ visible: true })
+  const badge = page.getByRole('navigation', { name: 'Trip navigation' }).getByRole('link', { name: /Home/ })
   await expect(badge).toContainText('2 new updates')
   await expect(page.getByText('Casa is far from the dock.')).toBeVisible()
   await expect(page.getByRole('button', { name: /Remove your comment/ })).toHaveCount(0) // not Alex's to remove
@@ -205,7 +216,7 @@ test('comments on a vote, and what’s new on the overview', async ({ page, base
   const news = page.getByRole('region', { name: 'What’s new' })
   await expect(news.getByText('on Where do we stay at the lake?: “Casa is far from the dock.”')).toBeVisible()
   await expect(news.getByText('New', { exact: true })).toHaveCount(2)
-  await expect(news.getByText(/^You on Where do we stay/)).toBeVisible()
+  await expect(news.getByRole('listitem').filter({ hasText: 'Worth it for the view though' }).getByRole('link', { name: /Alex \(you\)/ })).toBeVisible()
   await expect(page.getByText(/new updates?/)).toHaveCount(0) // seen now
   await shot(page, 'overview-news-390')
 

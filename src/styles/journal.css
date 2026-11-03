@@ -179,3 +179,32 @@
   .overview-planning-nav a > svg { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .overview-planning-nav a { transition: none; } }
+
+/* Returning travelers see the next decision before the planning shortcuts. */
+@media (max-width: 639px) {
+  .quick-add-contextual { display: none; }
+  .trip-overview[data-introduction='false'] .overview-journal { margin-block: .5rem 1.25rem; padding-bottom: 1rem; }
+  .trip-overview[data-introduction='false'] .overview-journal-top { margin-bottom: 1rem; }
+  .trip-overview[data-introduction='false'] .overview-journal-content { grid-template-columns: minmax(0, 1fr) 4.5rem; align-items: start; gap: .875rem; }
+  .trip-overview[data-introduction='false'] .overview-journal .app-kicker { display: none; }
+  .trip-overview[data-introduction='false'] .overview-journal h1 { margin-top: 0; font-size: 1.5rem; line-height: 1.25; letter-spacing: -.025em; }
+  .trip-overview[data-introduction='false'] .overview-meta { margin-top: .625rem; gap: .375rem .5rem; }
+  .trip-overview[data-introduction='false'] .overview-art { height: 4.5rem; animation: none; }
+  .trip-overview[data-introduction='false'] .overview-journal-plain .overview-journal-content,
+  .trip-overview[data-introduction='false']:is([data-phase='traveling'], [data-phase='preparing']) .overview-journal-content { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Vote feedback stays beside the choice and does not displace the next option. */
+.poll-save-feedback { min-height: 2.5rem; margin-top: .375rem; padding-bottom: .375rem; }
+.poll-feedback-check { animation: journal-check var(--stowaway-motion-change) var(--stowaway-feedback-ease); }
+.poll-progress { height: 3px; overflow: hidden; border-radius: 2px; background: var(--stowaway-border); }
+.poll-progress > span { display: block; width: 100%; height: 100%; background: var(--stowaway-action); }
+.poll-progress > span, .poll-result-bar { transform-origin: left; transition: transform var(--stowaway-motion-change) var(--stowaway-feedback-ease); }
+:dir(rtl) :is(.poll-progress > span, .poll-result-bar) { transform-origin: right; }
+.poll-complete { display: flex; align-items: center; gap: .75rem; padding-block: .25rem; font-size: .875rem; color: var(--stowaway-ink); }
+.poll-complete > span { flex-shrink: 0; }
+.poll-complete-character { animation: journal-feedback var(--stowaway-motion-enter) var(--stowaway-feedback-ease); }
+@media (prefers-reduced-motion: reduce) {
+  .poll-progress > span, .poll-result-bar, .ui-dialog::backdrop { transition: none; }
+  .poll-feedback-check, .poll-complete-character { animation: none; }
+}

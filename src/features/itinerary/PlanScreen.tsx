@@ -8,7 +8,7 @@ import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatInZone } from '@/lib/time'
-import { Fab, LinkButton, PageHeader, SectionTitle, Textarea } from '@/ui'
+import { Button, ErrorNote, Fab, LinkButton, PageHeader, SectionTitle, Textarea } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { itemsFor, planIcs, shareCalendar } from './calendar'
@@ -27,7 +27,7 @@ import { WeatherGlyph, WeatherLine } from './WeatherLine'
 import { useDaySuggestions } from '@/features/suggest/data'
 import { SuggestionsCard } from '@/features/suggest/SuggestionsCard'
 import { Agenda } from './Agenda'
-import { useSlidingHighlight } from '@/ui/effects'
+import { useContentChange, useSlidingHighlight } from '@/ui/effects'
 
 const HOUR_PX = 60
 const GUTTER = '3.25rem'
@@ -49,6 +49,7 @@ export function PlanScreen() {
   const days = useMemo(() => planDays(trip?.start_date ?? null, trip?.end_date ?? null, items ?? [], zone), [trip, items, zone])
   const today = DateTime.now().setZone(zone).toISODate()!
   const day = params.get('day') && days.includes(params.get('day')!) ? params.get('day')! : days.includes(today) ? today : days[0]!
+  const dayContent = useContentChange(`${day}:${view}`)
   const layout = useMemo(() => layoutDay(items ?? [], day, zone), [items, day, zone])
   const perDay = useMemo(() => Object.fromEntries(days.map((d) => {
     const l = layoutDay(items ?? [], d, zone)
@@ -67,10 +68,16 @@ export function PlanScreen() {
 
   // Keep the selected day visible in the strip.
   const stripRef = useRef<HTMLDivElement>(null)
-  const dayHighlight = useSlidingHighlight<HTMLDivElement>(day, '[aria-current="date"]')
+  const dayHighlight = useSlidingHighlight<HTMLDivElement>(day, '[aria-current="date"]', 'underline')
   useEffect(() => {
     stripRef.current?.querySelector<HTMLElement>('[aria-current="date"]')?.scrollIntoView({ inline: 'center', block: 'nearest' })
   }, [day])
+
+  const selectDay = (nextDay: string) => setParams((current) => {
+    const next = new URLSearchParams(current)
+    next.set('day', nextDay)
+    return next
+  }, { replace: true })
 
   if (!trip || !items) return <LoadingState fullScreen title="Loading your itinerary…" />
   const empty = layout.blocks.length === 0 && layout.allDay.length === 0 && layout.stays.length === 0
@@ -79,8 +86,8 @@ export function PlanScreen() {
     <div className="min-h-full pb-28">
       <PageHeader title="Plan" below={
         <div ref={stripRef} role="tablist" aria-label="Days" className="overflow-x-auto px-4 pb-3 pt-1 lg:px-8">
-          <div ref={dayHighlight.ref} className="relative flex w-max gap-1.5">
-          <span className="ui-highlight" style={dayHighlight.style} aria-hidden="true" />
+          <div ref={dayHighlight.ref} className="relative flex w-max gap-1.5 pb-2">
+          <span className="ui-highlight plan-day-indicator" style={dayHighlight.style} aria-hidden="true" />
           {days.map((d) => {
             const dt = DateTime.fromISO(d)
             const on = d === day
@@ -88,11 +95,24 @@ export function PlanScreen() {
             return (
               <button
                 key={d}
+                id={`plan-day-${d}`}
                 role="tab"
+                tabIndex={on ? 0 : -1}
                 aria-selected={on}
+                aria-controls="plan-day-content"
                 aria-current={on ? 'date' : undefined}
                 aria-label={`${dt.toFormat('cccc d LLLL')}${d === today ? ', today' : ''}, ${perDay[d]?.count ?? 0} items${perDay[d]?.conflict ? ', has overlaps' : ''}${w ? `, ${describeCode(w.weather.code).label}, high ${formatTemp(w.weather.hi, tempUnit)}` : ''}`}
-                onClick={() => setParams({ day: d }, { replace: true })}
+                onClick={() => selectDay(d)}
+                onKeyDown={(event) => {
+                  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+                  event.preventDefault()
+                  const direction = getComputedStyle(event.currentTarget).direction === 'rtl' ? -1 : 1
+                  const offset = (event.key === 'ArrowRight' ? 1 : -1) * direction
+                  const index = event.key === 'Home' ? 0 : event.key === 'End' ? days.length - 1 : (days.indexOf(d) + offset + days.length) % days.length
+                  const nextDay = days[index]!
+                  selectDay(nextDay)
+                  document.getElementById(`plan-day-${nextDay}`)?.focus({ preventScroll: true })
+                }}
                 data-today={d === today ? '' : undefined}
                 className="plan-day"
               >
@@ -111,7 +131,7 @@ export function PlanScreen() {
         </div>
       } />
 
-      <div className="mx-auto max-w-2xl space-y-3 p-4 lg:p-6">
+      <div ref={dayContent} id="plan-day-content" role="tabpanel" aria-labelledby={`plan-day-${day}`} className="mx-auto max-w-2xl space-y-3 p-4 lg:p-6">
         <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} withinHours={24} />
         <div className="flex items-center justify-between gap-3">
           <SectionTitle>{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</SectionTitle>
@@ -164,7 +184,7 @@ export function PlanScreen() {
             </LinkButton>}
           </Empty>
         ) : view === 'agenda' ? (
-          <Agenda blocks={layout.blocks} zone={zone} tripId={tripId} placeOf={placeOf} />
+          <Agenda day={day} blocks={layout.blocks} zone={zone} tripId={tripId} placeOf={placeOf} />
         ) : (
           <Timeline blocks={layout.blocks} fromHour={layout.fromHour} toHour={layout.toHour} zone={zone} day={day} tripId={tripId} placeOf={placeOf} />
         )}
@@ -244,37 +264,58 @@ function BlockCard({ block, top, height, zone, tripId, place, to }: { block: Blo
 function DayNoteEditor({ tripId, day }: { tripId: string; day: string }) {
   const me = useMyMemberId(tripId)
   const note = useDayNote(tripId, day)
-  const saved = note?.notes ?? ''
-  const [text, setText] = useState(saved)
-  const [open, setOpen] = useState(false)
-  const editing = useRef(false)
-  useEffect(() => {
-    if (!editing.current) setText(saved)
-  }, [saved, day])
+  const saved = note?.date === day ? note.notes ?? '' : ''
+  const [drafts, setDrafts] = useState<Record<string, { text: string; error: string | null }>>({})
+  const [openDay, setOpenDay] = useState<string | null>(null)
+  const [savingDays, setSavingDays] = useState<Set<string>>(() => new Set())
+  const inFlight = useRef(new Set<string>())
+  const [message, setMessage] = useState('')
+  const text = drafts[day]?.text ?? saved
+  const failures = Object.entries(drafts).filter(([, draft]) => draft.error)
 
-  if (!open && !saved) {
-    return (
-      <button type="button" onClick={() => setOpen(true)} className="ui-link">
-        <StickyNote aria-hidden="true" className="size-4" /> Add a note for this day
-      </button>
-    )
+  async function persist(targetDay: string, value: string) {
+    if (inFlight.current.has(targetDay)) return
+    inFlight.current.add(targetDay)
+    setSavingDays(new Set(inFlight.current))
+    setMessage('')
+    try {
+      await saveDayNote(tripId, targetDay, value, me)
+      setDrafts((current) => {
+        if (current[targetDay]?.text !== value) return current
+        const next = { ...current }
+        delete next[targetDay]
+        return next
+      })
+      setMessage(`Note for ${DateTime.fromISO(targetDay).toFormat('ccc, d LLL')} saved on this device.`)
+    } catch {
+      setDrafts((current) => ({ ...current, [targetDay]: { text: current[targetDay]?.text ?? value, error: 'Your note could not be saved. Your text is kept here while you try again.' } }))
+    } finally {
+      inFlight.current.delete(targetDay)
+      setSavingDays(new Set(inFlight.current))
+    }
   }
-  return (
-    <Textarea
+
+  return <div className="space-y-2">
+    {openDay !== day && !text && !drafts[day] ? <button type="button" onClick={() => setOpenDay(day)} className="ui-link"><StickyNote aria-hidden="true" className="size-4" /> Add a note for this day</button> : <Textarea
       value={text}
       rows={2}
-      autoFocus={open && !saved}
+      autoFocus={openDay === day && !saved}
       aria-label="Notes for this day"
       placeholder="e.g. Pack swimsuits, last lancha 5 pm"
-      onFocus={() => (editing.current = true)}
-      onChange={(e) => setText(e.target.value)}
+      onChange={(event) => {
+        const value = event.target.value
+        setMessage('')
+        setDrafts((current) => ({ ...current, [day]: { text: value, error: null } }))
+      }}
       onBlur={() => {
-        editing.current = false
-        setOpen(false)
-        if (text.trim() !== saved) void saveDayNote(tripId, day, text, me)
+        setOpenDay(null)
+        if (text.trim() !== saved) void persist(day, text)
       }}
       className="bg-warning/60"
-    />
-  )
+    />}
+    {drafts[day] && !drafts[day].error && <Button variant="secondary" disabled={savingDays.has(day)} onClick={() => void persist(day, text)}>{savingDays.has(day) ? 'Saving note…' : 'Save note'}</Button>}
+    {failures.map(([failedDay, draft]) => <div key={failedDay} className="rounded-control border border-line bg-surface p-3"><p className="mb-1 text-xs font-medium text-muted">{DateTime.fromISO(failedDay).toFormat('cccc, d LLLL')}</p><ErrorNote error={draft.error} /><Button variant="secondary" className="mt-2" disabled={savingDays.has(failedDay)} onClick={() => void persist(failedDay, draft.text)}>{savingDays.has(failedDay) ? 'Saving note…' : `Retry note for ${DateTime.fromISO(failedDay).toFormat('ccc, d LLL')}`}</Button></div>)}
+    <p role="status" className="text-xs text-muted empty:hidden">{message}</p>
+  </div>
 }
 import { HolidayNotice } from '@/features/travel/HolidayNotice'

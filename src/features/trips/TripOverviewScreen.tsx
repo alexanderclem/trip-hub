@@ -113,7 +113,7 @@ export function TripOverviewScreen() {
   const needs = otherVotes.length + otherTasks.length + (showBalance ? 1 : 0) + (missing && !nearDeparture ? 1 : 0) + (needsProfile ? 1 : 0)
   const upNext = <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} prominent={phase === 'traveling'} />
 
-  return <div data-phase={phase} className="trip-page trip-overview px-4 pb-10 pt-safe sm:px-8">
+  return <div data-phase={phase} data-introduction={!!arrival && !welcomeDismissed} className="trip-page trip-overview px-4 pb-10 pt-safe sm:px-8">
     <header className={`overview-journal ${cover === 'none' ? 'overview-journal-plain' : ''}`}>
       <div className="overview-journal-top"><Link to="/app" className="ui-link"><Compass aria-hidden="true" className="size-4" />Your trips</Link><div className="overview-tools">{tools}</div></div>
       <div className="overview-journal-content">
@@ -132,12 +132,6 @@ export function TripOverviewScreen() {
       <div className="min-w-0 flex-1"><p className="font-semibold">{arrival === 'created' ? 'Your trip is ready. Bring everyone along.' : 'You’re in. Let’s see what’s planned.'}</p><p className="mt-1 text-sm text-stone-600">{arrival === 'created' ? 'Share the invite link, then save your first idea.' : 'Check the group’s votes and make yourself at home.'}</p><div className="mt-2 flex flex-wrap gap-3">{arrival === 'created' ? <button type="button" onClick={invite} className="ui-link">Invite friends<ArrowRight aria-hidden="true" className="size-4" /></button> : <><Link to={`${root}/more/vote`} className="ui-link">See the votes<ArrowRight aria-hidden="true" className="size-4" /></Link><Link to={`${root}/plan`} className="ui-link">Open the plan</Link></>}<button type="button" className="ui-link" onClick={() => setWelcomeDismissed(true)}>Got it</button></div></div>
     </section>}
 
-    {phase === 'planning' && <nav aria-label="Trip planning" className="overview-planning-nav">
-      <Link to={`${root}/more/places`}><MapPin aria-hidden="true" /><span>Places</span><span className="planning-count">{savedPlaces.length}</span></Link>
-      <Link to={`${root}/more/vote`}><Vote aria-hidden="true" /><span>Votes</span>{polls && <span className="planning-count">{polls.filter(({ poll }) => !votingEnded(poll, now)).length}<span className="sr-only"> open</span></span>}</Link>
-      <Link to={`${root}/plan`}><CalendarDays aria-hidden="true" /><span>Plan</span><span className="planning-count">{items.length}</span></Link>
-    </nav>}
-
     <div className="overview-columns">
       <div className="min-w-0 space-y-7">
         {phase === 'traveling' && upNext}
@@ -145,6 +139,12 @@ export function TripOverviewScreen() {
         {ready && focus && phase !== 'traveling' && phase !== 'preparing' && <section className="overview-focus" aria-labelledby="trip-focus-title"><span className="overview-focus-icon"><focus.Icon aria-hidden="true" className="size-5" /></span><div className="min-w-0 flex-1"><p className="app-kicker">{overdue ? 'Needs your attention' : 'Your next step'}</p><h2 id="trip-focus-title" className="travel-heading mt-2 wrap-anywhere">{focus.title}</h2><p className="mt-2 text-sm leading-relaxed text-stone-600">{focus.detail}</p><LinkButton to={focus.to} className="mt-4">{focus.action}<ArrowRight aria-hidden="true" className="size-4" /></LinkButton></div></section>}
         {ready && !focus && phase === 'planning' && <section className="overview-focus" aria-labelledby="trip-focus-title"><span className="overview-focus-icon"><MapPin aria-hidden="true" className="size-5" /></span><div className="min-w-0"><p className="app-kicker">Room for a little adventure</p><h2 id="trip-focus-title" className="travel-heading mt-2">{savedPlaces.length ? 'Turn a good idea into a plan.' : 'Where should we go first?'}</h2><p className="mt-2 text-sm leading-relaxed text-stone-600">{savedPlaces.length ? 'Your saved places are a good place to start.' : 'Save somewhere you’d love to take the group.'}</p><LinkButton to={`${root}/more/places${savedPlaces.length ? '' : '/new'}`} className="mt-4">{savedPlaces.length ? 'Explore saved places' : 'Save your first place'}<ArrowRight aria-hidden="true" className="size-4" /></LinkButton></div></section>}
         {phase === 'complete' && <section className="overview-recap"><Stowie mood="delighted" size={44} /><div className="min-w-0"><SectionTitle>One for the memories.</SectionTitle><p className="mt-1 text-sm text-stone-600">The places, plans, and moments you shared.</p><Link to={`${root}/wrapped`} className="ui-link">Open trip recap<Sparkles aria-hidden="true" className="size-4" /></Link></div></section>}
+
+        {phase === 'planning' && <nav aria-label="Trip planning" className="overview-planning-nav">
+          <Link to={`${root}/more/places`}><MapPin aria-hidden="true" /><span>Places</span><span className="planning-count">{savedPlaces.length}</span></Link>
+          <Link to={`${root}/more/vote`}><Vote aria-hidden="true" /><span>Votes</span>{polls && <span className="planning-count">{polls.filter(({ poll }) => !votingEnded(poll, now)).length}<span className="sr-only"> open</span></span>}</Link>
+          <Link to={`${root}/plan`}><CalendarDays aria-hidden="true" /><span>Plan</span><span className="planning-count">{items.length}</span></Link>
+        </nav>}
 
         {!ready ? <ListSkeleton label="Loading what needs you…" rows={2} /> : needs > 0 ? <RowGroup label="For you">
           {otherVotes.slice(0, 3).map(({ poll, left }) => <Row key={poll.id} to={`${root}/more/vote/${poll.id}`} icon={<Vote aria-hidden="true" className="size-5" />} title={poll.title} detail={`${left} ${left === 1 ? 'option' : 'options'} awaiting your vote`} />)}

@@ -108,6 +108,7 @@ test('quick add works by keyboard, restores focus, and reaches every creation fl
     await dialog.getByRole('link', { name: new RegExp(label!) }).click()
     await expect(page).toHaveURL(new RegExp(`${path!.replaceAll('/', '\\/')}(\\?|$)`))
     await expect(page.getByRole('heading', { level: 1 })).toContainText(heading!)
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused()
     await page.setViewportSize({ width: 320, height: 844 })
     await noOverflow(page)
     const field = page.locator('input:not([type=hidden]):not([type=radio]):not([type=checkbox])').filter({ visible: true }).first()

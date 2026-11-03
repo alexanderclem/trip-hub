@@ -1,0 +1,152 @@
+<div id="stowaway-motion-comparison">
+  <div class="viz-controls">
+    <label class="form-label" for="stowaway-motion-mode">Motion feel
+      <select class="form-select" id="stowaway-motion-mode">
+        <option value="refined">Refined</option>
+        <option value="abrupt">Abrupt</option>
+        <option value="overdone">Overdone</option>
+      </select>
+    </label>
+    <output id="stowaway-motion-timing" class="text-small text-muted">180 ms · ease-out</output>
+  </div>
+  <div class="viz-dotted-background sw-preview-space">
+    <section class="sw-specimen" aria-label="Stowaway sample voting interaction">
+      <div class="sw-specimen-header"><span>Stowaway · Sample trip</span><span>New York</span></div>
+      <div class="sw-specimen-body">
+        <p class="sw-eyebrow">Friday’s plan</p>
+        <h3>Where should we eat?</h3>
+        <div class="sw-place"><div><p class="sw-place-name">Dumplings in Chinatown</p><p class="sw-place-meta">19:00 · Dinner with the group</p></div><span class="sw-voters">2 of 6 voted</span></div>
+        <div class="sw-scores" role="group" aria-label="Your sample vote">
+          <span class="sw-selection" aria-hidden="true"></span>
+          <button type="button" class="cursor-interaction" data-score="0" aria-pressed="false">No way</button>
+          <button type="button" class="cursor-interaction" data-score="1" aria-pressed="false">Fine</button>
+          <button type="button" class="cursor-interaction" data-score="2" aria-pressed="false">Want</button>
+          <button type="button" class="cursor-interaction" data-score="3" aria-pressed="false">Must-do</button>
+        </div>
+        <div class="sw-feedback" role="status" aria-live="polite"><span class="sw-feedback-mark" aria-hidden="true">✓</span><span class="sw-feedback-text">Choose a sample score.</span></div>
+      </div>
+      <div class="sw-specimen-footer">Interactive example · Your real trips are unchanged</div>
+    </section>
+  </div>
+</div>
+<style>
+  #stowaway-motion-comparison .sw-preview-space { padding: 24px 12px; }
+  #stowaway-motion-comparison .sw-specimen {
+    --sw-paper: light-dark(#ffffff, #172c34);
+    --sw-ink: light-dark(#17343f, #edf4f5);
+    --sw-muted: light-dark(#566970, #b0c2c9);
+    --sw-line: light-dark(#d9e3e6, #405963);
+    --sw-soft: light-dark(#f2f6f6, #203a44);
+    --sw-action: light-dark(#245b69, #9ed4de);
+    max-width: 600px; margin: 0 auto; color: var(--sw-ink); background: var(--sw-paper);
+    border: 1px solid var(--sw-line); border-radius: 12px; overflow: hidden;
+    box-shadow: 0 8px 26px light-dark(#17343f0a, #00000024);
+    font: 400 15px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  #stowaway-motion-comparison .sw-specimen-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 16px 22px; border-bottom: 1px solid var(--sw-line); color: var(--sw-muted); font-size: 12px; }
+  #stowaway-motion-comparison .sw-specimen-body { padding: 24px 22px 16px; }
+  #stowaway-motion-comparison .sw-eyebrow { margin: 0 0 8px; color: var(--sw-action); font-size: 12px; font-weight: 500; }
+  #stowaway-motion-comparison h3 { margin: 0; font-size: 24px; font-weight: 500; line-height: 1.2; letter-spacing: -.03em; }
+  #stowaway-motion-comparison .sw-place { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; margin-top: 26px; }
+  #stowaway-motion-comparison .sw-place p { margin: 0; }
+  #stowaway-motion-comparison .sw-place-name { font-size: 15px; font-weight: 500; }
+  #stowaway-motion-comparison .sw-place .sw-place-meta { margin-top: 4px; color: var(--sw-muted); font-size: 12px; }
+  #stowaway-motion-comparison .sw-voters { color: var(--sw-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #stowaway-motion-comparison .sw-scores { position: relative; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-top: 22px; padding-bottom: 7px; }
+  #stowaway-motion-comparison .sw-scores button { position: relative; min-width: 0; min-height: 44px; padding: 9px 6px; border: 1px solid var(--sw-line); border-radius: 6px; color: var(--sw-ink); background: var(--sw-paper); font: 500 13px/1.3 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  #stowaway-motion-comparison .sw-scores button:hover { background: var(--sw-soft); }
+  #stowaway-motion-comparison .sw-scores button[aria-pressed="true"] { border-color: var(--sw-action); background: var(--sw-soft); color: var(--sw-action); }
+  #stowaway-motion-comparison .sw-scores button:focus-visible { outline: 2px solid var(--sw-action); outline-offset: 3px; }
+  #stowaway-motion-comparison .sw-selection { position: absolute; top: 0; left: 0; height: 3px; border-radius: 3px; background: var(--sw-action); opacity: 0; pointer-events: none; }
+  #stowaway-motion-comparison .sw-feedback { display: flex; gap: 8px; align-items: center; min-height: 46px; margin-top: 8px; font-size: 12px; color: var(--sw-muted); }
+  #stowaway-motion-comparison .sw-feedback-mark { visibility: hidden; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; color: var(--sw-action); background: var(--sw-soft); border-radius: 50%; }
+  #stowaway-motion-comparison .sw-specimen-footer { padding: 12px 22px; border-top: 1px solid var(--sw-line); color: var(--sw-muted); font-size: 11px; }
+  @media(max-width:400px) {
+    #stowaway-motion-comparison .sw-scores { grid-template-columns: repeat(2,minmax(0,1fr)); row-gap: 13px; }
+    #stowaway-motion-comparison .sw-specimen-body { padding: 22px 16px 12px; }
+    #stowaway-motion-comparison .sw-specimen-header, #stowaway-motion-comparison .sw-specimen-footer { padding-inline: 16px; }
+  }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('stowaway-motion-comparison');
+  if (!root) return;
+  const modeInput = root.querySelector('#stowaway-motion-mode');
+  const timing = root.querySelector('#stowaway-motion-timing');
+  const scores = [...root.querySelectorAll('[data-score]')];
+  const highlight = root.querySelector('.sw-selection');
+  const feedback = root.querySelector('.sw-feedback-text');
+  const mark = root.querySelector('.sw-feedback-mark');
+  const voters = root.querySelector('.sw-voters');
+  const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const variants = {
+    refined: { duration: 180, easing: 'cubic-bezier(.16,1,.3,1)', label: '180 ms · ease-out' },
+    abrupt: { duration: 0, easing: 'linear', label: 'No transition' },
+    overdone: { duration: 750, easing: 'cubic-bezier(.3,1.6,.4,1)', label: '750 ms · overshoot' }
+  };
+  let state = { mode: 'refined', score: null };
+  let lineAnimation;
+  let feedbackAnimation;
+
+  function applySaved(snapshot) {
+    const value = snapshot?.modelContent;
+    if (!value || value.demo !== 'stowaway-motion') return;
+    state.mode = Object.hasOwn(variants, value.mode) ? value.mode : 'refined';
+    state.score = Number.isInteger(value.score) && value.score >= 0 && value.score <= 3 ? value.score : null;
+  }
+  applySaved(window.openai?.widgetState);
+
+  function save() {
+    const pending = window.openai?.setWidgetState?.({ modelContent: { demo: 'stowaway-motion', mode: state.mode, score: state.score }, privateContent: null });
+    pending?.catch?.(() => {});
+  }
+
+  function render(animate = false) {
+    const config = variants[state.mode];
+    modeInput.value = state.mode;
+    timing.textContent = media.matches ? 'Reduced motion · instant feedback' : config.label;
+    scores.forEach((button, i) => button.setAttribute('aria-pressed', String(state.score === i)));
+    voters.textContent = state.score === null ? '2 of 6 voted' : '3 of 6 voted';
+    feedback.textContent = state.score === null ? 'Choose a sample score.' : `Your sample vote: ${scores[state.score].textContent}.`;
+    mark.style.visibility = state.score === null ? 'hidden' : 'visible';
+    const oldTransform = getComputedStyle(highlight).transform;
+    const oldWidth = highlight.getBoundingClientRect().width;
+    lineAnimation?.cancel();
+    feedbackAnimation?.cancel();
+    if (state.score === null) { highlight.style.opacity = '0'; return; }
+    const target = scores[state.score];
+    const nextTransform = `translate(${target.offsetLeft}px, ${target.offsetTop + target.offsetHeight + 4}px)`;
+    highlight.style.opacity = '1';
+    highlight.style.width = `${target.offsetWidth}px`;
+    highlight.style.transform = nextTransform;
+    if (!animate || media.matches || !config.duration) return;
+    lineAnimation = highlight.animate([
+      { transform: oldTransform === 'none' ? nextTransform : oldTransform, width: `${oldWidth || target.offsetWidth}px` },
+      { transform: nextTransform, width: `${target.offsetWidth}px` }
+    ], { duration: config.duration, easing: config.easing });
+    feedbackAnimation = mark.animate(state.mode === 'overdone' ? [
+      { transform: 'scale(.5) rotate(-25deg)' },
+      { transform: 'scale(1.35) rotate(8deg)', offset: .55 },
+      { transform: 'scale(1) rotate(0deg)' }
+    ] : [{ transform: 'scale(.88)', opacity: .4 }, { transform: 'scale(1)', opacity: 1 }], { duration: config.duration, easing: config.easing });
+  }
+
+  scores.forEach((button, index) => {
+    button.addEventListener('click', () => {
+      state.score = index;
+      render(true);
+      save();
+    });
+    button.addEventListener('pointerdown', () => {
+      if (media.matches || state.mode === 'abrupt') return;
+      button.getAnimations().forEach(animation => animation.cancel());
+      button.animate(state.mode === 'overdone' ? [{ transform: 'scale(1)' }, { transform: 'scale(.86)' }, { transform: 'scale(1.06)' }, { transform: 'scale(1)' }] : [{ transform: 'scale(1)' }, { transform: 'scale(.98)' }, { transform: 'scale(1)' }], { duration: state.mode === 'overdone' ? 650 : 140, easing: 'ease-out' });
+    });
+  });
+  modeInput.addEventListener('change', () => { state.mode = modeInput.value; render(false); save(); });
+  media.addEventListener('change', () => { scores.forEach(button => button.getAnimations().forEach(animation => animation.cancel())); render(false); });
+  window.addEventListener('openai:set_globals', event => { if (event.detail?.globals?.widgetState) { applySaved(event.detail.globals.widgetState); render(false); } });
+  new ResizeObserver(() => render(false)).observe(root.querySelector('.sw-scores'));
+  render(false);
+})();
+</script>

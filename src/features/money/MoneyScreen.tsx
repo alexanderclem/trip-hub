@@ -84,7 +84,7 @@ export function MoneyScreen() {
                 <p className="ui-label">Your balance</p>
                 {local && local !== base && <Segmented label="Show amounts in" value={showLocal ? 'local' : 'base'} onChange={setMoneyView} options={[{ value: 'base', label: base }, { value: 'local', label: `≈ ${local}` }]} />}
               </div>
-              {/* Georgia with an italic amount, like the website's headlines; the amount counts up once. */}
+              {/* The exact balance is immediate; later changes receive brief visual feedback. */}
               <p className="ui-display mt-1 text-[2.5rem]">
                 {mine === 0 ? members.length < 2 ? 'No shared balance yet' : 'All settled' : <>{mine > 0 ? "You're owed" : 'You owe'} <em className={mine > 0 ? 'text-success-ink' : 'text-danger-ink'}><NumberTicker value={Math.abs(mine)} format={(v) => fmt(v)} /></em></>}
               </p>

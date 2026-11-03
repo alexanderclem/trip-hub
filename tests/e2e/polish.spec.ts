@@ -50,6 +50,192 @@ async function failNextWrite(page: Page, store: string) {
   }, store)
 }
 
+async function putLocalRows(page: Page, rows: Record<string, Record<string, unknown>[]>) {
+  await page.evaluate(async (rows) => {
+    const request = indexedDB.open('trip-hub')
+    const database = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
+    const transaction = database.transaction(Object.keys(rows), 'readwrite')
+    for (const [store, entries] of Object.entries(rows)) {
+      for (const entry of entries) transaction.objectStore(store).put(entry)
+    }
+    await new Promise<void>((resolve, reject) => { transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error) })
+    database.close()
+  }, rows)
+}
+
+test('dialog dismissal retains modality, can be interrupted, and restores keyboard focus', async ({ page, baseURL }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await seed(page, baseURL!)
+  await page.goto(`${root}/overview`)
+  const trigger = page.getByRole('button', { name: 'Add', exact: true })
+  const dialog = page.getByRole('dialog', { name: 'Add to your trip' })
+  await trigger.click()
+  await expect(dialog).toBeVisible()
+  const duringExit = await dialog.getByRole('button', { name: 'Close dialog' }).evaluate(async (button) => {
+    ;(button as HTMLButtonElement).click()
+    await new Promise(requestAnimationFrame)
+    const modal = button.closest('dialog')!
+    return { open: modal.open, modal: modal.matches(':modal') }
+  })
+  expect(duringExit).toEqual({ open: true, modal: true })
+  // A programmatic reopen during dismissal must cancel the pending native close.
+  await trigger.evaluate(button => (button as HTMLButtonElement).click())
+  await page.waitForTimeout(200)
+  await expect(dialog).toBeVisible()
+  expect(await dialog.evaluate(element => element.matches(':modal'))).toBe(true)
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toBeFocused()
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await trigger.click()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toBeFocused()
+})
+
+test('rapid day changes preserve the final selection, keyboard focus, and each day’s note', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await page.goto(`${root}/plan?day=2027-05-01`)
+  const first = page.getByRole('tab', { name: /Saturday 1 May/ })
+  const second = page.getByRole('tab', { name: /Sunday 2 May/ })
+  const last = page.getByRole('tab', { name: /Monday 3 May/ })
+  await expect(page.locator('.plan-day-indicator')).toHaveCSS('opacity', '1')
+  await first.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(second).toBeFocused()
+  await expect(second).toHaveAttribute('aria-selected', 'true')
+  await page.keyboard.press('End')
+  await expect(last).toBeFocused()
+  await page.keyboard.press('Home')
+  await expect(first).toBeFocused()
+  await page.getByRole('button', { name: 'Add a note for this day' }).click()
+  await page.getByRole('textbox', { name: 'Notes for this day' }).fill('Bring water on Saturday')
+  await second.click()
+  await expect(page.getByRole('textbox', { name: 'Notes for this day' })).toHaveCount(0)
+  for (const tab of [last, first, second, last]) await tab.click()
+  await expect(last).toHaveAttribute('aria-selected', 'true')
+  await expect(last).toBeFocused()
+  await expect(page.getByRole('tabpanel')).toHaveAccessibleName(/Monday 3 May/)
+  await expect(page).toHaveURL(/day=2027-05-03/)
+  await first.click()
+  await expect(page.getByRole('textbox', { name: 'Notes for this day' })).toHaveValue('Bring water on Saturday')
+  await expect(page.getByRole('button', { name: 'Add', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Add to this day' })).toBeVisible()
+})
+
+test('trip tasks reflow with a long title, enlarged text, and right-to-left day navigation', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await page.evaluate(async (tripId) => {
+    const request = indexedDB.open('trip-hub')
+    const database = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
+    const transaction = database.transaction('trips', 'readwrite')
+    const store = transaction.objectStore('trips')
+    const get = store.get(tripId)
+    get.onsuccess = () => store.put({ ...get.result, name: 'A long-awaited adventure with the whole family, from New York to the coast and back again', settings: { journal_cover: 'coast' } })
+    await new Promise<void>(resolve => { transaction.oncomplete = () => resolve() })
+    database.close()
+  }, tripId)
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
+    for (const path of ['overview', 'plan?day=2027-05-01', `more/vote/${pollId}`]) {
+      await page.goto(`${root}/${path}`)
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      for (const [width, fontSize] of [[320, '100%'], [640, '200%'], [768, '100%'], [1440, '100%']] as const) {
+        await page.setViewportSize({ width, height: 900 })
+        await page.evaluate(size => { document.documentElement.style.fontSize = size }, fontSize)
+        const widths = await page.getByRole('main').evaluate(el => ({ available: el.clientWidth, content: el.scrollWidth }))
+        expect(widths.content, `${path}, ${colorScheme}, ${width}px, ${fontSize} text`).toBeLessThanOrEqual(widths.available)
+      }
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`${root}/plan?day=2027-05-01`)
+  await page.evaluate(() => { document.documentElement.dir = 'rtl' })
+  const first = page.getByRole('tab', { name: /Saturday 1 May/ })
+  await first.focus()
+  await page.keyboard.press('ArrowLeft')
+  await expect(page.getByRole('tab', { name: /Sunday 2 May/ })).toBeFocused()
+  await page.keyboard.press('ArrowRight')
+  await expect(first).toBeFocused()
+  await expect(first).toHaveAttribute('aria-selected', 'true')
+})
+
+test('balances show exact values on entry and across successive changes from another tab', async ({ page, context, baseURL }) => {
+  await seed(page, baseURL!)
+  const friend = '00000000-0000-4000-8000-000000000b05'
+  const expense = { id: 'polish-expense', trip_id: tripId, description: 'Shared dinner', category: 'food', spent_on: '2027-05-01', amount_minor: 10000, currency: 'USD', fx_rate: 1, base_currency: 'USD', base_amount_minor: 10000, payers: [{ member_id: friend, amount_minor: 10000 }], split_method: 'equal', split: [{ member_id: memberId, value: 1 }, { member_id: friend, value: 1 }], fx_source: 'same', fx_as_of: null, place_id: null, item_id: null, notes: null, deleted_at: null }
+  await putLocalRows(page, { members: [{ id: friend, trip_id: tripId, display_name: 'Maya', deleted_at: null }], expenses: [expense] })
+  await page.addInitScript(() => {
+    const samples: string[] = []
+    Object.assign(window, { balanceSamples: samples })
+    new MutationObserver(() => {
+      const text = document.querySelector('section[aria-label="Your balance"] em [aria-live]')?.textContent
+      if (text && text !== samples.at(-1)) samples.push(text)
+    }).observe(document, { subtree: true, childList: true, characterData: true })
+  })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto(`${root}/money`)
+  const amount = page.locator('section[aria-label="Your balance"] em [aria-live]')
+  await expect(amount).toHaveText('$50.00')
+  // Exercise the actual save path: native fixture writes do not notify Dexie's live queries.
+  const editor = await context.newPage()
+  await editor.route('https://**/*', route => route.abort())
+  await editor.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
+  await editor.goto(`${root}/money/${expense.id}`)
+  await editor.getByLabel('Amount', { exact: true }).fill('120')
+  await editor.getByRole('button', { name: 'Save expense', exact: true }).click()
+  await expect(amount).toHaveText('$60.00')
+  await editor.goto(`${root}/money/${expense.id}`)
+  await editor.getByLabel('Amount', { exact: true }).fill('80')
+  await editor.getByRole('button', { name: 'Save expense', exact: true }).click()
+  await expect(amount).toHaveText('$40.00')
+  expect(await page.evaluate(() => (window as Window & { balanceSamples: string[] }).balanceSamples)).toEqual(['$50.00', '$60.00', '$40.00'])
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect.poll(() => amount.locator('span').evaluate(element => new DOMMatrix(getComputedStyle(element).transform).isIdentity)).toBe(true)
+  await editor.close()
+})
+
+test('a ticket that could not open can retry and confirms the file is saved on this phone', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  const ticketId = 'polish-retry-ticket'
+  await putLocalRows(page, { attachments: [{ id: ticketId, trip_id: tripId, title: 'Museum entry', filename: 'museum.png', mime: 'image/png', kind: 'ticket', storage_path: 'local/museum.png', confirmation_code: 'MUSEUM27', uploaded_at: null, deleted_at: null }] })
+  await page.goto(`${root}/tickets/${ticketId}`)
+  await expect(page.getByRole('alert')).toContainText("hasn't been uploaded")
+  await expect(page.getByText('MUSEUM27', { exact: true })).toBeVisible()
+  // The file becomes available locally while the viewer stays open.
+  await page.evaluate(async (ticketId) => {
+    const request = indexedDB.open('trip-hub')
+    const database = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })
+    const transaction = database.transaction('files', 'readwrite')
+    const bytes = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg=='), character => character.charCodeAt(0))
+    transaction.objectStore('files').put({ name: `att:${ticketId}`, blob: new Blob([bytes], { type: 'image/png' }) })
+    await new Promise<void>((resolve, reject) => { transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error) })
+    database.close()
+  }, ticketId)
+  await page.getByRole('button', { name: 'Try again', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Saved on this phone')
+  await expect(page.getByRole('img', { name: 'Museum entry' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Save a copy' })).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveCount(0)
+})
+
+test('a failed day-note save retains its text across day changes and can retry', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await page.goto(`${root}/plan?day=2027-05-01`)
+  await page.getByRole('button', { name: 'Add a note for this day' }).click()
+  await page.getByRole('textbox', { name: 'Notes for this day' }).fill('Keep this note even if storage fails')
+  await failNextWrite(page, 'day_notes')
+  await page.getByRole('tab', { name: /Sunday 2 May/ }).click()
+  await expect(page.getByRole('alert')).toContainText('Your note could not be saved')
+  await page.getByRole('tab', { name: /Saturday 1 May/ }).click()
+  await expect(page.getByRole('textbox', { name: 'Notes for this day' })).toHaveValue('Keep this note even if storage fails')
+  await page.getByRole('button', { name: 'Retry note for Sat, 1 May' }).click()
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(page.getByRole('status').filter({ hasText: 'saved on this device' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('textbox', { name: 'Notes for this day' })).toHaveValue('Keep this note even if storage fails')
+})
+
 test('example days update map and itinerary without requests, layout shifts or lost focus', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', e => errors.push(e.message))

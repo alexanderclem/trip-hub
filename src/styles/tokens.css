@@ -1,5 +1,10 @@
 :root {
-  --stowaway-feedback-duration: 160ms;
+  /* Keep these roles aligned with src/ui/motion.ts. */
+  --stowaway-feedback-duration: 120ms;
+  --stowaway-motion-change: 180ms;
+  --stowaway-motion-enter: 240ms;
+  --stowaway-motion-exit: 140ms;
+  --stowaway-motion-fade: 160ms;
   --stowaway-feedback-ease: cubic-bezier(.16, 1, .3, 1);
   --stowaway-radius-control: 6px;
   --stowaway-radius-surface: 12px;

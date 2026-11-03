@@ -107,6 +107,8 @@ function TripShell({ tripId }: { tripId: string }) {
     const scroller = content.current
     if (!scroller) return
     let observer: MutationObserver | undefined
+    let focusObserver: MutationObserver | undefined
+    let focusDeadline: ReturnType<typeof setTimeout> | undefined
     let resize: ResizeObserver | undefined
     let frame = 0
     if (previousPath.current !== pathname) {
@@ -130,14 +132,27 @@ function TripShell({ tripId }: { tripId: string }) {
         resize.observe(scroller)
         if (scroller.firstElementChild) resize.observe(scroller.firstElementChild)
       }
-      // Route changes restore reading context without stealing focus on initial map load.
-      const heading = content.current?.querySelector<HTMLElement>('h1')
-      if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }) }
+      // A local query may replace its temporary header after the route first commits.
+      let focusedHeading: HTMLElement | null = null
+      const focusHeading = () => {
+        if (document.querySelector('dialog:modal')) return
+        const heading = scroller.querySelector<HTMLElement>('h1')
+        if (!heading || heading === focusedHeading) return
+        const active = document.activeElement
+        if (active && scroller.contains(active) && active.matches('input, textarea, select')) return
+        heading.tabIndex = -1
+        heading.focus({ preventScroll: true })
+        if (document.activeElement === heading) focusedHeading = heading
+      }
+      focusHeading()
+      focusObserver = new MutationObserver(focusHeading)
+      focusObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['open'] })
+      focusDeadline = setTimeout(() => focusObserver?.disconnect(), 10_000)
       previousPath.current = pathname
     } else {
       scrollPositions.current.set(locationKey, scroller.scrollTop)
     }
-    const cancelRestore = () => { observer?.disconnect(); resize?.disconnect(); cancelAnimationFrame(frame); scroller.classList.remove('[overflow-anchor:none]') }
+    const cancelRestore = () => { observer?.disconnect(); focusObserver?.disconnect(); clearTimeout(focusDeadline); resize?.disconnect(); cancelAnimationFrame(frame); scroller.classList.remove('[overflow-anchor:none]') }
     scroller.addEventListener('pointerdown', cancelRestore, { once: true })
     scroller.addEventListener('wheel', cancelRestore, { once: true, passive: true })
     scroller.addEventListener('keydown', cancelRestore, { once: true })
