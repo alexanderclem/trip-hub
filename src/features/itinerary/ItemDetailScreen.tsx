@@ -173,7 +173,7 @@ export function ItemDetailScreen() {
           </Link>
         </Card>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-2 sm:grid-cols-2">
           <LinkButton variant="secondary" to={`/t/${tripId}/money/new?item=${item.id}`}>
             <Receipt aria-hidden="true" className="size-4" /> Log what it cost
           </LinkButton>

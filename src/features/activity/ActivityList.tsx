@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { Vote } from 'lucide-react'
 import type { Member } from '@/data/types'
 import { Avatar } from '@/ui'
 import { TravelerLink } from '@/features/trips/TravelerLink'
@@ -14,13 +15,15 @@ export function ActivityList({ tripId, events, members, me, since }: {
     <ul className="divide-y divide-line">
       {events.map((e) => {
         const author = e.by ? members.find((m) => m.id === e.by) : undefined
-        const name = e.by === null ? null : author ? (author.id === me ? 'You' : author.display_name) : 'Someone'
+        // A vote's result is the only event with no person behind it. Anything else with an unknown
+        // author (an older or imported row) still reads as a sentence: "Someone logged …".
+        const name = e.kind === 'decided' ? null : author ? (author.id === me ? 'You' : author.display_name) : 'Someone'
         const fresh = isNew(e, since, me)
         return (
           <li key={e.id} className="flex items-start gap-2">
             {author && <div className="max-w-[40%] pt-2 text-sm"><TravelerLink member={author} you={author.id === me} /></div>}
             <Link to={`/t/${tripId}/${e.to}`} className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-control py-3 hover:bg-brand-50">
-              {!author && name ? <Avatar name={name} color={null} size="sm" /> : !author ? <span aria-hidden="true" className="size-7 shrink-0 rounded-full bg-mist" /> : null}
+              {!author && name ? <Avatar name={name} color={null} size="sm" /> : !author ? <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-full bg-mist text-muted"><Vote size={14} /></span> : null}
               <span className="min-w-0 flex-1 text-sm break-words text-ink">
                 {!author && name && <span className="font-medium">{name} </span>}{e.text}
                 <span className="block text-xs text-muted">{ago(e.at, now)}</span>

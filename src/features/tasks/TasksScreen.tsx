@@ -74,7 +74,7 @@ export function TasksScreen() {
 
   return (
     <div className="min-h-full pb-24">
-      <PageHeader title="Tasks" back={`/t/${tripId}/more`} action={mayPlan && <Link to="new" className="inline-flex min-h-11 items-center gap-1 rounded-control px-3 font-medium text-action hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add task</Link>} />
+      <PageHeader title="Tasks" back={`/t/${tripId}/more`} action={mayPlan && <Link to="new" className="inline-flex min-h-11 items-center gap-1 rounded-control px-3 font-medium text-action hover:bg-brand-50 max-sm:w-11 max-sm:justify-center max-sm:px-0"><Plus aria-hidden="true" className="size-4 max-sm:size-6" /><span className="max-sm:sr-only">Add task</span></Link>} />
       <div className="mx-auto max-w-2xl space-y-4 p-4">
         <div role="group" aria-label="Filter tasks" className="flex flex-wrap gap-2">
           {[['all', 'Everyone'], ['mine', 'Assigned to me'], ['unassigned', 'Unassigned']].map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value!)} className={`min-h-11 rounded-control border px-3 text-sm font-medium ${filter === value ? 'border-action bg-action text-on-action' : 'border-line bg-surface text-ink hover:bg-brand-50'}`}>{label}</button>)}

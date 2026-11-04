@@ -400,7 +400,7 @@ function AddOptionCard({ poll, options, places, me }: { poll: Poll; options: Pol
       <h2 className="ui-section-title">Add an option</h2>
       <form onSubmit={addText} className="mt-2">
         <div className="relative">
-          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-muted" />
+          <Search aria-hidden="true" className="pointer-events-none absolute top-3 left-3 z-1 size-5 text-muted" />
           <Input value={q} onChange={(e) => { setQ(e.target.value); setError(null) }} placeholder="Search places, or type any option" className="pl-10" aria-label="Option" />
         </div>
         {matches.length > 0 && (

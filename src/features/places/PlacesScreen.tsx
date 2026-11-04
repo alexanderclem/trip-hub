@@ -51,7 +51,7 @@ export function PlacesScreen() {
       />
       <div className="mx-auto max-w-4xl space-y-4 p-4 sm:p-6">
         <div className="relative">
-          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-muted" />
+          <Search aria-hidden="true" className="pointer-events-none absolute top-3 left-3 z-1 size-5 text-muted" />
           <Input aria-label="Search places" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search places" className="pl-10" />
         </div>
         <div aria-label="Filter places by category" className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1">

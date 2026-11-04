@@ -33,7 +33,7 @@ export function PlacePicker({ places, value, onChange, label }: { places: Place[
   return (
     <div>
       <div className="relative">
-        <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-muted" />
+        <Search aria-hidden="true" className="pointer-events-none absolute top-3 left-3 z-1 size-5 text-muted" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search places" className="pl-10" aria-label={label} />
       </div>
       {matches.length > 0 && (

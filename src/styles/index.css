@@ -211,7 +211,7 @@ body {
 .ui-toast-region:empty { display: none; }
 .ui-toast { display: flex; align-items: center; gap: .5rem; min-width: 0; padding: .5rem .5rem .5rem 1rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); color: var(--stowaway-ink); box-shadow: 0 8px 32px #183e4b20; pointer-events: auto; font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
 .ui-toast .ui-button { flex-shrink: 0; padding-inline: .75rem; }
-.shortcut-hint { display: none; margin-inline-start: .5rem; border: 1px solid var(--stowaway-border); border-radius: 4px; padding: .125rem .375rem; color: var(--stowaway-muted); font-family: inherit; font-size: .6875rem; white-space: nowrap; }
+.shortcut-hint { display: none; margin-inline-start: .5rem; border: 1px solid var(--stowaway-border); border-radius: 4px; padding: .125rem .375rem; color: var(--stowaway-muted); font-family: inherit; font-size: .75rem; white-space: nowrap; }
 .command-input { width: 100%; min-height: 48px; padding: .75rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); background: var(--stowaway-surface); font-size: 1rem; color: var(--stowaway-ink); }
 .command-results { max-height: min(50dvh, 24rem); margin-top: .75rem; overflow-y: auto; overscroll-behavior: contain; }
 .command-option { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 48px; padding: .75rem; border-radius: var(--stowaway-radius-control); color: var(--stowaway-ink); cursor: pointer; font-size: .9375rem; }
@@ -356,7 +356,7 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
   .trip-shell > aside > label, .trip-shell > aside > p { padding-inline: .5rem; font-size: .75rem; }
   .trip-shell > aside select { border-color: var(--stowaway-control-border); background: var(--stowaway-canvas); font-size: .875rem; }
   .trip-shell > aside nav { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--stowaway-border); }
-  .trip-shell > aside nav > div > p { margin-bottom: .375rem; font-size: .6875rem; font-weight: 600; color: var(--stowaway-muted); }
+  .trip-shell > aside nav > div > p { margin-bottom: .375rem; font-size: .75rem; font-weight: 600; color: var(--stowaway-muted); }
   .trip-shell > aside nav a { min-height: 44px; border-radius: var(--stowaway-radius-control); font-size: .8125rem; color: var(--stowaway-muted); }
   .trip-shell > aside nav a > svg { width: 18px; height: 18px; }
   .trip-shell > aside nav a:hover { background: var(--stowaway-canvas); color: var(--stowaway-ink); }

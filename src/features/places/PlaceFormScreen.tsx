@@ -108,7 +108,7 @@ export function PlaceFormScreen() {
           }
         >
           <div className="relative">
-            <MapPinned aria-hidden="true" className="absolute top-3 left-3 size-5 text-muted" />
+            <MapPinned aria-hidden="true" className="pointer-events-none absolute top-3 left-3 z-1 size-5 text-muted" />
             <Input value={coordsText} onChange={(e) => setCoordsText(e.target.value)} className="pl-10" placeholder="Map link or coordinates" />
           </div>
         </Field>

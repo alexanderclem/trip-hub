@@ -118,13 +118,14 @@ export function PollsScreen() {
                 <Link to={poll.id} className="ui-row">
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted">{ended ? (winner ? 'Decided' : 'Voting ended') : `${live.length} option${live.length === 1 ? '' : 's'} · you voted on ${myVotes}${poll.closes_at ? ` · closes ${closesLabel(poll.closes_at, Date.now(), zone)}` : ''}`}{comments > 0 && ` · ${comments} ${comments === 1 ? 'comment' : 'comments'}`}</p>
+                      <p className="text-xs font-medium text-muted">{ended ? (winner ? 'Decided' : 'Voting ended') : `${live.length} option${live.length === 1 ? '' : 's'} · ${myVotes === 0 ? 'you haven’t voted' : myVotes === live.length ? 'you voted on all' : `you voted on ${myVotes}`}${poll.closes_at ? ` · closes ${closesLabel(poll.closes_at, Date.now(), zone)}` : ''}`}{comments > 0 && ` · ${comments} ${comments === 1 ? 'comment' : 'comments'}`}</p>
                       <h2 className="break-words font-semibold text-ink">{poll.title}</h2>
                       {!ended && live.length > 0 && waiting !== null && <p className="mt-1 text-sm text-muted">{waiting ? `${waiting} ${waiting === 1 ? 'traveler still needs' : 'travelers still need'} to vote` : 'Everyone’s voted · ready to decide'}</p>}
-                      <p className="flex items-start gap-1.5 text-sm text-muted">
+                      {/* "Not enough votes yet" only when the line above isn't already saying who is missing. */}
+                      {(winner || top || !live.length || !waiting) && <p className="flex items-start gap-1.5 text-sm text-muted">
                         {winner && <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-action" />}
                         {winner ? winner.label : top ? `Leading: ${top.option.label}` : live.length ? 'Not enough votes yet' : 'No options yet'}
-                      </p>
+                      </p>}
                     </div>
                     <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted" />
                   </div>

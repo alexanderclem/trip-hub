@@ -56,7 +56,7 @@ export function TicketsScreen() {
       <PageHeader title="Tickets" back={`/t/${tripId}/more`} below={rows.length > 0 && (
         <label className="relative block px-4 pb-3 lg:px-6">
           <span className="sr-only">Search tickets, documents and receipts</span>
-          <Search aria-hidden="true" className="pointer-events-none absolute top-3.5 left-7 size-4 text-muted lg:left-9" />
+          <Search aria-hidden="true" className="pointer-events-none absolute top-3.5 left-7 z-1 size-4 text-muted lg:left-9" />
           <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search names, codes and text" className="w-full pl-9" />
         </label>
       )} />
