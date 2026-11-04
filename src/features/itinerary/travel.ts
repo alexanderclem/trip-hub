@@ -48,7 +48,7 @@ export function planTransfers(items: ItineraryItem[], places: Place[], ctx: LegC
       const existing = pairs.get(key)
       if (existing) { existing.memberIds.push(person); continue }
       const options: TravelOption[] = fromPlace.id === toPlace.id
-        ? [{ mode: 'walk', minS: 0, maxS: 0, source: 'reported', distanceM: 0 }]
+        ? [{ mode: 'walk', minS: 0, maxS: 0, source: 'estimate', distanceM: 0 }]
         : travelOptions(fromPlace, toPlace, ctx)
       // Prefer saved evidence over a straight-line guess; allow the upper end of its range.
       const known = options.filter((o) => o.source !== 'estimate')

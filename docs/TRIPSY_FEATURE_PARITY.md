@@ -1,4 +1,4 @@
-# Travel feature parity — 3 November 2026
+# Travel feature parity — 4 November 2026
 
 Branch: `codex/travel-feature-parity`. The free planner remains free. No new paid service or dependency is required.
 
@@ -38,4 +38,10 @@ These are not represented as implemented by this release:
 
 All unit/database suites passed: **90 files, 622 tests**. Type checking and the production build passed. Calendar SQL runs against all existing migrations in PGlite; tests cover membership, raw-table denial, sanitized payloads, attendee filtering, live edits, token rotation/revocation/expiry and access changes. Import tests cover atomic offline/outbox writes, invalid/DST dates, cross-zone flights, retries, sticky removals and permission failures. Worker tests cover authentication, cross-origin requests, safe calendar errors and refusal to fetch pasted URLs.
 
-Browser and hosted staging results are recorded below after execution. Physical iPhone Safari, screen-reader testing, external calendar-app refresh behavior, inbound email and real flight-push delivery are not covered by local automated checks.
+Hosted staging passed the real sign-in → trip/item writes → anonymous sanitized calendar feed → hosted ICS conversion (including New York DST) → live edit → revocation flow. The deployed Workers AI import endpoint returned review entries and created no itinerary rows automatically. The temporary staging trip and anonymous user were removed and their absence verified. Migration history matches the committed version `20261104070413`; production is unchanged.
+
+Local Chromium checks exercised booking-code search, editable import review and saving, offline route creation, arrival-buffer editing/persistence, and screenshots of search/import/routes/settings/history at 320, 390 and 1280 CSS pixels. The existing travel-day browser regression passed after preserving its check-in guidance and adding the new buffer instruction. Screenshot artifacts are retained locally outside the repository.
+
+Staging security advisors flag the new deny-by-default private token table and intentionally callable token RPCs. The table has RLS and no client grants; direct anonymous and authenticated reads were verified denied. The public feed RPC requires an unguessable, unexpired token and rechecks current trip access. See the [RLS advisor](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) and [token RPC advisor](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable) for the generic findings.
+
+Physical iPhone Safari, screen-reader testing, external calendar-app refresh behavior, inbound email and real flight-push delivery are not covered by these checks.

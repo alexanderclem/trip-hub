@@ -43,7 +43,13 @@ export function RouteScreen() {
         saving.current = true; setBusy(true); setError(null)
         try {
           const items = routeItems(tripId, routeId.current, preview, trip.timezone)
-          await db.transaction('rw', [db.itinerary_items, db._outbox], () => saveMany('itinerary_items', items, me))
+          await db.transaction('rw', [db.places, db.itinerary_items, db._outbox], async () => {
+            const ids = [...new Set(items.flatMap((i) => [i.place_id!, i.to_place_id!]))]
+            const current = await db.places.bulkGet(ids)
+            const planned = current.filter((p) => p && !p.deleted_at && p.trip_id === tripId && (p.status === 'catalog' || p.status === 'shortlist')).map((p) => ({ ...p!, status: 'planned' as const }))
+            if (planned.length) await saveMany('places', planned, me)
+            await saveMany('itinerary_items', items, me)
+          })
           navigate(`/t/${tripId}/plan?day=${local.slice(0, 10)}`)
         } catch (e) { setError(e instanceof Error ? e.message : 'Could not save the route.'); saving.current = false; setBusy(false) }
       }}>{busy ? 'Saving route…' : 'Add route to plan'}</Button><ErrorNote error={error} />

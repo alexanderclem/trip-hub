@@ -50,7 +50,7 @@ export function UpNextCard({ tripId, items, places, members, me, zone, transfers
         {ticket && <Link to={`/t/${tripId}/tickets/${ticket.att.id}`} className="ui-link"><Ticket aria-hidden="true" className="size-4" />{ticket.onPhone ? 'Open ticket' : 'View ticket · not downloaded'}</Link>}
       </div>
       <Disclosure summary={transfer ? 'About this travel estimate' : 'Travel guidance'} className="up-next-guidance">
-        {transfer ? <><p>From {transfer.fromPlace.name} · {SOURCE_LABEL[transfer.option.source]}.</p><p className="mt-1">Departure allows the upper travel estimate{arrivalMinutes(item) ? ` plus ${arrivalMinutes(item)} min to arrive early` : '. Set an arrival buffer for check-in or waiting'}.</p></> : <p>{place ? 'A departure estimate needs a previous stop with travel information.' : 'Add a place to this plan for travel guidance.'}</p>}
+        {transfer ? <><p>From {transfer.fromPlace.name} · {SOURCE_LABEL[transfer.option.source]}.</p><p className="mt-1">Departure allows the upper travel estimate{arrivalMinutes(item) ? ` plus ${arrivalMinutes(item)} min to arrive early` : '. Add time for check-in or waiting. Set an arrival buffer when editing this plan'}.</p></> : <p>{place ? 'A departure estimate needs a previous stop with travel information.' : 'Add a place to this plan for travel guidance.'}</p>}
       </Disclosure>
     </section>
   )
