@@ -3,6 +3,7 @@ import { MapPin } from 'lucide-react'
 import { useOnline } from '@/lib/useOnline'
 import { Button, Input } from '@/ui'
 import { searchDestinations, type Destination } from './destinations'
+import { friendlyError } from '@/ui/errors'
 
 /** Type a town, tap a result. Results come from OpenStreetMap, so it needs signal. */
 export function DestinationSearch({ onPick, placeholder = 'Search for a town or city' }: { onPick: (d: Destination) => void; placeholder?: string }) {
@@ -62,7 +63,7 @@ export function DestinationSearch({ onPick, placeholder = 'Search for a town or 
         spellCheck={false}
       />
       {searching && <p role="status" className="mt-2 text-sm text-muted">Searching destinations…</p>}
-      {error && <div className="mt-2"><p role="alert" className="text-sm text-danger-ink">{error}</p><Button type="button" variant="secondary" className="mt-2" onClick={() => setRetry((value) => value + 1)}>Retry destination search</Button></div>}
+      {error && <div className="mt-2"><p role="alert" className="text-sm text-danger-ink">{friendlyError(error)}</p><Button type="button" variant="secondary" className="mt-2" onClick={() => setRetry((value) => value + 1)}>Retry destination search</Button></div>}
       {results && (
         results.length === 0 ? (
           <p className="mt-2 text-sm text-muted">No places found for “{query.trim()}”.</p>

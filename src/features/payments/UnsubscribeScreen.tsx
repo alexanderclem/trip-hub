@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { WebsiteFrame } from '@/features/website/WebsiteFrame'
 import { tokenFromHash, unsubscribe } from './api'
+import { friendlyError } from '@/ui/errors'
 
 export function UnsubscribeScreen() {
   const [token] = useState(() => tokenFromHash(location.hash))
@@ -28,7 +29,7 @@ export function UnsubscribeScreen() {
               <p>Stop emails about future trips from this organizer. Emails about a trip you’ve booked still arrive.</p>
               <button type="button" className="website-button website-button-primary" disabled={busy} onClick={() => void go()}>{busy ? 'Unsubscribing…' : 'Unsubscribe'}</button>
             </>}
-          {error && <p role="alert" className="marketing-status">{error}</p>}
+          {error && <p role="alert" className="marketing-status">{friendlyError(error)}</p>}
         </div>
       </section>
     </WebsiteFrame>

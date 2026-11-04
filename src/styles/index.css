@@ -182,7 +182,7 @@ body {
   .ui-disclosure > summary:hover { color: var(--stowaway-ink); }
   .ui-disclosure > summary::-webkit-details-marker { display: none; }
   .ui-disclosure-chevron { transition: transform var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
-  .ui-disclosure[open] .ui-disclosure-chevron { transform: rotate(180deg); }
+  .ui-disclosure[open] > summary .ui-disclosure-chevron { transform: rotate(180deg); }
   /* A compact sans-serif hierarchy keeps page context, record titles, and metadata distinct. */
   .ui-page-title { font-family: var(--stowaway-font-display); font-size: clamp(1.25rem, 1.05rem + .75vw, 1.5rem); font-weight: 600; letter-spacing: -.03em; line-height: 1.2; color: var(--stowaway-ink); text-wrap: balance; }
   .ui-page-title em, .ui-display em { font-style: normal; }
@@ -272,8 +272,9 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
   top: calc(env(safe-area-inset-top) + 4.25rem);
 }
 
-/* A consistent keyboard indicator across links and shared controls. */
-:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+/* A consistent keyboard indicator across links and shared controls. Headings and regions that only
+   receive focus from script (tabindex="-1", for screen readers after navigation) aren't controls. */
+:where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
   outline: 2px solid var(--color-brand-700);
   outline-offset: 3px;
 }

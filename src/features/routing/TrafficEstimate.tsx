@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { formatDistance } from '@/lib/geo'
 import { Button } from '@/ui'
 import { formatRange } from './legs'
+import { friendlyError } from '@/ui/errors'
 
 type Estimate = { duration_s: number; distance_m: number; departure_at: string; checked_at: string }
 const FRESH_MS = 5 * 60_000
@@ -71,7 +72,7 @@ export function TrafficEstimate({ from, to }: { from: Place; to: Place }) {
             <p translate="no" className="mt-1 whitespace-nowrap font-sans text-xs font-normal not-italic text-[#5E5E5E]">Google Maps</p>
           </div>
         )}
-        {error && <p className="mt-1 text-xs text-danger-ink">{error}</p>}
+        {error && <p className="mt-1 text-xs text-danger-ink">{friendlyError(error)}</p>}
         {!online && <p className="mt-1 text-xs text-muted">Connect to check current traffic.</p>}
         {!pinned && <p className="mt-1 text-xs text-muted">Add map pins to check traffic.</p>}
       </div>

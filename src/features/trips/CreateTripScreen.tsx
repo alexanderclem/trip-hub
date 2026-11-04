@@ -5,7 +5,7 @@ import { db } from '@/data/db'
 import { useDevice } from '@/data/device'
 import { applyIdea, saveProfile } from '@/features/discovery/data'
 import { ideasSchema, type Draft } from '@/features/discovery/model'
-import { X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import { DestinationSearch } from '@/features/destinations/DestinationSearch'
 import { currencyFor, lookupZone, MAX_AREAS, type Destination } from '@/features/destinations/destinations'
 import { isValidZone } from '@/lib/time'
@@ -127,9 +127,9 @@ export function CreateTripScreen() {
         <Field label="Your name" hint="How the group will see you.">
           <Input required maxLength={40} value={form.yourName} onChange={set('yourName')} />
         </Field>
-        <details className="rounded-surface border border-line bg-surface p-4" open={draft ? true : undefined}>
-          <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-ink">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</summary>
-          <div className="mt-3 space-y-5">
+        <details className="ui-disclosure rounded-surface border border-line bg-surface px-4 py-1" open={draft ? true : undefined}>
+          <summary><span className="min-w-0 flex-1">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
+          <div className="mt-1 space-y-5 pb-4">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Starts">
             <DateInput required={!!draft} value={form.startDate} onValue={(date) => { setForm((f) => ({ ...f, startDate: date, ...(draft && date ? { endDate: DateTime.fromISO(date).plus({ days: draft.result.ideas[ideaIndex]!.days.length - 1 }).toISODate()! } : {}) })) }} />
@@ -155,8 +155,8 @@ export function CreateTripScreen() {
           )}
           {areas.length < MAX_AREAS && <div className="mt-2"><DestinationSearch onPick={addDestination} placeholder={areas.length ? 'Add another town' : 'Search for a town or city'} /></div>}
         </div>
-        <details className="border-t border-line pt-2">
-          <summary className="min-h-11 cursor-pointer content-center text-sm font-medium text-ink">Time zone & currencies</summary>
+        <details className="ui-disclosure border-t border-line pt-2">
+          <summary><span className="min-w-0 flex-1">Time zone & currencies</span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
         <Field label="Destination time zone" hint="Trip times are shown in this zone unless you switch to your phone's time.">
           <Select value={form.timezone} onChange={set('timezone')}>
             {zones.map((z) => (
