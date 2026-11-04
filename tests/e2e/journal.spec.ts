@@ -221,7 +221,7 @@ test('task completion gives feedback, updates the group summary, and persists af
   await seed(page, baseURL!)
   await page.goto(`${root}/more/tasks?filter=unassigned`)
   await page.getByRole('checkbox', { name: 'Mark Book the airport transfer complete' }).click()
-  await expect(page.getByRole('status')).toContainText('Task completed on this device.')
+  await expect(page.getByRole('status').filter({ hasText: 'Completed: Book the airport transfer' })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('checkbox', { name: 'Mark Book the airport transfer incomplete' })).toBeChecked()
   await page.goto(`${root}/overview`)
