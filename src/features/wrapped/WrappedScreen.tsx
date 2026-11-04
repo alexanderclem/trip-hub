@@ -10,6 +10,7 @@ import { Input } from '@/ui'
 import { albumUrl, saveAlbumUrl, useWrappedData } from './data'
 import { computeWrapped, isRecapTime } from './stats'
 import { shareSlide } from './share'
+import { friendlyError } from '@/ui/errors'
 
 const SLIDE_MS = 6500
 const THEMES: [string, string][] = [
@@ -253,7 +254,7 @@ function AlbumForm({ tripId, me }: { tripId: string; me: string | null }) {
         <Input id="album-url" type="url" inputMode="url" placeholder="https://photos.app.goo.gl/…" value={url} onChange={(e) => setUrl(e.target.value)} className="min-w-0 flex-1 text-ink" />
         <button type="submit" className="min-h-11 shrink-0 rounded-control bg-surface px-4 font-semibold text-ink">Save</button>
       </div>
-      {error && <p role="alert" className="text-sm font-medium">{error}</p>}
+      {error && <p role="alert" className="text-sm font-medium">{friendlyError(error)}</p>}
     </form>
   )
 }

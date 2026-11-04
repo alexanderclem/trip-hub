@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Link, Navigate, Outlet, useLocation, useNavigate, useNavigationType, useParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Backpack, CalendarDays, ClipboardCheck, Compass, Home, Map, MapPin, MoreHorizontal, Settings, ShieldPlus, Sparkles, Ticket, Vote, Wallet } from 'lucide-react'
+import { Backpack, CalendarDays, ClipboardCheck, Compass, Home, Lightbulb, Map, MapPin, MoreHorizontal, Settings, ShieldPlus, Sparkles, Ticket, Vote, Wallet } from 'lucide-react'
 import { db } from '@/data/db'
 import { useDevice, useTripAccess } from '@/data/device'
 import { PendingScreen, RemovedScreen } from '@/features/trips/AccessScreens'
@@ -42,7 +42,7 @@ const desktopGroups = [
   { label: 'Getting ready', items: [
     { to: 'more/tasks', label: 'Tasks', Icon: ClipboardCheck },
     { to: 'more/packing', label: 'Packing list', Icon: Backpack },
-    { to: 'more/ideas', label: 'Trip ideas', Icon: Compass },
+    { to: 'more/ideas', label: 'Trip ideas', Icon: Lightbulb },
     { to: 'more/emergency', label: 'Emergency info', Icon: ShieldPlus },
   ] },
   { label: 'This trip', items: [
@@ -176,26 +176,26 @@ function TripShell({ tripId }: { tripId: string }) {
   return (
     <div className="trip-shell flex h-full min-w-0 flex-col lg:flex-row">
       <a href="#trip-content" className="trip-skip">Skip to trip content</a>
-      <aside className="hidden min-h-0 w-64 shrink-0 flex-col border-r border-line bg-surface p-5 lg:flex" aria-label="Trip workspace">
-        <Link to="/app" aria-label="Stowaway — your trips" className="mb-6"><Brand /></Link>
+      <aside className="hidden min-h-0 w-64 shrink-0 flex-col overflow-y-auto overscroll-contain border-r border-line bg-surface p-5 lg:flex" aria-label="Trip workspace">
+        <Link to="/app" aria-label="Stowaway — your trips" className="mb-5 shrink-0"><Brand /></Link>
         <label className="text-xs font-semibold text-muted" htmlFor="trip-switcher">Your trips</label>
         <select id="trip-switcher" className="ui-field mt-2 min-h-11 w-full min-w-0 rounded-control border border-control bg-surface px-3 font-semibold text-ink" value={tripId} onChange={(event) => navigate(`/t/${event.target.value}/overview`)}>
           {!trips?.some((t) => t?.id === tripId) && <option value={tripId}>{trip?.name ?? 'Loading trip…'}</option>}
           {trips?.filter((t) => t && !t.deleted_at).map((t) => <option key={t!.id} value={t!.id}>{t!.name}</option>)}
         </select>
         <p className="mt-2 text-sm text-muted">{dateRange(trip?.start_date, trip?.end_date)}</p>
-        <nav aria-label="Trip navigation" className="mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto pb-2">
+        <nav aria-label="Trip navigation" className="mt-5 shrink-0 space-y-4 pb-2">
           {desktopGroups.slice(0, 2).map(({ label: groupLabel, items }) => <div key={groupLabel}>
             <p className="mb-1 px-3 text-xs font-semibold text-muted">{groupLabel}</p>
-            <div className="space-y-1">
-              {items.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={desktopCurrent === to ? 'page' : undefined} className={`flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium ${desktopCurrent === to ? 'bg-mist text-ink' : 'text-muted hover:bg-brand-50 hover:text-ink'}`}><Icon aria-hidden="true" className="size-5 shrink-0" /><span className="flex-1">{label}</span>{to === 'overview' && news}</Link>)}
+            <div className="space-y-1 pointer-fine:space-y-0.5">
+              {items.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={desktopCurrent === to ? 'page' : undefined} className={`flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium pointer-fine:min-h-10 ${desktopCurrent === to ? 'bg-mist text-ink' : 'text-muted hover:bg-brand-50 hover:text-ink'}`}><Icon aria-hidden="true" className="size-5 shrink-0" /><span className="flex-1">{label}</span>{to === 'overview' && news}</Link>)}
             </div>
           </div>)}
         </nav>
         <nav aria-label="Trip settings" className="shrink-0 border-t border-line pt-2">
-          {desktopGroups[2]!.items.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={desktopCurrent === to ? 'page' : undefined} className={`flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium ${desktopCurrent === to ? 'bg-mist text-ink' : 'text-muted hover:bg-mist'}`}><Icon aria-hidden="true" className="size-5 shrink-0" />{label}</Link>)}
+          {desktopGroups[2]!.items.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={desktopCurrent === to ? 'page' : undefined} className={`flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium pointer-fine:min-h-10 ${desktopCurrent === to ? 'bg-mist text-ink' : 'text-muted hover:bg-brand-50 hover:text-ink'}`}><Icon aria-hidden="true" className="size-5 shrink-0" />{label}</Link>)}
         </nav>
-        <div className="mt-auto pt-6">
+        <div className="mt-auto shrink-0 pt-3">
           <SyncStatusButton tripId={tripId} full className="w-full justify-start" />
         </div>
       </aside>
@@ -204,7 +204,7 @@ function TripShell({ tripId }: { tripId: string }) {
           <HeaderTools value={<><CommandMenu tripId={tripId} />{tools}</>}><HeaderTripName value={trip?.name}><PageTransition routeKey={pathname} className="h-full min-w-0"><Outlet /></PageTransition></HeaderTripName></HeaderTools>
         </main>
         <nav ref={tabBar.ref} aria-label="Trip navigation" className="trip-tabs pb-safe grid shrink-0 grid-cols-5 border-t border-line bg-surface lg:hidden">
-          <span className="trip-tab-bar" style={tabBar.style} aria-hidden="true" />
+          <span className="trip-tab-track" aria-hidden="true"><span className="trip-tab-bar" style={tabBar.style} /></span>
           {tabs.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={current === to ? 'page' : undefined} className="trip-tab"><span className="relative"><Icon className="size-6" aria-hidden="true" />{to === 'overview' && unseen > 0 && <span className="absolute -right-1.5 -top-1 size-2.5 rounded-full border-2 border-surface bg-brand-accent"><span className="sr-only">{unseen === 1 ? '1 new update' : `${unseen} new updates`}</span></span>}</span>{label}</Link>)}
         </nav>
       </div>

@@ -159,6 +159,7 @@ body {
   .ui-fab:active { transform: scale(.96); }
   /* A bottom tab: the current one is marked by colour, weight and a short ink bar that slides between tabs. */
   .trip-tabs { position: relative; }
+  .trip-tab-track { position: absolute; inset: 0; z-index: 1; overflow: clip; pointer-events: none; }
   .trip-tab { position: relative; display: flex; min-height: 3.5rem; flex-direction: column; align-items: center; justify-content: center; gap: .125rem; padding: .375rem 0; font-size: .75rem; color: var(--stowaway-muted); transition: color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
   .trip-tab[aria-current='page'] { font-weight: 600; color: var(--stowaway-ink); }
   .trip-tab:active { background: var(--color-brand-50); }
@@ -181,7 +182,7 @@ body {
   .ui-disclosure > summary:hover { color: var(--stowaway-ink); }
   .ui-disclosure > summary::-webkit-details-marker { display: none; }
   .ui-disclosure-chevron { transition: transform var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
-  .ui-disclosure[open] .ui-disclosure-chevron { transform: rotate(180deg); }
+  .ui-disclosure[open] > summary .ui-disclosure-chevron { transform: rotate(180deg); }
   /* A compact sans-serif hierarchy keeps page context, record titles, and metadata distinct. */
   .ui-page-title { font-family: var(--stowaway-font-display); font-size: clamp(1.25rem, 1.05rem + .75vw, 1.5rem); font-weight: 600; letter-spacing: -.03em; line-height: 1.2; color: var(--stowaway-ink); text-wrap: balance; }
   .ui-page-title em, .ui-display em { font-style: normal; }
@@ -210,7 +211,7 @@ body {
 .ui-toast-region:empty { display: none; }
 .ui-toast { display: flex; align-items: center; gap: .5rem; min-width: 0; padding: .5rem .5rem .5rem 1rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); color: var(--stowaway-ink); box-shadow: 0 8px 32px #183e4b20; pointer-events: auto; font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
 .ui-toast .ui-button { flex-shrink: 0; padding-inline: .75rem; }
-.shortcut-hint { display: none; margin-inline-start: .5rem; border: 1px solid var(--stowaway-border); border-radius: 4px; padding: .125rem .375rem; color: var(--stowaway-muted); font-family: inherit; font-size: .6875rem; white-space: nowrap; }
+.shortcut-hint { display: none; margin-inline-start: .5rem; border: 1px solid var(--stowaway-border); border-radius: 4px; padding: .125rem .375rem; color: var(--stowaway-muted); font-family: inherit; font-size: .75rem; white-space: nowrap; }
 .command-input { width: 100%; min-height: 48px; padding: .75rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); background: var(--stowaway-surface); font-size: 1rem; color: var(--stowaway-ink); }
 .command-results { max-height: min(50dvh, 24rem); margin-top: .75rem; overflow-y: auto; overscroll-behavior: contain; }
 .command-option { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 48px; padding: .75rem; border-radius: var(--stowaway-radius-control); color: var(--stowaway-ink); cursor: pointer; font-size: .9375rem; }
@@ -227,7 +228,33 @@ body {
 time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
 .app-page-header > div { padding-inline: max(.75rem, env(safe-area-inset-left)) max(.75rem, env(safe-area-inset-right)); }
 .map-selection-sheet { padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
-::view-transition-group(.stowaway-page), ::view-transition-old(.stowaway-page), ::view-transition-new(.stowaway-page) { animation-duration: 160ms; animation-timing-function: ease-out; }
+/* Routes (src/ui/PageTransition.tsx): the new screen fades in where it lands and the old one fades
+   out quickly where it stood, so a scrolled list never slides across the new screen. */
+::view-transition-group(.stowaway-page), ::view-transition-new(.stowaway-page) { animation-duration: var(--stowaway-motion-fade); animation-timing-function: ease-out; }
+::view-transition-old(.stowaway-page-exit) { animation: stowaway-page-leave var(--stowaway-motion-exit) ease-out both; }
+@keyframes stowaway-page-leave { to { opacity: 0; } }
+/* Shared elements (src/ui/Morph.tsx): a row's icon, title, time or code travels to the same thing
+   on the next screen while the rest of the page fades. Snapshots scale by height, so text grows in
+   proportion instead of stretching to its new box, and stays anchored to its reading edge. */
+/* Transition layers stack in capture order, and an entering screen is captured after the elements
+   that travel into it, so its cards and header would paint over them. Keep the travellers on top. */
+::view-transition-group(.stowaway-morph), ::view-transition-group(.stowaway-morph-text) { z-index: 2; }
+/* The phone tab bar stays put above everything: a screen's layer includes content scrolled under
+   the bar, which would otherwise paint over it while the screen fades in. */
+.trip-tabs { view-transition-name: trip-tabs; }
+::view-transition-group(trip-tabs) { z-index: 3; animation: none; }
+::view-transition-old(trip-tabs) { display: none; }
+::view-transition-new(trip-tabs) { animation: none; }
+::view-transition-group(.stowaway-morph) { animation-duration: var(--stowaway-motion-morph); animation-timing-function: var(--stowaway-feedback-ease); }
+::view-transition-old(.stowaway-morph), ::view-transition-new(.stowaway-morph) { height: 100%; width: auto; animation-duration: var(--stowaway-motion-morph); animation-timing-function: var(--stowaway-feedback-ease); }
+/* Titles reflow between screens (one line in a row, two in a phone header), so they move at their
+   own size and hand over: the old words leave in the first half, the new ones arrive in the second. */
+::view-transition-group(.stowaway-morph-text) { animation-duration: var(--stowaway-motion-morph); animation-timing-function: var(--stowaway-feedback-ease); overflow: visible; }
+::view-transition-old(.stowaway-morph-text), ::view-transition-new(.stowaway-morph-text) { width: auto; height: auto; animation-duration: var(--stowaway-motion-morph); animation-timing-function: linear; mix-blend-mode: normal; }
+::view-transition-old(.stowaway-morph-text) { animation-name: stowaway-morph-leave; }
+::view-transition-new(.stowaway-morph-text) { animation-name: stowaway-morph-arrive; }
+@keyframes stowaway-morph-leave { 0% { opacity: 1; } 45%, 100% { opacity: 0; } }
+@keyframes stowaway-morph-arrive { 0%, 35% { opacity: 0; } 100% { opacity: 1; } }
 @supports (corner-shape: superellipse(1.25)) {
   /* Keep native scrolling dialogs on standard radii: hit testing must follow scrolled content. */
   .ui-card, .operator-preview, .marketing-plan, .website-preview { corner-shape: superellipse(1.25); }
@@ -271,8 +298,9 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
   top: calc(env(safe-area-inset-top) + 4.25rem);
 }
 
-/* A consistent keyboard indicator across links and shared controls. */
-:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+/* A consistent keyboard indicator across links and shared controls. Headings and regions that only
+   receive focus from script (tabindex="-1", for screen readers after navigation) aren't controls. */
+:where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
   outline: 2px solid var(--color-brand-700);
   outline-offset: 3px;
 }
@@ -355,7 +383,7 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
   .trip-shell > aside > label, .trip-shell > aside > p { padding-inline: .5rem; font-size: .75rem; }
   .trip-shell > aside select { border-color: var(--stowaway-control-border); background: var(--stowaway-canvas); font-size: .875rem; }
   .trip-shell > aside nav { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--stowaway-border); }
-  .trip-shell > aside nav > div > p { margin-bottom: .375rem; font-size: .6875rem; font-weight: 600; color: var(--stowaway-muted); }
+  .trip-shell > aside nav > div > p { margin-bottom: .375rem; font-size: .75rem; font-weight: 600; color: var(--stowaway-muted); }
   .trip-shell > aside nav a { min-height: 44px; border-radius: var(--stowaway-radius-control); font-size: .8125rem; color: var(--stowaway-muted); }
   .trip-shell > aside nav a > svg { width: 18px; height: 18px; }
   .trip-shell > aside nav a:hover { background: var(--stowaway-canvas); color: var(--stowaway-ink); }

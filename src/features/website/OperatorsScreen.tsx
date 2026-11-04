@@ -5,6 +5,7 @@ import { ensureSession, supabase } from '@/lib/supabase'
 import { WebsiteFrame } from './WebsiteFrame'
 import { OperatorPreview } from './OperatorPreview'
 import { OperatorBookingPreview } from './OperatorBookingPreview'
+import { friendlyError } from '@/ui/errors'
 
 /** For people who run group trips: retreats, student trips, clubs. Speaks to deposits and payouts. */
 export function OperatorsScreen() {
@@ -85,7 +86,7 @@ function EarlyAccessForm() {
       <input id="early-email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <button type="submit" className="website-button website-button-primary" disabled={state === 'busy'}>{state === 'busy' ? 'Sending…' : 'Get early access'}</button>
       <p className="calc-note">Used only to tell you about payments.</p>
-      {error && <p role="alert" className="marketing-status">{error}</p>}
+      {error && <p role="alert" className="marketing-status">{friendlyError(error)}</p>}
     </form>
   )
 }

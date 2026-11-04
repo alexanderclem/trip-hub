@@ -4,11 +4,13 @@ import type { ComponentProps, InputHTMLAttributes, ReactNode, SelectHTMLAttribut
 import { Link } from 'react-router'
 import { travelerInitials } from '@/features/trips/traveler'
 import { CircleAlert, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { friendlyError } from './errors'
 import { dateOrder, formatTypedDate, parseTypedDate } from '@/lib/time'
 import { m, type HTMLMotionProps } from 'motion/react'
 import { useMotionPreference } from './MotionProvider'
 import { motionTiming } from './motion'
 import { avatarPalette } from './avatarPalette'
+import { Morph } from './Morph'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 const MotionLink = m.create(Link)
@@ -194,7 +196,7 @@ export const HeaderTripName = createContext<string | undefined>(undefined)
  * The one header a screen has: back, title, the screen's own action, then the shell's tools.
  * `below` holds a control that belongs to the whole screen (a day strip, a search field).
  */
-export function PageHeader({ title, eyebrow, back, action, below }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode }) {
+export function PageHeader({ title, eyebrow, back, action, below, titleMorph }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode; titleMorph?: string }) {
   const tools = useContext(HeaderTools)
   const tripName = useContext(HeaderTripName)
   const context = eyebrow ?? tripName
@@ -210,7 +212,7 @@ export function PageHeader({ title, eyebrow, back, action, below }: { title: str
         )}
         <div className="min-w-0 flex-1">
           {context && <p className="ui-eyebrow truncate" title={context}>{context}</p>}
-          <h1 className="ui-page-title break-words">{title}</h1>
+          {titleMorph ? <Morph name={titleMorph} text><h1 className="ui-page-title break-words">{title}</h1></Morph> : <h1 className="ui-page-title break-words">{title}</h1>}
         </div>
         {action && <div className="page-header-action">{action}</div>}
         {tools}
@@ -310,7 +312,7 @@ export function Disclosure({ summary, children, className, defaultOpen, open, on
 
 export function ErrorNote({ error }: { error: string | null }) {
   if (!error) return null
-  return <p role="alert" className="flex items-start gap-2.5 wrap-anywhere rounded-control border border-danger-ink bg-danger px-3 py-2.5 text-sm leading-relaxed text-danger-ink"><CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0">{error}</span></p>
+  return <p role="alert" className="flex items-start gap-2.5 wrap-anywhere rounded-control border border-danger-ink bg-danger px-3 py-2.5 text-sm leading-relaxed text-danger-ink"><CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0">{friendlyError(error)}</span></p>
 }
 
 export function Avatar({ name, color, photo, size = 'md' }: { name: string; color: string | null; photo?: string | null; size?: 'sm' | 'md' }) {

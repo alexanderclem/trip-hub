@@ -12,7 +12,7 @@ import { VOTE_SCORES, type Member, type Place, type Poll, type PollOption, type 
 import { useOnline } from '@/lib/useOnline'
 import { Button, Card, DateInput, ErrorNote, Field, Input, LinkButton, PageHeader, Status } from '@/ui'
 import { useSlidingHighlight } from '@/ui/effects'
-import { PlaceCategoryIcon, PlaceStatusBadge } from '@/features/places/PlaceSummary'
+import { PlaceCategoryIcon } from '@/features/places/PlaceSummary'
 import { StarsSummary } from '@/features/ratings/Stars'
 import { CommentThread } from '@/features/comments/CommentThread'
 import { addDateOption, addOption, usePoll, useRatingSummaries, vote } from './data'
@@ -21,6 +21,10 @@ import { leader, rankOptions, scoreLabels, votingEnded, type RankedOption } from
 import { closesLabel } from './share'
 import { SharePollCard, useSharePoll } from './SharePoll'
 import { Dialog } from '@/ui/Dialog'
+import { PlaceIdentity } from '@/features/places/PlaceIdentity'
+import { useItems } from '@/features/itinerary/data'
+import { useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 
 /** The current time, refreshed often enough for a deadline to pass while the page is open. */
 function useNow(everyMs = 30_000) {
@@ -47,6 +51,8 @@ export function PollScreen() {
   const me = useMyMemberId(tripId)!
   const data = usePoll(pollId)
   const trip = useTrip(tripId)
+  const items = useItems(tripId)
+  const mayPlan = can(useTripAccess(tripId), 'plan')
   const loadedMembers = useMembers(tripId)
   const members = loadedMembers ?? []
   const places = usePlaces(tripId) ?? []
@@ -93,6 +99,7 @@ export function PollScreen() {
   const winnerId = poll.status === 'closed' ? poll.winner_option_id : closed ? (leader(ranked)?.option.id ?? null) : null
   const winner = winnerId ? options.find((o) => o.id === winnerId) : undefined
   const winnerPlace = winner && placeOf(winner)
+  const plannedWinner = winnerPlace ? items?.find((item) => item.place_id === winnerPlace.id && item.status !== 'cancelled') : undefined
 
   async function setStatus(status: Poll['status']) {
     const top = leader(ranked)
@@ -124,17 +131,17 @@ export function PollScreen() {
         {winner && (
           <Card framed>
             <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-medium text-ink"><Trophy aria-hidden="true" className="size-4" />Decided</p><Stowie mood="delighted" size={36} animated={false} /></div>
-            <p className="ui-section-title mt-1">{winner.label}</p>
+            {winnerPlace ? <div className="mt-4"><PlaceIdentity place={winnerPlace} members={members} compact /></div> : <p className="ui-section-title mt-1">{winner.label}</p>}
             <div className="mt-3">
               {winner.starts_on && trip ? (
                 <TripDatesAction trip={trip} option={winner} me={me} />
-              ) : winnerPlace && !['catalog', 'shortlist'].includes(winnerPlace.status) ? (
-                <p className="flex items-center gap-2 text-sm text-ink">On the plan: <PlaceStatusBadge status={winnerPlace.status} /></p>
-              ) : (
+              ) : plannedWinner ? (
+                <LinkButton to={`/t/${tripId}/plan/${plannedWinner.id}`} variant="secondary" className="w-full"><CalendarCheck aria-hidden="true" className="size-4" />View in the plan</LinkButton>
+              ) : winnerPlace && !items ? <p role="status" className="text-sm text-muted">Checking the itinerary…</p> : mayPlan ? (
                 <LinkButton to={`/t/${poll.trip_id}/plan/new?${winnerPlace ? `place=${winnerPlace.id}` : `title=${encodeURIComponent(winner.label)}`}`} className="w-full">
                   <CalendarPlus aria-hidden="true" className="size-4" />Add to the plan
                 </LinkButton>
-              )}
+              ) : null}
             </div>
           </Card>
         )}
@@ -393,7 +400,7 @@ function AddOptionCard({ poll, options, places, me }: { poll: Poll; options: Pol
       <h2 className="ui-section-title">Add an option</h2>
       <form onSubmit={addText} className="mt-2">
         <div className="relative">
-          <Search aria-hidden="true" className="absolute top-3 left-3 size-5 text-muted" />
+          <Search aria-hidden="true" className="pointer-events-none absolute top-3 left-3 z-1 size-5 text-muted" />
           <Input value={q} onChange={(e) => { setQ(e.target.value); setError(null) }} placeholder="Search places, or type any option" className="pl-10" aria-label="Option" />
         </div>
         {matches.length > 0 && (

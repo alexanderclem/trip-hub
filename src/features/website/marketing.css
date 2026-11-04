@@ -70,6 +70,9 @@
 .marketing-walkthrough p { margin-top: .625rem; color: var(--stowaway-muted); line-height: 1.75; }
 .marketing-step-index { display: grid; flex-shrink: 0; width: 2rem; height: 2rem; place-items: center; border: 1px solid var(--stowaway-border); border-radius: 50%; color: var(--stowaway-action); font-size: .875rem; font-variant-numeric: tabular-nums; }
 .marketing-plain-list { display: grid; gap: 1rem; margin-block: 1rem; padding-left: 1.25rem; color: var(--stowaway-muted); line-height: 1.75; }
+ol.marketing-plain-list { list-style: decimal; }
+ul.marketing-plain-list { list-style: disc; }
+.marketing-plain-list > li::marker { color: var(--stowaway-muted); font-variant-numeric: tabular-nums; }
 .marketing-price-intro { display: grid; gap: 2rem; }
 .marketing-price-callout { padding: 1.5rem; border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); }
 .marketing-price span { color: var(--stowaway-muted); font-family: var(--stowaway-font-body); font-size: 1rem; letter-spacing: normal; }

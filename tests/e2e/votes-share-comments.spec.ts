@@ -120,7 +120,7 @@ test('a date vote with a deadline: add dates, vote, decide, set the trip dates',
 
   // The list shows the deadline; the row saved for the server carries the kind and the dates.
   await page.goto(`${base}/more/vote`)
-  await expect(page.getByText(/2 options · you voted on 2 · closes tomorrow/)).toBeVisible()
+  await expect(page.getByText(/2 options · you voted on all · closes tomorrow/)).toBeVisible()
   const queued = await page.evaluate(async () => {
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })

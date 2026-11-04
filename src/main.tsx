@@ -12,6 +12,7 @@ import { writeRefusal } from './data/access'
 import { rememberSource } from './features/funnel/events'
 import './styles/index.css'
 import './styles/journal.css'
+import './styles/travel-notebook.css'
 
 initializeAppearance()
 initializeInstallPrompt()

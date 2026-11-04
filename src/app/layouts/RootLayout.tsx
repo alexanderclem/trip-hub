@@ -5,7 +5,6 @@ import { useOnline } from '@/lib/useOnline'
 import { ConfirmProvider } from '@/ui/ConfirmProvider'
 import { AnimatePresence, m } from 'motion/react'
 import { useMotionPreference } from '@/ui/MotionProvider'
-import { LoadingLogo } from '@/ui/LoadingLogo'
 import { PageTransition } from '@/ui/PageTransition'
 import { motionTiming } from '@/ui/motion'
 import { InstallAppDialog } from '@/features/install/InstallAppDialog'
@@ -76,7 +75,7 @@ export function RootLayout() {
       </PageTransition>
       <InstallAppDialog />
       <AnimatePresence initial={false}>
-        {navigation.state === 'loading' && <m.div key="navigation-loading" role="status" initial={reducedMotion ? false : { opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={motionTiming.fade} className="pointer-events-none fixed right-4 top-4 z-50 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-surface border border-line bg-surface px-4 py-2 text-sm text-ink shadow-sm"><LoadingLogo compact />Opening your next view…</m.div>}
+        {navigation.state === 'loading' && <m.div key="navigation-loading" role="status" initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={motionTiming.fade} className="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 bg-action"><span className="sr-only">Opening your next view…</span></m.div>}
       </AnimatePresence>
     </div></ConfirmProvider></ToastProvider>
   )

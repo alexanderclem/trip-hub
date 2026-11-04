@@ -14,6 +14,7 @@ import { WebsiteFrame } from '@/features/website/WebsiteFrame'
 import type { RefundTier } from '../../../supabase/functions/_shared/refunds'
 import { getBooking, getHold, getPublicOffer, joinWaitlist, payBalance, rememberBookingLink, startBooking, tokenFromHash, updateBookingAnswers, type BookingView, type PublicOffer } from './api'
 import { questionList } from './data'
+import { friendlyError } from '@/ui/errors'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 const date = (iso: string | null) => (iso ? DateTime.fromISO(iso).toLocaleString(DateTime.DATE_MED) : '')
@@ -28,6 +29,14 @@ function Page({ title, eyebrow, children }: { title: string; eyebrow?: string; c
       </section>
     </WebsiteFrame>
   )
+}
+
+/** A failed fetch says what to do next, never the raw "TypeError: Failed to fetch". */
+function Unreachable({ what, offline }: { what: string; offline: string }) {
+  return <>
+    <p>{navigator.onLine ? `We couldn’t reach Stowaway to load ${what}. Check your connection, then try again.` : offline}</p>
+    <button type="button" className="website-button website-button-primary" onClick={() => location.reload()}>Try again</button>
+  </>
 }
 
 // ─── The trip page ──────────────────────────────────────────────────────────
@@ -46,7 +55,7 @@ export function PublicTripScreen() {
     if (holdToken) getHold(slug, holdToken).then((h) => setHold(h ? { ...h, token: holdToken } : null), () => setHold(null))
   }, [slug, holdToken])
 
-  if (loadError) return <Page title="This trip page needs a connection">{<p>{navigator.onLine ? loadError : 'Connect to the internet to see the trip and book.'}</p>}</Page>
+  if (loadError) return <Page title="This trip page needs a connection"><Unreachable what="this trip" offline="Connect to the internet to see the trip and book." /></Page>
   if (offer === undefined || hold === undefined) return <Page title="Loading the trip…">{null}</Page>
   if (offer === null) return <Page title="This trip page isn’t available">{<p>It may not be published yet, or bookings have closed. Ask the organizer for the latest link.</p>}</Page>
 
@@ -140,7 +149,7 @@ function BookingForm({ offer, hold, referral }: { offer: PublicOffer; hold: Hold
       <label className="flex min-h-11 items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />Email me about future trips from {offer.organizer.name}. (Optional; unsubscribe any time.)</label>
       <button type="submit" className="website-button website-button-primary" disabled={busy}>{busy ? 'Opening secure checkout…' : `Pay ${usd(charge)} and reserve`}</button>
       <p className="calc-note">You’ll pay on Stripe’s secure page. No account needed; afterwards you join the trip’s plan straight away.</p>
-      {error && <p role="alert" className="marketing-status">{error}</p>}
+      {error && <p role="alert" className="marketing-status">{friendlyError(error)}</p>}
     </form>
   )
 }
@@ -168,7 +177,7 @@ function WaitlistForm({ slug }: { slug: string }) {
       <label htmlFor="wait-email" className="website-eyebrow">Email</label>
       <input id="wait-email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <button type="submit" className="website-button website-button-primary" disabled={busy}>{busy ? 'Adding you…' : 'Join the waitlist'}</button>
-      {error && <p role="alert" className="marketing-status">{error}</p>}
+      {error && <p role="alert" className="marketing-status">{friendlyError(error)}</p>}
     </form>
   )
 }
@@ -268,7 +277,7 @@ export function ManageBookingScreen() {
   }, [token])
 
   if (!token) return <Page title="This link is incomplete">{<p>Open the booking link from your confirmation email.</p>}</Page>
-  if (error) return <Page title="Your booking needs a connection">{<p>{error}</p>}</Page>
+  if (error) return <Page title="Your booking needs a connection"><Unreachable what="your booking" offline="Connect to the internet to see your booking." /></Page>
   if (booking === undefined) return <Page title="Loading your booking…">{null}</Page>
   if (booking === null) return <Page title="We couldn’t find this booking">{<p>Check that you opened the whole link from your email.</p>}</Page>
   const due = Math.max(0, booking.price_minor - booking.paid_minor)

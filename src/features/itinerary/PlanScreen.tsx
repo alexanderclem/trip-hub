@@ -8,7 +8,7 @@ import { useMyMemberId } from '@/data/device'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatInZone } from '@/lib/time'
-import { Button, ErrorNote, Fab, LinkButton, PageHeader, SectionTitle, Textarea } from '@/ui'
+import { Button, Disclosure, ErrorNote, Fab, LinkButton, PageHeader, SectionTitle, Textarea } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { itemsFor, planIcs, shareCalendar } from './calendar'
@@ -83,9 +83,9 @@ export function PlanScreen() {
   const empty = layout.blocks.length === 0 && layout.allDay.length === 0 && layout.stays.length === 0
 
   return (
-    <div className="min-h-full pb-28">
+    <div className="plan-notebook min-h-full pb-28">
       <PageHeader title="Plan" below={
-        <div ref={stripRef} role="tablist" aria-label="Days" className="overflow-x-auto px-4 pb-3 pt-1 lg:px-8">
+        <div ref={stripRef} role="tablist" aria-label="Days" className="plan-days overflow-x-auto px-4 pb-2 pt-1 lg:px-8">
           <div ref={dayHighlight.ref} className="relative flex w-max gap-1.5 pb-2">
           <span className="ui-highlight plan-day-indicator" style={dayHighlight.style} aria-hidden="true" />
           {days.map((d) => {
@@ -131,10 +131,17 @@ export function PlanScreen() {
         </div>
       } />
 
-      <div ref={dayContent} id="plan-day-content" role="tabpanel" aria-labelledby={`plan-day-${day}`} className="mx-auto max-w-2xl space-y-3 p-4 lg:p-6">
+      <div ref={dayContent} id="plan-day-content" role="tabpanel" aria-labelledby={`plan-day-${day}`} className="plan-day-content mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
         <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} withinHours={24} />
-        <div className="flex items-center justify-between gap-3">
+        <div className="plan-date-heading">
+          <p className="notebook-label">Day {String(days.indexOf(day) + 1).padStart(2, '0')} of {days.length}<span>{perDay[day]?.count || 0} {(perDay[day]?.count || 0) === 1 ? 'plan' : 'plans'}</span></p>
           <SectionTitle>{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</SectionTitle>
+        </div>
+        <div className="plan-toolbar">
+          <div ref={viewHighlight.ref} role="group" aria-label="Plan view" className="plan-view ui-segmented w-fit grid-cols-2">
+            <span className="ui-highlight" style={viewHighlight.style} aria-hidden="true" />
+            {(['agenda', 'timeline'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)} className="min-h-11 px-3">{mode === 'agenda' ? 'Agenda' : 'Timeline'}</button>)}
+          </div>
           {layout.blocks.some((b) => b.item.place_id) && (
             <Link to={`/t/${tripId}/map?day=${day}`} className="ui-link shrink-0">
               <Map aria-hidden="true" className="size-4" /> On map
@@ -142,13 +149,7 @@ export function PlanScreen() {
           )}
         </div>
 
-        <div ref={viewHighlight.ref} role="group" aria-label="Plan view" className="ui-segmented w-fit grid-cols-2">
-          <span className="ui-highlight" style={viewHighlight.style} aria-hidden="true" />
-          {(['agenda', 'timeline'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)} className="min-h-11 px-5">{mode === 'agenda' ? 'Agenda' : 'Timeline'}</button>)}
-        </div>
         <WeatherLine day={weatherOf(day)} />
-        <HolidayNotice trip={trip} day={day} />
-        <DayNoteEditor tripId={tripId} day={day} />
 
         {layout.stays.map((s) => (
           <Link key={s.id} to={`/t/${tripId}/plan/${s.id}`} className="flex min-h-11 items-center gap-2 rounded-control bg-brand-50 px-3 py-2 text-sm text-ink">
@@ -169,9 +170,6 @@ export function PlanScreen() {
           </p>
         )}
         <TravelWarnings tripId={tripId} transfers={transfers.filter((t) => dayKey(t.to.start_at, zone) === day)} />
-        {/* A day that has passed has nothing left to fill. */}
-        {day >= today && ideas && <SuggestionsCard tripId={tripId} day={day} suggestions={ideas} me={me} />}
-
         {empty ? (
           <Empty>
             <CalendarDays aria-hidden="true" className="size-8 text-action" />
@@ -184,10 +182,16 @@ export function PlanScreen() {
             </LinkButton>}
           </Empty>
         ) : view === 'agenda' ? (
-          <Agenda day={day} blocks={layout.blocks} zone={zone} tripId={tripId} placeOf={placeOf} />
+          <Agenda day={day} blocks={layout.blocks} zone={zone} tripId={tripId} placeOf={placeOf} members={members} />
         ) : (
           <Timeline blocks={layout.blocks} fromHour={layout.fromHour} toHour={layout.toHour} zone={zone} day={day} tripId={tripId} placeOf={placeOf} />
         )}
+
+        <Disclosure summary="Day notes & details" className="plan-day-details">
+          <DayNoteEditor tripId={tripId} day={day} />
+          <HolidayNotice trip={trip} day={day} />
+        </Disclosure>
+        {day >= today && ideas && <SuggestionsCard tripId={tripId} day={day} suggestions={ideas} me={me} />}
 
         {/* Things about the whole plan, not this day, sit after it. */}
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line pt-3">

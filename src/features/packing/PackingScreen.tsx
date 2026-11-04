@@ -65,7 +65,7 @@ export function PackingScreen() {
 
   return (
     <div className="min-h-full pb-24">
-      <PageHeader title="Packing" back={`/t/${tripId}/more`} action={<Link to="new" className="inline-flex min-h-11 items-center gap-1 rounded-control px-3 font-medium text-action hover:bg-brand-50"><Plus aria-hidden="true" className="size-4" />Add item</Link>} />
+      <PageHeader title="Packing" back={`/t/${tripId}/more`} action={<Link to="new" className="inline-flex min-h-11 items-center gap-1 rounded-control px-3 font-medium text-action hover:bg-brand-50 max-sm:w-11 max-sm:justify-center max-sm:px-0"><Plus aria-hidden="true" className="size-4 max-sm:size-6" /><span className="max-sm:sr-only">Add item</span></Link>} />
       <div className="mx-auto max-w-2xl space-y-4 p-4">
         <div>
           <h2 className="ui-section-title">Pack together</h2>

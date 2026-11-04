@@ -14,6 +14,13 @@ describe('destination postcard selection', () => {
   ])('matches %s using selected coordinates', (name, lat, lng, cover) => {
     expect(tripCover(trip({ areas: [area(name as string, lat as number, lng as number)] }))).toBe(cover)
   })
+  it('uses relevant scenes for name-only destinations without overriding coordinates or manual covers', () => {
+    expect(tripCover(trip({ areas: [area('Lisbon')] }))).toBe('oldtown')
+    expect(tripCover(trip({ areas: [area('Lisboa, Portugal')] }))).toBe('oldtown')
+    expect(tripCover(trip({ areas: [area('Kyoto')] }))).toBe('temples')
+    expect(tripCover(trip({ areas: [area('Lisbon', 44, -71)] }))).toBe('city')
+    expect(tripCover(trip({ areas: [area('Lisbon')], journal_cover: 'lake' }))).toBe('lake')
+  })
   it('follows the first destination automatically and suggests the rest without duplicates', () => {
     const settings = { areas: [area('Kyoto', 35.01, 135.77), area('Lake District'), area('Lake Como')] }
     expect(destinationCovers(trip(settings)).covers).toEqual(['temples', 'lake'])

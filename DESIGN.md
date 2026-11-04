@@ -122,7 +122,10 @@ controls are at least 44px high. Native dialogs retain Escape and focus restorat
 Segmented radio groups have one tab stop, arrow-key selection with wraparound,
 and Home/End. Selected content retains readable contrast, including nested labels.
 
-Motion is limited to short state/selection feedback; honor reduced motion.
+Motion is limited to short state/selection feedback; honor reduced motion. One exception
+(November 4, 2026): opening a plan item, place or ticket carries its icon, title and time or code
+from the list row into its own screen (`Morph`, 340ms, View Transitions). It never loops, never
+decorates, and is off with reduced motion and in browsers without View Transitions.
 Test 320px through desktop, enlarged text, long/empty content, keyboard access,
 phase-specific priorities, offline readiness, and persistence after reload.
 

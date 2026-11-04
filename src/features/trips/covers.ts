@@ -49,6 +49,14 @@ function destinationCover(area: { name: string; lat?: unknown; lng?: unknown }):
     if (nearby[0]) return nearby[0].cover
   }
   const name = area.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  // Name-only selections still get a relevant scene. Coordinates take precedence,
+  // including when a familiar name belongs to a different place.
+  const hasCoordinates = typeof area.lat === 'number' && typeof area.lng === 'number' && Number.isFinite(area.lat) && Number.isFinite(area.lng)
+  if (!hasCoordinates) {
+    if (/^(lisbon|lisboa|rome|roma|florence|firenze|antigua guatemala)(,|$)/.test(name)) return 'oldtown'
+    if (/^(kyoto|siem reap)(,|$)/.test(name)) return 'temples'
+    if (/^(marrakech|marrakesh|dubai)(,|$)/.test(name)) return 'desert'
+  }
   if (/\b(lake|lago|loch)\b/.test(name)) return 'lake'
   if (/\b(island|islands|isla|islas|isle|maui|maldives)\b/.test(name)) return 'islands'
   if (/\b(beach|coast|playa|seaside)\b/.test(name)) return 'coast'

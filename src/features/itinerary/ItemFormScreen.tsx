@@ -11,6 +11,8 @@ import { Button, DateInput, Disclosure, ErrorNote, Field, Input, PageHeader, Sel
 import { PlacePicker } from '@/features/places/PlacePicker'
 import { saveItem, useItem } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
+import { PlaceIdentity } from '@/features/places/PlaceIdentity'
+import { useToast } from '@/ui/ToastProvider'
 
 const ZONES = [
   'America/Guatemala', 'America/Mexico_City', 'America/El_Salvador', 'America/Costa_Rica', 'America/Panama',
@@ -62,6 +64,8 @@ export function ItemFormScreen() {
   const { tripId, itemId } = useParams() as { tripId: string; itemId?: string }
   const [search] = useSearchParams()
   const navigate = useNavigate()
+  const notify = useToast()
+  const [draftItemId] = useState(newId)
   const me = useMyMemberId(tripId)
   const trip = useTrip(tripId)
   const loadedPlaces = usePlaces(tripId)
@@ -112,7 +116,7 @@ export function ItemFormScreen() {
       title: place?.name ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: importedEvent && !asked,
       startDate: day, startTime: asked ?? (lodging ? '15:00' : kind === 'meal' ? '19:00' : '09:00'),
       endDate: lodging ? DateTime.fromISO(day).plus({ days: 1 }).toISODate()! : day, endTime: lodging ? '11:00' : '',
-      startTz: eventZone, endTz: eventZone, status: importedEvent ? 'tentative' : 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : '', cost: '',
+      startTz: eventZone, endTz: eventZone, status: importedEvent || place && !['booked', 'visited'].includes(place.status) ? 'tentative' : 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : place?.notes ?? '', cost: '',
       costCurrency: trip.local_currency ?? trip.base_currency,
     })
   }, [f, trip, itemId, existing, search, places, loadedPlaces, tripTz, members])
@@ -151,7 +155,7 @@ export function ItemFormScreen() {
     if (amount != null && !(amount >= 0)) return setError('Cost must be a number.')
     const item: ItineraryItem = {
       ...(existing ?? {}),
-      id: existing?.id ?? newId(),
+      id: existing?.id ?? draftItemId,
       trip_id: tripId,
       title: f.title.trim(),
       kind: f.kind,
@@ -177,7 +181,10 @@ export function ItemFormScreen() {
     setError(null)
     try {
       await saveItem(item, me)
-      navigate(`/t/${tripId}/plan/${item.id}`, { replace: true })
+      if (!itemId && search.get('place')) {
+        notify({ message: `${item.title} added to the plan. Saved on this device; shared after syncing.` })
+        navigate(`/t/${tripId}/plan?day=${f.startDate}`, { replace: true })
+      } else navigate(`/t/${tripId}/plan/${item.id}`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       savingRef.current = false
@@ -188,37 +195,33 @@ export function ItemFormScreen() {
   const flag = (name: string) => (invalid?.name === name ? { 'aria-invalid': true, 'aria-describedby': `${name}-problem` } : {})
   // Who's going, cost and notes are optional: closed for a new item, open when any of them is already filled in.
   const hasOptional = !f.everyone || !!f.cost || !!f.notes
+  const sourcePlace = !itemId && search.get('place') ? places.find((place) => place.id === f.placeId) : undefined
   const back = itemId ? `/t/${tripId}/plan/${itemId}` : `/t/${tripId}/plan?day=${f.startDate}`
+  const activityFields = <div className="space-y-4">
+    <div role="radiogroup" aria-label="Type" className="grid grid-cols-4 gap-1.5">
+      {ITEM_KINDS.map((kind) => {
+        const style = KIND_STYLE[kind]
+        return <button key={kind} type="button" role="radio" aria-checked={f.kind === kind} onClick={() => set('kind', kind)}
+          className={`ui-press flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control border text-xs ${f.kind === kind ? `${style.bg} ${style.border} ${style.text} font-semibold` : 'border-line bg-surface text-muted'}`}>
+          <style.Icon aria-hidden="true" className="size-4" />{style.label}
+        </button>
+      })}
+    </div>
+    <Field label={travel ? 'From' : 'Place'}>
+      <PlacePicker places={places} value={f.placeId} label={travel ? 'From place' : 'Place'} onChange={(id) => {
+        const place = places.find((place) => place.id === id)
+        setF((current) => current && { ...current, placeId: id, title: current.title || place?.name || '' })
+      }} />
+    </Field>
+    {travel && <Field label="To"><PlacePicker places={places} value={f.toPlaceId} label="To place" onChange={(id) => set('toPlaceId', id)} /></Field>}
+    <Field label="Name"><Input value={f.title} onChange={(event) => set('title', event.target.value)} maxLength={200} required placeholder={travel ? 'UA 1234 to New York' : 'Walk along the High Line'} /></Field>
+  </div>
   return (
     <div className="min-h-full">
-      <PageHeader title={itemId ? 'Edit' : 'Add to plan'} back={back} />
+      <PageHeader title={itemId ? 'Edit' : 'Add to plan'} back={sourcePlace ? `/t/${tripId}/more/places/${sourcePlace.id}` : back} />
       <form onSubmit={submit} noValidate onInput={() => setInvalid(null)} className="mx-auto max-w-md space-y-4 p-4 pb-0">
-        <div role="radiogroup" aria-label="Type" className="grid grid-cols-4 gap-1.5">
-          {ITEM_KINDS.map((k) => {
-            const s = KIND_STYLE[k]
-            return (
-              <button key={k} type="button" role="radio" aria-checked={f.kind === k} onClick={() => set('kind', k)}
-                className={`ui-press flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control border text-xs ${f.kind === k ? `${s.bg} ${s.border} ${s.text} font-semibold` : 'border-line bg-surface text-muted'}`}>
-                <s.Icon aria-hidden="true" className="size-4" />{s.label}
-              </button>
-            )
-          })}
-        </div>
-
-        <Field label={travel ? 'From' : 'Place'}>
-          <PlacePicker places={places} value={f.placeId} label={travel ? 'From place' : 'Place'} onChange={(id) => {
-            const p = places.find((x) => x.id === id)
-            setF((cur) => cur && { ...cur, placeId: id, title: cur.title || p?.name || '' })
-          }} />
-        </Field>
-        {travel && (
-          <Field label="To">
-            <PlacePicker places={places} value={f.toPlaceId} label="To place" onChange={(id) => set('toPlaceId', id)} />
-          </Field>
-        )}
-        <Field label="Name">
-          <Input value={f.title} onChange={(e) => set('title', e.target.value)} maxLength={200} required placeholder={travel ? 'UA 1234 to New York' : 'Walk along the High Line'} />
-        </Field>
+        {sourcePlace && <section className="plan-source-place" aria-label="Your saved place"><p className="notebook-label mb-3">From your saved places</p><PlaceIdentity place={sourcePlace} members={members} compact /><p className="mt-3 text-sm leading-relaxed text-muted">Choose when to go. The place{sourcePlace.notes ? ' and its notes are' : ' is'} already here.</p></section>}
+        {sourcePlace ? <Disclosure summary="Edit place, name & activity type">{activityFields}</Disclosure> : activityFields}
 
         <label className="flex min-h-11 items-center gap-2 text-sm">
           <input type="checkbox" checked={f.allDay} onChange={(e) => set('allDay', e.target.checked)} className="ui-check" /> All day
@@ -305,7 +308,7 @@ export function ItemFormScreen() {
 
         <div className="ui-form-actions">
           <ErrorNote error={error ?? (invalid && !DATE_TIME_FIELDS.includes(invalid.name) ? invalid.message : null)} />
-          <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : 'Save'}</Button>
+          <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : sourcePlace ? 'Add to the plan' : 'Save'}</Button>
         </div>
       </form>
     </div>

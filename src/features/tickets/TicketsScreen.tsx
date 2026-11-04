@@ -12,6 +12,7 @@ import { useAttachments } from './files'
 import { Fab, Input, LinkButton, PageHeader } from '@/ui'
 import { LoadingState } from '@/ui/LoadingState'
 import { Stowie } from '@/features/stowie/Stowie'
+import { Morph, morphName } from '@/ui/Morph'
 
 /** Lower-case text to search: title, code, the read text and any pulled-out details. */
 const haystack = (a: Attachment) => [a.title, a.confirmation_code, a.text, a.details?.merchant, a.details?.flight, a.details?.confirmation_code].filter(Boolean).join(' ').toLowerCase()
@@ -56,7 +57,7 @@ export function TicketsScreen() {
       <PageHeader title="Tickets" back={`/t/${tripId}/more`} below={rows.length > 0 && (
         <label className="relative block px-4 pb-3 lg:px-6">
           <span className="sr-only">Search tickets, documents and receipts</span>
-          <Search aria-hidden="true" className="pointer-events-none absolute top-3.5 left-7 size-4 text-muted lg:left-9" />
+          <Search aria-hidden="true" className="pointer-events-none absolute top-3.5 left-7 z-1 size-4 text-muted lg:left-9" />
           <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search names, codes and text" className="w-full pl-9" />
         </label>
       )} />
@@ -102,14 +103,14 @@ function TicketCard({ att, onPhone, item, zone }: { att: Attachment; onPhone: bo
     <li>
       <Link to={att.id} className="block rounded-surface border border-line bg-surface p-4 hover:border-action">
         <div className="flex items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-control bg-brand-50 text-action"><Icon aria-hidden="true" className="size-5" /></span>
+          <Morph name={morphName('ticket', att.id, 'icon')}><span className="flex size-11 shrink-0 items-center justify-center rounded-control bg-brand-50 text-action"><Icon aria-hidden="true" className="size-5" /></span></Morph>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-muted">{KIND_LABEL[att.kind]}{item && !item.all_day ? ` · ${formatInZone(item.start_at, zone)}` : ''}</p>
-            <p className="truncate font-semibold">{att.title}</p>
+            <Morph name={morphName('ticket', att.id, 'title')} text><p className="truncate font-semibold">{att.title}</p></Morph>
             {item && item.title !== att.title && <p className="truncate text-sm text-muted">{item.title}</p>}
           </div>
         </div>
-        {att.confirmation_code && <p className="mt-3 font-mono text-2xl font-semibold tracking-wider break-all">{att.confirmation_code}</p>}
+        {att.confirmation_code && <Morph name={morphName('ticket', att.id, 'code')}><p className="mt-3 w-fit font-mono text-2xl font-semibold tracking-wider break-all">{att.confirmation_code}</p></Morph>}
         <p className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${status.cls}`}><status.Icon aria-hidden="true" className="size-4" />{status.text}</p>
       </Link>
     </li>

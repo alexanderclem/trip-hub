@@ -1,30 +1,43 @@
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { CalendarPlus, ExternalLink, Globe, Pencil, Phone, Plus, Trash2 } from 'lucide-react'
+import { ExternalLink, Globe, Pencil, Phone, Plus, Trash2 } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { useLegContext, useLinks, useMembers, usePlace, usePlaces } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
 import { LINK_KINDS, type Link as TripLink, type LinkKind } from '@/data/types'
 import { googleMapsUrl, tripadvisorUrl } from '@/lib/geo'
 import { newId } from '@/lib/ids'
-import { Button, Card, Disclosure, ErrorNote, Input, LinkButton, PageHeader, SectionTitle, Select } from '@/ui'
-import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
+import { Button, Card, Disclosure, ErrorNote, Input, PageHeader, SectionTitle, Select } from '@/ui'
+import { STATUS_LABEL } from './categories'
 import { TravelTimesCard } from '@/features/routing/TravelTimesCard'
 import { GroupRatingCard } from '@/features/ratings/GroupRatingCard'
 import { AddToPollCard } from '@/features/polls/AddToPollCard'
 import { CommentThread } from '@/features/comments/CommentThread'
+import { useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
+import { useItems } from '@/features/itinerary/data'
+import { usePolls } from '@/features/polls/data'
+import { useNow } from '@/lib/useNow'
+import { PlaceIdentity } from './PlaceIdentity'
+import { PlaceJourney } from './PlaceJourney'
+import { rowLoader, useFirstRow } from '@/data/firstRow'
 
 export function PlaceDetailScreen() {
   const confirm = useConfirm()
   const { tripId, placeId } = useParams() as { tripId: string; placeId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
-  const place = usePlace(placeId)
+  const place = useFirstRow(placeId, usePlace(placeId))
   const links = useLinks(placeId) ?? []
-  const members = useMembers(tripId) ?? []
+  const loadedMembers = useMembers(tripId)
+  const members = loadedMembers ?? []
   const allPlaces = usePlaces(tripId)
   const legCtx = useLegContext(tripId)
+  const items = useItems(tripId)
+  const polls = usePolls(tripId)
+  const now = useNow()
+  const mayPlan = can(useTripAccess(tripId), 'plan')
 
   if (!place) return <PageHeader title="Place" back={`/t/${tripId}/more/places`} />
   if (place.deleted_at) {
@@ -36,43 +49,28 @@ export function PlaceDetailScreen() {
     )
   }
 
-  const { Icon, color, label } = CATEGORY_STYLE[place.category]
   const at = place.lat != null && place.lng != null ? { lat: place.lat, lng: place.lng } : null
   const editedBy = members.find((m) => m.id === place.updated_by)?.display_name
 
   return (
-    <div className="min-h-full pb-8">
+    <div className="place-notebook min-h-full pb-8">
       <PageHeader
         title={place.name}
         back={`/t/${tripId}/more/places`}
-        action={
+        action={mayPlan &&
           <Link to="edit" className="ui-icon-button text-action" aria-label="Edit">
             <Pencil aria-hidden="true" className="size-5" />
           </Link>
         }
       />
-      <div className="mx-auto max-w-md space-y-4 p-4">
-        <div className="flex items-center gap-3">
-          <span className="flex size-12 items-center justify-center rounded-full text-white" style={{ background: color }}>
-            <Icon aria-hidden="true" className="size-6" />
-          </span>
-          <div>
-            <div className="font-medium">{label}{place.area && ` · ${place.area}`}</div>
-            <div className="text-sm text-muted">{STATUS_LABEL[place.status]}</div>
-          </div>
-        </div>
-
-        {place.notes && <p className="whitespace-pre-wrap break-words px-1 text-ink">{place.notes}</p>}
-
-        <LinkButton to={`/t/${tripId}/plan/new?place=${place.id}`} className="w-full">
-          <CalendarPlus aria-hidden="true" className="size-4" /> Add to the plan
-        </LinkButton>
+      <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
+        <div className="place-notebook-intro"><p className="notebook-label mb-3">One for our trip · {STATUS_LABEL[place.status]}</p><PlaceIdentity place={place} members={members} morph /></div>
+        <PlaceJourney place={place} members={members} items={items} polls={polls} membersReady={loadedMembers !== undefined} mayPlan={mayPlan} now={now} />
+        {mayPlan && me && <AddToPollCard place={place} memberId={me} />}
 
         {me && <GroupRatingCard place={place} memberId={me} />}
 
         {at && allPlaces && legCtx && <TravelTimesCard place={place} places={allPlaces} ctx={legCtx} />}
-
-        {me && <AddToPollCard place={place} memberId={me} />}
 
         <CommentThread tripId={tripId} type="place" subjectId={place.id} me={me} />
 
@@ -107,7 +105,7 @@ export function PlaceDetailScreen() {
           {place.source === 'osm' && ' · Place data © OpenStreetMap contributors'}
         </p>
 
-        <Button
+        {mayPlan && <Button
           variant="danger"
           className="mx-auto flex"
           onClick={async () => {
@@ -117,7 +115,7 @@ export function PlaceDetailScreen() {
           }}
         >
           <Trash2 aria-hidden="true" className="size-4" /> Delete place
-        </Button>
+        </Button>}
       </div>
     </div>
   )
@@ -164,3 +162,6 @@ function AddLink({ tripId, placeId, me }: { tripId: string; placeId: string; me:
     </form>
   )
 }
+
+/** Reads this screen's row before the route commits, so it can morph in from its list. */
+export const loader = rowLoader('places', 'placeId')

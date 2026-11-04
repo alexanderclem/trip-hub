@@ -32,6 +32,10 @@ import { TripArtwork } from './TripArtwork'
 import { TripCoverPicker } from './TripCoverPicker'
 import { tripCover, tripStatus } from './presentation'
 import { GroupDecisions } from './GroupDecisions'
+import { SharedPlaces } from './SharedPlaces'
+import { TripDayPreview } from './TripDayPreview'
+import { itemsFor } from '@/features/itinerary/calendar'
+import { Avatar } from '@/ui'
 
 /** One useful priority, then the shared plan. All summaries stay live from local trip data. */
 export function TripOverviewScreen() {
@@ -118,13 +122,14 @@ export function TripOverviewScreen() {
       <div className="overview-journal-top"><Link to="/app" className="ui-link"><Compass aria-hidden="true" className="size-4" />Your trips</Link><div className="overview-tools">{tools}</div></div>
       <div className="overview-journal-content">
         <div className="min-w-0">
-          <p className="app-kicker">{phase === 'traveling' ? 'On your trip' : phase === 'preparing' ? 'Before you go' : phase === 'complete' ? 'Past trip' : 'Your shared trip'}</p>
+          <p className="app-kicker notebook-label">{phase === 'traveling' ? 'On your trip' : phase === 'preparing' ? 'Before you go' : phase === 'complete' ? 'Past trip' : 'Your shared trip'}</p>
           <h1 className="travel-heading mt-2 wrap-anywhere">{trip.name}</h1>
           <div className="overview-meta"><span><CalendarDays aria-hidden="true" className="size-4" />{dateRange(trip.start_date, trip.end_date) || 'Dates to be decided'}</span><span className={`trip-phase trip-phase-${phase}`}>{phaseLabel}</span></div>
           {destinations && <p className="mt-2 flex items-start gap-2 text-sm text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="wrap-anywhere">{destinations}</span></p>}
         </div>
-        {cover !== 'none' && <div key={cover} className="overview-art"><TripArtwork cover={cover} photo={coverPhoto(trip)} /></div>}
+        {cover !== 'none' && <figure key={cover} className="overview-postcard"><div className="overview-art"><TripArtwork cover={cover} photo={coverPhoto(trip)} /></div><figcaption><span>{destinations || "A little further from everyday"}</span><span>{cover === "custom" ? "Your trip photo" : "A little inspiration"}</span></figcaption></figure>}
       </div>
+      {loadedMembers && members.length > 0 && <div className="overview-travelers"><Link to={`${root}/travelers`} className="overview-traveler-link"><span className="traveler-stack" aria-hidden="true">{members.slice(0, 5).map((member) => <Avatar key={member.id} name={member.display_name} color={member.color} photo={member.avatar_url} size="sm" />)}</span><span>{members.length === 1 ? 'Your trip. Invite your people.' : members.length <= 3 ? members.map((member) => member.id === me ? 'You' : member.display_name).join(' + ') : `${members.length} people, one shared adventure`}</span><ArrowRight aria-hidden="true" className="size-3.5" /></Link></div>}
     </header>
 
     {arrival && !welcomeDismissed && <section role="status" aria-label="Welcome from Stowie" className="overview-welcome">
@@ -141,10 +146,12 @@ export function TripOverviewScreen() {
         {phase === 'complete' && <section className="overview-recap"><Stowie mood="delighted" size={44} /><div className="min-w-0"><SectionTitle>One for the memories.</SectionTitle><p className="mt-1 text-sm text-stone-600">The places, plans, and moments you shared.</p><Link to={`${root}/wrapped`} className="ui-link">Open trip recap<Sparkles aria-hidden="true" className="size-4" /></Link></div></section>}
 
         {phase === 'planning' && <nav aria-label="Trip planning" className="overview-planning-nav">
-          <Link to={`${root}/more/places`}><MapPin aria-hidden="true" /><span>Places</span><span className="planning-count">{savedPlaces.length}</span></Link>
-          <Link to={`${root}/more/vote`}><Vote aria-hidden="true" /><span>Votes</span>{polls && <span className="planning-count">{polls.filter(({ poll }) => !votingEnded(poll, now)).length}<span className="sr-only"> open</span></span>}</Link>
-          <Link to={`${root}/plan`}><CalendarDays aria-hidden="true" /><span>Plan</span><span className="planning-count">{items.length}</span></Link>
+          <Link to={`${root}/more/places`}><span>Find our places</span><ArrowRight aria-hidden="true" /></Link>
+          <Link to={`${root}/more/vote`}><span>Decide together</span><ArrowRight aria-hidden="true" /></Link>
+          <Link to={`${root}/plan`}><span>See the plan</span><ArrowRight aria-hidden="true" /></Link>
         </nav>}
+        {phase !== 'complete' && <TripDayPreview tripId={tripId} day={phase === 'traveling' ? today : trip.start_date ?? items[0]?.start_local.slice(0, 10) ?? today} items={itemsFor(items, me)} places={places} zone={zone} today={today} />}
+        {phase === 'planning' && <SharedPlaces tripId={tripId} places={savedPlaces} members={members} />}
 
         {!ready ? <ListSkeleton label="Loading what needs you…" rows={2} /> : needs > 0 ? <RowGroup label="For you">
           {otherVotes.slice(0, 3).map(({ poll, left }) => <Row key={poll.id} to={`${root}/more/vote/${poll.id}`} icon={<Vote aria-hidden="true" className="size-5" />} title={poll.title} detail={`${left} ${left === 1 ? 'option' : 'options'} awaiting your vote`} />)}
