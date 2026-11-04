@@ -9,13 +9,15 @@ import { Button, ErrorNote, PageHeader } from '@/ui'
 import { getBlob, removeAttachment } from './files'
 import { PdfView } from './PdfView'
 import { AttachmentText } from '@/features/scan/AttachmentText'
+import { Morph, morphName } from '@/ui/Morph'
+import { rowLoader, useFirstRow } from '@/data/firstRow'
 
 export function TicketViewerScreen() {
   const confirm = useConfirm()
   const { tripId, attachmentId } = useParams() as { tripId: string; attachmentId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
-  const att = useLiveQuery(() => db.attachments.get(attachmentId), [attachmentId])
+  const att = useFirstRow(attachmentId, useLiveQuery(() => db.attachments.get(attachmentId), [attachmentId]))
   const item = useLiveQuery(() => (att?.item_id ? db.itinerary_items.get(att.item_id) : undefined), [att?.item_id])
   const [file, setFile] = useState<{ id: string; blob: Blob } | null>(null)
   const [objectUrl, setObjectUrl] = useState<{ id: string; url: string } | null>(null)
@@ -54,12 +56,12 @@ export function TicketViewerScreen() {
 
   return (
     <div className="min-h-full bg-mist/60 pb-10">
-      <PageHeader title={att.title} back={`/t/${tripId}/tickets`} />
+      <PageHeader title={att.title} titleMorph={morphName('ticket', att.id, 'title')} back={`/t/${tripId}/tickets`} />
       <div className="mx-auto max-w-2xl space-y-3 p-3">
         {att.confirmation_code && (
           <div className="rounded-surface border border-line bg-surface p-4 text-center">
             <p className="ui-label">Confirmation</p>
-            <p className="font-mono text-3xl font-semibold tracking-wider break-all select-all">{att.confirmation_code}</p>
+            <Morph name={morphName('ticket', att.id, 'code')}><p className="mx-auto w-fit font-mono text-3xl font-semibold tracking-wider break-all select-all">{att.confirmation_code}</p></Morph>
           </div>
         )}
         {item && item.id === att.item_id && (
@@ -92,3 +94,6 @@ export function TicketViewerScreen() {
     </div>
   )
 }
+
+/** Reads this screen's row before the route commits, so it can morph in from its list. */
+export const loader = rowLoader('attachments', 'attachmentId')

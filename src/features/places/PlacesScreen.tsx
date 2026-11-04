@@ -12,6 +12,7 @@ import { PlaceCategoryIcon, PlaceStatusBadge, placeActionClass } from './PlaceSu
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, Skeleton } from '@/ui/collection'
 import { useRatingSummaries } from '@/features/polls/data'
 import { StarsSummary } from '@/features/ratings/Stars'
+import { Morph, morphName } from '@/ui/Morph'
 
 export function PlacesScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -98,9 +99,9 @@ export function PlacesScreen() {
             return (
               <li key={p.id} className="flex min-w-0 flex-col rounded-surface border border-line bg-surface">
                 <Link to={p.id} className="group flex-1 rounded-t-surface p-4 transition-colors hover:bg-brand-50">
-                  <div className="mb-4 flex items-center justify-between gap-2"><PlaceCategoryIcon category={p.category} /><span className="flex items-center gap-2"><StarsSummary summary={ratings?.get(p.id)} compact /><PlaceStatusBadge status={p.status} /></span></div>
+                  <div className="mb-4 flex items-center justify-between gap-2"><Morph name={morphName('place', p.id, 'icon')}><PlaceCategoryIcon category={p.category} /></Morph><span className="flex items-center gap-2"><StarsSummary summary={ratings?.get(p.id)} compact /><PlaceStatusBadge status={p.status} /></span></div>
                   <p className="mb-1 text-xs font-medium text-muted">{CATEGORY_STYLE[p.category].label}</p>
-                  <h3 className="flex items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight group-hover:text-action"><span className="min-w-0 break-words">{p.name}</span><ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted" /></h3>
+                  <h3 className="flex items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight group-hover:text-action"><Morph name={morphName('place', p.id, 'title')} text><span className="min-w-0 break-words">{p.name}</span></Morph><ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted" /></h3>
                   {(p.area || p.address) && <p className="mt-2 flex items-start gap-1.5 text-sm text-muted"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{p.address || p.area}</span></p>}
                   {p.notes && <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-muted">{p.notes}</p>}
                   {!at && <p className="mt-3 text-xs text-warning-ink">No map pin yet</p>}

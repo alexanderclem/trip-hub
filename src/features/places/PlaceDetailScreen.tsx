@@ -21,13 +21,14 @@ import { usePolls } from '@/features/polls/data'
 import { useNow } from '@/lib/useNow'
 import { PlaceIdentity } from './PlaceIdentity'
 import { PlaceJourney } from './PlaceJourney'
+import { rowLoader, useFirstRow } from '@/data/firstRow'
 
 export function PlaceDetailScreen() {
   const confirm = useConfirm()
   const { tripId, placeId } = useParams() as { tripId: string; placeId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
-  const place = usePlace(placeId)
+  const place = useFirstRow(placeId, usePlace(placeId))
   const links = useLinks(placeId) ?? []
   const loadedMembers = useMembers(tripId)
   const members = loadedMembers ?? []
@@ -63,7 +64,7 @@ export function PlaceDetailScreen() {
         }
       />
       <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
-        <div className="place-notebook-intro"><p className="notebook-label mb-3">One for our trip · {STATUS_LABEL[place.status]}</p><PlaceIdentity place={place} members={members} /></div>
+        <div className="place-notebook-intro"><p className="notebook-label mb-3">One for our trip · {STATUS_LABEL[place.status]}</p><PlaceIdentity place={place} members={members} morph /></div>
         <PlaceJourney place={place} members={members} items={items} polls={polls} membersReady={loadedMembers !== undefined} mayPlan={mayPlan} now={now} />
         {mayPlan && me && <AddToPollCard place={place} memberId={me} />}
 
@@ -161,3 +162,6 @@ function AddLink({ tripId, placeId, me }: { tripId: string; placeId: string; me:
     </form>
   )
 }
+
+/** Reads this screen's row before the route commits, so it can morph in from its list. */
+export const loader = rowLoader('places', 'placeId')

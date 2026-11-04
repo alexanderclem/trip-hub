@@ -20,6 +20,8 @@ import { CommentThread } from '@/features/comments/CommentThread'
 import { deleteItem, useDisplayZone, useItem, useItems } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
 import { onDay } from './layout'
+import { Morph, morphName } from '@/ui/Morph'
+import { rowLoader, useFirstRow } from '@/data/firstRow'
 
 const city = (zone: string) => zone.split('/').pop()!.replace(/_/g, ' ')
 
@@ -29,7 +31,7 @@ export function ItemDetailScreen() {
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
   const trip = useTrip(tripId)
-  const item = useItem(itemId)
+  const item = useFirstRow(itemId, useItem(itemId))
   const items = useItems(tripId) ?? []
   const places = usePlaces(tripId) ?? []
   const members = useMembers(tripId) ?? []
@@ -71,12 +73,13 @@ export function ItemDetailScreen() {
     <div className="min-h-full pb-10">
       <PageHeader
         title={item.title}
+        titleMorph={morphName('plan', item.id, 'title')}
         back={`/t/${tripId}/plan?day=${day}`}
         action={<Link to="edit" aria-label="Edit" className="ui-icon-button text-action"><Pencil aria-hidden="true" className="size-5" /></Link>}
       />
       <div className="mx-auto max-w-md space-y-4 p-4">
         <div className="flex items-start gap-3">
-          <span className={`flex size-11 shrink-0 items-center justify-center rounded-control ${k.bg} ${k.text}`}><k.Icon aria-hidden="true" className="size-5" /></span>
+          <Morph name={morphName('plan', item.id, 'icon')}><span className={`flex size-11 shrink-0 items-center justify-center rounded-control ${k.bg} ${k.text}`}><k.Icon aria-hidden="true" className="size-5" /></span></Morph>
           <div className="min-w-0">
             <p className="ui-eyebrow">{k.label}</p>
             <p className="mt-0.5"><Status tone={item.status === 'confirmed' ? undefined : item.status === 'cancelled' ? 'danger' : 'quiet'}>{STATUS_TEXT[item.status]}</Status></p>
@@ -89,10 +92,10 @@ export function ItemDetailScreen() {
             <p className="mt-1 text-muted">All day{item.end_local && item.end_local.slice(0, 10) !== item.start_local.slice(0, 10) ? ` until ${DateTime.fromISO(item.end_local.slice(0, 10)).toFormat('cccc d LLLL')}` : ''}</p>
           ) : (
             <>
-              <p className="ui-display mt-1 text-[2.25rem] tabular-nums">
+              <Morph name={morphName('plan', item.id, 'time')}><p className="ui-display mt-1 w-fit text-[2.25rem] tabular-nums">
                 {startLocal.toFormat('HH:mm')}
                 {endLocal && <> → {endLocal.toFormat(endLocal.toISODate() !== startLocal.toISODate() ? 'ccc HH:mm' : 'HH:mm')}</>}
-              </p>
+              </p></Morph>
               <p className="text-sm text-muted">
                 {crossesZones ? `${city(item.start_tz)} time → ${city(item.end_tz!)} time` : `${city(item.start_tz)} time`}
               </p>
@@ -199,3 +202,6 @@ export function ItemDetailScreen() {
     </div>
   )
 }
+
+/** Reads this screen's row before the route commits, so it can morph in from its list. */
+export const loader = rowLoader('itinerary_items', 'itemId')

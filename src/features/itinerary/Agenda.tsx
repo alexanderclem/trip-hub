@@ -10,6 +10,7 @@ import { useMotionPreference } from '@/ui/MotionProvider'
 import { motionTiming } from '@/ui/motion'
 import { KIND_STYLE } from './kinds'
 import type { Block } from './layout'
+import { Morph, morphName } from '@/ui/Morph'
 
 /** Uses the same day membership, ordering and conflicts as the proportional timeline. */
 export function Agenda({ day, blocks, zone, tripId, placeOf, members }: {
@@ -35,9 +36,9 @@ export function Agenda({ day, blocks, zone, tripId, placeOf, members }: {
           <m.li key={item.id} layout={reduced ? false : 'position'} initial={reduced ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={reduced ? { opacity: 1 } : { opacity: 0 }} transition={reduced ? { duration: 0 } : motionTiming.change} className={conflict ? 'bg-danger/40' : undefined}>
             {showPeriod && <p className="agenda-period">{period(startMin)}</p>}
             <Link to={`/t/${tripId}/plan/${item.id}`} aria-label={`${item.title}, ${time}${where ? `, ${where}` : ''}${conflict ? ', overlaps another item' : ''}`} className="agenda-stop">
-              <span className={`agenda-category ${style.bg} ${style.text}`}><style.Icon aria-hidden="true" className="size-4" /></span>
+              <Morph name={morphName('plan', item.id, 'icon')}><span className={`agenda-category ${style.bg} ${style.text}`}><style.Icon aria-hidden="true" className="size-4" /></span></Morph>
               <div className="agenda-stop-body min-w-0 flex-1">
-                <div className="agenda-stop-heading"><h3 className="min-w-0 break-words font-semibold leading-snug text-ink">{item.title}</h3><span className="agenda-time"><span>{formatInZone(item.start_at, zone)}</span>{item.end_at && <span className="agenda-time-end">–{formatInZone(item.end_at, zone)}</span>}</span></div>
+                <div className="agenda-stop-heading"><Morph name={morphName('plan', item.id, 'title')} text><h3 className="min-w-0 break-words font-semibold leading-snug text-ink">{item.title}</h3></Morph><Morph name={morphName('plan', item.id, 'time')}><span className="agenda-time"><span>{formatInZone(item.start_at, zone)}</span>{item.end_at && <span className="agenda-time-end">–{formatInZone(item.end_at, zone)}</span>}</span></Morph></div>
                 {where && <p className="mt-1 break-words text-sm text-muted">{where}</p>}
                 {(continuesBefore || continuesAfter) && <p className="mt-1 text-xs text-muted">{continuesBefore && 'Continues from previous day'}{continuesBefore && continuesAfter && ' · '}{continuesAfter && 'Continues tomorrow'}</p>}
                 <p className="agenda-status">

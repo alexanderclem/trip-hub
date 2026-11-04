@@ -10,6 +10,7 @@ import { m, type HTMLMotionProps } from 'motion/react'
 import { useMotionPreference } from './MotionProvider'
 import { motionTiming } from './motion'
 import { avatarPalette } from './avatarPalette'
+import { Morph } from './Morph'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 const MotionLink = m.create(Link)
@@ -195,7 +196,7 @@ export const HeaderTripName = createContext<string | undefined>(undefined)
  * The one header a screen has: back, title, the screen's own action, then the shell's tools.
  * `below` holds a control that belongs to the whole screen (a day strip, a search field).
  */
-export function PageHeader({ title, eyebrow, back, action, below }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode }) {
+export function PageHeader({ title, eyebrow, back, action, below, titleMorph }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode; titleMorph?: string }) {
   const tools = useContext(HeaderTools)
   const tripName = useContext(HeaderTripName)
   const context = eyebrow ?? tripName
@@ -211,7 +212,7 @@ export function PageHeader({ title, eyebrow, back, action, below }: { title: str
         )}
         <div className="min-w-0 flex-1">
           {context && <p className="ui-eyebrow truncate" title={context}>{context}</p>}
-          <h1 className="ui-page-title break-words">{title}</h1>
+          {titleMorph ? <Morph name={titleMorph} text><h1 className="ui-page-title break-words">{title}</h1></Morph> : <h1 className="ui-page-title break-words">{title}</h1>}
         </div>
         {action && <div className="page-header-action">{action}</div>}
         {tools}
