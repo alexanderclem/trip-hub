@@ -1,10 +1,21 @@
 # What you need to do: switching on organizer payments and Pro tools
 
 Written 1 Nov 2026, when the "Switch" work (Phases 1A to 2c and the Phase 4 imports) was merged into `main`.
-Everything in this list needs your accounts, your approval or your judgment, so no one else can do it.
-Work through it in order. Steps 1 and 2 matter this week; the rest can follow at your own pace.
+Technical setup can be performed through authorized account connections. Account verification, sender consent and launch decisions still need the owner.
 
 Related documents: `docs/PAYMENTS.md` (the technical runbook), `docs/PLAN_THE_SWITCH.md` (the plan and its status).
+
+## Staging progress — 3 Nov 2026
+
+- Existing free project **stowaway-staging** (`knufofvmqopuvijvtzow`) now has all **34** repository migrations and matching migration history, 54 application tables, and the payment cron jobs.
+- Anonymous sign-in and email sign-in are enabled. All six payment functions are deployed with their intended JWT settings. Unauthenticated payment requests and unsigned webhooks are rejected.
+- Vault has staging-specific `project_url` and `cron_token` secrets. The hosted staging frontend is https://codex-operator-completion-trip-hub.alexanderclem12.workers.dev. The Edge Function `SITE_URL`, database `site_url` and Auth Site URL point there; Auth permits exactly its callback and `http://localhost:5173/auth/callback`. Email confirmation, eight-digit codes and MFA settings were preserved. The local staging frontend also runs at `http://localhost:5173`, using gitignored `.env.local` in the `stowaway-operator` worktree.
+- A real browser test created a test trip and itinerary, then joined from a second browser identity and verified the itinerary synced. Those two test trips were cleaned up afterwards. Production was not changed.
+- Stripe **New business sandbox** (`acct_1UL8PQJp9X6ETQDO`, test mode) has two enabled Snapshot webhook endpoints at the staging function URL: platform `we_1UXrnVJp9X6ETQDOghFdRXwe` and connected accounts `we_1UXrnhJp9X6ETQDOdbVPko5F`, API version `2026-10-28.endive`.
+- Both webhook signing secrets are installed in staging, with `STRIPE_API_VERSION=2026-10-28.endive`. Remaining: a permanent server Stripe key, creation and authorization of the dedicated Gmail sender, then the payment/refund/email checks in step 7. Created webhook destinations alone do not establish working payments.
+- Cloudflare branch builds use the committed public `.env.staging` settings and matching `wrangler.jsonc` Preview bindings. Main builds use `.env.production`. Both built browser bundles were checked to exclude the other database's URL. For a local staging build, run `npm run typecheck` then `npx vite build --mode staging`. The existing keepalive workflow now pings staging as well as production every three days.
+
+The Stripe connector currently returns `Unknown tool`; the official Stripe CLI is authorized for the sandbox as a fallback. Supabase migrations and function deployment used its connector. Edge Function secret writes require the dashboard or authenticated Supabase CLI because that connector does not expose secret management.
 
 ---
 
@@ -103,7 +114,7 @@ Use a separate Stripe **sandbox** and a separate Supabase staging project for st
    - Country: **United States** only.
    - Make sure organizers get the **full Stripe Dashboard**. Our code creates accounts where they handle their own refunds and disputes, and Stripe carries the losses.
 4. **Settings → Connect → Branding:** name "Stowaway", the suitcase icon, and the brand color `#245b69` (the app's action color).
-5. **Developers → API keys:** copy the **test secret key** (`sk_test_…`). You'll put it in step 5, never in the app or in Git.
+5. **Developers → API keys:** create a dedicated **restricted sandbox key** (`rk_test_…`) with the permissions required by the payment functions. You'll put it in step 5, never in the app or in Git. Do not use the CLI's expiring authorization as the deployed application's key.
 6. **Workbench → Webhooks → Create an event destination**: use **Snapshot** payloads, which the current handler expects. Add **two** endpoints, both to `https://<staging-project-ref>.supabase.co/functions/v1/stripe-webhook` during testing. Use `croqjdvzbpcscdcshnet` only when configuring production:
    - **"Listen to events on your account"** with events `account.updated` and `account.application.deauthorized`. Copy its signing secret: that's `STRIPE_WEBHOOK_SECRET`.
    - **"Listen to events on Connected accounts"** with these events. Copy its signing secret: that's `STRIPE_CONNECT_WEBHOOK_SECRET`.
@@ -149,10 +160,10 @@ Supabase dashboard → **Edge Functions → Secrets** (Manage secrets). Add:
 
 | Name | Value |
 |---|---|
-| `STRIPE_SECRET_KEY` | `sk_test_…` now; the live key at step 9 |
+| `STRIPE_SECRET_KEY` | Dedicated restricted sandbox key now; a separate live key at step 9 |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` from the "your account" endpoint |
 | `STRIPE_CONNECT_WEBHOOK_SECRET` | `whsec_…` from the "connected accounts" endpoint |
-| `SITE_URL` | `https://joinstowaway.app` |
+| `SITE_URL` | Staging frontend URL for staging; `https://joinstowaway.app` for production |
 | `GMAIL_CLIENT_ID` | from step 4.2 |
 | `GMAIL_CLIENT_SECRET` | from step 4.2 |
 | `GMAIL_REFRESH_TOKEN` | from step 4.3 |
@@ -161,6 +172,14 @@ Supabase dashboard → **Edge Functions → Secrets** (Manage secrets). Add:
 Never put any of these in a `VITE_` variable, in `.env.production`, or in Git.
 
 The production cron jobs reuse the Vault secrets that push notifications already use (`project_url`, `cron_token`), reported set in the earlier setup. A new staging project needs its own `project_url` and randomly generated `cron_token` in Vault. Also change both its Edge Function `SITE_URL` secret and `private.app_settings.site_url` to the staging frontend URL.
+
+The database value is JSONB; set a URL as a JSON string:
+
+```sql
+update private.app_settings
+set value = to_jsonb('http://localhost:5173'::text)
+where key = 'site_url';
+```
 
 ---
 
@@ -298,9 +317,9 @@ update private.app_settings set value = 'false' where key = 'pro_free_beta';   -
 ## Still open from before this work
 
 - **The real-iPhone check:** airplane mode with the offline map, and push notifications on a Home Screen install.
-- **The `ORS_API_KEY` secret**, so travel times use OpenRouteService instead of the public OSRM server.
+- **Routing provider verification:** `ORS_API_KEY` and `GOOGLE_ROUTES_API_KEY` are present in production's secret-name inventory as of 3 Nov; their current provider authorization was not exercised during operator setup.
 - **Phase 0 of the plan:** the 10 organizer interviews and the concierge trip. These decide whether payments are worth pushing hard (`docs/PLAN_THE_SWITCH.md` section 8).
-- **A staging Supabase project** (second free project) for testing payments away from the live database. Required by the plan before payment activation; Stripe test mode alone does not isolate trip data.
+- **Staging payment and email verification:** the separate free project is now initialized; payment credentials, sender authorization and the full external integration checks remain.
 
 ## Quick health checks (any time)
 

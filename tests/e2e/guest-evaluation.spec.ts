@@ -11,8 +11,14 @@ const json = (body: unknown) => ({ status: 200, contentType: 'application/json',
 async function seed(page: Page, online = false) {
   await page.route('https://**/*', (route) => route.abort())
   await page.addInitScript((online) => Object.defineProperty(navigator, 'onLine', { get: () => online, configurable: true }), online)
-  await page.goto('/inspire/manual')
-  await expect(page.getByRole('heading', { name: 'Trip ideas' })).toBeVisible()
+  await page.addInitScript(({ tripId, me }) => {
+    const saved = JSON.parse(localStorage.getItem('trip-hub-device') ?? '{"state":{},"version":1}')
+    if (Object.keys(saved.state?.trips ?? {}).length) return
+    localStorage.setItem('trip-hub-device', JSON.stringify({ ...saved, state: { ...saved.state, quizSeen: true,
+      trips: { [tripId]: { tripId, memberId: me, joinedAt: '2027-01-01T12:00:00Z' } } } }))
+  }, { tripId, me })
+  await page.goto('/app')
+  await expect(page.getByText('No trips yet', { exact: true })).toBeVisible()
   await page.evaluate(async ({ tripId, me, placeId }) => {
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })

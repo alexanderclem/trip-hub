@@ -17,8 +17,16 @@ async function seed(page: Page, baseURL: string, phase: 'planning' | 'preparing'
   await page.clock.setFixedTime(new Date('2027-06-01T12:00:00Z'))
   await page.route(url => url.protocol === 'https:' && url.origin !== new URL(baseURL).origin, route => route.abort())
   await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
-  await page.goto('/inspire/manual')
-  await page.getByRole('heading', { level: 1, name: 'Trip ideas', exact: true }).waitFor()
+  await page.addInitScript(({ tripId, me }) => {
+    const saved = JSON.parse(localStorage.getItem('trip-hub-device') ?? '{"state":{},"version":1}')
+    if (Object.keys(saved.state?.trips ?? {}).length) return
+    localStorage.setItem('trip-hub-device', JSON.stringify({ ...saved, state: { ...saved.state, quizSeen: true,
+      trips: { [tripId]: { tripId, memberId: me, joinedAt: '2026-10-29T12:00:00Z' } } } }))
+  }, { tripId, me })
+  // The empty home state appears after Dexie's first read has created every store.
+  // An unrelated page heading can render before that asynchronous schema initialization.
+  await page.goto('/app')
+  await page.getByText('No trips yet', { exact: true }).waitFor()
   await page.evaluate(async ({ tripId, me, maya, noah, pollId, placeId, itemId, taskId, pastId, phase }) => {
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
@@ -213,7 +221,7 @@ test('task completion gives feedback, updates the group summary, and persists af
   await seed(page, baseURL!)
   await page.goto(`${root}/more/tasks?filter=unassigned`)
   await page.getByRole('checkbox', { name: 'Mark Book the airport transfer complete' }).click()
-  await expect(page.getByRole('status')).toContainText('Task completed on this device.')
+  await expect(page.getByRole('region', { name: 'Recent changes' })).toContainText('Completed: Book the airport transfer')
   await page.reload()
   await expect(page.getByRole('checkbox', { name: 'Mark Book the airport transfer incomplete' })).toBeChecked()
   await page.goto(`${root}/overview`)

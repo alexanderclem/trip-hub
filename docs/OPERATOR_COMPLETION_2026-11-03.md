@@ -17,7 +17,7 @@ Claude's `claude/keen-ptolemy-y4goja` branch is already an ancestor of main. Its
 
 ## Verification
 
-All backend tests use local PGlite. Browser checks use synthetic sessions, IndexedDB fixtures and intercepted requests, with external services blocked. No real trip, payment or email was created.
+The implementation checks below use local PGlite and browser fixtures with external services blocked. A subsequent staging setup pass also exercised the real Supabase boundary, as described below. No real payment or email was created.
 
 | Check | Result |
 |---|---|
@@ -31,12 +31,26 @@ All backend tests use local PGlite. Browser checks use synthetic sessions, Index
 
 Screenshots are generated under `test-results/operator-verified/`; the corrected payment-history captures are under `/tmp/stowaway-operator-history/`. These are local verification artifacts, not committed assets.
 
+## Connected staging verification
+
+Initialized the owner's existing free `stowaway-staging` project (`knufofvmqopuvijvtzow`) with all 34 migrations, canonical migration versions, payment cron jobs and staging Vault settings. Deployed all six payment Edge Functions and checked their authentication guards over the network. Enabled auth methods were inspected, not weakened; email confirmation remains enabled.
+
+The local staging frontend at `http://localhost:5173` passed browser → Supabase → second browser verification: anonymous sign-in, trip creation, itinerary save, invite join, member creation and itinerary pull. The test made no requests to production, recorded no uncaught browser errors, and its test trips were deleted afterwards. The first smoke harness navigated before member claiming completed; waiting for the overview route corrected that harness race.
+
+Created two Snapshot webhook destinations in the owner's Stripe sandbox, pointing only to staging. Their event subscriptions include connected-account disconnections. Installed both signing secrets and pinned the Stripe API version. Payment and email verification remains pending a permanent Stripe server key and creation/consent for the dedicated Gmail sender. See `OWNER_SETUP.md` for the current account and endpoint references. No production backend configuration was changed.
+
+The existing Cloudflare Preview command requires a `previews` block, absent from the repository. Added staging Worker bindings and branch-build selection of `.env.staging`; main retains `.env.production`. Typechecking passed, and both built browser bundles were inspected to verify that each contains only its intended database URL.
+
+Cloudflare deployed the Preview successfully at https://codex-operator-completion-trip-hub.alexanderclem12.workers.dev. The same two-browser trip/itinerary/invite/sync check passed there against staging, with production requests blocked and no uncaught browser errors. Its test trip was cleaned up. Staging's email/checkout URLs and exact Auth callback allowlist now use that host. The keepalive workflow includes staging.
+
+A fresh CI run also exposed an existing fixture race in the journal suite: the trip-ideas heading could render before Dexie initialized its stores. Journal and guest fixtures now wait for the empty home state produced by a completed database read before seeding IndexedDB.
+
 ## Remaining work before launch
 
-The deployment status here follows Claude's recorded 2 Nov migration check; this pass did not independently inspect live administrative state or deploy anything.
+Production's earlier migration status follows Claude's recorded 2 Nov check. The separate staging project and function deployment were independently inspected and configured in this pass.
 
-1. Establish the isolated staging Supabase project and configure Stripe Connect/test-mode webhooks plus the transactional Gmail sender.
-2. Configure secrets, deploy payment functions to staging, and complete deposit → booking → installments → refund → webhook/ledger reconciliation and email-delivery checks. Local fixtures do not prove external integrations work.
+1. Finish permanent Stripe key installation in the initialized staging project, and create/authorize the transactional Gmail sender.
+2. Complete deposit → booking → installments → refund → webhook/ledger reconciliation and email-delivery checks against the deployed staging functions. Local fixtures and the staging planner sync check do not prove payments work.
 3. Complete the plan's operator validation and launch review, then the owner-controlled production setup in `OWNER_SETUP.md`. Physical iPhone, Home Screen offline/push and screen-reader checks remain manual.
 4. Pro entitlements and the free beta exist; paid Pro subscription billing remains unimplemented and its price undecided. Campaign delivery remains disabled pending a domain sender. These original Phase 2 acceptance criteria are not complete merely because their screens exist.
 5. Phase 4's comparison page, migration offer and operator outreach remain unshipped. Phase 3's supplier/corporate work retains the original revenue or signed-pilot prerequisite.
