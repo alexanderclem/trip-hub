@@ -41,6 +41,10 @@ Created two Snapshot webhook destinations in the owner's Stripe sandbox, pointin
 
 The existing Cloudflare Preview command requires a `previews` block, absent from the repository. Added staging Worker bindings and branch-build selection of `.env.staging`; main retains `.env.production`. Typechecking passed, and both built browser bundles were inspected to verify that each contains only its intended database URL.
 
+Cloudflare deployed the Preview successfully at https://codex-operator-completion-trip-hub.alexanderclem12.workers.dev. The same two-browser trip/itinerary/invite/sync check passed there against staging, with production requests blocked and no uncaught browser errors. Its test trip was cleaned up. Staging's email/checkout URLs and exact Auth callback allowlist now use that host. The keepalive workflow includes staging.
+
+A fresh CI run also exposed an existing fixture race in the journal suite: the trip-ideas heading could render before Dexie initialized its stores. Journal and guest fixtures now wait for the empty home state produced by a completed database read before seeding IndexedDB.
+
 ## Remaining work before launch
 
 Production's earlier migration status follows Claude's recorded 2 Nov check. The separate staging project and function deployment were independently inspected and configured in this pass.
