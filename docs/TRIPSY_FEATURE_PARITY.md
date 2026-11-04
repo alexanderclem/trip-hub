@@ -42,6 +42,8 @@ Hosted staging passed the real sign-in → trip/item writes → anonymous saniti
 
 Local Chromium checks exercised booking-code search, editable import review and saving, offline route creation, arrival-buffer editing/persistence, and screenshots of search/import/routes/settings/history at 320, 390 and 1280 CSS pixels. The existing travel-day browser regression passed after preserving its check-in guidance and adding the new buffer instruction. Screenshot artifacts are retained locally outside the repository.
 
+The complete repository browser set exercised 80 checks: 79 passed in the combined run. The recap fixture exposed a cold-start IndexedDB setup race; after adding the same database-ready wait used by other fixtures, that final check passed three consecutive runs. No product behavior was weakened to satisfy the test.
+
 Staging security advisors flag the new deny-by-default private token table and intentionally callable token RPCs. The table has RLS and no client grants; direct anonymous and authenticated reads were verified denied. The public feed RPC requires an unguessable, unexpired token and rechecks current trip access. See the [RLS advisor](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) and [token RPC advisor](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable) for the generic findings.
 
 Physical iPhone Safari, screen-reader testing, external calendar-app refresh behavior, inbound email and real flight-push delivery are not covered by these checks.
