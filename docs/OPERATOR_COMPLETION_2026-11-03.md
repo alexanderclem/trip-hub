@@ -37,13 +37,15 @@ Initialized the owner's existing free `stowaway-staging` project (`knufofvmqopuv
 
 The local staging frontend at `http://localhost:5173` passed browser → Supabase → second browser verification: anonymous sign-in, trip creation, itinerary save, invite join, member creation and itinerary pull. The test made no requests to production, recorded no uncaught browser errors, and its test trips were deleted afterwards. The first smoke harness navigated before member claiming completed; waiting for the overview route corrected that harness race.
 
-Created two Snapshot webhook destinations in the owner's Stripe sandbox, pointing only to staging. Their event subscriptions include connected-account disconnections. Payment and email verification remains pending secret installation, a permanent Stripe server key and Gmail sender consent. See `OWNER_SETUP.md` for the current account and endpoint references. No production configuration was changed.
+Created two Snapshot webhook destinations in the owner's Stripe sandbox, pointing only to staging. Their event subscriptions include connected-account disconnections. Installed both signing secrets and pinned the Stripe API version. Payment and email verification remains pending a permanent Stripe server key and creation/consent for the dedicated Gmail sender. See `OWNER_SETUP.md` for the current account and endpoint references. No production backend configuration was changed.
+
+The existing Cloudflare Preview command requires a `previews` block, absent from the repository. Added staging Worker bindings and branch-build selection of `.env.staging`; main retains `.env.production`. Typechecking passed, and both built browser bundles were inspected to verify that each contains only its intended database URL.
 
 ## Remaining work before launch
 
 Production's earlier migration status follows Claude's recorded 2 Nov check. The separate staging project and function deployment were independently inspected and configured in this pass.
 
-1. Finish permanent Stripe key and webhook secret installation in the initialized staging project, and authorize the transactional Gmail sender.
+1. Finish permanent Stripe key installation in the initialized staging project, and create/authorize the transactional Gmail sender.
 2. Complete deposit → booking → installments → refund → webhook/ledger reconciliation and email-delivery checks against the deployed staging functions. Local fixtures and the staging planner sync check do not prove payments work.
 3. Complete the plan's operator validation and launch review, then the owner-controlled production setup in `OWNER_SETUP.md`. Physical iPhone, Home Screen offline/push and screen-reader checks remain manual.
 4. Pro entitlements and the free beta exist; paid Pro subscription billing remains unimplemented and its price undecided. Campaign delivery remains disabled pending a domain sender. These original Phase 2 acceptance criteria are not complete merely because their screens exist.

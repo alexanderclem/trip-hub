@@ -12,7 +12,8 @@ Related documents: `docs/PAYMENTS.md` (the technical runbook), `docs/PLAN_THE_SW
 - Vault has staging-specific `project_url` and `cron_token` secrets. The Edge Function `SITE_URL` and database `site_url` setting point to `http://localhost:5173`, where the local staging frontend runs. Its public connection settings are in gitignored `.env.local` in the `stowaway-operator` worktree.
 - A real browser test created a test trip and itinerary, then joined from a second browser identity and verified the itinerary synced. Those two test trips were cleaned up afterwards. Production was not changed.
 - Stripe **New business sandbox** (`acct_1UL8PQJp9X6ETQDO`, test mode) has two enabled Snapshot webhook endpoints at the staging function URL: platform `we_1UXrnVJp9X6ETQDOghFdRXwe` and connected accounts `we_1UXrnhJp9X6ETQDOdbVPko5F`, API version `2026-10-28.endive`.
-- Remaining: install the webhook signing secrets and a permanent server Stripe key, authorize the dedicated Gmail sender, then complete the payment/refund/email checks in step 7. Created webhook destinations alone do not establish working payments.
+- Both webhook signing secrets are installed in staging, with `STRIPE_API_VERSION=2026-10-28.endive`. Remaining: a permanent server Stripe key, creation and authorization of the dedicated Gmail sender, then the payment/refund/email checks in step 7. Created webhook destinations alone do not establish working payments.
+- Cloudflare branch builds use the committed public `.env.staging` settings and matching `wrangler.jsonc` Preview bindings. Main builds use `.env.production`. Both built browser bundles were checked to exclude the other database's URL. Locally, `npm run build -- --mode staging` is not supported by the existing build wrapper; use `npx vite build --mode staging` after typechecking, or set the public values in gitignored `.env.local` for `npm run dev`.
 
 The Stripe connector currently returns `Unknown tool`; the official Stripe CLI is authorized for the sandbox as a fallback. Supabase migrations and function deployment used its connector. Edge Function secret writes require the dashboard or authenticated Supabase CLI because that connector does not expose secret management.
 
@@ -316,7 +317,7 @@ update private.app_settings set value = 'false' where key = 'pro_free_beta';   -
 ## Still open from before this work
 
 - **The real-iPhone check:** airplane mode with the offline map, and push notifications on a Home Screen install.
-- **The `ORS_API_KEY` secret**, so travel times use OpenRouteService instead of the public OSRM server.
+- **Routing provider verification:** `ORS_API_KEY` and `GOOGLE_ROUTES_API_KEY` are present in production's secret-name inventory as of 3 Nov; their current provider authorization was not exercised during operator setup.
 - **Phase 0 of the plan:** the 10 organizer interviews and the concierge trip. These decide whether payments are worth pushing hard (`docs/PLAN_THE_SWITCH.md` section 8).
 - **Staging payment and email verification:** the separate free project is now initialized; payment credentials, sender authorization and the full external integration checks remain.
 

@@ -1,10 +1,23 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vitest/config'
+import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Workers Builds runs the same build command for main and branch Previews.
+// Match the browser's database to previews.vars instead of baking production into a Preview.
+const previewBranch = process.env.WORKERS_CI_BRANCH
+const staging = previewBranch && previewBranch !== 'main' ? loadEnv('staging', process.cwd(), 'VITE_') : undefined
+if (staging && (!staging.VITE_SUPABASE_URL || !staging.VITE_SUPABASE_PUBLISHABLE_KEY)) {
+  throw new Error('Cloudflare Preview builds require the public Supabase settings in .env.staging.')
+}
+
 export default defineConfig({
+  define: staging ? {
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(staging.VITE_SUPABASE_URL),
+    'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(staging.VITE_SUPABASE_PUBLISHABLE_KEY),
+  } : undefined,
   worker: { format: 'es' },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
