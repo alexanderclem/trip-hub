@@ -14,6 +14,10 @@ export const scanDetailsSchema = z.object({
   confirmation_code: text(40).describe('Booking reference, PNR or confirmation number'),
   flight: text(20).describe('Flight number like "UA 1234"'),
   notes: text(300).describe('Anything else useful in one short sentence'),
+  baggage: text(500).optional().describe('Printed baggage allowance or restrictions; never infer airline policy'),
+  breakfast: text(500).optional().describe('Printed breakfast inclusions or extra charges'),
+  parking: text(500).optional().describe('Printed parking availability, instructions or costs'),
+  cancellation: text(1000).optional().describe('Printed cancellation deadline, penalties or refund terms'),
 })
 export type ScanDetails = z.infer<typeof scanDetailsSchema>
 
@@ -44,6 +48,7 @@ export function parseDetails(raw: unknown): ScanDetails | null {
   const out: Record<string, unknown> = {}
   for (const [key, field] of Object.entries(scanDetailsSchema.shape)) {
     let v = (value as Record<string, unknown>)[key]
+    if (v === undefined && field.isOptional()) continue
     if (key === 'currency' && typeof v === 'string') v = SYMBOLS[v.trim()] ?? v.trim().toUpperCase()
     const parsed = field.safeParse(typeof v === 'string' && v.trim() === '' ? null : v ?? null)
     out[key] = parsed.success ? parsed.data : null
@@ -55,5 +60,5 @@ export function parseDetails(raw: unknown): ScanDetails | null {
 /** Keeps `a`'s values and fills its gaps from `b`. */
 export function mergeDetails(a: ScanDetails | null, b: ScanDetails | null): ScanDetails | null {
   if (!a || !b) return a ?? b
-  return Object.fromEntries(Object.keys(scanDetailsSchema.shape).map((k) => [k, a[k as keyof ScanDetails] ?? b[k as keyof ScanDetails]])) as ScanDetails
+  return Object.fromEntries(Object.keys(scanDetailsSchema.shape).filter((k) => k in a || k in b).map((k) => [k, a[k as keyof ScanDetails] ?? b[k as keyof ScanDetails] ?? null])) as ScanDetails
 }

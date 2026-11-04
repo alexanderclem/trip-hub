@@ -67,6 +67,10 @@ export function AttachmentText({ att, blob }: { att: Attachment; blob: Blob | nu
           {d.flight && <><dt className="font-medium">Flight</dt><dd>{d.flight}</dd></>}
           {d.confirmation_code && <><dt className="font-medium">Code</dt><dd className="font-mono">{d.confirmation_code}</dd></>}
           {d.notes && <><dt className="font-medium">Note</dt><dd>{d.notes}</dd></>}
+          {d.baggage && <><dt className="font-medium">Baggage</dt><dd className="wrap-anywhere">{d.baggage}</dd></>}
+          {d.breakfast && <><dt className="font-medium">Breakfast</dt><dd className="wrap-anywhere">{d.breakfast}</dd></>}
+          {d.parking && <><dt className="font-medium">Parking</dt><dd className="wrap-anywhere">{d.parking}</dd></>}
+          {d.cancellation && <><dt className="font-medium">Cancellation</dt><dd className="wrap-anywhere">{d.cancellation}</dd></>}
         </dl>
       )}
 

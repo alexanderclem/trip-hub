@@ -37,6 +37,7 @@ export const routes: RouteObject[] = [
       { path: '/auth/callback', lazy: () => import('./features/account/AuthCallbackScreen').then((m) => ({ Component: m.AuthCallbackScreen })) },
       { path: '/oauth/consent', lazy: () => import('./features/account/ConnectorConsentScreen').then((m) => ({ Component: m.ConnectorConsentScreen })) },
       { path: '/connections', lazy: () => import('./features/account/ConnectedAppsScreen').then((m) => ({ Component: m.ConnectedAppsScreen })) },
+      { path: '/travel-history', lazy: () => import('./features/history/HistoryScreen').then((m) => ({ Component: m.HistoryScreen })) },
       { path: '/t/:tripId/who', lazy: () => import('./features/trips/WhoScreen').then((m) => ({ Component: m.WhoScreen })) },
       {
         path: '/t/:tripId',
@@ -58,6 +59,9 @@ export const routes: RouteObject[] = [
           { path: 'money/new', lazy: () => import('./features/money/ExpenseFormScreen').then((m) => ({ Component: m.ExpenseFormScreen })) },
           { path: 'money/:expenseId', lazy: () => import('./features/money/ExpenseFormScreen').then((m) => ({ Component: m.ExpenseFormScreen })) },
           { path: 'more', lazy: () => import('./features/trips/MoreScreen').then((m) => ({ Component: m.MoreScreen })) },
+          { path: 'more/search', lazy: () => import('./features/search/SearchScreen').then((m) => ({ Component: m.SearchScreen })) },
+          { path: 'more/smart-import', lazy: () => import('./features/import/ImportScreen').then((m) => ({ Component: m.ImportScreen })) },
+          { path: 'more/route', lazy: () => import('./features/routing/RouteScreen').then((m) => ({ Component: m.RouteScreen })) },
           { path: 'more/explore', lazy: () => import('./features/travel/TravelScreen').then((m) => ({ Component: m.TravelScreen })) },
           { path: 'more/ideas', lazy: () => import('./features/stowie/StowieScreen').then((m) => ({ Component: m.StowieScreen })) },
           { path: 'more/ideas/manual', lazy: () => import('./features/discovery/DiscoveryScreen').then((m) => ({ Component: m.DiscoveryScreen })) },

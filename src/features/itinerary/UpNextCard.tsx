@@ -8,6 +8,7 @@ import { formatInZone } from '@/lib/time'
 import { nextItem, type Transfer } from './travel'
 import { Disclosure } from '@/ui'
 import { useNow } from '@/lib/useNow'
+import { arrivalMinutes } from './arrival'
 
 /** The next thing on this person's plan. `withinHours` shows it only once it is that close (the Plan tab), since Home always has it. */
 export function UpNextCard({ tripId, items, places, members, me, zone, transfers, withinHours, prominent = false }: {
@@ -36,6 +37,7 @@ export function UpNextCard({ tripId, items, places, members, me, zone, transfers
       {item.status !== 'confirmed' && <p className="text-sm text-muted">{item.status === 'idea' ? 'Idea — not confirmed' : 'Tentative'}</p>}
       {place && <p className="mt-2 flex items-start gap-2 text-sm text-ink"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="wrap-anywhere">{place.name}</span></p>}
       <p className="mt-1 flex items-start gap-2 text-sm text-ink"><Users aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="break-words">{going}</span></p>
+      {arrivalMinutes(item) > 0 && <p className="mt-2 text-sm font-medium">Arrive by {DateTime.fromISO(item.start_at).setZone(zone).minus({ minutes: arrivalMinutes(item) }).toFormat('ccc HH:mm')} · {arrivalMinutes(item)} min early</p>}
       {transfer && (
         <div className="up-next-departure">
           <Clock3 aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
@@ -48,7 +50,7 @@ export function UpNextCard({ tripId, items, places, members, me, zone, transfers
         {ticket && <Link to={`/t/${tripId}/tickets/${ticket.att.id}`} className="ui-link"><Ticket aria-hidden="true" className="size-4" />{ticket.onPhone ? 'Open ticket' : 'View ticket · not downloaded'}</Link>}
       </div>
       <Disclosure summary={transfer ? 'About this travel estimate' : 'Travel guidance'} className="up-next-guidance">
-        {transfer ? <><p>From {transfer.fromPlace.name} · {SOURCE_LABEL[transfer.option.source]}.</p><p className="mt-1">Departure allows the upper travel estimate. Add time for check-in or waiting.</p></> : <p>{place ? 'A departure estimate needs a previous stop with travel information.' : 'Add a place to this plan for travel guidance.'}</p>}
+        {transfer ? <><p>From {transfer.fromPlace.name} · {SOURCE_LABEL[transfer.option.source]}.</p><p className="mt-1">Departure allows the upper travel estimate{arrivalMinutes(item) ? ` plus ${arrivalMinutes(item)} min to arrive early` : '. Set an arrival buffer for check-in or waiting'}.</p></> : <p>{place ? 'A departure estimate needs a previous stop with travel information.' : 'Add a place to this plan for travel guidance.'}</p>}
       </Disclosure>
     </section>
   )

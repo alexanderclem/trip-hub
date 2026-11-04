@@ -20,6 +20,7 @@ import { CommentThread } from '@/features/comments/CommentThread'
 import { deleteItem, useDisplayZone, useItem, useItems } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
 import { onDay } from './layout'
+import { arrivalMinutes } from './arrival'
 
 const city = (zone: string) => zone.split('/').pop()!.replace(/_/g, ' ')
 
@@ -96,6 +97,7 @@ export function ItemDetailScreen() {
               <p className="text-sm text-muted">
                 {crossesZones ? `${city(item.start_tz)} time → ${city(item.end_tz!)} time` : `${city(item.start_tz)} time`}
               </p>
+              {arrivalMinutes(item) > 0 && <p className="mt-2 text-sm font-medium">Arrive by {startLocal.minus({ minutes: arrivalMinutes(item) }).toFormat('ccc HH:mm')} · {arrivalMinutes(item)} min early</p>}
               {notDisplayZone && (
                 <p className="mt-2 text-sm text-muted">
                   {zone === tripZone ? `${city(zone)} time` : 'Your phone'}: {formatInZone(item.start_at, zone)}{item.end_at && `–${formatInZone(item.end_at, zone)}`}
