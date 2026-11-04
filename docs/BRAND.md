@@ -47,7 +47,8 @@ The interface is a calm trip workspace: cool off-white, white surfaces, ocean
 ink, and a small coral brand accent. Native system sans-serif, clear weight and
 spacing hierarchy, and a consistent left reading edge keep trip details and
 actions associated. Use sentence case. The exact palette,
-typography, layout, and component states are in [DESIGN.md](../DESIGN.md).
+typography and component states live in `src/styles/themes.css`,
+`src/styles/tokens.css` and [UI_COMPONENTS.md](UI_COMPONENTS.md).
 
 ### Logo and character
 

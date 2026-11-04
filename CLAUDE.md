@@ -242,7 +242,7 @@ name "travel app" and runs every spec.
     sr-only "(opens in a new tab)".
   - Use the semantic tokens in `src/styles/index.css` (`ink`, `action`, `muted`, `mist`, `line`,
     `control`, `warning`/`danger`/`success`, `rounded-control`/`rounded-surface`), never raw `stone-*`,
-    `bg-white` or Tailwind hues. The app follows the website's sample trip (`DESIGN.md`).
+    `bg-white` or Tailwind hues. The app follows the website's sample trip.
   - Follow "Keeping screens uncluttered" in `docs/UI_COMPONENTS.md`: one header, one filled button, one
     floating add button, no link that repeats a tab. Tabs are Home · Plan · Map · Vote · More.
 - **Verify UI with Playwright screenshots** (`SHOTS_DIR=<scratchpad>`), not just assertions.
