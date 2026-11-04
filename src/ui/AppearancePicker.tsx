@@ -16,7 +16,7 @@ export function AppearancePicker({ showLabel = true }: { showLabel?: boolean }) 
     <fieldset className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
       <legend className="sr-only">Appearance</legend>
       {showLabel && <span aria-hidden="true" className="text-sm text-muted">Appearance</span>}
-      <div className="join gap-0.5 rounded-control border border-line bg-surface p-1">
+      <div className="join max-w-full flex-wrap gap-0.5 rounded-control border border-line bg-surface p-1">
         {options.map(({ value, label, Icon }) => (
           <label key={value} className="relative flex min-h-11 cursor-pointer items-center gap-1.5 rounded-control px-2.5 text-sm text-muted has-checked:bg-mist has-checked:text-ink has-checked:font-semibold hover:bg-mist has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-action">
             <input className={`absolute inset-0 z-10 m-0 size-full cursor-pointer opacity-0 ${value === 'system' ? '' : 'theme-controller'}`} type="radio" name={name} value={value === 'system' ? 'system' : `stowaway-${value}`} checked={appearance === value} onChange={() => setAppearance(value)} />

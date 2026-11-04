@@ -240,7 +240,7 @@ test('example days update map and itinerary without requests, layout shifts or l
   const errors: string[] = []
   page.on('pageerror', e => errors.push(e.message))
   await page.goto('/')
-  const figure = page.getByRole('figure')
+  const figure = page.locator('.website-preview')
   await figure.scrollIntoViewIfNeeded()
   const before = await figure.boundingBox()
   const firstRoute = await page.locator('.preview-route').getAttribute('d')

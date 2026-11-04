@@ -10,5 +10,5 @@ function subscribe(cb: () => void) {
 }
 
 export function useOnline() {
-  return useSyncExternalStore(subscribe, () => navigator.onLine)
+  return useSyncExternalStore(subscribe, () => navigator.onLine, () => true)
 }

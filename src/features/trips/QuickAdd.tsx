@@ -34,7 +34,7 @@ export function QuickAdd({ tripId }: { tripId: string }) {
   if (!allowed.length || editing) return null
   return <>
     <Button variant="secondary" className={`quick-add-trigger${contextualAdd ? ' quick-add-contextual' : ''}`} aria-haspopup="dialog" onClick={() => setOpen(true)}><Plus aria-hidden="true" className="size-4" /><span>Add</span></Button>
-    <Dialog open={open} onClose={() => setOpen(false)} title="Add to your trip">
+    <Dialog open={open} onClose={() => setOpen(false)} title="Add to your trip" sheet>
       <nav aria-label="Add to your trip" className="quick-add-list">{allowed.map(({ path, label, detail, Icon }) => <Link key={path} to={`/t/${tripId}/${path}${path === 'plan/new' ? `?day=${day}` : ''}`} onClick={() => setOpen(false)}>
         <span className="quick-add-icon"><Icon aria-hidden="true" className="size-5" /></span>
         <span className="min-w-0 flex-1"><span className="block font-semibold">{label}</span><span className="mt-1 block text-sm leading-relaxed text-muted">{detail}</span></span>

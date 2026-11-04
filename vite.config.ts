@@ -4,6 +4,7 @@ import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { prerender } from './scripts/prerender.ts'
 
 // Workers Builds runs the same build command for main and branch Previews.
 // Match the browser's database to previews.vars instead of baking production into a Preview.
@@ -25,6 +26,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    { name: 'stowaway-public-prerender', apply: 'build', async writeBundle(options) { await prerender(options.dir ?? 'dist') } },
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
@@ -48,7 +50,7 @@ export default defineConfig({
         // Includes the offline map's fonts and sprites, so labels render with no network.
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,jpg,woff2,ttf}', 'map-assets/**/*.{pbf,json}'], // mjs: pdf.js worker
         globIgnores: ['**/tesseract-core-lstm*'], // the OCR core is cached when first used, not precached
-        navigateFallback: '/index.html',
+        navigateFallback: '/app.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/mcp$/, /^\/\.well-known\//, /^\/oauth\//, /^\/auth\//],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         importScripts: ['push-sw.js'], // push + notification taps (public/push-sw.js)

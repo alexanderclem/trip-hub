@@ -4,6 +4,7 @@ export interface InstallPromptEvent extends Event {
 }
 
 export function mobilePlatform(): 'ios' | 'android' | null {
+  if (typeof navigator === 'undefined') return null
   if (/iPhone|iPad|iPod/i.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios'
   if (/Android/i.test(navigator.userAgent)) return 'android'
@@ -11,8 +12,8 @@ export function mobilePlatform(): 'ios' | 'android' | null {
 }
 
 export function isStandalone() {
-  return window.matchMedia('(display-mode: standalone)').matches
-    || ('standalone' in navigator && navigator.standalone === true)
+  return typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches
+    || ('standalone' in navigator && navigator.standalone === true))
 }
 
 let snapshot: { prompt: InstallPromptEvent | null; installed: boolean } = { prompt: null, installed: false }

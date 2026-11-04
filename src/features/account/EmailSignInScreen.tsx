@@ -92,7 +92,7 @@ export function EmailSignInScreen() {
           <>
             <p className="text-sm leading-relaxed text-muted">We sent a code to <strong className="break-all font-medium text-ink">{address}</strong>. It can take a minute, and may land in spam.</p>
             <Field label="Code from the email">
-              <Input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" autoComplete="one-time-code" autoFocus required maxLength={10} className="w-40 text-lg tracking-widest tabular-nums" />
+              <Input name="one-time-code" value={code} onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" autoComplete="one-time-code" autoCapitalize="none" spellCheck={false} autoFocus required maxLength={10} className="w-40 text-lg tracking-widest tabular-nums" />
             </Field>
             <ErrorNote error={error} />
             <Button type="submit" className="w-full" disabled={busy || !online || code.trim().length < 6}>{busy ? 'Checking…' : 'Sign in'}</Button>

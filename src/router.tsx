@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router'
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
 import { RouteError } from './app/RouteError'
 import { RootLayout } from './app/layouts/RootLayout'
 import { LandingScreen } from './features/website/LandingScreen'
@@ -6,7 +6,7 @@ import { NotFoundScreen } from './features/website/NotFoundScreen'
 import { LegalScreen } from './features/legal/LegalScreen'
 import { LoadingState } from './ui/LoadingState'
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
     errorElement: <RouteError />,
@@ -16,6 +16,8 @@ export const router = createBrowserRouter([
       { path: '/privacy', element: <LegalScreen policy="privacy" /> },
       { path: '/terms', element: <LegalScreen policy="terms" /> },
       { path: '/pricing', lazy: () => import('./features/website/PricingScreen').then((m) => ({ Component: m.PricingScreen })) },
+      { path: '/how-it-works', lazy: () => import('./features/website/HowItWorksScreen').then((m) => ({ Component: m.HowItWorksScreen })) },
+      { path: '/help', lazy: () => import('./features/website/HelpScreen').then((m) => ({ Component: m.HelpScreen })) },
       { path: '/go/:slug', lazy: () => import('./features/payments/PublicScreens').then((m) => ({ Component: m.PublicTripScreen })) },
       { path: '/go/:slug/booked', lazy: () => import('./features/payments/PublicScreens').then((m) => ({ Component: m.BookedScreen })) },
       { path: '/b', lazy: () => import('./features/payments/PublicScreens').then((m) => ({ Component: m.ManageBookingScreen })) },
@@ -87,4 +89,6 @@ export const router = createBrowserRouter([
       { path: '*', element: <NotFoundScreen /> },
     ],
   },
-])
+]
+
+export const router = typeof window === 'undefined' ? undefined : createBrowserRouter(routes)

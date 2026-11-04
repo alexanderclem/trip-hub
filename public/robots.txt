@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://joinstowaway.app/sitemap.xml

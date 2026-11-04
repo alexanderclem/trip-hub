@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { TripDb } from '@/data/db'
 import { save, softDelete } from '@/data/repo'
-import { saveTask, setTaskCompleted } from './data'
+import { saveTask, setTaskCompleted, undoTaskCompleted } from './data'
 
 let db: TripDb
 beforeEach(async () => {
@@ -13,6 +13,23 @@ afterEach(async () => { await db.delete() })
 const fields = { title: ' Book shuttle ', assignee_id: 'alex', due_date: '2027-03-10', notes: ' Eight people ' }
 
 describe('offline tasks', () => {
+  it('undoes completion without overwriting task details edited afterward', async () => {
+    const id = await saveTask('trip', undefined, fields, 'alex', db)
+    await setTaskCompleted(id, true, 'alex', db)
+    await saveTask('trip', id, { ...fields, title: 'Updated by the group' }, 'sam', db)
+    await undoTaskCompleted(id, true, 'alex', db)
+    expect(await db.trip_tasks.get(id)).toMatchObject({ title: 'Updated by the group', completed: false, _dirty: 1 })
+    expect(await db._outbox.count()).toBe(1)
+  })
+  it('refuses stale or repeated undo and never revives a tombstone', async () => {
+    const id = await saveTask('trip', undefined, fields, 'alex', db)
+    await setTaskCompleted(id, true, 'alex', db)
+    await undoTaskCompleted(id, true, 'alex', db)
+    await expect(undoTaskCompleted(id, true, 'alex', db)).rejects.toThrow('current state was kept')
+    await softDelete('trip_tasks', id, 'alex', db)
+    await expect(undoTaskCompleted(id, false, 'alex', db)).rejects.toThrow('removed')
+    expect((await db.trip_tasks.get(id))?.deleted_at).toBeTruthy()
+  })
   it('queues creation, edits and reversible completion, preserving fields and coalescing writes', async () => {
     const id = await saveTask('trip', undefined, fields, 'alex', db)
     expect(await db.trip_tasks.get(id)).toMatchObject({ title: 'Book shuttle', notes: 'Eight people', completed: false, _dirty: 1 })

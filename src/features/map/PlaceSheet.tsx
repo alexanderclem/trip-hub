@@ -14,6 +14,7 @@ import { ReportTimeForm, TravelOptionsList } from '@/features/routing/TravelOpti
 import { usePlaceRatings } from '@/features/polls/data'
 import { summarizeRatings } from '@/features/polls/rank'
 import { StarsSummary } from '@/features/ratings/Stars'
+import { useSwipeDismiss } from '@/ui/useSwipeDismiss'
 
 export const ME_ID = 'me'
 
@@ -124,6 +125,7 @@ export function PlaceSheet({ place, origins, origin, onOrigin, onMeasure, legCtx
 /** Nonmodal: the map and its controls remain available behind the sheet. */
 export function Sheet({ children, onClose, label = 'Map selection' }: { children: React.ReactNode; onClose: () => void; label?: string }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const swipe = useSwipeDismiss(onClose)
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
     closeRef.current?.focus({ preventScroll: true })
@@ -131,9 +133,10 @@ export function Sheet({ children, onClose, label = 'Map selection' }: { children
   }, [])
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-6 z-20 p-3">
-      <div role="dialog" aria-label={label} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); onClose() } }} className="pointer-events-auto relative mx-auto max-h-[70dvh] max-w-lg overflow-y-auto overscroll-contain rounded-surface border border-line bg-surface p-4 shadow-xl sm:p-5">
-        <button ref={closeRef} onClick={onClose} className="absolute top-3 right-3 flex size-10 items-center justify-center rounded-full bg-mist/60 text-muted hover:bg-brand-100" aria-label="Close">
+    <div className="map-selection-sheet pointer-events-none absolute inset-x-0 bottom-6 z-20 p-3">
+      <div ref={(element) => { swipe.panel.current = element }} role="dialog" aria-label={label} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); onClose() } }} className="pointer-events-auto relative mx-auto max-h-[70dvh] max-w-lg overflow-y-auto overscroll-contain rounded-surface border border-line bg-surface p-4 shadow-xl sm:p-5">
+        <div className="sheet-drag-handle" aria-hidden="true" {...swipe.handle}><span /></div>
+        <button ref={closeRef} onClick={onClose} className="absolute top-3 right-3 ui-icon-button rounded-full bg-mist/60 text-muted hover:bg-brand-100" aria-label="Close">
           <X aria-hidden="true" className="size-5" />
         </button>
         {children}

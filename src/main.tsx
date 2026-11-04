@@ -1,6 +1,6 @@
 import { initializeAppearance } from './ui/appearance'
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
 import { router } from './router'
 import { MotionProvider } from './ui/MotionProvider'
@@ -25,11 +25,21 @@ setWriteGuard((table, row, me) => {
 })
 
 function start() {
-  createRoot(document.getElementById('root')!).render(
+  const element = document.getElementById('root')!
+  const application = (
     <StrictMode>
-      <MotionProvider><RouterProvider router={router} /></MotionProvider>
-    </StrictMode>,
+      <MotionProvider><RouterProvider router={router!} /></MotionProvider>
+    </StrictMode>
   )
+  const renderedPath = element.dataset.prerender
+  const standalone = matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone === true)
+  if (renderedPath === location.pathname && !standalone) {
+    const hydrate = () => hydrateRoot(element, application)
+    if (router!.state.initialized) hydrate()
+    else {
+      const unsubscribe = router!.subscribe((state) => { if (state.initialized) { unsubscribe(); hydrate() } })
+    }
+  } else createRoot(element).render(application)
 }
 
 // Trips from before the alpha reset are cleared before anything is shown; a failure never blocks

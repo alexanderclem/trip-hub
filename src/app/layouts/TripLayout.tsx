@@ -20,6 +20,7 @@ import { PageTransition } from '@/ui/PageTransition'
 import { HeaderTools, HeaderTripName } from '@/ui'
 import { QuickAdd } from '@/features/trips/QuickAdd'
 import { useSlidingHighlight } from '@/ui/effects'
+import { CommandMenu } from '@/ui/CommandMenu'
 
 // Keep the phone navigation compact; desktop exposes the full trip workspace.
 const tabs = [
@@ -200,7 +201,7 @@ function TripShell({ tripId }: { tripId: string }) {
       </aside>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <main id="trip-content" tabIndex={-1} ref={content} onScroll={(event) => scrollPositions.current.set(locationKey, event.currentTarget.scrollTop)} className="relative min-h-0 min-w-0 flex-1 overflow-y-auto outline-none">
-          <HeaderTools value={tools}><HeaderTripName value={trip?.name}><PageTransition routeKey={pathname} className="h-full min-w-0"><Outlet /></PageTransition></HeaderTripName></HeaderTools>
+          <HeaderTools value={<><CommandMenu tripId={tripId} />{tools}</>}><HeaderTripName value={trip?.name}><PageTransition routeKey={pathname} className="h-full min-w-0"><Outlet /></PageTransition></HeaderTripName></HeaderTools>
         </main>
         <nav ref={tabBar.ref} aria-label="Trip navigation" className="trip-tabs pb-safe grid shrink-0 grid-cols-5 border-t border-line bg-surface lg:hidden">
           <span className="trip-tab-bar" style={tabBar.style} aria-hidden="true" />
