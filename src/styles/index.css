@@ -202,6 +202,46 @@ body {
 .ui-dialog[data-closing]::backdrop { background-color: transparent; }
 .ui-dialog h2 { font-family: var(--stowaway-font-display); font-weight: 400; letter-spacing: -.025em; }
 
+/* An independent translate lets a sheet gesture interrupt without fighting its enter/exit. */
+.sheet-drag-handle { display: flex; width: 6rem; min-height: 44px; align-items: center; justify-content: center; margin: -1rem auto .25rem; touch-action: none; user-select: none; }
+.sheet-drag-handle > span { width: 2.5rem; height: 4px; border-radius: 2px; background: var(--stowaway-control-border); }
+.stowie-drag-handle { margin-block: 0; }
+.ui-toast-region { position: fixed; z-index: 60; inset-inline: max(.75rem, env(safe-area-inset-left)) max(.75rem, env(safe-area-inset-right)); bottom: calc(env(safe-area-inset-bottom) + 5rem); display: grid; gap: .5rem; width: min(30rem, calc(100% - 1.5rem)); margin-inline: auto; pointer-events: none; }
+.ui-toast-region:empty { display: none; }
+.ui-toast { display: flex; align-items: center; gap: .5rem; min-width: 0; padding: .5rem .5rem .5rem 1rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); color: var(--stowaway-ink); box-shadow: 0 8px 32px #183e4b20; pointer-events: auto; font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
+.ui-toast .ui-button { flex-shrink: 0; padding-inline: .75rem; }
+.shortcut-hint { display: none; margin-inline-start: .5rem; border: 1px solid var(--stowaway-border); border-radius: 4px; padding: .125rem .375rem; color: var(--stowaway-muted); font-family: inherit; font-size: .6875rem; white-space: nowrap; }
+.command-input { width: 100%; min-height: 48px; padding: .75rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); background: var(--stowaway-surface); font-size: 1rem; color: var(--stowaway-ink); }
+.command-results { max-height: min(50dvh, 24rem); margin-top: .75rem; overflow-y: auto; overscroll-behavior: contain; }
+.command-option { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 48px; padding: .75rem; border-radius: var(--stowaway-radius-control); color: var(--stowaway-ink); cursor: pointer; font-size: .9375rem; }
+.command-option[aria-selected='true'] { background: var(--stowaway-mist); outline: 1px solid var(--stowaway-control-border); outline-offset: -1px; }
+.command-option > span { color: var(--stowaway-muted); }
+.command-help { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--stowaway-border); color: var(--stowaway-muted); font-size: .75rem; }
+.command-help kbd { font-family: inherit; }
+.progressive-image { position: relative; display: block; overflow: hidden; background: var(--stowaway-mist); }
+.progressive-image-full { display: block; width: 100%; height: 100%; object-fit: cover; transition: opacity 180ms ease-out; }
+.progressive-image[data-ready='false'] > .progressive-image-full { opacity: 0; }
+.progressive-image-placeholder { position: absolute; inset: -5%; background-size: cover; background-position: center; filter: blur(10px); }
+.trip-artwork-frame { width: 100%; height: 100%; }
+.ui-display, .ui-section-title { text-wrap: balance; }
+time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
+.app-page-header > div { padding-inline: max(.75rem, env(safe-area-inset-left)) max(.75rem, env(safe-area-inset-right)); }
+.map-selection-sheet { padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
+::view-transition-group(.stowaway-page), ::view-transition-old(.stowaway-page), ::view-transition-new(.stowaway-page) { animation-duration: 160ms; animation-timing-function: ease-out; }
+@supports (corner-shape: superellipse(1.25)) {
+  /* Keep native scrolling dialogs on standard radii: hit testing must follow scrolled content. */
+  .ui-card, .operator-preview, .marketing-plan, .website-preview { corner-shape: superellipse(1.25); }
+}
+@media (max-width: 639px) {
+  .ui-dialog-sheet { margin: auto auto 0; width: 100%; max-width: 100%; max-height: calc(90dvh - env(safe-area-inset-top)); border-radius: 1.5rem 1.5rem 0 0; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 640px) { .sheet-drag-handle { display: none; } }
+@media (min-width: 1100px) { .shortcut-hint { display: inline-block; } .command-trigger { padding-inline: .5rem; } .ui-toast-region { bottom: 1.5rem; } }
+@media (prefers-reduced-motion: reduce) {
+  .progressive-image-full { transition: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
 /* Stowie's sheet: rises from the bottom on a phone, a centred panel on wider screens. */
 .stowie-sheet {
   margin: auto auto 0; width: 100%; max-width: 36rem; height: min(88dvh, 46rem); max-height: none;

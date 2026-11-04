@@ -26,6 +26,7 @@ jobs:
           tests/e2e/guest-evaluation.spec.ts
           tests/e2e/first-run.spec.ts
           tests/e2e/appearance.spec.ts
+          tests/e2e/ux-patterns.spec.ts
           tests/e2e/wrapped.spec.ts
           tests/e2e/journal.spec.ts
           --workers=1

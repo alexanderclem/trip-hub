@@ -1,16 +1,17 @@
 import { TravelerLink } from '@/features/trips/TravelerLink'
 import { useTripAccess } from '@/data/device'
 import { can } from '@/data/access'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { CheckCircle2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useMyMemberId } from '@/data/device'
 import { useMembers, useTrip } from '@/data/hooks'
 import type { TripTask } from '@/data/types'
 import { ErrorNote, LinkButton, PageHeader } from '@/ui'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle, ListSkeleton } from '@/ui/collection'
-import { setTaskCompleted, useTasks } from './data'
+import { setTaskCompleted, undoTaskCompleted, useTasks } from './data'
+import { useToast } from '@/ui/ToastProvider'
 import { Stowie } from '@/features/stowie/Stowie'
 
 export function TasksScreen() {
@@ -27,9 +28,16 @@ export function TasksScreen() {
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<string[]>([])
   const locked = useRef(new Set<string>())
-  const [feedback, setFeedback] = useState('')
+  const [optimistic, setOptimistic] = useState<Record<string, boolean>>({})
+  const notify = useToast()
+  useEffect(() => {
+    setOptimistic((previous) => {
+      const remaining = Object.fromEntries(Object.entries(previous).filter(([id, value]) => tasks?.find((task) => task.id === id)?.completed !== value))
+      return Object.keys(remaining).length === Object.keys(previous).length ? previous : remaining
+    })
+  }, [tasks])
   const today = DateTime.now().setZone(trip?.timezone ?? 'UTC').toISODate()!
-  const visible = tasks?.filter((t) => filter === 'all' || (filter === 'mine' ? t.assignee_id === me : !t.assignee_id)) ?? []
+  const visible = tasks?.map((task) => task.id in optimistic ? { ...task, completed: optimistic[task.id]! } : task).filter((t) => filter === 'all' || (filter === 'mine' ? t.assignee_id === me : !t.assignee_id)) ?? []
   const open = visible.filter((t) => !t.completed)
   const completed = visible.filter((t) => t.completed)
 
@@ -37,13 +45,13 @@ export function TasksScreen() {
     if (locked.current.has(task.id)) return
     locked.current.add(task.id)
     setError(null)
-    setFeedback('')
     setPending((ids) => [...ids, task.id])
+    setOptimistic((previous) => ({ ...previous, [task.id]: !task.completed }))
     try {
       await setTaskCompleted(task.id, !task.completed, me)
-      setFeedback(task.completed ? 'Task reopened on this device.' : 'Task completed on this device.')
+      notify({ message: `${task.completed ? 'Reopened' : 'Completed'}: ${task.title}`, undoLabel: `Undo task change: ${task.title}`, undo: () => undoTaskCompleted(task.id, !task.completed, me) })
     }
-    catch (e) { setError(e instanceof Error ? e.message : 'Could not save. Try again.') }
+    catch (e) { setOptimistic((previous) => { const next = { ...previous }; delete next[task.id]; return next }); setError(e instanceof Error ? e.message : 'Could not save. Try again.') }
     finally { locked.current.delete(task.id); setPending((ids) => ids.filter((id) => id !== task.id)) }
   }
 
@@ -72,7 +80,6 @@ export function TasksScreen() {
           {[['all', 'Everyone'], ['mine', 'Assigned to me'], ['unassigned', 'Unassigned']].map(([value, label]) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value!)} className={`min-h-11 rounded-control border px-3 text-sm font-medium ${filter === value ? 'border-action bg-action text-on-action' : 'border-line bg-surface text-ink hover:bg-brand-50'}`}>{label}</button>)}
         </div>
         <ErrorNote error={error} />
-        <div role="status" className="save-feedback">{feedback && <p><CheckCircle2 aria-hidden="true" className="size-4 shrink-0" />{feedback}</p>}</div>
         {tasks === undefined ? <ListSkeleton label="Loading tasks…" rows={4} className="py-4" /> : visible.length === 0 ? (
           <Empty><Stowie size={64} /><EmptyHeader><EmptyTitle>{filter === 'all' ? 'No tasks yet' : 'No tasks here'}</EmptyTitle><EmptyDescription>{filter === 'all' ? 'Assign tasks to travelers and set due dates.' : 'Try another filter or add a task.'}</EmptyDescription></EmptyHeader><LinkButton to="new">Add a task</LinkButton></Empty>
         ) : (

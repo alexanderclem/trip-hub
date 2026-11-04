@@ -1,34 +1,17 @@
-import { AppearancePicker } from '@/ui/AppearancePicker'
 import { ArrowUpRight, Check, MapPin, Receipt, Ticket, Vote } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
-import { Brand } from '@/ui/Brand'
 import { TripPreview } from './TripPreview'
-import './website.css'
-
-function WebsiteLogo() {
-  return <Brand variant="website" className="website-logo" />
-}
+import { WebsiteFrame } from './WebsiteFrame'
+import { OperatorIntroduction, PricingIntroduction } from './WebsiteSections'
+import { ProgressiveImage } from '@/ui/ProgressiveImage'
 
 export function LandingScreen() {
-  if (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone === true)) {
+  if (typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone === true))) {
     return <Navigate to="/app" replace />
   }
 
   return (
-    <div className="website">
-      <a className="website-skip" href="#main-content">Skip to content</a>
-      <div className="website-topbar">
-        <header className="website-header website-container">
-          <Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link>
-          <nav aria-label="Main navigation">
-            <a href="#how-it-works" className="website-nav-detail">How it works</a>
-            <a href="#questions" className="website-nav-detail">Questions</a>
-            <Link to="/app" className="website-button website-button-outline">Open app <ArrowUpRight size={16} aria-hidden="true" /></Link>
-          </nav>
-        </header>
-      </div>
-
-      <main id="main-content" tabIndex={-1}>
+    <WebsiteFrame>
         <section className="website-hero website-container" aria-labelledby="hero-title">
           <div className="website-hero-copy">
             <h1 id="hero-title">Your group trip.<br />All in one place.</h1>
@@ -38,9 +21,11 @@ export function LandingScreen() {
               <Link to="/app#join" className="website-text-link">Join a trip</Link>
             </div>
             <p className="website-hero-note">Free. Runs in your browser, no password.</p>
+            <Link to="/operators" className="website-operator-signpost">Running trips for others? <span>Meet Stowaway for operators <ArrowUpRight size={14} aria-hidden="true" /></span></Link>
           </div>
           <div id="the-plan" className="website-hero-example"><TripPreview /></div>
         </section>
+
 
         <div className="website-capabilities">
           <ul className="website-container" aria-label="Trip essentials">
@@ -51,30 +36,12 @@ export function LandingScreen() {
           </ul>
         </div>
 
-        <section id="how-it-works" className="website-how" aria-labelledby="how-title">
-          <div className="website-container">
-            <div className="website-section-heading"><h2 id="how-title">How it works</h2></div>
-            <ol className="website-steps">
-              <li className="website-step">
-                <div className="website-step-heading"><span className="website-step-number" aria-hidden="true">1</span><h3>Bring your people</h3></div>
-                <p>Name your trip and share one invite link. Everyone’s plans stay together.</p>
-              </li>
-              <li className="website-step">
-                <div className="website-step-heading"><span className="website-step-number" aria-hidden="true">2</span><h3>Decide together</h3></div>
-                <p>Save the places you find, vote on the options, and add the group’s favorites to the plan.</p>
-              </li>
-              <li className="website-step">
-                <div className="website-step-heading"><span className="website-step-number" aria-hidden="true">3</span><h3>Take the plan with you</h3></div>
-                <p>Follow the day’s itinerary, pull up your tickets, and keep track of shared expenses.</p>
-              </li>
-            </ol>
-          </div>
-        </section>
+        <section id="how-it-works" className="marketing-section website-container" aria-labelledby="together-title"><div className="marketing-section-intro"><p className="website-eyebrow">From “we should go” to “see you there”</p><h2 id="together-title">Give every part of the trip a home.</h2><p className="marketing-body">A restaurant in the group chat. A ticket in someone’s inbox. A spreadsheet only one person updates. Keep the details where your whole group can find them.</p></div><div className="marketing-editorial-columns"><article><h3>Choose what sounds good</h3><p>Save the places you find. Let everyone score the options, then add the group’s favorites to the plan. A vote is a preference, so you stay in charge of what gets booked.</p></article><article><h3>Know the plan for the day</h3><p>Build an itinerary with times, meeting points, travel details, and linked tickets. Give every traveler the same place to check what’s next.</p></article><article><h3>Keep the small things sorted</h3><p>Assign tasks, prepare a packing list, and track who owes what. Shared expenses record balances; they don’t move money between friends.</p></article></div><Link to="/how-it-works" className="website-text-link">Take a closer look</Link></section>
 
         <section className="website-offline" aria-labelledby="offline-title">
           <div className="website-container website-offline-inner">
             <div className="website-hero-art">
-              <img className="website-hero-photo" src="/images/lakeside-escape.jpg" alt="The bow of a wooden boat on a mountain lake in the Dolomites" width="1800" height="1200" loading="lazy" />
+              <ProgressiveImage className="website-hero-photo" src="/images/lakeside-escape.jpg" placeholder="/images/lakeside-escape-placeholder.jpg" alt="The bow of a wooden boat on a mountain lake in the Dolomites" width={1800} height={1200} loading="lazy" />
               <p className="website-photo-caption">The Dolomites, Italy.</p>
             </div>
             <div>
@@ -89,6 +56,10 @@ export function LandingScreen() {
           </div>
         </section>
 
+        <OperatorIntroduction />
+        <section className="marketing-section website-container" aria-labelledby="who-title"><div className="marketing-section-intro"><p className="website-eyebrow">Different groups. One shared plan.</p><h2 id="who-title">Make room for your kind of trip.</h2></div><div className="marketing-editorial-columns"><article><h3>A few days with friends</h3><p>Compare ideas, share the itinerary, and keep tickets and expenses together. Start free and invite everyone by link.</p></article><article><h3>A retreat with your community</h3><p>Give guests a clear plan while you organize the people and the details. Explore the operator beta before your next departure.</p></article><article><h3>A club or student group</h3><p>Give tasks an owner, let travelers weigh in, and keep meeting points easy to find. Fewer details to repeat in the chat.</p></article></div></section>
+        <PricingIntroduction />
+
         <section id="questions" className="website-questions website-container" aria-labelledby="questions-title">
           <div><h2 id="questions-title">Questions</h2></div>
           <div className="website-faq">
@@ -97,13 +68,12 @@ export function LandingScreen() {
             <details><summary>Who can see our trip?</summary><p>Anyone with the invite link can join and see the group’s plans and documents, so only share it with people you trust. See the <Link to="/privacy">privacy policy</Link> for details.</p></details>
             <details><summary>Can I use it without a connection?</summary><p>Yes, once you’ve prepared the trip while online. “Ready for offline” in trip settings saves trip data and downloads tickets to your phone. Maps need a downloaded pack or saved area. Creating or joining a trip needs a connection.</p></details>
             <details><summary>Can I get my trips on another phone?</summary><p>Rejoin with your group’s invite link, or sign in with the same account to restore its trips. Downloads are saved separately on each phone.</p></details>
+            <details><summary>Can I run paid trips with Stowaway?</summary><p>Operator tools are in beta, and payment collection is coming soon. <Link to="/operators">See the operator preview and request early access.</Link> Free group planning is available now.</p></details>
+            <details><summary>Where can I get help?</summary><p>Find joining, account, and offline instructions in <Link to="/help">Help & contact</Link>.</p></details>
           </div>
         </section>
 
         <section className="website-closing" aria-labelledby="closing-title"><div className="website-container website-closing-inner"><div><h2 id="closing-title">Plan your next trip together.</h2></div><Link to="/new" className="website-button website-button-primary">Create a trip <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
-      </main>
-
-      <footer className="website-footer website-container"><AppearancePicker /><div><Link to="/" aria-label="Stowaway home"><WebsiteLogo /></Link><p>A shared planner for group trips.</p></div><nav aria-label="Footer navigation"><a href="#how-it-works">How it works</a><a href="#questions">Questions</a><Link to="/operators">For organizers</Link><Link to="/pricing">Pricing</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/app">Open app</Link></nav></footer>
-    </div>
+    </WebsiteFrame>
   )
 }

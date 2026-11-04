@@ -5,12 +5,15 @@ import { Button, ErrorNote } from '@/ui'
 import { Dialog } from '@/ui/Dialog'
 import { consumeInstallPrompt, getInstallPrompt, isStandalone, mobilePlatform, subscribeInstallPrompt } from './installPrompt'
 
+const subscribePlatform = () => () => {}
+const serverPlatform = () => null
+
 /** Installation is always an explicit choice, never a gate before creating or joining. */
 export function InstallAppButton() {
   const [params] = useSearchParams()
   const { hash } = useLocation()
   const navigate = useNavigate()
-  const { installed } = useSyncExternalStore(subscribeInstallPrompt, getInstallPrompt)
+  const { installed } = useSyncExternalStore(subscribeInstallPrompt, getInstallPrompt, getInstallPrompt)
   if (!mobilePlatform() || installed || isStandalone()) return null
   return <button type="button" className="ui-link" onClick={() => {
     const next = new URLSearchParams(params)
@@ -23,10 +26,10 @@ export function InstallAppDialog() {
   const [params] = useSearchParams()
   const { hash } = useLocation()
   const navigate = useNavigate()
-  const { prompt, installed } = useSyncExternalStore(subscribeInstallPrompt, getInstallPrompt)
+  const { prompt, installed } = useSyncExternalStore(subscribeInstallPrompt, getInstallPrompt, getInstallPrompt)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const platform = mobilePlatform()
+  const platform = useSyncExternalStore(subscribePlatform, mobilePlatform, serverPlatform)
   const open = params.get('install') === '1' && !!platform && !installed && !isStandalone()
 
   function dismiss() {

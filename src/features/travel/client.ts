@@ -6,7 +6,18 @@ import type { TravelRequest } from './model'
 export function useTravel<T>(input: TravelRequest | null, schema: z.ZodType<T>, ttl = 86400000): { data?: T; fetchedAt?: string; error?: string; loading: boolean; refresh: () => void } {
   const key = input ? `stowaway-travel-v1:${JSON.stringify(input)}` : ''
   const [revision, refresh] = useState(0)
+  const [wake, revalidate] = useState(0)
   const [state, setState] = useState<{ key: string; data?: T; fetchedAt?: string; error?: string; loading: boolean }>({ key: '', loading: false })
+  // Saved information stays readable while an expired lookup refreshes on return/reconnection.
+  useEffect(() => {
+    if (!key) return
+    const check = () => {
+      if (navigator.onLine && !state.loading && (!state.fetchedAt || Date.now() - Date.parse(state.fetchedAt) >= ttl)) revalidate((value) => value + 1)
+    }
+    window.addEventListener('focus', check)
+    window.addEventListener('online', check)
+    return () => { window.removeEventListener('focus', check); window.removeEventListener('online', check) }
+  }, [key, state.loading, state.fetchedAt, ttl])
   useEffect(() => {
     if (!key || !input) return
     let active = true
@@ -40,6 +51,6 @@ export function useTravel<T>(input: TravelRequest | null, schema: z.ZodType<T>, 
     return () => { active = false; controller.abort() }
     // Requests and schemas are stable by their serialized lookup key.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, revision, ttl])
+  }, [key, revision, ttl, wake])
   return { ...(state.key === key ? state : { loading: !!input }), refresh: () => refresh((v) => v + 1) }
 }

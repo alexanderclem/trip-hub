@@ -67,6 +67,7 @@ test('mobile guidance reflows at 320px and enlarged text with reduced motion', a
   await expect(dialog(page)).toBeVisible()
   if (process.env.SHOTS_DIR) await page.screenshot({ path: `${process.env.SHOTS_DIR}/install-iphone-320.png` })
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
   expect(await dialog(page).evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
   await dialog(page).getByRole('button', { name: 'Continue in browser' }).scrollIntoViewIfNeeded()
   await dialog(page).getByRole('button', { name: 'Continue in browser' }).click()

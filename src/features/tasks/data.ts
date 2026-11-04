@@ -41,4 +41,14 @@ export async function setTaskCompleted(id: string, completed: boolean, me: strin
   await save('trip_tasks', { ...task, completed }, me, database)
 }
 
+/** Undo only this field, preserving current task details and refusing a later completion change. */
+export async function undoTaskCompleted(id: string, expected: boolean, me: string | null, database: TripDb = db) {
+  await database.transaction('rw', [database.trip_tasks, database._outbox], async () => {
+    const task = await database.trip_tasks.get(id)
+    if (!task || task.deleted_at) throw new Error('This task was removed. It can’t be reopened.')
+    if (task.completed !== expected) throw new Error('This task has changed since then. Its current state was kept.')
+    await save('trip_tasks', { ...task, completed: !expected }, me, database)
+  })
+}
+
 export const deleteTask = (id: string, me: string | null) => softDelete('trip_tasks', id, me)

@@ -13,6 +13,7 @@ import { accountNotices } from './notices'
 import { ReportsCard } from './ReportsCard'
 import { ProBadge, useMyOrganizer } from './pro'
 import { saveOrganizerAddress, saveReferralSettings } from './api'
+import { Skeleton } from '@/ui/collection'
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 
@@ -58,7 +59,7 @@ function OrganizerDashboard() {
     <div className="pb-10">
       <PageHeader title={money?.organizer?.display_name ?? 'Organize'} back="/app" />
       <div className="mx-auto max-w-lg space-y-4 p-4">
-        {state.kind === 'loading' && <LoadingState title="Loading your operator dashboard…" />}
+        {state.kind === 'loading' && <div role="status" aria-label="Loading your operator dashboard…"><span className="sr-only">Loading your operator dashboard…</span><div aria-hidden="true" className="space-y-4">{[0, 1, 2].map((key) => <Card key={key}><Skeleton className="h-5 w-1/3" /><Skeleton className="mt-4 h-4 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></Card>)}</div></div>}
         {state.kind === 'error' && <Card><ErrorNote error={state.message} /><Button variant="secondary" className="mt-3" onClick={() => setAttempt((n) => n + 1)}>Try again</Button></Card>}
         {money && !money.organizer && <Card><p className="text-sm">You aren’t organizing a trip yet. Open a trip you created, then Trip settings → People → Organize this trip.</p></Card>}
         {money?.organizer && (

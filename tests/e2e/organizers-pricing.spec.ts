@@ -37,7 +37,7 @@ test('pricing shows what an organizer keeps, and updates as the trip changes', a
 test('the organizers page says what changes for them and offers early access', async ({ page }) => {
   await page.goto('/operators')
   await expect(page.getByRole('heading', { level: 1, name: 'Run the trip with your group, not around it.' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Your money isn’t held' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your own payment account' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'See pricing' })).toHaveAttribute('href', '/pricing')
   await shoot(page, 'operators')
   // Offline here, so the request fails with a message rather than silently.
@@ -50,5 +50,5 @@ test('the landing page links to both', async ({ page }) => {
   await page.goto('/')
   const footer = page.getByRole('navigation', { name: 'Footer navigation' })
   await expect(footer.getByRole('link', { name: 'Pricing' })).toHaveAttribute('href', '/pricing')
-  await expect(footer.getByRole('link', { name: 'For organizers' })).toHaveAttribute('href', '/operators')
+  await expect(footer.getByRole('link', { name: 'For operators' })).toHaveAttribute('href', '/operators')
 })
