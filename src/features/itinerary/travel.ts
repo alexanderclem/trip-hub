@@ -1,6 +1,7 @@
 import type { ItineraryItem, Place } from '@/data/types'
 import { dayKey } from '@/lib/time'
 import { travelOptions, type LegContext, type TravelOption } from '@/features/routing/legs'
+import { arrivalMinutes } from './arrival'
 
 export interface Transfer {
   from: ItineraryItem
@@ -40,11 +41,15 @@ export function planTransfers(items: ItineraryItem[], places: Place[], ctx: LegC
       if (dayKey(from.end_at ?? from.start_at, zone) !== dayKey(to.start_at, zone)) continue
       const fromPlace = byPlace.get(from.to_place_id ?? from.place_id ?? '')
       const toPlace = byPlace.get(to.place_id ?? '')
-      if (!fromPlace || !toPlace || fromPlace.id === toPlace.id) continue
+      if (!fromPlace || !toPlace) continue
+      const bufferS = arrivalMinutes(to) * 60
+      if (fromPlace.id === toPlace.id && !bufferS) continue
       const key = `${from.id}:${to.id}`
       const existing = pairs.get(key)
       if (existing) { existing.memberIds.push(person); continue }
-      const options = travelOptions(fromPlace, toPlace, ctx)
+      const options: TravelOption[] = fromPlace.id === toPlace.id
+        ? [{ mode: 'walk', minS: 0, maxS: 0, source: 'estimate', distanceM: 0 }]
+        : travelOptions(fromPlace, toPlace, ctx)
       // Prefer saved evidence over a straight-line guess; allow the upper end of its range.
       const known = options.filter((o) => o.source !== 'estimate')
       const option = [...(known.length ? known : options)].sort((a, b) => a.maxS - b.maxS)[0]
@@ -52,7 +57,7 @@ export function planTransfers(items: ItineraryItem[], places: Place[], ctx: LegC
       pairs.set(key, {
         from, to, fromPlace, toPlace, option, memberIds: [person],
         gapS: from.end_at ? (Date.parse(to.start_at) - Date.parse(from.end_at)) / 1000 : null,
-        leaveAt: Date.parse(to.start_at) - option.maxS * 1000,
+        leaveAt: Date.parse(to.start_at) - (option.maxS + bufferS) * 1000,
       })
     }
   }
@@ -61,5 +66,5 @@ export function planTransfers(items: ItineraryItem[], places: Place[], ctx: LegC
 
 export function needsTravelBuffer(t: Transfer) {
   // Actual overlaps already have a separate warning in the plan.
-  return t.gapS !== null && t.gapS >= 0 && t.gapS < t.option.maxS
+  return t.gapS !== null && t.gapS >= 0 && t.gapS < t.option.maxS + arrivalMinutes(t.to) * 60
 }

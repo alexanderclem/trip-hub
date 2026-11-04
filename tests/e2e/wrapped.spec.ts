@@ -10,6 +10,9 @@ test('trip recap: story slides with the group’s numbers, tap to move, share as
   await page.clock.install({ time: new Date('2027-03-20T18:00:00Z') })
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'Trip ideas', level: 1 })).toBeVisible()
+  // The heading can paint before Dexie finishes creating its stores on a fresh device.
+  // Opening IndexedDB sooner can create an empty database and race the app's upgrade.
+  await page.waitForFunction(async () => (await indexedDB.databases()).some((d) => d.name === 'trip-hub' && (d.version ?? 0) > 1))
   await page.evaluate(async ({ trip, ana, ben }) => {
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })

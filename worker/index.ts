@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { handleTravel, type TravelEnv } from './travel'
 import { handleConnector, type ConnectorEnv } from './connector'
 import { handleScan } from './scan'
+import { handleImport } from './import'
+import { handleCalendar } from './calendar'
 import { AXES, assistReplySchema, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema, tidyIdea } from '../src/features/discovery/model'
 
 export interface Env extends ConnectorEnv, TravelEnv {
@@ -70,6 +72,8 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname
     if (path === '/api/travel-info') return handleTravel(request, env)
+    if (path === '/api/import') return handleImport(request, env)
+    if (path === '/api/calendar.ics') return handleCalendar(request, env)
     if (path === '/mcp' || path === '/.well-known/oauth-protected-resource' || path === '/.well-known/oauth-protected-resource/mcp') return handleConnector(request, env)
     if (path === '/api/scan') return handleScan(request, env)
     if (path.startsWith('/api/') && path !== '/api/travel-ai') return json({ error: 'Not found' }, 404)

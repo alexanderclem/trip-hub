@@ -11,6 +11,7 @@ import { Button, DateInput, Disclosure, ErrorNote, Field, Input, PageHeader, Sel
 import { PlacePicker } from '@/features/places/PlacePicker'
 import { saveItem, useItem } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
+import { arrivalMinutes } from './arrival'
 
 const ZONES = [
   'America/Guatemala', 'America/Mexico_City', 'America/El_Salvador', 'America/Costa_Rica', 'America/Panama',
@@ -56,6 +57,7 @@ interface FormState {
   notes: string
   cost: string
   costCurrency: string
+  arrivalBuffer: string
 }
 
 export function ItemFormScreen() {
@@ -91,6 +93,7 @@ export function ItemFormScreen() {
         everyone: !existing.attendee_ids, attendees: existing.attendee_ids ?? [], notes: existing.notes ?? '',
         cost: existing.est_cost_minor != null ? String(existing.est_cost_minor / 10 ** minorUnits(existing.est_cost_currency ?? 'USD')) : '',
         costCurrency: existing.est_cost_currency ?? trip.local_currency ?? trip.base_currency,
+        arrivalBuffer: String(arrivalMinutes(existing)),
       })
       return
     }
@@ -114,6 +117,7 @@ export function ItemFormScreen() {
       endDate: lodging ? DateTime.fromISO(day).plus({ days: 1 }).toISODate()! : day, endTime: lodging ? '11:00' : '',
       startTz: eventZone, endTz: eventZone, status: importedEvent ? 'tentative' : 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : '', cost: '',
       costCurrency: trip.local_currency ?? trip.base_currency,
+      arrivalBuffer: '0',
     })
   }, [f, trip, itemId, existing, search, places, loadedPlaces, tripTz, members])
 
@@ -167,7 +171,7 @@ export function ItemFormScreen() {
       status: f.status,
       confirmation_code: f.code.trim() || null,
       attendee_ids: f.everyone ? null : f.attendees,
-      details: existing?.details ?? {},
+      details: { ...existing?.details, arrival_buffer_minutes: f.allDay || f.kind === 'lodging' ? '0' : f.arrivalBuffer || '0' },
       notes: f.notes.trim() || null,
       est_cost_minor: amount == null ? null : Math.round(amount * 10 ** minorUnits(f.costCurrency)),
       est_cost_currency: amount == null ? null : f.costCurrency,
@@ -255,6 +259,9 @@ export function ItemFormScreen() {
           </button>
         )}
         {dstWarning && <p className="rounded-surface bg-warning px-3 py-2 text-sm text-warning-ink">{dstWarning}</p>}
+        {!f.allDay && f.kind !== 'lodging' && <Field label="Arrive early (minutes)" hint="Extra time at the destination for check-in, security, or getting settled. Included in leave-by times and travel warnings.">
+          <Input name="arrivalBuffer" type="number" inputMode="numeric" min={0} max={1440} step={1} value={f.arrivalBuffer} onChange={(e) => set('arrivalBuffer', e.target.value)} />
+        </Field>}
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Status">

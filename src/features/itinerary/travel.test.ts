@@ -25,6 +25,22 @@ const before = item('coffee', '09:00', '10:00', 'a')
 const after = item('tour', '10:15', '11:15', 'b')
 
 describe('travel buffers', () => {
+  it('reserves explicit arrival time as well as travel time, including at the same place', () => {
+    const flight = item('flight', '11:00', '13:00', 'b', { kind: 'flight', details: { arrival_buffer_minutes: '60' } })
+    const transfer = planTransfers([before, flight], places, ctx, zone, ['alex'])[0]!
+    expect(transfer.leaveAt).toBe(Date.parse('2027-03-15T09:30:00-06:00'))
+    expect(needsTravelBuffer(transfer)).toBe(true)
+    const same = planTransfers([before, { ...flight, place_id: 'a' }], places, ctx, zone, ['alex'])[0]!
+    expect(same.option.maxS).toBe(0)
+    expect(same.leaveAt).toBe(Date.parse('2027-03-15T10:00:00-06:00'))
+    expect(needsTravelBuffer(same)).toBe(false)
+  })
+  it('does not let malformed or obsolete buffers corrupt departure times', () => {
+    for (const raw of ['-1', 'Infinity', 'no', '1441', '2.5']) {
+      const transfer = planTransfers([before, { ...after, details: { arrival_buffer_minutes: raw } }], places, ctx, zone, ['alex'])[0]!
+      expect(transfer.leaveAt).toBe(Date.parse('2027-03-15T09:45:00-06:00'))
+    }
+  })
   it('flags a short gap, deduplicates shared routes, and computes departure from the upper estimate', () => {
     const transfers = planTransfers([after, before], places, ctx, zone, ['alex', 'sam'])
     expect(transfers).toHaveLength(1)

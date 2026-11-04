@@ -8,6 +8,7 @@ import type { AreaRoute } from '@/data/types'
 import { MODE_LABEL } from '@/features/routing/legs'
 import { planTransfers, type Transfer } from '@/features/itinerary/travel'
 import { supabase } from '@/lib/supabase'
+import { arrivalMinutes } from '@/features/itinerary/arrival'
 
 const WINDOW_MS = 48 * 3600_000
 
@@ -27,7 +28,7 @@ export function remindersFor(transfers: Transfer[], memberId: string, now: numbe
       item_id: t.to.id,
       leave_at: new Date(t.leaveAt).toISOString(),
       item_start_at: new Date(Date.parse(t.to.start_at)).toISOString(),
-      note: `${MODE_LABEL[t.option.mode].label} from ${t.fromPlace.name}, ${minutes(t.option.minS)}–${minutes(t.option.maxS)} min`.slice(0, 160),
+      note: `${MODE_LABEL[t.option.mode].label} from ${t.fromPlace.name}, ${minutes(t.option.minS)}–${minutes(t.option.maxS)} min${arrivalMinutes(t.to) ? ` + ${arrivalMinutes(t.to)} min early arrival` : ''}`.slice(0, 160),
     }))
     .slice(0, 100)
 }

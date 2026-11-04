@@ -16,6 +16,7 @@ import { requestLegs } from '@/features/routing/requestLegs'
 import { OfflineMapCard } from '@/features/map/offline/OfflineMapCard'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { NotificationsCard } from '@/features/notifications/NotificationsCard'
+import { CalendarFeedCard } from '@/features/itinerary/CalendarFeedCard'
 import { save } from '@/data/repo'
 import { Button, Card, Disclosure, ErrorNote, PageHeader, SectionTitle, Segmented } from '@/ui'
 import { rotateShareToken } from './actions'
@@ -88,6 +89,7 @@ export function SettingsScreen() {
         </Card>
 
         <PeopleCard trip={trip} members={members} me={me} />
+        <CalendarFeedCard tripId={tripId} />
 
         <DestinationsCard trip={trip} me={me} />
 
