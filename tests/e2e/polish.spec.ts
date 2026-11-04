@@ -99,7 +99,7 @@ test('rapid day changes preserve the final selection, keyboard focus, and each d
   const first = page.getByRole('tab', { name: /Saturday 1 May/ })
   const second = page.getByRole('tab', { name: /Sunday 2 May/ })
   const last = page.getByRole('tab', { name: /Monday 3 May/ })
-  await expect(page.locator('.plan-day-indicator')).toHaveCSS('opacity', '1')
+  await expect(first).toHaveAttribute('aria-selected', 'true')
   await first.focus()
   await page.keyboard.press('ArrowRight')
   await expect(second).toBeFocused()
@@ -108,6 +108,7 @@ test('rapid day changes preserve the final selection, keyboard focus, and each d
   await expect(last).toBeFocused()
   await page.keyboard.press('Home')
   await expect(first).toBeFocused()
+  await page.getByText('Day notes & details', { exact: true }).click()
   await page.getByRole('button', { name: 'Add a note for this day' }).click()
   await page.getByRole('textbox', { name: 'Notes for this day' }).fill('Bring water on Saturday')
   await second.click()
@@ -222,6 +223,7 @@ test('a ticket that could not open can retry and confirms the file is saved on t
 test('a failed day-note save retains its text across day changes and can retry', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await page.goto(`${root}/plan?day=2027-05-01`)
+  await page.getByText('Day notes & details', { exact: true }).click()
   await page.getByRole('button', { name: 'Add a note for this day' }).click()
   await page.getByRole('textbox', { name: 'Notes for this day' }).fill('Keep this note even if storage fails')
   await failNextWrite(page, 'day_notes')
@@ -233,6 +235,7 @@ test('a failed day-note save retains its text across day changes and can retry',
   await expect(page.getByRole('alert')).toHaveCount(0)
   await expect(page.getByRole('status').filter({ hasText: 'saved on this device' })).toBeVisible()
   await page.reload()
+  await page.getByText('Day notes & details', { exact: true }).click()
   await expect(page.getByRole('textbox', { name: 'Notes for this day' })).toHaveValue('Keep this note even if storage fails')
 })
 

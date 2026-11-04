@@ -19,6 +19,8 @@ async function seed(page: Page, baseURL: string, phase: 'planning' | 'preparing'
   await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { get: () => false }))
   await page.goto('/inspire/manual')
   await page.getByRole('heading', { level: 1, name: 'Trip ideas', exact: true }).waitFor()
+  // The public screen can render before the async database import finishes.
+  await expect.poll(() => page.evaluate(async () => (await indexedDB.databases()).some((entry) => entry.name === 'trip-hub' && (entry.version ?? 0) > 1))).toBe(true)
   await page.evaluate(async ({ tripId, me, maya, noah, pollId, placeId, itemId, taskId, pastId, phase }) => {
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
@@ -205,7 +207,7 @@ test('completing your remaining vote updates the group summary', async ({ page, 
   await page.getByRole('group', { name: 'Your vote for Costa da Caparica' }).getByRole('button').first().click()
   await expect(page.getByRole('status').filter({ hasText: 'Vote saved on this device' })).toBeVisible()
   await page.goBack()
-  await expect(page.getByText('2 travelers still need to vote', { exact: true })).toBeVisible()
+  await expect(page.getByText('Waiting on Maya and Noah', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Cast your vote' })).toHaveCount(0)
 })
 
@@ -213,7 +215,8 @@ test('task completion gives feedback, updates the group summary, and persists af
   await seed(page, baseURL!)
   await page.goto(`${root}/more/tasks?filter=unassigned`)
   await page.getByRole('checkbox', { name: 'Mark Book the airport transfer complete' }).click()
-  await expect(page.getByRole('status')).toContainText('Task completed on this device.')
+  await expect(page.getByText('Completed: Book the airport transfer', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Undo task change: Book the airport transfer' })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('checkbox', { name: 'Mark Book the airport transfer incomplete' })).toBeChecked()
   await page.goto(`${root}/overview`)
@@ -266,8 +269,8 @@ test('planning shortcuts lead to the real trip screens and preserve trip context
   await seed(page, baseURL!)
   await page.goto(`${root}/overview`)
   const planning = page.getByRole('navigation', { name: 'Trip planning', exact: true })
-  await expect(planning.locator('.planning-count')).toHaveText(['1', '1 open', '1'])
-  for (const [label, path, title] of [['Places', 'more/places', 'Places'], ['Votes', 'more/vote', 'Votes'], ['Plan', 'plan', 'Plan']]) {
+  await expect(planning.getByRole('link')).toHaveCount(3)
+  for (const [label, path, title] of [['Find our places', 'more/places', 'Places'], ['Decide together', 'more/vote', 'Votes'], ['See the plan', 'plan', 'Plan']]) {
     await planning.getByRole('link', { name: new RegExp(`^${label}`) }).click()
     await expect(page).toHaveURL(new RegExp(`${root}/${path}(\\?|$)`))
     await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible()

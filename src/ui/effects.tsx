@@ -20,14 +20,21 @@ export function useSlidingHighlight<T extends HTMLElement>(active: unknown, sele
   const reduced = useMotionPreference()
   useLayoutEffect(() => {
     if (!row) return
-    const measure = () => {
+    const measure = (animateMove: boolean) => {
       const on = row.querySelector<HTMLElement>(selector)
       if (!on) { setStyle({ opacity: 0 }); return }
-      setStyle({ width: on.offsetWidth, height: placement === 'underline' ? 3 : on.offsetHeight, transform: `translate(${on.offsetLeft}px, ${on.offsetTop + (placement === 'underline' ? on.offsetHeight + 4 : 0)}px)`, transition: placed.current === row && !reduced ? undefined : 'none' })
+      setStyle({ width: on.offsetWidth, height: placement === 'underline' ? 3 : on.offsetHeight, transform: `translate(${on.offsetLeft}px, ${on.offsetTop + (placement === 'underline' ? on.offsetHeight + 4 : 0)}px)`, transition: animateMove && placed.current === row && !reduced ? undefined : 'none' })
       placed.current = row
     }
-    measure()
-    const observer = new ResizeObserver(measure)
+    measure(true)
+    // Resizing is a new layout, not a selection change. Ignore the observer's
+    // initial notification so it does not interrupt the selection transition.
+    let width = row.offsetWidth, height = row.offsetHeight
+    const observer = new ResizeObserver(() => {
+      if (row.offsetWidth === width && row.offsetHeight === height) return
+      width = row.offsetWidth; height = row.offsetHeight
+      measure(false)
+    })
     observer.observe(row)
     return () => observer.disconnect()
   }, [row, active, selector, placement, reduced])

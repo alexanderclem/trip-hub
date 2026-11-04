@@ -204,7 +204,7 @@ function TripShell({ tripId }: { tripId: string }) {
           <HeaderTools value={<><CommandMenu tripId={tripId} />{tools}</>}><HeaderTripName value={trip?.name}><PageTransition routeKey={pathname} className="h-full min-w-0"><Outlet /></PageTransition></HeaderTripName></HeaderTools>
         </main>
         <nav ref={tabBar.ref} aria-label="Trip navigation" className="trip-tabs pb-safe grid shrink-0 grid-cols-5 border-t border-line bg-surface lg:hidden">
-          <span className="trip-tab-bar" style={tabBar.style} aria-hidden="true" />
+          <span className="trip-tab-track" aria-hidden="true"><span className="trip-tab-bar" style={tabBar.style} /></span>
           {tabs.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={current === to ? 'page' : undefined} className="trip-tab"><span className="relative"><Icon className="size-6" aria-hidden="true" />{to === 'overview' && unseen > 0 && <span className="absolute -right-1.5 -top-1 size-2.5 rounded-full border-2 border-surface bg-brand-accent"><span className="sr-only">{unseen === 1 ? '1 new update' : `${unseen} new updates`}</span></span>}</span>{label}</Link>)}
         </nav>
       </div>

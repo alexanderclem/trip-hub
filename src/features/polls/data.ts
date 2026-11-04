@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/data/db'
 import { save } from '@/data/repo'
-import type { PlaceRating, Poll, PollKind, PollOption, PollVote, VoteScore } from '@/data/types'
+import type { Place, PlaceRating, Poll, PollKind, PollOption, PollVote, VoteScore } from '@/data/types'
 import { dateRangeLabel } from './deadline'
 import { newId, stableId } from '@/lib/ids'
 import { summarizeRatings, type RatingSummary } from './rank'
@@ -80,6 +80,17 @@ export async function createPoll(
   }
   await save('polls', poll, memberId)
   return poll.id
+}
+
+/** A new place vote and its first option either both save locally or neither does. */
+export async function createPlacePoll(place: Place, title: string, memberId: string): Promise<string> {
+  if (!title.trim()) throw new Error('Give your vote a title.')
+  return db.transaction('rw', db.polls, db.poll_options, db._outbox, async () => {
+    const id = await createPoll(place.trip_id, title, '', memberId)
+    const poll = (await db.polls.get(id))!
+    await addOption(poll, { label: place.name, placeId: place.id, description: place.notes }, memberId)
+    return id
+  })
 }
 
 export async function addOption(
