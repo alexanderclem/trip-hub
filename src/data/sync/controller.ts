@@ -32,6 +32,8 @@ const POKE_DEBOUNCE_MS = 500
 
 let running: Promise<void> | null = null
 const requested = new Set<string>()
+/** How each trip's latest cycle ended. `cycle` never throws, so this is the only record of failure. */
+const outcomes = new Map<string, { ok: boolean; error: string | null }>()
 let activeTripId: string | null = null
 
 function setStatus(tripId: string, status: Partial<SyncStatus>) {
@@ -60,10 +62,23 @@ export async function retrySync(tripId: string) {
   return syncNow(tripId)
 }
 
+/**
+ * Like `syncNow`, but rejects unless this trip's changes were sent and its data pulled fresh.
+ * For callers that report success to people ("Ready for offline"); `syncNow` itself never rejects.
+ */
+export async function syncNowChecked(tripId: string): Promise<void> {
+  outcomes.delete(tripId)
+  await syncNow(tripId)
+  const outcome = outcomes.get(tripId)
+  if (!outcome?.ok) throw new Error(outcome?.error ?? 'Could not refresh the trip. Try again.')
+}
+
 async function cycle(tripId: string) {
+  const fail = (error: string) => outcomes.set(tripId, { ok: false, error })
   try {
   if (!navigator.onLine) {
     setStatus(tripId, { phase: 'offline', lastError: null })
+    fail("You're offline. Connect to Wi-Fi first.")
     return
   }
   setStatus(tripId, { phase: 'syncing', lastError: null })
@@ -71,6 +86,7 @@ async function cycle(tripId: string) {
   setStatus(tripId, { phase: 'refreshing' })
   if ((await checkAccess(tripId)) === 'removed') {
     setStatus(tripId, { phase: 'idle', lastError: null })
+    fail('You no longer have access to this trip.')
     return
   }
   const pulled = await pull(supabaseRemote, tripId)
@@ -79,17 +95,22 @@ async function cycle(tripId: string) {
       phase: navigator.onLine ? 'error' : 'offline',
       lastError: pulled.error.message,
     })
+    fail(`Couldn't download the latest trip data: ${pulled.error.message}`)
   } else if (pushed.retryLater) {
     const head = await db._outbox.orderBy('seq').first()
     setStatus(tripId, { phase: 'error', lastError: head?.lastError ?? 'Some changes are waiting to sync' })
+    fail(`Changes from this phone haven't been shared yet: ${head?.lastError ?? 'they are waiting to sync'}`)
   } else {
     setStatus(tripId, { phase: 'idle', lastSyncedAt: new Date().toISOString(), lastError: null })
+    outcomes.set(tripId, { ok: true, error: null })
     // With fresh plans and travel times, refresh this phone's leave-by reminders (push on only).
     void publishReminders(tripId).catch((e) => console.warn('leave-by reminders failed', e))
     void flushEvents(sendToSupabase).catch((e) => console.warn('sending funnel events failed', e))
   }
   } catch (error) {
-    setStatus(tripId, { phase: navigator.onLine ? 'error' : 'offline', lastError: error instanceof Error ? error.message : 'Could not finish syncing. Try again.' })
+    const message = error instanceof Error ? error.message : 'Could not finish syncing. Try again.'
+    setStatus(tripId, { phase: navigator.onLine ? 'error' : 'offline', lastError: message })
+    fail(message)
   }
 }
 

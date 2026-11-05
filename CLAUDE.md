@@ -149,7 +149,7 @@ so that person could never vote again. Store "none" as NULL instead (`poll_votes
     24 h old and online, with `FALLBACK_PER_USD` used offline.
   - Amounts are integer minor units. Each expense stores the FX rate used at entry, and the
     largest-remainder allocator spreads leftover pennies across people.
-  - Settle-up uses greedy min-cash-flow.
+  - Settle-up finds the true fewest payments for up to 16 people with a balance (zero-sum split + greedy per group), greedy beyond that; the Money screen wording says which.
   - FX rates come from open.er-api.com (keyless, includes GTQ, attribution required).
 - **Time** (`src/lib/time.ts`, used by the itinerary):
   - Store wall-clock time plus the IANA zone for each end; derive instants from them.

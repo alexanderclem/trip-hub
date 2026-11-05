@@ -147,21 +147,46 @@ async function withTripAccess(tripId: string, call: () => PromiseLike<{ error: {
   if (error) throw new Error(error.message)
 }
 
-export async function claimMember(tripId: string, memberId: string) {
+/** Thrown when "Who are you?" stopped waiting; nothing on this phone changed. */
+export const STOPPED_WAITING = 'Stopped waiting for the connection. Nothing changed on this phone; try again.'
+
+/**
+ * The identity is only taken on this phone if the caller is still waiting: once `signal` aborts
+ * (the screen's time limit), a late server answer must not switch who this phone is.
+ */
+function stillWaiting(signal?: AbortSignal) {
+  if (signal?.aborted) throw new Error(STOPPED_WAITING)
+}
+
+export async function claimMember(tripId: string, memberId: string, signal?: AbortSignal) {
   await ensureSession()
+  stillWaiting(signal)
   await withTripAccess(tripId, () => supabase.rpc('claim_member', { p_trip_id: tripId, p_member_id: memberId }))
+  stillWaiting(signal)
   useDevice.getState().setMember(tripId, memberId)
 }
 
-export async function createMemberAndClaim(tripId: string, name: string, color: string) {
+/**
+ * Adds a person and makes this phone them. Pass the same `memberId` when retrying: if the earlier
+ * attempt reached the server after all, the person already exists and is claimed instead of
+ * being added twice.
+ */
+export async function createMemberAndClaim(tripId: string, name: string, color: string, opts: { memberId?: string; signal?: AbortSignal } = {}) {
   await ensureSession()
-  const memberId = newId()
-  await withTripAccess(tripId, () => supabase.rpc('create_member_and_claim', {
-    p_trip_id: tripId,
-    p_member_id: memberId,
-    p_name: name.trim(),
-    p_color: color,
-  }))
+  stillWaiting(opts.signal)
+  const memberId = opts.memberId ?? newId()
+  await withTripAccess(tripId, async () => {
+    const created = await supabase.rpc('create_member_and_claim', {
+      p_trip_id: tripId,
+      p_member_id: memberId,
+      p_name: name.trim(),
+      p_color: color,
+    })
+    // 23505: this id exists, so an earlier attempt of ours created it.
+    if (created.error?.code === '23505') return supabase.rpc('claim_member', { p_trip_id: tripId, p_member_id: memberId })
+    return created
+  })
+  stillWaiting(opts.signal)
   useDevice.getState().setMember(tripId, memberId)
   await initialPull(tripId)
 }

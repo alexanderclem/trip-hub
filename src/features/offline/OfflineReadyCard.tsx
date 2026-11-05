@@ -3,7 +3,7 @@ import { CheckCircle2, CircleDashed, Download, Loader2, XCircle } from 'lucide-r
 import { DateTime } from 'luxon'
 import { useMyMemberId } from '@/data/device'
 import type { Trip } from '@/data/types'
-import { syncNow } from '@/data/sync/controller'
+import { syncNowChecked } from '@/data/sync/controller'
 import { Button, Card } from '@/ui'
 import { useMoney } from '@/features/money/data'
 import { fetchRates } from '@/lib/fx'
@@ -82,7 +82,7 @@ export function OfflineReadyCard({ trip, compact = false }: { trip: Trip; compac
 
     await step('data', async () => {
       if (!navigator.onLine) throw new Error("You're offline. Connect to Wi-Fi first.")
-      await syncNow(trip.id)
+      await syncNowChecked(trip.id)
     })
     await step('tickets', async () => {
       const r = await downloadMissing(trip.id, (d, t) => update('tickets', { detail: t ? `${d} of ${t}` : undefined }))

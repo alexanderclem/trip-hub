@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { DateTime } from 'luxon'
 import { db } from '@/data/db'
 import { save, softDelete } from '@/data/repo'
-import type { Comment, CommentSubject } from '@/data/types'
+import type { Comment, CommentSubject, LocalColumns } from '@/data/types'
 import { newId } from '@/lib/ids'
 
 export const COMMENT_MAX = 1000
@@ -37,6 +37,47 @@ export async function addComment(tripId: string, type: CommentSubject, subjectId
 }
 
 export const removeComment = (comment: Comment, memberId: string) => softDelete('comments', comment.id, memberId)
+
+/** Changes the text of one's own comment. The server only lets its author update it. */
+export async function editComment(comment: Comment, memberId: string, body: string): Promise<void> {
+  const text = body.trim().slice(0, COMMENT_MAX)
+  if (!text) throw new Error('A comment can’t be empty. Remove it instead.')
+  if (comment.member_id !== memberId) throw new Error('You can only change your own comments.')
+  if (text === comment.body) return
+  await save('comments', { ...comment, body: text }, memberId)
+}
+
+/**
+ * Comments only change by being edited, so a server time well after creation means an edit.
+ * A minute of slack covers the insert and its first echo.
+ */
+export function wasEdited(c: Comment): boolean {
+  if (!c.created_at || !c.updated_at) return false
+  return Date.parse(c.updated_at) - Date.parse(c.created_at) > 60_000
+}
+
+/** Where a comment stands between this phone and the group. */
+export type Delivery = 'shared' | 'pending' | 'rejected'
+
+export function delivery(c: Comment & LocalColumns, rejected: ReadonlyMap<string, string[]>): Delivery {
+  if (c._dirty) return 'pending'
+  // A rejected write leaves the row clean on this phone; it is still rejected until a later
+  // version (different text) is accepted.
+  return rejected.get(c.id)?.includes(c.body) ? 'rejected' : 'shared'
+}
+
+/** For each comment the server turned down (Settings → Sync lists them), the texts it refused. */
+export function useRejectedComments(): ReadonlyMap<string, string[]> {
+  return useLiveQuery(async () => {
+    const out = new Map<string, string[]>()
+    for (const d of await db._deadletter.toArray()) {
+      if (d.table !== 'comments' || typeof d.payload.body !== 'string') continue
+      out.set(d.rowId, [...(out.get(d.rowId) ?? []), d.payload.body])
+    }
+    return out
+  }, []) ?? EMPTY
+}
+const EMPTY: ReadonlyMap<string, string[]> = new Map()
 
 /** "2 hours ago"; "just now" under a minute, including a phone whose clock runs a little behind. */
 export function ago(at: string | undefined, now: number): string {

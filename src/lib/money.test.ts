@@ -6,6 +6,8 @@ import {
   computeShares,
   formatMoney,
   roundHalfEven,
+  EXACT_SETTLE_LIMIT,
+  settlementIsMinimal,
   simplifyDebts,
   toBaseMinor,
   validateExpense,
@@ -266,5 +268,57 @@ describe('balances + simplifyDebts', () => {
         for (const v of after.values()) expect(v).toBe(0)
       }),
     )
+  })
+})
+
+describe('settle-up finds the fewest payments', () => {
+  /** Fewest payments by brute force: n − the most zero-sum blocks in any partition. */
+  function bruteMin(values: number[]): number {
+    const xs = values.filter((v) => v !== 0)
+    let most = 0
+    const go = (i: number, blocks: number[]) => {
+      if (i === xs.length) { most = Math.max(most, blocks.filter((b) => b === 0).length); return }
+      for (let b = 0; b < blocks.length; b++) { blocks[b]! += xs[i]!; go(i + 1, blocks); blocks[b]! -= xs[i]! }
+      blocks.push(xs[i]!); go(i + 1, blocks); blocks.pop()
+    }
+    go(0, [])
+    return xs.length - most
+  }
+  const clears = (net: Map<string, number>, transfers: { from: string; to: string; amount_minor: number }[]) => {
+    const after = new Map(net)
+    for (const t of transfers) {
+      expect(t.amount_minor).toBeGreaterThan(0)
+      after.set(t.from, after.get(t.from)! + t.amount_minor)
+      after.set(t.to, after.get(t.to)! - t.amount_minor)
+    }
+    for (const v of after.values()) expect(v).toBe(0)
+  }
+
+  it('needs four payments where largest-first needs five', () => {
+    const net = new Map([['c1', 900], ['c2', 800], ['c3', 700], ['d1', -1000], ['d2', -900], ['d3', -500]])
+    const transfers = simplifyDebts(net)
+    expect(transfers).toHaveLength(4)
+    clears(net, transfers)
+    expect(settlementIsMinimal(net)).toBe(true)
+  })
+
+  it('property: matches brute force on small groups and always clears every balance', () => {
+    const arbNet = fc.array(fc.integer({ min: -2000, max: 2000 }), { minLength: 1, maxLength: 7 }).map((vs) => {
+      const all = [...vs, -vs.reduce((a, b) => a + b, 0)]
+      return new Map(all.map((v, i) => [`m${i}`, v]))
+    })
+    fc.assert(fc.property(arbNet, (net) => {
+      const transfers = simplifyDebts(net)
+      clears(net, transfers)
+      expect(transfers).toHaveLength(bruteMin([...net.values()]))
+    }), { numRuns: 400 })
+  })
+
+  it('is deterministic and falls back beyond the exact limit', () => {
+    const net = new Map([['b', 300], ['a', -100], ['c', -200]])
+    expect(simplifyDebts(net)).toEqual(simplifyDebts(new Map([...net].reverse())))
+    const big = new Map(Array.from({ length: EXACT_SETTLE_LIMIT + 2 }, (_, i) => [`m${String(i).padStart(2, '0')}`, i % 2 ? 100 : -100]))
+    expect(settlementIsMinimal(big)).toBe(false)
+    clears(big, simplifyDebts(big))
   })
 })

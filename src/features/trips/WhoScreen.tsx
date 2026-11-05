@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { useMembers, useTrip } from '@/data/hooks'
 import { Avatar, Button, Card, ErrorNote, Input } from '@/ui'
-import { claimMember, createMemberAndClaim, MEMBER_COLORS, parseJoinTarget } from './actions'
+import { claimMember, createMemberAndClaim, MEMBER_COLORS, parseJoinTarget, STOPPED_WAITING } from './actions'
+import { useDevice } from '@/data/device'
+import { newId } from '@/lib/ids'
 import { LoadingState } from '@/ui/LoadingState'
 import { afterEntry } from '@/features/onboarding/profile'
 import { Brand } from '@/ui/Brand'
 import { Stowie } from '@/features/stowie/Stowie'
 import { tripAreas } from '@/features/destinations/destinations'
+
+/** The whole of "Who are you?" (sign-in, access repair, claim, first download) finishes or gives up in this long. */
+export const WHO_DEADLINE_MS = 20_000
 
 /** "Who are you?" — ties this device to a person on the trip. */
 export function WhoScreen() {
@@ -27,15 +32,39 @@ export function WhoScreen() {
     return () => clearTimeout(timer)
   }, [busy])
 
-  async function run(fn: () => Promise<void>) {
+  const attempt = useRef(0)
+  // Retrying "Add me" with the same name reuses the id, so a slow first try can't add them twice.
+  const pendingNew = useRef<{ name: string; id: string } | null>(null)
+  useEffect(() => () => { attempt.current++ }, [])
+
+  async function run(memberId: string, fn: (signal: AbortSignal) => Promise<void>) {
+    const mine = ++attempt.current
+    const controller = new AbortController()
     setBusy(true)
     setError(null)
+    const enter = async () => navigate(await afterEntry(`/t/${tripId}/${parseJoinTarget(location.search) ?? 'overview?joined=1'}`), { replace: true })
+    const claimed = () => useDevice.getState().trips[tripId]?.memberId === memberId
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const deadline = new Promise<'late'>((resolve) => { timer = setTimeout(() => resolve('late'), WHO_DEADLINE_MS) })
     try {
-      await fn()
-      navigate(await afterEntry(`/t/${tripId}/${parseJoinTarget(location.search) ?? 'overview?joined=1'}`), { replace: true })
+      const outcome = await Promise.race([fn(controller.signal).then(() => 'done' as const), deadline])
+      if (mine !== attempt.current) return
+      if (outcome === 'late') {
+        controller.abort()
+        // Already this person on the phone, still downloading: go in; sync finishes the rest.
+        if (claimed()) return void (await enter())
+        attempt.current++
+        setError(STOPPED_WAITING)
+        setBusy(false)
+        return
+      }
+      await enter()
     } catch (e) {
+      if (mine !== attempt.current) return
       setError(e instanceof Error ? e.message : String(e))
       setBusy(false)
+    } finally {
+      clearTimeout(timer)
     }
   }
 
@@ -62,7 +91,7 @@ export function WhoScreen() {
           <button
             key={m.id}
             disabled={busy}
-            onClick={() => run(() => claimMember(tripId, m.id))}
+            onClick={() => run(m.id, (signal) => claimMember(tripId, m.id, signal))}
             className="flex items-center gap-2 rounded-surface border border-line bg-surface p-3 text-left active:bg-brand-50 disabled:opacity-50"
           >
             <Avatar name={m.display_name} color={m.color} photo={m.avatar_url} size="sm" />
@@ -79,7 +108,10 @@ export function WhoScreen() {
             e.preventDefault()
             if (!newName.trim()) return
             const color = MEMBER_COLORS[members.length % MEMBER_COLORS.length]!
-            void run(() => createMemberAndClaim(tripId, newName, color))
+            const name = newName.trim()
+            if (pendingNew.current?.name !== name) pendingNew.current = { name, id: newId() }
+            const id = pendingNew.current.id
+            void run(id, (signal) => createMemberAndClaim(tripId, name, color, { memberId: id, signal }))
           }}
         >
           <label htmlFor="join-name" className="sr-only">Your name</label>

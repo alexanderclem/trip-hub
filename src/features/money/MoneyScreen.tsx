@@ -10,7 +10,7 @@ import { useMembers, useTrip } from '@/data/hooks'
 import { PAYMENT_METHODS, type Member, type SettlementRow } from '@/data/types'
 import { convertMinor, FX_ATTRIBUTION, rateFor } from '@/lib/fx'
 import { newId } from '@/lib/ids'
-import { balances, computeShares, formatMoney, minorUnits, simplifyDebts, toBaseMinor, type Transfer } from '@/lib/money'
+import { balances, computeShares, formatMoney, minorUnits, settlementIsMinimal, simplifyDebts, toBaseMinor, type Transfer } from '@/lib/money'
 import { Avatar, Button, Card, Disclosure, ErrorNote, Fab, Input, LinkButton, PageHeader, SectionTitle, Segmented, Select } from '@/ui'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { parseMinor } from './build'
@@ -119,7 +119,7 @@ export function MoneyScreen() {
                 <ul className="space-y-2 pb-1">
                   {members.map((m) => <BalanceRow key={m.id} member={m} value={net.get(m.id) ?? 0} max={Math.max(1, ...[...net.values()].map(Math.abs))} fmt={fmt} you={m.id === me} />)}
                 </ul>
-                <p className="mt-2 text-xs text-muted">Settle up suggests the fewest payments that clear everyone's balance.</p>
+                <p className="mt-2 text-xs text-muted">{settlementIsMinimal(net) ? 'Settle up suggests the fewest payments that clear everyone’s balance.' : 'Settle up suggests a short list of payments that clears everyone’s balance. With this many people it may not be the very fewest.'}</p>
               </Disclosure>
             </Card>
           </>

@@ -193,14 +193,24 @@ export function balances(
   return net
 }
 
+/** Up to this many people with a non-zero balance, settle-up finds the true fewest payments. */
+export const EXACT_SETTLE_LIMIT = 16
+
+/** True when `simplifyDebts` is guaranteed to give the fewest possible payments for these balances. */
+export function settlementIsMinimal(net: Map<MemberId, number>): boolean {
+  let n = 0
+  for (const v of net.values()) if (v !== 0) n++
+  return n <= EXACT_SETTLE_LIMIT
+}
+
 /**
  * Greedy min-cash-flow: repeatedly settle the largest debtor against the largest creditor.
- * Produces at most n-1 transfers. Deterministic (ties broken by member id).
+ * At most n-1 transfers for n people, but not always the fewest.
  */
-export function simplifyDebts(net: Map<MemberId, number>): Transfer[] {
+function greedy(entries: [MemberId, number][]): Transfer[] {
   const creditors: [MemberId, number][] = []
   const debtors: [MemberId, number][] = []
-  for (const [m, v] of net) {
+  for (const [m, v] of entries) {
     if (v > 0) creditors.push([m, v])
     else if (v < 0) debtors.push([m, -v])
   }
@@ -221,6 +231,50 @@ export function simplifyDebts(net: Map<MemberId, number>): Transfer[] {
     if (d[1] === 0) debtors.shift()
   }
   return transfers
+}
+
+/**
+ * The payments that clear every balance. A group of k people whose balances sum to zero needs
+ * k-1 payments, so the fewest payments overall is (people with a balance) − (the most groups
+ * they can be split into that each sum to zero). Up to EXACT_SETTLE_LIMIT people this finds that
+ * split exactly (a subset DP), then settles each group with the greedy rule, which needs at most
+ * k-1 payments per group. Beyond the limit it falls back to greedy over everyone.
+ * Deterministic: people are taken in member-id order and ties go to the lowest id.
+ */
+export function simplifyDebts(net: Map<MemberId, number>): Transfer[] {
+  const people = [...net].filter(([, v]) => v !== 0).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+  const n = people.length
+  if (n === 0) return []
+  if (n > EXACT_SETTLE_LIMIT) return greedy(people)
+
+  const full = (1 << n) - 1
+  const sum = new Float64Array(full + 1)
+  const best = new Int8Array(full + 1) // most zero-sum groups that `mask` splits into
+  const via = new Int8Array(full + 1) // the person removed to reach that count
+  for (let mask = 1; mask <= full; mask++) {
+    const low = 31 - Math.clz32(mask & -mask)
+    sum[mask] = sum[mask & (mask - 1)]! + people[low]![1]
+    let top = -1
+    for (let i = 0; i < n; i++) {
+      if (!(mask & (1 << i))) continue
+      const b = best[mask ^ (1 << i)]!
+      if (b > top) { top = b; via[mask] = i }
+    }
+    best[mask] = top + (sum[mask] === 0 ? 1 : 0)
+  }
+
+  // Walk back from everyone; each time the running set sums to zero, the people peeled off since
+  // the previous zero form one group.
+  const groups: [MemberId, number][][] = []
+  let current: [MemberId, number][] = []
+  for (let mask = full; mask; ) {
+    if (sum[mask] === 0 && current.length) { groups.push(current); current = [] }
+    const i = via[mask]!
+    current.push(people[i]!)
+    mask ^= 1 << i
+  }
+  if (current.length) groups.push(current)
+  return groups.reverse().flatMap(greedy)
 }
 
 /** "$58.98", "Q450.00" (the local symbol, not "GTQ 450.00"). */

@@ -5,7 +5,7 @@ vi.mock('@/data/db', () => ({ db: { trips: { get: mocks.tripGet } } }))
 vi.mock('@/lib/supabase', () => ({ ensureSession: mocks.ensureSession, supabase: { rpc: mocks.rpc } }))
 vi.mock('@/data/device', () => ({ useDevice: { getState: () => ({ setMember: mocks.setMember, setAccess: mocks.setAccess, access: mocks.access }) } }))
 vi.mock('@/data/sync/engine', () => ({ pull: mocks.pull }))
-import { claimMember, createMemberAndClaim, joinTargetQuery, parseJoinTarget, parseShareToken, shareLink } from './actions'
+import { claimMember, createMemberAndClaim, joinTargetQuery, parseJoinTarget, parseShareToken, shareLink, STOPPED_WAITING } from './actions'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -63,6 +63,20 @@ describe('claiming a trip identity', () => {
     mocks.rpc.mockResolvedValueOnce({ error: { message: 'No access to this trip', code: '42501' } })
     await expect(claimMember('trip-id', 'member-id')).rejects.toThrow('No access')
     expect(mocks.rpc.mock.calls.map((c) => c[0])).toEqual(['claim_member'])
+  })
+  it('does not take the identity once the screen stopped waiting', async () => {
+    const controller = new AbortController()
+    mocks.rpc.mockImplementation(async () => { controller.abort(); return { error: null } })
+    await expect(claimMember('trip-id', 'member-id', controller.signal)).rejects.toThrow(STOPPED_WAITING)
+    await expect(createMemberAndClaim('trip-id', 'Alex', '#295361', { signal: controller.signal })).rejects.toThrow(STOPPED_WAITING)
+    expect(mocks.setMember).not.toHaveBeenCalled()
+  })
+  it('claims the person a slow earlier attempt already added, instead of adding them twice', async () => {
+    mocks.rpc.mockResolvedValueOnce({ error: { message: 'duplicate key value violates unique constraint "members_pkey"', code: '23505' } })
+    await createMemberAndClaim('trip-id', 'Alex', '#295361', { memberId: 'kept-id' })
+    expect(mocks.rpc.mock.calls.map((c) => c[0])).toEqual(['create_member_and_claim', 'claim_member'])
+    expect(mocks.rpc).toHaveBeenLastCalledWith('claim_member', { p_trip_id: 'trip-id', p_member_id: 'kept-id' })
+    expect(mocks.setMember).toHaveBeenCalledWith('trip-id', 'kept-id')
   })
   it('remembers a removal the server reports while joining again', async () => {
     mocks.tripGet.mockResolvedValue({ share_token: 'savedInviteToken0001' })

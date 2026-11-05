@@ -9,7 +9,7 @@ vi.mock('@/data/db', async (original) => {
   return { ...actual, get db() { return holder.db } }
 })
 import { TripDb } from '@/data/db'
-import { addComment, ago, COMMENT_MAX, inOrder, removeComment } from './data'
+import { addComment, ago, COMMENT_MAX, delivery, editComment, inOrder, removeComment, wasEdited } from './data'
 
 let db: TripDb
 beforeEach(() => { db = new TripDb(`comments-test-${crypto.randomUUID()}`); holder.db = db })
@@ -62,5 +62,38 @@ describe('ago', () => {
   it('counts back in plain words', () => {
     expect(ago('2027-01-05T10:00:00Z', now)).toBe('2 hours ago')
     expect(ago('2027-01-02T12:00:00Z', now)).toBe('3 days ago')
+  })
+})
+
+describe('editing a comment', () => {
+  it('saves the author’s new text and queues it', async () => {
+    await addComment('trip', 'poll', 'poll-1', 'alex', 'Too far')
+    const [row] = await db.comments.toArray()
+    await db._outbox.clear()
+    await editComment(row!, 'alex', '  Actually fine  ')
+    expect((await db.comments.get(row!.id))!.body).toBe('Actually fine')
+    expect((await db._outbox.toArray())[0]!.payload).toMatchObject({ id: row!.id, body: 'Actually fine' })
+  })
+  it('refuses someone else’s comment, an empty edit, and does nothing for unchanged text', async () => {
+    await addComment('trip', 'poll', 'poll-1', 'alex', 'Too far')
+    const [row] = await db.comments.toArray()
+    await db._outbox.clear()
+    await expect(editComment(row!, 'sam', 'Mine now')).rejects.toThrow('your own')
+    await expect(editComment(row!, 'alex', '   ')).rejects.toThrow('empty')
+    await editComment(row!, 'alex', 'Too far')
+    expect(await db._outbox.count()).toBe(0)
+  })
+  it('shows edited only when the server time is well after creation', () => {
+    const c = (updated: string) => ({ id: 'c', trip_id: 't', subject_type: 'poll' as const, subject_id: 's', member_id: 'm', body: 'x', created_at: '2027-01-05T12:00:00Z', updated_at: updated })
+    expect(wasEdited(c('2027-01-05T12:00:01Z'))).toBe(false)
+    expect(wasEdited(c('2027-01-05T12:05:00Z'))).toBe(true)
+  })
+  it('tells the author whether the group has it', () => {
+    const c = { id: 'c', trip_id: 't', subject_type: 'poll' as const, subject_id: 's', member_id: 'm', body: 'Hi' }
+    const none = new Map<string, string[]>()
+    expect(delivery({ ...c, _dirty: 1 }, none)).toBe('pending')
+    expect(delivery({ ...c, _dirty: 0 }, none)).toBe('shared')
+    expect(delivery({ ...c, _dirty: 0 }, new Map([['c', ['Hi']]]))).toBe('rejected')
+    expect(delivery({ ...c, body: 'Hi again', _dirty: 0 }, new Map([['c', ['Hi']]]))).toBe('shared')
   })
 })
