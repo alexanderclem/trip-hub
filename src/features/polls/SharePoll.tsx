@@ -16,7 +16,7 @@ export function useSharePoll(trip: Trip | undefined, poll: Poll | undefined, opt
   // Closing times read in the sender's own time, like everywhere else they are shown.
   const message = () => ({
     text: shareText(poll!, options, Date.now(), DateTime.local().zoneName),
-    url: shareLink(trip!.share_token, `vote/${poll!.id}`),
+    url: shareLink(trip!.share_token, `vote/${poll!.id}`, trip!.preview_key),
   })
   async function copy() {
     if (!ready || inFlight.current) return

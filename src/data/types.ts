@@ -31,6 +31,8 @@ export interface Trip extends SyncColumns {
   bbox: number[] | null
   offline_pack: unknown
   share_token: string
+  /** Digest of share_token, set by the server; names the trip in invite link previews (worker/invite.ts). */
+  preview_key?: string | null
   settings: Record<string, unknown>
   /** 'group': everyone who joined edits (every trip until its organizer switches). 'hosted': roles apply. */
   access_mode?: AccessMode

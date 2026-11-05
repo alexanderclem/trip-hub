@@ -11,7 +11,7 @@ export function InviteTripCard({ trip, bare = false }: { trip: Trip; bare?: bool
   const [pending, setPending] = useState<'copy' | 'share' | null>(null)
   const inFlight = useRef(false)
   const [error, setError] = useState<string | null>(null)
-  const link = shareLink(trip.share_token)
+  const link = shareLink(trip.share_token, undefined, trip.preview_key)
 
   async function send(action: 'copy' | 'share') {
     if (inFlight.current) return

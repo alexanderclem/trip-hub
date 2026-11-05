@@ -5,7 +5,7 @@ vi.mock('@/data/db', () => ({ db: { trips: { get: mocks.tripGet } } }))
 vi.mock('@/lib/supabase', () => ({ ensureSession: mocks.ensureSession, supabase: { rpc: mocks.rpc } }))
 vi.mock('@/data/device', () => ({ useDevice: { getState: () => ({ setMember: mocks.setMember, setAccess: mocks.setAccess, access: mocks.access }) } }))
 vi.mock('@/data/sync/engine', () => ({ pull: mocks.pull }))
-import { claimMember, createMemberAndClaim, joinTargetQuery, parseJoinTarget, parseShareToken } from './actions'
+import { claimMember, createMemberAndClaim, joinTargetQuery, parseJoinTarget, parseShareToken, shareLink } from './actions'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -92,5 +92,16 @@ describe('shared links that land on a page', () => {
   })
   it('keeps a pasted token readable when the link also has a target', () => {
     expect(parseShareToken(`https://joinstowaway.app/join?to=vote/${poll}#t=abcdefghijklmnop`)).toBe('abcdefghijklmnop')
+  })
+  it('puts the preview key in the path and keeps the token in the fragment', () => {
+    const key = 'a1b2c3d4e5f60718293a'
+    vi.stubGlobal('location', { origin: 'https://joinstowaway.app' })
+    const link = shareLink('abcdefghijklmnop', `vote/${poll}`, key)
+    expect(link).toBe(`${location.origin}/join/p/${key}?to=vote/${poll}#t=abcdefghijklmnop`)
+    expect(parseShareToken(link)).toBe('abcdefghijklmnop')
+    expect(parseJoinTarget(link)).toBe(`more/vote/${poll}`)
+    expect(shareLink('abcdefghijklmnop')).toBe(`${location.origin}/join#t=abcdefghijklmnop`)
+    expect(shareLink('abcdefghijklmnop', undefined, '../evil')).toBe(`${location.origin}/join#t=abcdefghijklmnop`)
+    vi.unstubAllGlobals()
   })
 })

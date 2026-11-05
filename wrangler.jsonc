@@ -9,7 +9,7 @@
   "assets": {
     "binding": "ASSETS",
     // Agent and crawler files go to the Worker too, so a missing one is a real 404, not the app's page.
-    "run_worker_first": ["/api/*", "/mcp", "/.well-known/*", "/llms.txt", "/llms-full.txt", "/robots.txt", "/sitemap.xml"],
+    "run_worker_first": ["/api/*", "/join", "/join/*", "/mcp", "/.well-known/*", "/llms.txt", "/llms-full.txt", "/robots.txt", "/sitemap.xml"],
     "directory": "./dist",
     "not_found_handling": "single-page-application"
   },

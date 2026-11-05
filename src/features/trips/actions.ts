@@ -68,9 +68,14 @@ export function parseShareToken(input: string): string | null {
   return /^[A-Za-z0-9_-]{16,}$/.test(s) ? s : null
 }
 
-/** The invite link. With `to` (for example `vote/<poll id>`), joining lands on that page. */
-export function shareLink(token: string, to?: string): string {
-  return `${location.origin}/join${to ? `?to=${to}` : ''}#t=${token}`
+/**
+ * The invite link. With `to` (for example `vote/<poll id>`), joining lands on that page. With the
+ * trip's `previewKey` the path carries it, so chat apps can show the trip in the link preview; the
+ * token itself stays in the #fragment, which is never sent to a server.
+ */
+export function shareLink(token: string, to?: string, previewKey?: string | null): string {
+  const path = previewKey && /^[0-9a-f]{20}$/.test(previewKey) ? `/join/p/${previewKey}` : '/join'
+  return `${location.origin}${path}${to ? `?to=${to}` : ''}#t=${token}`
 }
 
 const JOIN_TARGET = /[?&]to=vote\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?=$|[&#])/i

@@ -33,6 +33,7 @@ export const routes: RouteObject[] = [
       { path: '/inspire', lazy: () => import('./features/stowie/StowieScreen').then((m) => ({ Component: m.StowieScreen })) },
       { path: '/inspire/manual', lazy: () => import('./features/discovery/DiscoveryScreen').then((m) => ({ Component: m.DiscoveryScreen })) },
       { path: '/join', lazy: () => import('./features/trips/JoinScreen').then((m) => ({ Component: m.JoinScreen })) },
+      { path: '/join/p/:previewKey', lazy: () => import('./features/trips/JoinScreen').then((m) => ({ Component: m.JoinScreen })) },
       { path: '/signin', lazy: () => import('./features/account/EmailSignInScreen').then((m) => ({ Component: m.EmailSignInScreen })) },
       { path: '/auth/callback', lazy: () => import('./features/account/AuthCallbackScreen').then((m) => ({ Component: m.AuthCallbackScreen })) },
       { path: '/oauth/consent', lazy: () => import('./features/account/ConnectorConsentScreen').then((m) => ({ Component: m.ConnectorConsentScreen })) },
