@@ -200,9 +200,9 @@ test('saved destination facts stay visible while reconnecting and revalidating',
 test('a slow image shows its local placeholder, then reveals the decoded photo', async ({ page }) => {
   let release!: () => void
   const gate = new Promise<void>((resolve) => { release = resolve })
-  await page.route('**/images/lakeside-escape.jpg', async (route) => { await gate; await route.continue() })
-  await page.goto('/', { waitUntil: 'domcontentloaded' })
-  const image = page.locator('.website-hero-photo')
+  await page.route('**/images/trip-covers/flat-v2/lake-small.jpg', async (route) => { await gate; await route.continue() })
+  await page.goto('/operators', { waitUntil: 'domcontentloaded' })
+  const image = page.locator('.operator-booking-image')
   await image.scrollIntoViewIfNeeded()
   await expect(image).toHaveAttribute('data-ready', 'false')
   await expect(image.locator('.progressive-image-placeholder')).toBeVisible()

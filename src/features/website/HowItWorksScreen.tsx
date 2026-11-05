@@ -1,10 +1,10 @@
 import { Link } from 'react-router'
 import { WebsiteFrame } from './WebsiteFrame'
-import { TripPreview } from './TripPreview'
+import { TagHead } from './tag/parts'
 
 export function HowItWorksScreen() {
   return <WebsiteFrame>
-    <section className="marketing-hero website-container marketing-split" aria-labelledby="tour-title"><div><p className="website-eyebrow">For travelers</p><h1 id="tour-title">A place for the whole trip to come together.</h1><p className="website-intro">Start with an idea. Make a plan with your people. Keep the details close when you go.</p><div className="website-actions"><Link to="/new" className="website-button website-button-primary">Create a free trip</Link><Link to="/app#join" className="website-text-link">Join a trip</Link></div></div><TripPreview /></section>
+    <TagHead fields={[['Start', 'Create a trip, share the link'], ['Decide', 'Save places, vote together'], ['Go', 'The plan works offline'], ['Cost', 'Free for groups']]} id="tour-title" title="A place for the whole trip to come together." intro="Start with an idea. Make a plan with your people. Keep the details close when you go."><div className="website-actions"><Link to="/new" className="website-button website-button-primary">Create a trip</Link><Link to="/app#join" className="website-text-link">Join a trip</Link></div></TagHead>
     <section className="marketing-section website-container" aria-labelledby="tour-steps"><h2 id="tour-steps">From the first invite to the last day.</h2><ol className="marketing-walkthrough">{[
       ['Create a trip and bring your people', 'Give the trip a name, add dates when you know them, and share its invite link. Friends pick their name to join. An account is optional for group planning.'],
       ['Save ideas and hear everyone out', 'Keep places in one pool and compare options with a group vote. Everyone can express a preference; you decide what belongs in the itinerary.'],

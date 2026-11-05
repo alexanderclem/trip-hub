@@ -16,3 +16,16 @@ Antonio and its license remain in the asset archive, but are no longer used or
 preloaded. The lake photo and suitcase artwork are retained. The social preview
 is regenerated from the existing logo masters with the current headline, palette,
 and typography. No new external imagery, fonts, or dependencies were added.
+
+## November 4, 2026 website redesign (Luggage Tag)
+
+The public website now self-hosts two open-licensed families, subset to Latin and served as WOFF2
+from `public/fonts/` (no runtime font requests):
+
+- Barlow and Barlow Condensed ([Google Fonts](https://github.com/google/fonts/tree/main/ofl/barlow)),
+  SIL Open Font License, license at `public/fonts/Barlow-OFL.txt`. Text, labels and controls.
+- Antonio (already archived here), now subset to `Antonio-Variable.woff2`, for route codes and
+  display numerals. License at `public/fonts/Antonio-OFL.txt`.
+
+No new images were added. The homepage's places and routes come from `seed/guatemala-2027/`
+(OpenStreetMap data); traveler names, votes, times, tickets and amounts are labelled examples.

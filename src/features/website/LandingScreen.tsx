@@ -1,79 +1,114 @@
-import { ArrowUpRight, Check, MapPin, Receipt, Ticket, Vote } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router'
-import { TripPreview } from './TripPreview'
 import { WebsiteFrame } from './WebsiteFrame'
-import { OperatorIntroduction, PricingIntroduction } from './WebsiteSections'
-import { ProgressiveImage } from '@/ui/ProgressiveImage'
+import { Barcode, Perforation } from './tag/parts'
+import { RouteStrip } from './tag/RouteStrip'
+import { JoinStop, OfflineStop, PlanStop, SaveStop, StubsStop, VoteStop, type Winner } from './tag/stops'
+import { LAKE_OPTIONS, TRAVELERS, TRIP, total, type Code } from './tag/trip'
+import { Stowie } from '@/features/stowie/Stowie'
+
+/** The lake town with the most points once the visitor has broken the tie, or null while level. */
+function pickWinner(mine: Partial<Record<Code, number>>): Winner {
+  const ranked = LAKE_OPTIONS.map((option) => ({ option, points: total(option.votes) + (mine[option.code] ?? 0) })).sort((a, b) => b.points - a.points)
+  const [first, second] = ranked
+  return first && second && first.points > second.points ? first.option : null
+}
 
 export function LandingScreen() {
+  const [mine, setMine] = useState<Partial<Record<Code, number>>>({})
+  const winner = useMemo(() => pickWinner(mine), [mine])
+
   if (typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone === true))) {
     return <Navigate to="/app" replace />
   }
 
   return (
     <WebsiteFrame>
-        <section className="website-hero website-container" aria-labelledby="hero-title">
-          <div className="website-hero-copy">
-            <h1 id="hero-title">Your group trip.<br />All in one place.</h1>
-            <p className="website-intro">Save places, vote on favorites, and build an itinerary together. Keep tickets and shared expenses with the plan.</p>
-            <div className="website-actions">
-              <Link to="/new" className="website-button website-button-primary">Create a trip <ArrowUpRight size={18} aria-hidden="true" /></Link>
-              <Link to="/app#join" className="website-text-link">Join a trip</Link>
+      <div className="tag-journey">
+        <RouteStrip lake={winner?.code ?? null} />
+        <div className="tag-journey-stops">
+          <section id="trip" data-stop="trip" className="tag-hero" aria-labelledby="hero-title">
+            <div className="tag-shell">
+              <div className="tag-print-row" aria-hidden="true">
+                <span>Stowaway</span><span>Group trip</span><span>{TRIP.season}</span><span className="tag-print-id">SW 0313</span>
+              </div>
+              <p className="tag-route" aria-hidden="true">
+                {TRIP.route.map((code, index) => <span key={code} style={{ '--i': index } as React.CSSProperties}>{index > 0 && <span className="tag-arrow">→</span>}{code}</span>)}
+              </p>
+              <div className="tag-hero-grid">
+                <div className="tag-hero-copy">
+                  <h1 id="hero-title">Your group trip.<br />All in one place.</h1>
+                  <p className="tag-intro">Save places, vote on favorites and build the itinerary together. Tickets and shared costs stay with the plan.</p>
+                </div>
+                <div className="tag-hero-stubs">
+                  <Link to="/new" className="tag-tear is-primary">
+                    <span className="tag-tear-label">Create a trip</span>
+                    <span className="tag-print" aria-hidden="true">Free for the whole group</span>
+                  </Link>
+                  <Link to="/app#join" className="tag-tear">
+                    <span className="tag-tear-label">Join trip</span>
+                    <span className="tag-print" aria-hidden="true">Got an invite link? No account needed</span>
+                  </Link>
+                </div>
+                <div className="tag-pax">
+                  <p className="tag-print">Travelers · {TRAVELERS.length}</p>
+                  <ol aria-label="Travelers (example names)">
+                    {TRAVELERS.map((name, index) => <li key={name} style={{ '--i': index } as React.CSSProperties}><span className="tag-pax-seq" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>{name}</li>)}
+                  </ol>
+                  <p className="tag-fine">Real places from our spring-break trip to Guatemala. Names, votes and times are examples.</p>
+                  <div className="tag-hero-code" aria-hidden="true"><Barcode value="STOWAWAY-ANT-PAN" /></div>
+                </div>
+              </div>
             </div>
-            <p className="website-hero-note">Free. Runs in your browser, no password.</p>
-            <Link to="/operators" className="website-operator-signpost">Running trips for others? <span>Meet Stowaway for operators <ArrowUpRight size={14} aria-hidden="true" /></span></Link>
-          </div>
-          <div id="the-plan" className="website-hero-example"><TripPreview /></div>
-        </section>
-
-
-        <div className="website-capabilities">
-          <ul className="website-container" aria-label="Trip essentials">
-            <li><MapPin size={19} aria-hidden="true" /> Save places</li>
-            <li><Vote size={19} aria-hidden="true" /> Decide together</li>
-            <li><Ticket size={19} aria-hidden="true" /> Keep tickets handy</li>
-            <li><Receipt size={19} aria-hidden="true" /> Split shared costs</li>
-          </ul>
+            <Perforation />
+          </section>
+          <SaveStop />
+          <VoteStop mine={mine} setMine={setMine} winner={winner} />
+          <PlanStop winner={winner} />
+          <OfflineStop />
+          <StubsStop />
+          <JoinStop />
         </div>
+      </div>
 
-        <section id="how-it-works" className="marketing-section website-container" aria-labelledby="together-title"><div className="marketing-section-intro"><p className="website-eyebrow">From “we should go” to “see you there”</p><h2 id="together-title">Give every part of the trip a home.</h2><p className="marketing-body">A restaurant in the group chat. A ticket in someone’s inbox. A spreadsheet only one person updates. Keep the details where your whole group can find them.</p></div><div className="marketing-editorial-columns"><article><h3>Choose what sounds good</h3><p>Save the places you find. Let everyone score the options, then add the group’s favorites to the plan. A vote is a preference, so you stay in charge of what gets booked.</p></article><article><h3>Know the plan for the day</h3><p>Build an itinerary with times, meeting points, travel details, and linked tickets. Give every traveler the same place to check what’s next.</p></article><article><h3>Keep the small things sorted</h3><p>Assign tasks, prepare a packing list, and track who owes what. Shared expenses record balances; they don’t move money between friends.</p></article></div><Link to="/how-it-works" className="website-text-link">Take a closer look</Link></section>
+      <section className="tag-band" aria-labelledby="organizers-title">
+        <div className="tag-shell tag-band-inner">
+          <h2 id="organizers-title">Running trips for other people?</h2>
+          <p>Retreats, clubs and small operators can plan with their travelers and, in early access, collect deposits through their own Stripe account.</p>
+          <Link to="/operators" className="tag-link">Stowaway for organizers</Link>
+        </div>
+        <Perforation />
+      </section>
 
-        <section className="website-offline" aria-labelledby="offline-title">
-          <div className="website-container website-offline-inner">
-            <div className="website-hero-art">
-              <ProgressiveImage className="website-hero-photo" src="/images/lakeside-escape.jpg" placeholder="/images/lakeside-escape-placeholder.jpg" alt="The bow of a wooden boat on a mountain lake in the Dolomites" width={1800} height={1200} loading="lazy" />
-              <p className="website-photo-caption">The Dolomites, Italy.</p>
-            </div>
-            <div>
-              <h2 id="offline-title">Your plan, even offline.</h2>
-              <p>Before you leave, use “Ready for offline” in trip settings. Your itinerary and downloaded tickets then work without a connection.</p>
-              <ul className="website-offline-list">
-                <li><Check size={16} aria-hidden="true" /> Changes wait on your phone and sync when you’re back</li>
-                <li><MapPin size={16} aria-hidden="true" /> Maps need a downloaded pack or saved area</li>
-              </ul>
-              <Link to="/app" className="website-text-link">Open your trips <ArrowUpRight size={18} aria-hidden="true" /></Link>
+      <section className="tag-faq-wrap" aria-labelledby="questions-title">
+        <div className="tag-shell tag-faq-grid">
+          <div>
+            <h2 id="questions-title">Before you pack</h2>
+            <p className="tag-lede">We built Stowaway to plan our own spring-break trip to Guatemala. Here's what people ask first.</p>
+          </div>
+          <div className="tag-faq">
+            <details><summary>Do my friends need to download anything?</summary><p>No. Stowaway runs in the browser. Friends open your invite link and pick their name. Anyone can add it to their Home Screen later.</p></details>
+            <details><summary>Is it really free?</summary><p>Yes, for groups. Creating trips, inviting, voting, the plan, tickets, shared costs and offline use are free. Paid tools are only for people who run trips for others.</p></details>
+            <details><summary>Who can see our trip?</summary><p>Anyone with the invite link can join and see the group's plans and documents, so share it only with your group. The <Link to="/privacy">privacy policy</Link> has the details.</p></details>
+            <details><summary>How does offline work?</summary><p>Before you go, open the trip's settings while online and choose Ready for offline. The plan and downloaded tickets then work with no signal. Maps download separately. Creating or joining a trip needs a connection.</p></details>
+            <details><summary>Does Stowaway book travel or move money?</summary><p>No. It keeps your plan, confirmations and who-owes-whom in one place. You book and settle up the way you already do.</p></details>
+          </div>
+        </div>
+        <Perforation />
+      </section>
+
+      <section className="tag-close" aria-labelledby="closing-title">
+        <div className="tag-shell tag-close-inner">
+          <Stowie mood="delighted" size={112} animated={false} className="tag-close-stowie" />
+          <div>
+            <h2 id="closing-title">The whole trip, tucked away.</h2>
+            <div className="tag-close-actions">
+              <Link to="/new" className="tag-tear is-primary is-compact"><span className="tag-tear-label">Create a trip</span></Link>
+              <Link to="/how-it-works" className="tag-link">See how it works</Link>
             </div>
           </div>
-        </section>
-
-        <OperatorIntroduction />
-        <section className="marketing-section website-container" aria-labelledby="who-title"><div className="marketing-section-intro"><p className="website-eyebrow">Different groups. One shared plan.</p><h2 id="who-title">Make room for your kind of trip.</h2></div><div className="marketing-editorial-columns"><article><h3>A few days with friends</h3><p>Compare ideas, share the itinerary, and keep tickets and expenses together. Start free and invite everyone by link.</p></article><article><h3>A retreat with your community</h3><p>Give guests a clear plan while you organize the people and the details. Explore the operator beta before your next departure.</p></article><article><h3>A club or student group</h3><p>Give tasks an owner, let travelers weigh in, and keep meeting points easy to find. Fewer details to repeat in the chat.</p></article></div></section>
-        <PricingIntroduction />
-
-        <section id="questions" className="website-questions website-container" aria-labelledby="questions-title">
-          <div><h2 id="questions-title">Questions</h2></div>
-          <div className="website-faq">
-            <details><summary>Do I need to download an app?</summary><p>No. You can create and plan a trip in your browser. You can also add Stowaway to your phone’s Home Screen.</p></details>
-            <details><summary>How does my group join?</summary><p>Create a trip and share its invite link from trip settings. Friends open the link and pick their name. Have a link already? <Link to="/app#join">Join your trip.</Link></p></details>
-            <details><summary>Who can see our trip?</summary><p>Anyone with the invite link can join and see the group’s plans and documents, so only share it with people you trust. See the <Link to="/privacy">privacy policy</Link> for details.</p></details>
-            <details><summary>Can I use it without a connection?</summary><p>Yes, once you’ve prepared the trip while online. “Ready for offline” in trip settings saves trip data and downloads tickets to your phone. Maps need a downloaded pack or saved area. Creating or joining a trip needs a connection.</p></details>
-            <details><summary>Can I get my trips on another phone?</summary><p>Rejoin with your group’s invite link, or sign in with the same account to restore its trips. Downloads are saved separately on each phone.</p></details>
-            <details><summary>Can I run paid trips with Stowaway?</summary><p>Operator tools are in beta, and payment collection is coming soon. <Link to="/operators">See the operator preview and request early access.</Link> Free group planning is available now.</p></details>
-            <details><summary>Where can I get help?</summary><p>Find joining, account, and offline instructions in <Link to="/help">Help & contact</Link>.</p></details>
-          </div>
-        </section>
-
-        <section className="website-closing" aria-labelledby="closing-title"><div className="website-container website-closing-inner"><div><h2 id="closing-title">Plan your next trip together.</h2></div><Link to="/new" className="website-button website-button-primary">Create a trip <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
+        </div>
+      </section>
     </WebsiteFrame>
   )
 }

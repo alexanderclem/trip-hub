@@ -13,11 +13,12 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Your group trip. All in one place.' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toHaveCount(0)
-  const logos = page.getByRole('img', { name: 'Stowaway', exact: true })
-  await expect(logos).toHaveCount(2)
-  for (const logo of await logos.all()) {
-    await expect(logo).toHaveAttribute('src', '/brand/stowaway-wordmark.svg')
-    await expect.poll(() => logo.evaluate((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
+  // The header and footer each carry the lockup: the mark master and the drawn wordmark.
+  const homes = page.getByRole('link', { name: 'Stowaway home', exact: true })
+  await expect(homes).toHaveCount(2)
+  for (const home of await homes.all()) {
+    const mark = home.locator('img[src="/brand/stowaway-mark.svg"]')
+    await expect.poll(() => mark.evaluate((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
   }
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app', exact: true }).click()
   await page.waitForURL('**/app')
@@ -31,28 +32,31 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
 })
 
-test('the sample demonstrates ideas, a practice vote, the plan and shared essentials without saving', async ({ page }) => {
+test('the trip on the homepage saves, votes, plans, goes offline and joins without saving anything', async ({ page }) => {
   await page.goto('/')
-  const stages = page.getByRole('group', { name: 'Explore the sample trip', exact: true })
-  await stages.getByRole('button', { name: 'Ideas', exact: true }).click()
-  await expect(page.getByText('Food · Added by Alex', { exact: true })).toBeVisible()
-  await stages.getByRole('button', { name: 'Vote', exact: true }).click()
-  await page.getByRole('group', { name: 'Try a sample vote' }).getByRole('button', { name: 'Must-do', exact: true }).click()
-  await expect(page.getByRole('status')).toHaveText('Your sample score: Must-do.')
-  await page.getByRole('button', { name: 'See it on the plan' }).click()
-  await expect(stages.getByRole('button', { name: 'Plan', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByRole('heading', { name: 'Dinner in Chinatown', exact: true })).toBeVisible()
-  await stages.getByRole('button', { name: 'Essentials', exact: true }).click()
-  await expect(page.getByText('Your share: $14', { exact: true })).toBeVisible()
-  await expect(page.getByText('Downloaded on this sample phone', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Save another place' }).click()
+  await expect(page.getByRole('heading', { name: 'Museo del Café', exact: true })).toBeVisible()
+  // Seven example votes leave two lake towns level until the visitor scores them.
+  const plan = page.locator('#plan')
+  await expect(plan.getByText('Still deciding: vote above')).toBeVisible()
+  await page.getByRole('group', { name: 'Your vote for San Pedro La Laguna' }).getByRole('button', { name: 'Must-do', exact: true }).click()
+  await expect(page.locator('#vote').getByRole('status')).toContainText('The group picked San Pedro La Laguna')
+  await expect(plan.getByText('Stay in San Pedro La Laguna')).toBeVisible()
+  await expect(plan.getByText('Priority', { exact: true })).toBeVisible()
+  const airplane = page.getByRole('button', { name: /^Airplane mode/ })
+  await expect(airplane).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText('Offline. Everything you prepared is still here.')).toBeVisible()
+  await airplane.click()
+  await expect(page.getByText('Online. Changes sync with the group.')).toBeVisible()
+  await page.getByRole('group', { name: 'Who are you?' }).getByRole('button', { name: 'Sam', exact: true }).click()
+  await expect(page.locator('#join').getByRole('status')).toContainText("You're in as Sam")
   await page.reload()
-  await stages.getByRole('button', { name: 'Vote', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Must-do', exact: true })).toHaveAttribute('aria-pressed', 'false')
+  await expect(plan.getByText('Still deciding: vote above')).toBeVisible()
 })
 
 test('joining from the website focuses the invite field and retains validation', async ({ page }) => {
   await page.goto('/')
-  await page.locator('.website-hero').getByRole('link', { name: 'Join a trip', exact: true }).click()
+  await page.locator('.tag-hero').getByRole('link', { name: 'Join trip', exact: true }).click()
   await page.waitForURL('**/app#join')
   await expect(page.getByRole('dialog', { name: 'Take Stowaway with you' })).not.toBeVisible()
   const input = page.getByLabel('Trip link', { exact: true })
@@ -80,16 +84,17 @@ test('the homepage reflows and its FAQ works at narrow and wide widths', async (
       return result
     })
     expect(overflow).toBe(false)
-    const wrappedLabels = await page.locator('.website-header nav a, .website-button, .website-text-link, .website-footer > a:last-child').evaluateAll((links) => links.filter((link) => {
+    // The routing rail stacks each code over its label on purpose, so it isn't checked for wrapping.
+    const wrappedLabels = await page.locator('.tag-nav a, .tag-tear-label, .tag-link, .tag-strip-label, .website-button, .website-text-link').evaluateAll((links) => links.filter((link) => {
       if (!link.getClientRects().length) return false
       const range = document.createRange()
       range.selectNodeContents(link)
       return range.getBoundingClientRect().height > parseFloat(getComputedStyle(link).fontSize) * 1.5
     }).map((link) => link.textContent))
     expect(wrappedLabels).toEqual([])
-    const question = page.locator('summary', { hasText: 'Can I use it without a connection?' })
+    const question = page.locator('summary', { hasText: 'How does offline work?' })
     await question.click()
-    await expect(page.getByText(/Yes, once you’ve prepared the trip while online/)).toBeVisible()
+    await expect(page.getByText(/Before you go, open the trip's settings while online/)).toBeVisible()
     if (process.env.SHOTS_DIR) await page.screenshot({ path: `${process.env.SHOTS_DIR}/website-${width}.png`, fullPage: true })
   }
 })
@@ -100,10 +105,10 @@ test('keyboard users can skip the header and open FAQ disclosures', async ({ pag
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(page.locator('#main-content')).toBeFocused()
-  const question = page.locator('summary', { hasText: 'Do I need to download an app?' })
+  const question = page.locator('summary', { hasText: 'Do my friends need to download anything?' })
   await question.focus()
   await page.keyboard.press('Enter')
-  await expect(page.getByText(/You can create and plan a trip in your browser/)).toBeVisible()
+  await expect(page.getByText(/Stowaway runs in the browser/)).toBeVisible()
 })
 
 test('returning travelers get the website at root and their workspace in the app', async ({ page }) => {
@@ -167,7 +172,7 @@ test('the homepage preserves long headings and immediate feedback with reduced m
 test('the introduction and primary action fit a 1280 by 800 laptop', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
-  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.website-intro'), page.getByRole('link', { name: 'Create a trip', exact: true }).first(), page.locator('.website-preview')]) {
+  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.tag-intro').first(), page.getByRole('link', { name: 'Create a trip', exact: true }).first(), page.getByRole('link', { name: 'Join trip', exact: true }).first()]) {
     const box = await locator.boundingBox()
     expect(box!.y).toBeGreaterThanOrEqual(0)
     expect(box!.y + box!.height).toBeLessThanOrEqual(800)
@@ -198,7 +203,7 @@ test('website text and the outlined app action meet contrast thresholds', async 
       if (![...element.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())) return false
       return ratio(getComputedStyle(element).color, background(element)) < 4.5
     }).map((element) => element.textContent?.trim())
-    const outline = document.querySelector('.website-button-outline')!
+    const outline = document.querySelector('.tag-nav-link.is-app')!
     return { failures, border: ratio(getComputedStyle(outline).borderColor, background(outline)) }
   })
   expect(contrast.failures).toEqual([])

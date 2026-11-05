@@ -1,29 +1,26 @@
 import { useState, type FormEvent } from 'react'
-import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { ensureSession, supabase } from '@/lib/supabase'
 import { WebsiteFrame } from './WebsiteFrame'
 import { OperatorPreview } from './OperatorPreview'
 import { OperatorBookingPreview } from './OperatorBookingPreview'
 import { friendlyError } from '@/ui/errors'
+import { TagHead } from './tag/parts'
 
 /** For people who run group trips: retreats, student trips, clubs. Speaks to deposits and payouts. */
 export function OperatorsScreen() {
   return (
     <WebsiteFrame>
-      <section className="marketing-hero website-container marketing-split" aria-labelledby="operators-title">
-        <div><p className="website-eyebrow">For operators · Early access</p>
-        <h1 id="operators-title">Run the trip with your group, not around it.</h1>
-        <p className="website-intro">A shared plan for your travelers. A clearer picture of the people, bookings, and balances for you. Explore the operator beta before your next departure.</p>
+      <TagHead fields={[['Access', 'Early access'], ['Money', 'Your own Stripe account'], ['Fee', '1% + Stripe’s fee, proposed'], ['Planning', 'Free today']]} id="operators-title" title="Run the trip with your group, not around it." intro="A shared plan for your travelers. A clearer picture of the people, bookings, and balances for you. Explore the operator beta before your next departure.">
         <div className="website-actions">
-          <a href="#early-access" className="website-button website-button-primary">Request early access <ArrowUpRight size={18} aria-hidden="true" /></a>
+          <a href="#early-access" className="website-button website-button-primary">Request early access</a>
           <Link to="/pricing" className="website-text-link">See pricing</Link>
         </div>
-        <p className="calc-note">Planning is free today. Payment collection is coming soon.</p></div>
-        <OperatorPreview />
-      </section>
+        <p className="calc-note">Planning is free today. Payment collection is coming soon.</p>
+      </TagHead>
+      <section className="marketing-section website-container" aria-labelledby="operator-preview-title"><h2 id="operator-preview-title">What you see as the organizer</h2><OperatorPreview /></section>
 
-      <section className="marketing-section website-container" aria-labelledby="traveler-booking-title"><div className="marketing-section-intro"><p className="website-eyebrow">The traveler’s side, too</p><h2 id="traveler-booking-title">A clear invitation. A clear commitment.</h2><p className="marketing-body">Your public page introduces the trip. The booking summary explains the price and payment plan. Here’s how those two moments connect in the collection preview.</p></div><OperatorBookingPreview /></section>
+      <section className="marketing-section website-container" aria-labelledby="traveler-booking-title"><div className="marketing-section-intro"><h2 id="traveler-booking-title">A clear invitation. A clear commitment.</h2><p className="marketing-body">Your public page introduces the trip. The booking summary explains the price and payment plan. Here’s how those two moments connect in the collection preview.</p></div><OperatorBookingPreview /></section>
 
       <section className="marketing-section website-container" aria-labelledby="why-title">
         <h2 id="why-title">Built for the way you already run trips</h2>
@@ -34,14 +31,14 @@ export function OperatorsScreen() {
         </ul>
       </section>
 
-      <section className="marketing-section website-container" aria-labelledby="operator-workflow-title"><div className="marketing-section-intro"><p className="website-eyebrow">From the first booking to departure day</p><h2 id="operator-workflow-title">See how a trip comes together.</h2><p className="marketing-body">The following workflow previews the operator experience. Payments need early-access onboarding; the example contains no real bookings.</p></div><ol className="marketing-walkthrough">{[
+      <section className="marketing-section website-container" aria-labelledby="operator-workflow-title"><div className="marketing-section-intro"><h2 id="operator-workflow-title">See how a trip comes together.</h2><p className="marketing-body">The following workflow previews the operator experience. Payments need early-access onboarding; the example contains no real bookings.</p></div><ol className="marketing-walkthrough">{[
         ['Give your trip a clear front door', 'Prepare a public trip page with dates, the itinerary, price, inclusions, and cancellation policy. Travelers can understand what they’re joining before they book.'],
         ['Collect deposits and track the balance', 'Preview deposits, dated payments, and booking status in one workflow. The collection fee is proposed at 1% plus Stripe’s processing fees. Payment collection is not generally available yet.'],
         ['Know who is coming', 'Use traveler lists, booking questions, and hosted-trip permissions. Room assignments and waitlists are part of the operator beta; access depends on onboarding and configuration.'],
         ['Give travelers the plan they’ll use', 'Keep the day-by-day itinerary, meeting points, tickets, and group votes with the trip. Travelers can prepare saved plans and downloaded tickets for offline use.'],
         ['Get ready to run it again', 'Preview trip reuse, past-traveler tools, and reports with Pro, free during beta for eligible operators. Campaign email delivery is not enabled yet.'],
       ].map(([title, text], index) => <li key={title}><span className="marketing-step-index" aria-hidden="true">{index + 1}</span><div><h3>{title}</h3><p>{text}</p></div></li>)}</ol></section>
-      <section className="marketing-section website-container marketing-split"><div><p className="website-eyebrow">A considered start</p><h2>For small groups with a lot of moving parts.</h2><p className="marketing-body">Retreats, club departures, and student trips are the kinds of trips we’re exploring with early operators. Start with your next real trip and tell us where the organizing gets difficult.</p></div><div><h3 className="marketing-subtitle">How to get started</h3><ol className="marketing-plain-list"><li>Create a free trip and sign in with an account.</li><li>Open Trip settings → People → Organize this trip.</li><li>Request access before planning to collect payments. The initial collection launch is for US operators charging in USD.</li><li>Complete operator review and payment onboarding before publishing a paid trip.</li></ol><Link to="/new" className="website-text-link">Start with a free trip</Link></div></section>
+      <section className="marketing-section website-container marketing-split"><div><h2>For small groups with a lot of moving parts.</h2><p className="marketing-body">Retreats, club departures, and student trips are the kinds of trips we’re exploring with early operators. Start with your next real trip and tell us where the organizing gets difficult.</p></div><div><h3 className="marketing-subtitle">How to get started</h3><ol className="marketing-plain-list"><li>Create a free trip and sign in with an account.</li><li>Open Trip settings → People → Organize this trip.</li><li>Request access before planning to collect payments. The initial collection launch is for US operators charging in USD.</li><li>Complete operator review and payment onboarding before publishing a paid trip.</li></ol><Link to="/new" className="website-text-link">Start with a free trip</Link></div></section>
       <section className="marketing-section website-container" aria-labelledby="operator-questions"><h2 id="operator-questions">Before your first departure</h2><div className="website-faq">
         <details><summary>Can I collect payments today?</summary><p>Collection is coming soon and needs early-access onboarding, operator review, and a connected payment account. Request access below; don’t rely on collection being active for an upcoming trip until onboarding is confirmed.</p></details>
         <details><summary>Can I use a trip I already created?</summary><p>Yes. Sign in with the trip creator’s account and use Organize this trip in Trip settings → People. Claiming a trip keeps its plan and members together.</p></details>

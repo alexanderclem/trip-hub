@@ -1,11 +1,11 @@
 import { Link } from 'react-router'
-import { PageHeader } from '@/ui'
+import { WebsiteFrame } from '@/features/website/WebsiteFrame'
+import { TagHead } from '@/features/website/tag/parts'
 
 export function LegalScreen({ policy }: { policy: 'privacy' | 'terms' }) {
-  return <div className="min-h-full overflow-y-auto pb-10">
-    <PageHeader title={policy === 'privacy' ? 'Privacy policy' : 'Terms of use'} back="/" />
-    <article className="mx-auto max-w-2xl space-y-5 px-5 py-6 text-base leading-relaxed text-ink">
-      <p className="text-sm text-muted">Updated October 30, 2026</p>
+  return <WebsiteFrame>
+    <TagHead fields={[['Updated', 'October 30, 2026'], ['Applies to', 'joinstowaway.app']]} title={policy === 'privacy' ? 'Privacy policy' : 'Terms of use'} />
+    <article className="tag-shell tag-legal">
       {policy === 'privacy' ? <>
         <h2 className="ui-section-title">Your shared trip data</h2>
         <p>Stowaway stores trip plans, votes, group preferences, expenses, and documents on your device and synchronizes shared data through Supabase. People with access to your trip can see its shared data. Keep your trip invite link private and only upload information you intend to share with your group.</p>
@@ -31,5 +31,5 @@ export function LegalScreen({ policy }: { policy: 'privacy' | 'terms' }) {
       </>}
       <p><Link className="text-action underline" to={policy === 'privacy' ? '/terms' : '/privacy'}>{policy === 'privacy' ? 'Terms of use' : 'Privacy policy'}</Link></p>
     </article>
-  </div>
+  </WebsiteFrame>
 }

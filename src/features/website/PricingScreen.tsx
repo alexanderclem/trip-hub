@@ -1,17 +1,14 @@
-import { ArrowUpRight, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { Link } from 'react-router'
 import { WebsiteFrame } from './WebsiteFrame'
 import { FeeCalculator } from './FeeCalculator'
+import { TagHead } from './tag/parts'
 
 /** Public pricing: planning stays free; collecting money costs a flat 1% on top of Stripe's fee. */
 export function PricingScreen() {
   return (
     <WebsiteFrame>
-      <section className="marketing-hero website-container" aria-labelledby="pricing-title">
-        <p className="website-eyebrow">Pricing</p>
-        <h1 id="pricing-title">Plan for free. Pay 1% only when you collect money.</h1>
-        <p className="website-intro">Group planning is free today. Operator payment collection is coming soon, with a proposed flat 1% fee plus Stripe’s processing fees.</p>
-      </section>
+      <TagHead fields={[['Groups', 'Free'], ['Organizers', '1% + Stripe’s fee'], ['Collection', 'Coming soon · US & USD'], ['Pro tools', 'Free during beta']]} id="pricing-title" title="Plan for free. Pay 1% only when you collect money." intro="Group planning is free today. Operator payment collection is coming soon, with a proposed flat 1% fee plus Stripe’s processing fees." />
 
       <section className="marketing-section website-container" aria-labelledby="plans-title">
         <h2 id="plans-title">What it costs</h2>
@@ -22,7 +19,7 @@ export function PricingScreen() {
             <ul>
               {['Create trips and invite your group by link', 'Vote on places and build the day-by-day plan', 'Track shared costs and calculate balances', 'Keep tickets and prepare saved plans for offline use'].map((t) => <li key={t}><Check size={16} aria-hidden="true" />{t}</li>)}
             </ul>
-            <Link to="/new" className="website-text-link">Create a free trip</Link>
+            <Link to="/new" className="website-text-link">Create a trip</Link>
           </article>
           <article className="marketing-plan" aria-labelledby="plan-collect">
             <h3 id="plan-collect">Collecting payments <span className="marketing-muted">(coming soon)</span></h3>
@@ -53,7 +50,7 @@ export function PricingScreen() {
         <details><summary>How do card and bank fees differ?</summary><p>The calculator estimates standard US card and bank-payment fees, including a configurable share of international cards. Fixed per-payment processing fees may apply again to each installment. Your account’s rates and available methods can differ.</p></details>
       </div></section>
 
-      <section className="website-closing" aria-labelledby="pricing-closing"><div className="website-container website-closing-inner"><h2 id="pricing-closing">Start with the plan. It’s free.</h2><Link to="/new" className="website-button website-button-primary">Create a trip <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
+      <section className="website-closing" aria-labelledby="pricing-closing"><div className="website-container website-closing-inner"><h2 id="pricing-closing">Start with the plan. It’s free.</h2><Link to="/new" className="website-button website-button-primary">Create a trip</Link></div></section>
     </WebsiteFrame>
   )
 }

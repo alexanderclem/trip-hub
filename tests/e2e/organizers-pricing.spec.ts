@@ -50,5 +50,5 @@ test('the landing page links to both', async ({ page }) => {
   await page.goto('/')
   const footer = page.getByRole('navigation', { name: 'Footer navigation' })
   await expect(footer.getByRole('link', { name: 'Pricing' })).toHaveAttribute('href', '/pricing')
-  await expect(footer.getByRole('link', { name: 'For operators' })).toHaveAttribute('href', '/operators')
+  await expect(footer.getByRole('link', { name: 'For organizers' })).toHaveAttribute('href', '/operators')
 })
