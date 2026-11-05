@@ -7,7 +7,7 @@
 .website em { font-weight: 400; }
 .website-logo { display: block; width: 10.5rem; height: auto; }
 .website-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-block: calc(env(safe-area-inset-top) + 1.5rem) 1.5rem; border-bottom: 1px solid var(--stowaway-border); }
-.website-header nav { display: flex; align-items: center; gap: 2rem; font-size: .875rem; font-weight: 550; }
+.website-header nav { display: flex; align-items: center; gap: 2rem; font-size: .875rem; font-weight: 500; }
 .website-header nav a { display: inline-flex; align-items: center; min-height: 44px; }
 .website-nav-detail { display: none !important; }
 .website-button { display: inline-flex; justify-content: center; align-items: center; gap: 1.5rem; min-height: 50px; padding: .85rem 1.25rem; border: 1px solid transparent; border-radius: var(--stowaway-radius-control); font-size: .875rem; font-weight: 600; line-height: 1.4; white-space: nowrap; }
@@ -121,7 +121,7 @@
 .website-questions { display: grid; gap: 2.5rem; padding-block: var(--stowaway-section-space); scroll-margin-top: 2rem; }
 .website-faq details { border-bottom: 1px solid var(--stowaway-border); }
 .website-faq details:first-child { border-top: 1px solid var(--stowaway-border); }
-.website-faq summary { display: flex; min-height: 72px; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1rem; font-size: .9375rem; font-weight: 550; line-height: 1.6; cursor: pointer; list-style: none; }
+.website-faq summary { display: flex; min-height: 72px; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1rem; font-size: .9375rem; font-weight: 500; line-height: 1.6; cursor: pointer; list-style: none; }
 .website-faq summary::-webkit-details-marker { display: none; }
 .website-faq summary::after { content: '+'; font-size: 1.5rem; font-weight: 400; flex-shrink: 0; }
 .website-faq details[open] summary::after { content: '−'; }
@@ -136,7 +136,7 @@
 .website-footer .website-logo { width: 9rem; }
 .website-footer p { margin-top: .75rem; color: var(--stowaway-muted); font-size: .75rem; }
 .website-footer nav { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
-.website-footer nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: .75rem; font-weight: 550; }
+.website-footer nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: .75rem; font-weight: 500; }
 .website-footer a:hover, .website-nav-detail:hover { text-decoration: underline; text-underline-offset: 4px; }
 .website-skip { position: absolute; inset-inline-start: 1rem; top: -100px; z-index: 50; background: var(--stowaway-surface); padding: 1rem; border: 2px solid var(--stowaway-ink); }
 .website-skip:focus { top: 1rem; }

@@ -174,8 +174,8 @@ export function PlanScreen() {
           <Empty>
             <CalendarDays aria-hidden="true" className="size-8 text-action" />
             <EmptyHeader>
-              <EmptyTitle>Know what’s next</EmptyTitle>
-              <EmptyDescription>Add flights, meals, and activities to this day so everyone can follow the plan.</EmptyDescription>
+              <EmptyTitle>No plans for this day</EmptyTitle>
+              <EmptyDescription>Add a flight, meal or activity.</EmptyDescription>
             </EmptyHeader>
             {mayPlan && <LinkButton to={`/t/${tripId}/plan/new?day=${day}`}>
               <Plus aria-hidden="true" className="size-4" /> Add to this day
@@ -305,7 +305,7 @@ function DayNoteEditor({ tripId, day }: { tripId: string; day: string }) {
       rows={2}
       autoFocus={openDay === day && !saved}
       aria-label="Notes for this day"
-      placeholder="e.g. Pack swimsuits, last lancha 5 pm"
+      placeholder="e.g. Bring the museum tickets"
       onChange={(event) => {
         const value = event.target.value
         setMessage('')

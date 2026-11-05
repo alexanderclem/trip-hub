@@ -67,9 +67,9 @@ Four things, all true and all to be shown rather than claimed:
 ## Brand Commitments
 
 - Name **Stowaway**; domain `joinstowaway.app`. Repository and storage identifiers stay `trip-hub`.
-- Promise: **"Your group trip. All in one place."** Explanation: save places, vote on favorites,
-  build an itinerary together, keep tickets and shared expenses with the plan. Occasional
-  signature: "The whole trip, tucked away."
+- Public headline: **"Plan a trip with friends."** Use feature names and literal actions in the
+  interface. Saved places, votes, itineraries, tickets and expenses demonstrate the product;
+  avoid slogans, encouragement and helper paragraphs that repeat the controls.
 - Voice: the organized friend; warm, direct, specific, short sentences, literal action labels
   ("Create a trip", "Join trip"). Rules and examples in `docs/BRAND.md`.
 - The Carry-on mark (suitcase with two eyes; ocean bag, coral handle) and the drawn lowercase
@@ -79,9 +79,11 @@ Four things, all true and all to be shown rather than claimed:
 
 ## Evidence on Hand
 
-- **Our real trip:** the founder's own group trip, spring break 2027 to Guatemala (Antigua and Lake
-  Atitlán), may be shown as a real example. Seed data lives in `seed/guatemala-2027/`. Traveler
-  names and personal details need the founder's approval before publishing.
+- **Public example:** Paris in spring 2027, with a day in Versailles. Places are real; travelers,
+  votes, schedules, tickets and expenses are illustrative and labelled as an example trip.
+- **Our real trip:** the founder's spring-break 2027 Guatemala trip has seed data in
+  `seed/guatemala-2027/`. Keep it available for that trip. It is no longer the public brand example;
+  traveler names and personal details need the founder's approval before publishing.
 - **Founder story:** may be told; the words must come from the founder (not yet written).
 - Product itself: the live app can demonstrate every claim above.
 - Assets: logo masters and `packed-for-anywhere.svg` in `public/brand/`; `public/images/lakeside-escape.jpg`

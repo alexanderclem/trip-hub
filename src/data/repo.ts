@@ -1,5 +1,8 @@
 import { db as defaultDb, type TripDb } from './db'
 import type { TableName, Tables } from './types'
+import type { ItineraryItem } from './types'
+import { recordPlanChange } from './itineraryChanges'
+import { newId } from '@/lib/ids'
 
 type Row<T extends TableName> = Tables[T]
 
@@ -52,8 +55,11 @@ export async function saveMany<T extends TableName>(
     for (const row of rows) {
       const existing = (await t.get(row.id)) as (Row<T> & { _lrev?: number }) | undefined
       const lrev = (existing?._lrev ?? 0) + 1
+      const content = table === 'itinerary_items'
+        ? recordPlanChange(existing as ItineraryItem | undefined, row as ItineraryItem, memberId, now, newId())
+        : row
       const merged = {
-        ...row,
+        ...content,
         created_by: existing?.created_by ?? row.created_by ?? memberId,
         updated_by: memberId,
         created_at: existing?.created_at ?? now,

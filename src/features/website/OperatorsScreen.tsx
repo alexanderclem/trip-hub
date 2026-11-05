@@ -11,7 +11,7 @@ import { TagHead } from './tag/parts'
 export function OperatorsScreen() {
   return (
     <WebsiteFrame>
-      <TagHead fields={[['Access', 'Early access'], ['Money', 'Your own Stripe account'], ['Fee', '1% + Stripe’s fee, proposed'], ['Planning', 'Free today']]} id="operators-title" title="Run the trip with your group, not around it." intro="A shared plan for your travelers. A clearer picture of the people, bookings, and balances for you. Explore the operator beta before your next departure.">
+      <TagHead fields={[['Access', 'Early access'], ['Money', 'Your own Stripe account'], ['Fee', '1% + Stripe’s fee, proposed'], ['Planning', 'Free today']]} id="operators-title" title="Tools for trip organizers" intro="Manage travelers, itineraries and bookings. Payment collection is in early access.">
         <div className="website-actions">
           <a href="#early-access" className="website-button website-button-primary">Request early access</a>
           <Link to="/pricing" className="website-text-link">See pricing</Link>
@@ -20,10 +20,10 @@ export function OperatorsScreen() {
       </TagHead>
       <section className="marketing-section website-container" aria-labelledby="operator-preview-title"><h2 id="operator-preview-title">What you see as the organizer</h2><OperatorPreview /></section>
 
-      <section className="marketing-section website-container" aria-labelledby="traveler-booking-title"><div className="marketing-section-intro"><h2 id="traveler-booking-title">A clear invitation. A clear commitment.</h2><p className="marketing-body">Your public page introduces the trip. The booking summary explains the price and payment plan. Here’s how those two moments connect in the collection preview.</p></div><OperatorBookingPreview /></section>
+      <section className="marketing-section website-container" aria-labelledby="traveler-booking-title"><div className="marketing-section-intro"><h2 id="traveler-booking-title">Booking preview</h2><p className="marketing-body">Your public page introduces the trip. The booking summary explains the price and payment plan. Here’s how those two moments connect in the collection preview.</p></div><OperatorBookingPreview /></section>
 
       <section className="marketing-section website-container" aria-labelledby="why-title">
-        <h2 id="why-title">Built for the way you already run trips</h2>
+        <h2 id="why-title">Organizer features</h2>
         <ul className="marketing-points">
           <li><h3>Your own payment account</h3><p>The collection model uses your connected Stripe account. Stripe manages payout timing and may apply holds or reserves. Stowaway doesn’t hold the trip’s funds.</p></li>
           <li><h3>You see exactly what you pay</h3><p>A flat 1% on what you collect, plus Stripe’s own fee. Put in your trip price and headcount and see what you keep, before anyone pays.</p></li>
@@ -31,8 +31,8 @@ export function OperatorsScreen() {
         </ul>
       </section>
 
-      <section className="marketing-section website-container" aria-labelledby="operator-workflow-title"><div className="marketing-section-intro"><h2 id="operator-workflow-title">See how a trip comes together.</h2><p className="marketing-body">The following workflow previews the operator experience. Payments need early-access onboarding; the example contains no real bookings.</p></div><ol className="marketing-walkthrough">{[
-        ['Give your trip a clear front door', 'Prepare a public trip page with dates, the itinerary, price, inclusions, and cancellation policy. Travelers can understand what they’re joining before they book.'],
+      <section className="marketing-section website-container" aria-labelledby="operator-workflow-title"><div className="marketing-section-intro"><h2 id="operator-workflow-title">Setup</h2><p className="marketing-body">The following workflow previews the operator experience. Payments need early-access onboarding; the example contains no real bookings.</p></div><ol className="marketing-walkthrough">{[
+        ['Publish a trip page', 'Prepare a public trip page with dates, the itinerary, price, inclusions, and cancellation policy. Travelers can understand what they’re joining before they book.'],
         ['Collect deposits and track the balance', 'Preview deposits, dated payments, and booking status in one workflow. The collection fee is proposed at 1% plus Stripe’s processing fees. Payment collection is not generally available yet.'],
         ['Know who is coming', 'Use traveler lists, booking questions, and hosted-trip permissions. Room assignments and waitlists are part of the operator beta; access depends on onboarding and configuration.'],
         ['Give travelers the plan they’ll use', 'Keep the day-by-day itinerary, meeting points, tickets, and group votes with the trip. Travelers can prepare saved plans and downloaded tickets for offline use.'],

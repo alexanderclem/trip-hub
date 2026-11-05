@@ -21,7 +21,7 @@ test('opening sequence: create → trip → optional quiz; a friend joins direct
 
   // The trip opens immediately; preferences are offered in context.
   await page.waitForURL(/\/overview/)
-  await expect(page.getByRole('status', { name: 'Welcome from Stowie' })).toContainText('Your trip is ready.')
+  await expect(page.getByRole('status', { name: 'Welcome from Stowie' })).toContainText('Trip created')
   await shot(page, '74-stowie-welcome-created')
   await page.getByRole('link', { name: /Set your travel preferences/ }).click()
   await page.waitForURL(/\/quiz\?next=/)

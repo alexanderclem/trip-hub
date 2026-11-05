@@ -21,7 +21,7 @@ export function WelcomeScreen() {
   const joining = useLocation().hash === '#join'
   const startTrip = <section className="app-start-trip" aria-labelledby="start-trip-title">
     <h2 id="start-trip-title" className="travel-heading">Start a trip</h2>
-    <p>You only need a trip name and your name. Invite everyone afterward.</p>
+
     <LinkButton to="/new" variant={joining ? 'secondary' : 'primary'} className="mt-5 w-full"><Plus aria-hidden="true" className="size-4" />Create a trip</LinkButton>
   </section>
   const joinTrip = <div id="join" className="scroll-mt-6"><JoinByLink /></div>
@@ -34,7 +34,7 @@ export function WelcomeScreen() {
       <div className={`app-entry-routes ${joining ? 'is-joining' : ''}`}>
         {joining ? <>{joinTrip}{startTrip}</> : <>{startTrip}{joinTrip}</>}
       </div>
-      <div className="app-entry-extras"><AccountCard /><Link to="/inspire" className="ui-link">Need ideas? Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link></div>
+      <div className="app-entry-extras"><AccountCard /><Link to="/inspire" className="ui-link">Trip suggestions <ArrowRight aria-hidden="true" className="size-4" /></Link></div>
       <footer className="app-entry-footer"><AppearancePicker /><Link to="/">Back to Stowaway</Link><InstallAppButton /></footer>
     </main>
   )

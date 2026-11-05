@@ -102,7 +102,7 @@ export function TravelScreen() {
         } catch { setMessage('Could not save the destination. Try again.') }
       }}>
         <Field label="Country"><Select required value={country} onChange={(e) => setCountry(e.target.value)}><option value="">Choose a country</option>{countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}</Select></Field>
-        <Field label="City"><Input required maxLength={100} value={city} onChange={(e) => setCity(e.target.value)} placeholder="Antigua" /></Field>
+        <Field label="City"><Input required maxLength={100} value={city} onChange={(e) => setCity(e.target.value)} placeholder="Paris" /></Field>
         <div className="grid grid-cols-2 gap-3"><Field label="From"><Input required type="date" value={start || trip?.start_date || ''} onChange={(e) => setStart(e.target.value)} /></Field><Field label="Until"><Input required type="date" min={start || trip?.start_date || undefined} value={end || trip?.end_date || start || trip?.start_date || ''} onChange={(e) => setEnd(e.target.value)} /></Field></div>
         <Button type="submit">Explore destination</Button>
       </form></Card>

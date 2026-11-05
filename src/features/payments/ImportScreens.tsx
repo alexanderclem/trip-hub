@@ -38,7 +38,7 @@ function MappingFields<F extends string>({ header, labels, mapping, onChange }: 
     <div className="mt-3 grid gap-2 sm:grid-cols-2">
       {(Object.keys(labels) as F[]).map((f) => (
         <label key={f} className="block text-sm">
-          <span className="font-[550]">{labels[f]}</span>
+          <span className="font-medium">{labels[f]}</span>
           <Select className="mt-1" value={mapping[f] ?? ''} onChange={(e) => onChange({ ...mapping, [f]: e.target.value === '' ? null : Number(e.target.value) })}>
             <option value="">(none)</option>
             {header.map((h, i) => <option key={i} value={i}>{h || `Column ${i + 1}`}</option>)}

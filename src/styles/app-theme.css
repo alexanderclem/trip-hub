@@ -1,0 +1,133 @@
+/* The working side of the luggage tag. Keep body content readable; use condensed print
+   only for small travel labels, perforations for grouping, coral for the next action. */
+.app-world { background: var(--stowaway-canvas); color: var(--stowaway-ink); }
+.app-world :is(h1, h2, h3) { overflow-wrap: anywhere; text-wrap: balance; }
+.app-world ::selection { background: var(--stowaway-coral); color: var(--stowaway-on-primary); }
+.app-world :where(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid var(--stowaway-coral); outline-offset: 3px; }
+
+/* Barlow carries hierarchy and controls. Condensed print is reserved for small metadata. */
+.app-world .ui-page-title { font-size: clamp(1.5rem, 2vw, 2rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: var(--stowaway-leading-heading); }
+.app-world .ui-display { font-family: var(--stowaway-font-display); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.15; font-variant-numeric: lining-nums tabular-nums; }
+.app-world .ui-section-title { font-family: var(--stowaway-font-display); font-size: 1.125rem; font-weight: 600; letter-spacing: -.01em; line-height: 1.35; }
+.app-world .ui-label { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-small); font-weight: 500; letter-spacing: 0; line-height: var(--stowaway-leading-ui); }
+.app-world :is(.ui-eyebrow, .app-kicker, .notebook-label, .agenda-period) { font-family: var(--stowaway-font-label); font-size: var(--stowaway-text-caption); font-weight: 600; letter-spacing: var(--stowaway-tracking-label); line-height: 1.5; text-transform: uppercase; }
+.app-world .travel-heading { font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
+.app-world .ui-link { font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; letter-spacing: 0; }
+.app-world :is([data-slot='card-description'], [data-slot='empty-description'], .place-identity-note, .itinerary-notes) { max-width: var(--stowaway-measure); line-height: 1.65; }
+
+/* Flat stock, an ink stroke, and dashed internal rules. */
+.app-world :is(.ui-card, .ui-row-group, [data-slot='empty']) { border: 2px solid var(--stowaway-ink); border-radius: var(--stowaway-radius-surface); box-shadow: none; }
+.app-world .ui-card-foot { border-top-style: dashed; }
+.app-world .ui-row-group > li + li { border-top: 1px dashed var(--stowaway-border); }
+.app-world .ui-frame { padding: 0; border-radius: var(--stowaway-radius-surface); background: transparent; }
+.app-world .ui-frame > .ui-card { border-color: var(--stowaway-ink); }
+.app-world .ui-status { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); font-weight: 500; letter-spacing: 0; line-height: 1.5; }
+.app-world .ui-status-quiet { font-weight: 500; }
+.app-world .ui-chip { border-width: 2px; border-radius: var(--stowaway-radius-control); font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; }
+.app-world .ui-time { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-small); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* Coral belongs to a primary action. Ink selections stay distinct from actions. */
+.app-world .ui-button.btn, .ui-dialog .ui-button.btn { position: relative; border-width: 2px; font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; letter-spacing: 0; line-height: var(--stowaway-leading-ui); }
+.app-world .ui-button-primary, .ui-dialog .ui-button-primary { border-color: var(--stowaway-coral); background: var(--stowaway-coral); color: var(--stowaway-on-primary); }
+.app-world .ui-button-primary:not(:disabled):hover, .ui-dialog .ui-button-primary:not(:disabled):hover { border-color: color-mix(in srgb, var(--stowaway-coral) 86%, #17343f); background: color-mix(in srgb, var(--stowaway-coral) 86%, #17343f); color: var(--stowaway-on-primary); }
+.app-world .ui-button-secondary, .ui-dialog .ui-button-secondary { border-color: var(--stowaway-ink); }
+.app-world .ui-button-ghost, .ui-dialog .ui-button-ghost { border-color: transparent; }
+.app-world .ui-button.btn:focus-visible { outline-color: var(--stowaway-coral); }
+.app-world .ui-field, .ui-dialog .ui-field { border-width: 2px; border-color: var(--stowaway-ink); background: var(--stowaway-surface); }
+.app-world .ui-field[aria-invalid='true'], .ui-dialog .ui-field[aria-invalid='true'] { border-color: var(--stowaway-danger-ink); }
+.app-world .ui-field:disabled, .ui-dialog .ui-field:disabled { background: var(--stowaway-mist); }
+.app-world .ui-segmented { border: 2px solid var(--stowaway-ink); border-radius: var(--stowaway-radius-control); font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; }
+.app-world .ui-fab { border: 2px solid var(--stowaway-coral); border-radius: 8px; background: var(--stowaway-coral); color: var(--stowaway-on-primary); box-shadow: none; }
+.app-world .ui-fab:hover { background: color-mix(in srgb, var(--stowaway-coral) 86%, #17343f); }
+.app-world .ui-form-actions { border-top: 2px dashed var(--stowaway-border); }
+.ui-dialog { border: 2px solid var(--stowaway-ink); box-shadow: none; }
+.ui-dialog h2 { font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.3; }
+.ui-toast { border: 2px solid var(--stowaway-ink); box-shadow: none; }
+
+/* The screen header and navigation read like the tag's routing strip. */
+.app-world .app-page-header { border-bottom: 2px solid var(--stowaway-ink); background: var(--stowaway-canvas); }
+.app-world .trip-tabs { border-top: 2px solid var(--stowaway-ink); background: var(--stowaway-canvas); }
+.app-world .trip-tab { font-family: var(--stowaway-font-body); font-size: .8125rem; font-weight: 600; letter-spacing: 0; line-height: 1.35; }
+.app-world .trip-tab[aria-current='page'] { background: var(--stowaway-mist); }
+.app-world .trip-tab-bar::before { width: 2.25rem; border-radius: 0; }
+
+/* The trip face: keep the destination artwork, framed as a printed travel label. */
+.app-world .trip-overview .overview-journal { position: relative; border-bottom: 2px dashed var(--stowaway-border); padding-bottom: 1.5rem; }
+.app-world .trip-overview .overview-journal h1 { max-width: 22ch; font-family: var(--stowaway-font-display); font-size: clamp(2rem, 3.8vw, 3.5rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.15; }
+.app-world .overview-postcard { padding: .5rem; border: 2px solid var(--stowaway-ink); border-radius: 10px; background: var(--stowaway-surface); }
+.app-world .overview-postcard .overview-art { border-radius: 4px; }
+.app-world .overview-postcard figcaption { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); letter-spacing: 0; line-height: 1.5; }
+.app-world .overview-postcard figcaption > span:last-child { font-style: normal; }
+.app-world .trip-phase { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); font-weight: 500; letter-spacing: 0; }
+.app-world .trip-overview .overview-focus { border: 2px solid var(--stowaway-ink); border-inline-start: 6px solid var(--stowaway-coral); border-radius: 0 10px 10px 0; }
+.app-world .trip-overview .overview-focus h2 { font-size: clamp(1.625rem, 2.5vw, 2.125rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
+.app-world .overview-focus .ui-button { border-color: var(--stowaway-coral); background: var(--stowaway-coral); color: var(--stowaway-on-primary); font-size: 1.0625rem; }
+.app-world .overview-sidebar > .ui-card { border: 0; border-top: 2px dashed var(--stowaway-border); border-radius: 0; }
+.app-world .trip-overview .overview-planning-nav { border-bottom-style: dashed; }
+.app-world .overview-planning-nav a { font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; }
+.app-world .shared-places-heading h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
+.app-world .trip-day-preview { border: 2px solid var(--stowaway-ink); }
+.app-world .trip-day-preview .shared-places-heading h2 { font-size: 1.125rem; letter-spacing: -.01em; }
+.app-world :is(.shared-place, .preview-stops li + li) { border-top-style: dashed; }
+.app-world .preview-stop-time { font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; }
+
+/* The itinerary is the same solid/idea print language as the landing example. */
+.app-world .plan-notebook .plan-day { min-width: 3.5rem; border: 2px solid var(--stowaway-border); border-radius: 6px; background: var(--stowaway-surface); font-family: var(--stowaway-font-display); }
+.app-world .plan-notebook .plan-day[aria-current] { border-color: var(--stowaway-ink); background: var(--stowaway-ink); color: var(--stowaway-on-action); }
+.app-world .plan-notebook .plan-days { padding-bottom: .75rem; }
+.app-world .plan-date-heading h2 { font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
+.app-world .plan-toolbar { border-bottom: 2px solid var(--stowaway-ink); }
+.app-world .plan-view.ui-segmented { border: 2px solid var(--stowaway-ink); background: var(--stowaway-surface); font-size: 1rem; }
+.app-world .travel-agenda > li { border-bottom: 1px dashed var(--stowaway-border); }
+.app-world .agenda-category { border: 1px solid currentColor; border-radius: 6px; }
+.app-world .agenda-stop h3 { letter-spacing: 0; }
+.app-world .agenda-time { font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; }
+.app-world .agenda-status { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); letter-spacing: 0; }
+.app-world .plan-day-details { border-top-style: dashed; }
+.app-world .poll-score button { border: 2px solid var(--stowaway-ink); font-family: var(--stowaway-font-body); font-size: .875rem; font-weight: 600; line-height: 1.4; }
+.app-world .poll-score button[aria-pressed='true'] { background: var(--stowaway-ink); color: var(--stowaway-on-action); }
+
+/* Real documents become tear-off stubs; confirmation codes and download states stay real. */
+.app-world .travel-ticket { position: relative; border: 2px solid var(--stowaway-ink); border-inline-start-style: dashed; padding-inline-start: 1.5rem; }
+.app-world .travel-ticket-code { font-family: var(--stowaway-font-body); font-size: 1.5rem; font-weight: 600; letter-spacing: .04em; font-variant-numeric: lining-nums tabular-nums; }
+.app-world .travel-ticket-stub { margin-top: 1rem; border-top: 1px dashed var(--stowaway-border); }
+.app-world .balance-stub { border-block: 2px dashed var(--stowaway-border); padding-block: 1rem; }
+.schedule-preview { border-block: 1px dashed var(--stowaway-border); padding-block: 1rem; }
+.schedule-preview li { display: grid; min-width: 0; gap: .25rem; padding-block: .75rem; overflow-wrap: anywhere; }
+.schedule-preview li + li { border-top: 1px dashed var(--stowaway-border); }
+.schedule-preview li > span { overflow-wrap: anywhere; font-size: .875rem; color: var(--stowaway-muted); }
+.schedule-preview del { text-decoration-thickness: 1px; }
+.plan-source-place > .ui-link { display: block; max-width: 100%; padding-block: .5rem; overflow-wrap: anywhere; }
+
+/* Entry, saved trips and forms use the same stock as the trip workspace. */
+.app-world :is(.app-entry-header, .home-header) { border-bottom: 2px solid var(--stowaway-ink); }
+.app-world .app-entry-intro h1 { max-width: 20ch; font-family: var(--stowaway-font-display); font-size: clamp(2.25rem, 4.5vw, 3.5rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.15; }
+.app-world .app-entry-routes .app-start-trip { border: 2px solid var(--stowaway-ink); }
+.app-world .app-entry-routes :is(.app-start-trip h2, #join h2) { font-family: var(--stowaway-font-display); font-size: 1.375rem; font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.3; }
+.app-world .app-entry-routes:not(.is-joining) #join .ui-button-primary { border: 2px solid var(--stowaway-ink); color: var(--stowaway-ink); }
+.app-world .app-entry-footer { border-top: 2px dashed var(--stowaway-border); }
+.app-world .app-home h1 { font-family: var(--stowaway-font-display); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.2; }
+.app-world .saved-trip-card { border: 2px solid var(--stowaway-ink); }
+.app-world .saved-trip-card h3 { font-size: 1.5rem; font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
+.app-world .saved-trip-foot { border-top: 1px dashed var(--stowaway-border); }
+.app-world .saved-trip-arrow { border-radius: 4px; }
+
+@media (min-width: 1024px) {
+  .app-world:has(.trip-shell) { padding: 12px; background: var(--stowaway-ground); }
+  .app-world .trip-shell { border: 1px solid var(--stowaway-border); border-radius: 18px; overflow: hidden; }
+  .app-world .trip-shell > aside { border-inline-end: 2px dashed var(--stowaway-border); background: var(--stowaway-canvas); }
+  .app-world .trip-shell > aside > a { margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 2px solid var(--stowaway-ink); }
+  .app-world .trip-shell > aside > label, .app-world .trip-shell > aside nav > div > p { font-family: var(--stowaway-font-label); font-size: .8125rem; letter-spacing: var(--stowaway-tracking-label); text-transform: uppercase; }
+  .app-world .trip-shell > aside nav { border-top-style: dashed; }
+  .app-world .trip-shell > aside nav a { border-inline-start: 3px solid transparent; border-radius: 0; font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; letter-spacing: 0; }
+  .app-world .trip-shell > aside nav a[aria-current='page'] { border-inline-start-color: var(--stowaway-ink); background: var(--stowaway-mist); }
+  .app-world .trip-shell > aside select { font-size: 1rem; }
+}
+@media (max-width: 639px) {
+  .app-world .trip-overview .overview-journal h1 { font-size: 2rem; letter-spacing: var(--stowaway-tracking-heading); }
+  .app-world .trip-overview .overview-journal-content { grid-template-columns: minmax(0, 1fr) 4.5rem; }
+  .app-world .trip-overview .overview-journal-plain .overview-journal-content,
+  .app-world .trip-overview:is([data-phase='traveling'], [data-phase='preparing']) .overview-journal-content { grid-template-columns: minmax(0, 1fr); }
+  .app-world .overview-postcard { padding: .25rem; }
+  .app-world .agenda-time { flex-wrap: wrap; }
+}

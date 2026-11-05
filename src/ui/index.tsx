@@ -47,7 +47,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
     <FieldDescription value={hint ? hintId : undefined}>
       <div className="block min-w-0">
         <label className="block">
-          <span className="text-sm font-[550] text-ink">{label}</span>
+          <span className="text-sm font-medium text-ink">{label}</span>
           <div className="mt-1.5">{children}</div>
         </label>
         {hint && <span id={hintId} className="mt-1.5 block wrap-anywhere text-sm leading-relaxed text-muted">{hint}</span>}

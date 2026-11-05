@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './fonts.css';
 @import './tokens.css';
 @import './themes.css';
 
@@ -62,6 +63,9 @@ body,
 
 body {
   font-family: var(--stowaway-font-body);
+  font-size: var(--stowaway-text-body);
+  line-height: var(--stowaway-leading-body);
+  font-synthesis: none;
   background: var(--color-canvas);
   color: var(--stowaway-ink);
   -webkit-tap-highlight-color: transparent;
@@ -84,7 +88,7 @@ body {
 .travel-heading {
   font-family: var(--stowaway-font-display);
   font-weight: 600;
-  letter-spacing: -.03em;
+  letter-spacing: var(--stowaway-tracking-heading);
 }
 
 @layer components {
@@ -133,18 +137,18 @@ body {
   .ui-status-warning { background: var(--stowaway-warning-bg); color: var(--stowaway-warning-ink); }
   .ui-status-danger { background: var(--stowaway-danger-bg); color: var(--stowaway-danger-ink); }
   .ui-status-success { background: var(--stowaway-success-bg); color: var(--stowaway-success-ink); }
-  .ui-status-quiet { background: transparent; padding-inline: 0; color: var(--stowaway-muted); font-weight: 550; }
+  .ui-status-quiet { background: transparent; padding-inline: 0; color: var(--stowaway-muted); font-weight: 500; }
   .ui-chip {
     display: inline-flex; min-height: 44px; flex-shrink: 0; align-items: center; gap: .375rem; white-space: nowrap;
     border: 1px solid var(--stowaway-border); border-radius: 999px; background: var(--stowaway-surface); padding: 0 .875rem;
-    font-size: .875rem; font-weight: 550; color: var(--stowaway-ink);
+    font-size: .875rem; font-weight: 500; color: var(--stowaway-ink);
     transition: background-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), border-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease);
   }
   .ui-chip:hover { border-color: var(--stowaway-control-border); background: var(--color-brand-50); }
   .ui-chip[aria-pressed='true'], .ui-chip[aria-current] { border-color: var(--stowaway-ink); background: var(--stowaway-ink); color: var(--stowaway-on-action); }
   /* A segmented switch, as on the website: an ink highlight slides to the chosen option (Animate UI). */
   .ui-segmented { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .25rem; border: 1px solid var(--stowaway-border); border-radius: calc(var(--stowaway-radius-control) + .25rem); background: var(--stowaway-surface); padding: .25rem; font-size: .875rem; }
-  .ui-segmented > button, .ui-segmented > label { position: relative; z-index: 1; display: flex; min-height: 40px; align-items: center; justify-content: center; border-radius: var(--stowaway-radius-control); padding: 0 .75rem; text-align: center; font-weight: 550; color: var(--stowaway-muted); cursor: pointer; transition: color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), background-color 0s; }
+  .ui-segmented > button, .ui-segmented > label { position: relative; z-index: 1; display: flex; min-height: 40px; align-items: center; justify-content: center; border-radius: var(--stowaway-radius-control); padding: 0 .75rem; text-align: center; font-weight: 500; color: var(--stowaway-muted); cursor: pointer; transition: color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), background-color 0s; }
   .ui-segmented > button:not([aria-checked='true'], [aria-pressed='true'], [aria-selected='true']):hover, .ui-segmented > label:not(:has(:checked)):hover { color: var(--stowaway-ink); background: var(--color-brand-50); }
   /* Selection is immediate and remains readable without a measured animation layer. */
   .ui-segmented > [aria-checked='true'], .ui-segmented > [aria-pressed='true'], .ui-segmented > [aria-selected='true'], .ui-segmented > label:has(:checked) { background: var(--stowaway-ink); font-weight: 600; color: var(--stowaway-on-action); transition: color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease), background-color var(--stowaway-feedback-duration) var(--stowaway-feedback-ease); }
@@ -341,7 +345,7 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
 .app-start-trip h2 { margin-top: .75rem; font-size: 2.75rem; line-height: 1.1; color: var(--stowaway-ink); }
 .app-start-trip > p:not(.app-kicker) { margin-top: 1rem; font-size: .9375rem; line-height: 1.8; color: var(--stowaway-muted); }
 .app-entry-actions .ui-card { padding: 1.5rem; }
-.app-inspire-link { display: flex; gap: .75rem; align-items: center; min-height: 44px; padding-inline: 1.5rem; font-size: .875rem; font-weight: 550; color: var(--stowaway-action); }
+.app-inspire-link { display: flex; gap: .75rem; align-items: center; min-height: 44px; padding-inline: 1.5rem; font-size: .875rem; font-weight: 500; color: var(--stowaway-action); }
 .app-inspire-link svg { flex-shrink: 0; }
 .app-entry-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.25rem calc(env(safe-area-inset-bottom) + 1.25rem); border-top: 1px solid var(--stowaway-border); color: var(--stowaway-muted); font-size: .75rem; }
 .app-entry-footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
@@ -387,7 +391,7 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
   .trip-shell > aside nav a { min-height: 44px; border-radius: var(--stowaway-radius-control); font-size: .8125rem; color: var(--stowaway-muted); }
   .trip-shell > aside nav a > svg { width: 18px; height: 18px; }
   .trip-shell > aside nav a:hover { background: var(--stowaway-canvas); color: var(--stowaway-ink); }
-  .trip-shell > aside nav a[aria-current='page'] { background: var(--stowaway-mist); color: var(--stowaway-ink); font-weight: 650; }
+  .trip-shell > aside nav a[aria-current='page'] { background: var(--stowaway-mist); color: var(--stowaway-ink); font-weight: 600; }
   .trip-shell > aside > div:last-child { padding-top: 1rem; border-top: 1px solid var(--stowaway-border); }
   .app-entry-layout { gap: 5rem; }
   .app-entry-story { padding: 3rem; }

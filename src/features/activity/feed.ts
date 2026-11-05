@@ -5,15 +5,16 @@
 
 import type { Attachment, Comment, ExpenseRow, ItineraryItem, Member, Place, PlaceRating, Poll, PollOption, SettlementRow, TripTask } from '@/data/types'
 import { formatMoney } from '@/lib/money'
+import { planChanges } from '@/data/itineraryChanges'
 
 export type ActivityKind =
-  | 'joined' | 'vote' | 'option' | 'decided' | 'place' | 'rated' | 'item' | 'item-status' | 'expense' | 'settled' | 'task' | 'task-done' | 'ticket' | 'comment'
+  | 'joined' | 'vote' | 'option' | 'decided' | 'place' | 'rated' | 'item' | 'item-status' | 'item-change' | 'expense' | 'settled' | 'task' | 'task-done' | 'ticket' | 'comment'
 
 /** What the feed can be narrowed to. Someone joining belongs to none of them. */
 export const GROUPS = ['votes', 'plan', 'places', 'money', 'tasks', 'tickets', 'comments'] as const
 export type ActivityGroup = (typeof GROUPS)[number]
 const GROUP_OF: Record<ActivityKind, ActivityGroup | null> = {
-  joined: null, vote: 'votes', option: 'votes', decided: 'votes', place: 'places', rated: 'places', item: 'plan', 'item-status': 'plan',
+  joined: null, vote: 'votes', option: 'votes', decided: 'votes', place: 'places', rated: 'places', item: 'plan', 'item-status': 'plan', 'item-change': 'plan',
   expense: 'money', settled: 'money', task: 'tasks', 'task-done': 'tasks', ticket: 'tickets', comment: 'comments',
 }
 export const groupOf = (kind: ActivityKind): ActivityGroup | null => GROUP_OF[kind]
@@ -87,7 +88,10 @@ export function buildFeed(rows: FeedRows, limit = 50): ActivityEvent[] {
   }
   for (const i of live(rows.items)) {
     add('item', i, `added to the plan: ${i.title}`, `plan/${i.id}`)
-    if ((i.status === 'confirmed' || i.status === 'cancelled') && changedLater(i)) add('item-status', i, `${i.status}: ${i.title}`, `plan/${i.id}`, { at: i.updated_at!, by: i.updated_by ?? null })
+    if (!planChanges(i).length && (i.status === 'confirmed' || i.status === 'cancelled') && changedLater(i)) add('item-status', i, `${i.status}: ${i.title}`, `plan/${i.id}`, { at: i.updated_at!, by: i.updated_by ?? null })
+  }
+  for (const item of rows.items) for (const change of planChanges(item)) {
+    events.push({ id: `change:${change.id}`, kind: 'item-change', at: change.at, by: change.by, text: change.text, to: item.deleted_at ? 'plan' : `plan/${item.id}` })
   }
   for (const e of live(rows.expenses)) add('expense', e, `logged ${formatMoney(e.amount_minor, e.currency)} for ${e.description}`, `money/${e.id}`)
   for (const s of live(rows.settlements)) {

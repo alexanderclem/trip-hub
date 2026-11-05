@@ -29,3 +29,9 @@ supabase/.temp/
 
 # Local captures from the guest-evaluation regression pass
 .design/screenshots/guest-fixes/
+.claude/skills/impeccable/
+.claude/agents/impeccable-*.md
+.claude/settings.local.json
+.github/skills/impeccable/
+.github/agents/impeccable-*.md
+.github/hooks/impeccable.json

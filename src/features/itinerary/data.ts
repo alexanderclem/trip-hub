@@ -35,7 +35,7 @@ export function useDisplayZone(trip: Trip | undefined): { zone: string; view: 't
  * Saves an item, deriving its instants locally (so the plan works offline; the server derives the
  * same ones). A place put on the plan is marked "planned" if it was still an idea or shortlisted.
  */
-export async function saveItem(item: ItineraryItem, memberId: string | null): Promise<void> {
+export async function saveItem(item: ItineraryItem, memberId: string | null, attachmentId?: string): Promise<void> {
   const start_local = normalizeLocal(item.start_local)
   const end_local = item.end_local ? normalizeLocal(item.end_local) : null
   const row: ItineraryItem = {
@@ -47,15 +47,26 @@ export async function saveItem(item: ItineraryItem, memberId: string | null): Pr
     end_at: end_local ? toInstant(end_local, item.end_tz ?? item.start_tz) : null,
   }
   if (row.end_at && row.end_at < row.start_at) throw new Error('It ends before it starts.')
-  await save('itinerary_items', row, memberId)
-
-  for (const placeId of [row.place_id, row.to_place_id]) {
-    if (!placeId) continue
-    const place = await db.places.get(placeId)
-    if (place && !place.deleted_at && (place.status === 'catalog' || place.status === 'shortlist')) {
-      await save('places', { ...place, status: row.status === 'confirmed' && row.confirmation_code ? 'booked' : 'planned' }, memberId)
+  await db.transaction('rw', db.itinerary_items, db.attachments, db.places, db._outbox, async () => {
+    const attachment = attachmentId ? await db.attachments.get(attachmentId) : undefined
+    if (attachmentId) {
+      if (!attachment || attachment.deleted_at || attachment.trip_id !== item.trip_id) throw new Error('This ticket is no longer available.')
+      if (attachment.item_id && attachment.item_id !== item.id) {
+        const linked = await db.itinerary_items.get(attachment.item_id)
+        if (linked && !linked.deleted_at) throw new Error('This ticket is already linked to an itinerary item.')
+      }
     }
-  }
+    await save('itinerary_items', row, memberId)
+    if (attachment) await save('attachments', { ...attachment, item_id: item.id }, memberId)
+
+    for (const placeId of [row.place_id, row.to_place_id]) {
+      if (!placeId) continue
+      const place = await db.places.get(placeId)
+      if (place && !place.deleted_at && (place.status === 'catalog' || place.status === 'shortlist')) {
+        await save('places', { ...place, status: row.status === 'confirmed' && row.confirmation_code ? 'booked' : 'planned' }, memberId)
+      }
+    }
+  })
 }
 
 export const deleteItem = (id: string, memberId: string | null) => softDelete('itinerary_items', id, memberId)

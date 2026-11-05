@@ -4,7 +4,7 @@
 .trip-overview .overview-journal { margin-block: .75rem 2rem; padding-bottom: 1.5rem; }
 .overview-journal-top { margin-bottom: 1.25rem; }
 .overview-journal .overview-journal-content { align-items: center; }
-.trip-overview .overview-journal h1 { max-width: 20ch; font-family: var(--stowaway-font-display); font-size: clamp(2.25rem, 4vw, 3.75rem); font-weight: 650; letter-spacing: -.045em; line-height: 1.1; text-wrap: balance; }
+.trip-overview .overview-journal h1 { max-width: 20ch; font-family: var(--stowaway-font-display); font-size: clamp(2.25rem, 4vw, 3.75rem); font-weight: 600; letter-spacing: -.045em; line-height: 1.1; text-wrap: balance; }
 .overview-meta { margin-top: 1.25rem; }
 .overview-postcard { min-width: 0; margin: 0; }
 .overview-postcard .overview-art { height: 12rem; border-radius: var(--stowaway-radius-surface); animation: none; }
@@ -51,7 +51,7 @@
 .plan-notebook .plan-day-indicator { display: none; }
 .plan-notebook .plan-day-content { padding-top: 1.5rem; }
 .plan-date-heading .notebook-label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .375rem; }
-.plan-date-heading h2 { margin-top: .25rem; font-family: var(--stowaway-font-display); font-size: clamp(1.375rem, 2.5vw, 1.875rem); font-weight: 650; letter-spacing: -.035em; line-height: 1.25; }
+.plan-date-heading h2 { margin-top: .25rem; font-family: var(--stowaway-font-display); font-size: clamp(1.375rem, 2.5vw, 1.875rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.25; }
 .plan-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; border-bottom: 1px solid var(--stowaway-border); padding-bottom: .75rem; }
 .plan-toolbar .ui-link { font-size: .75rem; }
 .plan-view.ui-segmented { padding: 2px; border: 0; border-radius: var(--stowaway-radius-control); background: var(--stowaway-mist); font-size: .75rem; }
@@ -79,7 +79,7 @@
 .place-identity { display: flex; align-items: start; gap: 1rem; min-width: 0; }
 .place-identity-mark { display: flex; width: 2.5rem; height: 2.5rem; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid var(--stowaway-border); border-radius: 50%; background: var(--stowaway-mist); color: var(--stowaway-action); }
 .place-identity-caption { color: var(--stowaway-muted); font-size: .75rem; line-height: 1.6; overflow-wrap: anywhere; }
-.place-identity-name { margin-top: .25rem; font-family: var(--stowaway-font-display); font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 650; letter-spacing: -.035em; line-height: 1.2; overflow-wrap: anywhere; }
+.place-identity-name { margin-top: .25rem; font-family: var(--stowaway-font-display); font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.2; overflow-wrap: anywhere; }
 .place-identity-compact .place-identity-name { font-size: 1.5rem; }
 .place-identity-author { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .875rem; font-size: .75rem; color: var(--stowaway-muted); }
 .place-identity-author > span:first-child { width: 1.25rem; height: 1.25rem; font-size: .5rem; }
@@ -114,7 +114,7 @@
   .trip-overview .overview-journal { margin-block: .5rem 1.5rem; padding-bottom: 1rem; }
   .trip-overview .overview-journal-top { margin-bottom: .75rem; }
   .trip-overview .overview-journal-content, .trip-overview[data-introduction='false'] .overview-journal-content { grid-template-columns: minmax(0, 1fr) 5rem; gap: 1rem; align-items: start; }
-  .trip-overview .overview-journal h1, .trip-overview[data-introduction='false'] .overview-journal h1 { margin-top: 0; font-size: 1.875rem; font-weight: 650; line-height: 1.1; letter-spacing: -.04em; }
+  .trip-overview .overview-journal h1, .trip-overview[data-introduction='false'] .overview-journal h1 { margin-top: 0; font-size: 1.875rem; font-weight: 600; line-height: 1.1; letter-spacing: -.04em; }
   .trip-overview .overview-journal .app-kicker { display: none; }
   .trip-overview .overview-meta { margin-top: .75rem; }
   .trip-overview .overview-postcard .overview-art { height: 6rem; }

@@ -20,7 +20,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((previous) => previous.map((item) => item.id === toast.id ? { ...item, busy: true, error: undefined } : item))
     try {
       await toast.undo()
-      setToasts((previous) => previous.map((item) => item.id === toast.id ? { id: item.id, message: 'Change undone on this device.' } : item))
+      setToasts((previous) => previous.map((item) => item.id === toast.id ? { id: item.id, message: 'Change undone.' } : item))
     } catch (error) {
       setToasts((previous) => previous.map((item) => item.id === toast.id ? { ...item, busy: false, error: error instanceof Error ? error.message : 'Could not undo. Try again.' } : item))
     } finally { locks.current.delete(toast.id) }

@@ -4,8 +4,9 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { CheckCircle2, Download, LoaderCircle, RotateCw, Trash2 } from 'lucide-react'
 import { db } from '@/data/db'
-import { useMyMemberId } from '@/data/device'
-import { Button, ErrorNote, PageHeader } from '@/ui'
+import { useMyMemberId, useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
+import { Button, ErrorNote, LinkButton, PageHeader } from '@/ui'
 import { getBlob, removeAttachment } from './files'
 import { PdfView } from './PdfView'
 import { AttachmentText } from '@/features/scan/AttachmentText'
@@ -17,6 +18,7 @@ export function TicketViewerScreen() {
   const { tripId, attachmentId } = useParams() as { tripId: string; attachmentId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
+  const mayPlan = can(useTripAccess(tripId), 'plan')
   const att = useFirstRow(attachmentId, useLiveQuery(() => db.attachments.get(attachmentId), [attachmentId]))
   const item = useLiveQuery(() => (att?.item_id ? db.itinerary_items.get(att.item_id) : undefined), [att?.item_id])
   const [file, setFile] = useState<{ id: string; blob: Blob } | null>(null)
@@ -64,9 +66,10 @@ export function TicketViewerScreen() {
             <Morph name={morphName('ticket', att.id, 'code')}><p className="mx-auto w-fit font-mono text-3xl font-semibold tracking-wider break-all select-all">{att.confirmation_code}</p></Morph>
           </div>
         )}
-        {item && item.id === att.item_id && (
+        {item && !item.deleted_at && item.id === att.item_id && (
           <Link to={`/t/${tripId}/plan/${item.id}`} className="block rounded-control border border-line bg-surface px-4 py-3 text-sm text-action">For: {item.title}</Link>
         )}
+        {mayPlan && (!att.item_id || item?.deleted_at) && ['ticket', 'reservation'].includes(att.kind) && <LinkButton to={`/t/${tripId}/plan/new?ticket=${att.id}`} className="w-full">Add to itinerary</LinkButton>}
         {error && <div className="rounded-surface border border-line bg-surface p-4"><ErrorNote error={error} /><Button variant="secondary" className="mt-3" onClick={() => { setError(null); setAttempt((value) => value + 1) }}><RotateCw aria-hidden="true" className="size-4" />Try again</Button></div>}
         {blob && <p role="status" className="flex items-center gap-2 text-sm text-success-ink"><CheckCircle2 aria-hidden="true" className="size-4 shrink-0" />Saved on this phone</p>}
         {/* touch-action lets people pinch-zoom a barcode for the scanner. */}

@@ -153,7 +153,7 @@ function ReferralCard() {
     <Card>
       <SectionTitle>Referral credit<ProBadge beta={me?.beta ?? true} /></SectionTitle>
       <p className="mt-1 text-sm text-muted">Each past traveler gets their own link. When a friend books with it, the traveler gets this much off their next trip with you. It’s a discount, never cash. 0 turns it off.</p>
-      <label htmlFor="ref-credit" className="mt-2 block text-sm font-[550]">Credit per friend ($)</label>
+      <label htmlFor="ref-credit" className="mt-2 block text-sm font-medium">Credit per friend ($)</label>
       <div className="mt-1 flex items-center gap-2">
         <Input id="ref-credit" inputMode="decimal" className="w-28" value={value} onChange={(e) => setAmount(e.target.value)} />
         <button type="button" className="ui-link inline-flex min-h-11 items-center" disabled={busy} onClick={() => void save()}>{busy ? 'Saving…' : 'Save'}</button>

@@ -73,7 +73,7 @@ test('a group trip member who did not create it sees no remove buttons', async (
 test('a hosted traveler cannot add to the plan but can add their own expenses and tickets', async ({ page }) => {
   await seed(page, { me: ben, role: 'traveler', mode: 'hosted', organized: true })
   await page.goto(`${base}/plan`)
-  await expect(page.getByRole('heading', { name: 'Know what’s next' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'No plans for this day' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Add to this day' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Add' }).first().click()
   const dialog = page.getByRole('dialog')

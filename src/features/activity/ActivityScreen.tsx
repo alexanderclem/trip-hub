@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
-import { PageHeader } from '@/ui'
+import { PageHeader, SectionTitle } from '@/ui'
+import { isNew } from './feed'
 import { ActivityList } from './ActivityList'
 import { useActivity, useMarkActivitySeen } from './data'
 import { GROUPS, groupOf, type ActivityGroup } from './feed'
@@ -23,9 +24,11 @@ export function ActivityScreen() {
   const groups = useMemo(() => GROUPS.filter((g) => events?.some((e) => groupOf(e.kind) === g)), [events])
   const active = filter && groups.includes(filter) ? filter : null
   const shown = useMemo(() => (active ? events?.filter((e) => groupOf(e.kind) === active) : events), [events, active])
+  const fresh = shown?.filter(event => isNew(event, since, me)) ?? []
+  const earlier = shown?.filter(event => !isNew(event, since, me)) ?? []
   return (
     <div className="min-h-full pb-8">
-      <PageHeader title="What’s new" back={`/t/${tripId}/overview`} />
+        <PageHeader title="Changes" back={`/t/${tripId}/overview`} />
       <div className="mx-auto max-w-2xl p-4">
         {groups.length > 1 && (
           <div role="group" aria-label="Show" className="-mx-4 mb-2 flex gap-2 overflow-x-auto px-4 pb-2">
@@ -35,6 +38,7 @@ export function ActivityScreen() {
         )}
         {shown === undefined ? <ListSkeleton label="Loading…" rows={5} />
           : shown.length === 0 ? <p className="text-sm text-muted">No activity yet.</p>
+          : fresh.length ? <><SectionTitle>Since your last visit</SectionTitle><ActivityList tripId={tripId} events={fresh} members={members} me={me} since={since} />{earlier.length > 0 && <div className="mt-6"><SectionTitle>Earlier</SectionTitle><ActivityList tripId={tripId} events={earlier} members={members} me={me} since={since} /></div>}</>
           : <ActivityList tripId={tripId} events={shown} members={members} me={me} since={since} />}
       </div>
     </div>

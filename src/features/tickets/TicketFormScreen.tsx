@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Camera, FileUp } from 'lucide-react'
-import { useMyMemberId } from '@/data/device'
+import { useMyMemberId, useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { ATTACHMENT_KINDS, type AttachmentKind } from '@/data/types'
 import { Button, ErrorNote, Field, Input, PageHeader, Select } from '@/ui'
 import { useItems } from '@/features/itinerary/data'
@@ -19,6 +20,7 @@ export function TicketFormScreen() {
   const [search] = useSearchParams()
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
+  const mayPlan = can(useTripAccess(tripId), 'plan')
   const items = useItems(tripId)
   const fileRef = useRef<HTMLInputElement>(null)
   const cameraRef = useRef<HTMLInputElement>(null)
@@ -37,6 +39,7 @@ export function TicketFormScreen() {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const savingRef = useRef(false)
 
   // Prefill from the linked plan item once it's loaded.
   const prefilled = useRef(false)
@@ -61,18 +64,22 @@ export function TicketFormScreen() {
 
   async function submit(e: FormEvent) {
     e.preventDefault()
+    if (savingRef.current) return
     if (!file) {
       setError('Choose a PDF or photo before saving. A name or confirmation code alone does not include the ticket.')
       fileRef.current?.closest('form')?.querySelector<HTMLButtonElement>('button')?.focus()
       return
     }
+    savingRef.current = true
     setSaving(true)
     setError(null)
     try {
       const id = await addAttachment({ tripId, file, title, kind, itemId: itemId || null, confirmationCode: code, text: scan.text, textSource: scan.source, details, expenseId: forExpenseId }, me)
-      navigate(forExpenseId ? `/t/${tripId}/money/${forExpenseId}` : forExpense && kind === 'receipt' ? `/t/${tripId}/money/new?receipt=${id}` : `/t/${tripId}/tickets/${id}`, { replace: true })
+      const addToPlan = (e.nativeEvent as SubmitEvent).submitter?.getAttribute('value') === 'plan'
+      navigate(addToPlan ? `/t/${tripId}/plan/new?ticket=${id}` : forExpenseId ? `/t/${tripId}/money/${forExpenseId}` : forExpense && kind === 'receipt' ? `/t/${tripId}/money/new?receipt=${id}` : `/t/${tripId}/tickets/${id}`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
+      savingRef.current = false
       setSaving(false)
     }
   }
@@ -83,9 +90,8 @@ export function TicketFormScreen() {
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4">
         <input ref={fileRef} type="file" accept="application/pdf,image/*" hidden aria-label="Choose file" onChange={(e) => pick(e.target.files?.[0])} />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden aria-label="Take photo" onChange={(e) => pick(e.target.files?.[0])} />
-        <p id="ticket-file-help" className="text-sm leading-relaxed text-muted">A PDF or photo is required. Add the file first, then give it a name and confirmation code.</p>
         <div className="grid grid-cols-2 gap-2">
-          <Button type="button" aria-describedby="ticket-file-help" variant="secondary" onClick={() => fileRef.current?.click()}><FileUp aria-hidden="true" className="size-4" />PDF or photo</Button>
+          <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}><FileUp aria-hidden="true" className="size-4" />PDF or photo</Button>
           <Button type="button" variant="secondary" onClick={() => cameraRef.current?.click()}><Camera aria-hidden="true" className="size-4" />Take a photo</Button>
         </div>
         {file && <p className="rounded-surface bg-brand-50 px-3 py-2 text-sm text-ink">{file.name} · {(file.size / 1024 / 1024).toFixed(1)} MB</p>}
@@ -106,7 +112,7 @@ export function TicketFormScreen() {
         )}
 
         <Field label="Name">
-          <Input value={title} onChange={(e) => { titleTouched.current = true; setTitle(e.target.value) }} maxLength={200} placeholder={kind === 'receipt' ? 'Dinner at Café Sky' : 'Boarding pass UA 1234'} />
+          <Input value={title} onChange={(e) => { titleTouched.current = true; setTitle(e.target.value) }} maxLength={200} placeholder={kind === 'receipt' ? 'Dinner in Le Marais' : 'Boarding pass AF 1234'} />
         </Field>
         <div className="grid grid-cols-2 gap-2">
           <Field label="Type">
@@ -126,7 +132,7 @@ export function TicketFormScreen() {
         </Field>
         <ErrorNote error={error} />
         <Button type="submit" className="w-full" disabled={saving}>{saving ? 'Saving…' : forExpense && kind === 'receipt' ? 'Save and log the expense' : 'Save'}</Button>
-        <p className="text-center text-xs text-muted">Saved on this phone right away, then shared with the group when there's signal.</p>
+        {mayPlan && !itemId && !forExpense && ['ticket', 'reservation'].includes(kind) && <Button type="submit" name="intent" value="plan" variant="secondary" className="w-full" disabled={saving}>Save and add to itinerary</Button>}
       </form>
     </div>
   )

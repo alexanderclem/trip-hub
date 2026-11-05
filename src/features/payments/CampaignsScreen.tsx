@@ -90,17 +90,17 @@ function Composer({ campaign, organizerId, onDone }: { campaign: CampaignRow | n
     <Card>
       <SectionTitle>{locked ? 'Queued campaign' : id ? 'Edit campaign' : 'New campaign'}</SectionTitle>
       <div className="mt-3 space-y-3">
-        <Field label="Subject"><Input maxLength={150} value={subject} disabled={locked} onChange={(e) => setSubject(e.target.value)} placeholder="Lake Atitlán again in March?" /></Field>
+        <Field label="Subject"><Input maxLength={150} value={subject} disabled={locked} onChange={(e) => setSubject(e.target.value)} placeholder="Paris again in spring?" /></Field>
         <Field label="Message" hint="Plain text. Your name, postal address and an unsubscribe link are added at the end."><Textarea rows={8} maxLength={10000} value={body} disabled={locked} onChange={(e) => setBody(e.target.value)} /></Field>
         {offers.length > 0 && (
           <fieldset>
-            <legend className="text-sm font-[550] text-ink">People who went on (any, if none ticked)</legend>
+            <legend className="text-sm font-medium text-ink">People who went on (any, if none ticked)</legend>
             {offers.map((o) => <label key={o.trip_id} className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" className="size-5" disabled={locked} checked={trips.includes(o.trip_id)} onChange={() => setTrips(toggle(trips, o.trip_id))} />{o.title}</label>)}
           </fieldset>
         )}
         {allTags.length > 0 && (
           <fieldset>
-            <legend className="text-sm font-[550] text-ink">Tagged (any, if none ticked)</legend>
+            <legend className="text-sm font-medium text-ink">Tagged (any, if none ticked)</legend>
             <div className="flex flex-wrap gap-x-4">{allTags.map((t) => <label key={t} className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" className="size-5" disabled={locked} checked={tags.includes(t)} onChange={() => setTags(toggle(tags, t))} />{t}</label>)}</div>
           </fieldset>
         )}

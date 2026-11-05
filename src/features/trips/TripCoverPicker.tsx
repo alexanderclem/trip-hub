@@ -44,7 +44,7 @@ export function TripCoverPicker({ trip, memberId }: { trip: Trip; memberId: stri
   return <>
     <button type="button" className="ui-link" aria-haspopup="dialog" onClick={() => { setDraft(coverChoice(trip)); setPhoto(coverPhoto(trip)); setError(null); setSaved(false); setOpen(true) }}><Image aria-hidden="true" className="size-4" />Change trip cover</button>
     <span role="status" className="cover-saved">{saved && <><Check aria-hidden="true" className="size-4" />Cover saved on this device. Changes sync when online.</>}</span>
-    <Dialog open={open} onClose={() => setOpen(false)} dismissible={!pending} title="A little more you.">
+    <Dialog open={open} onClose={() => setOpen(false)} dismissible={!pending} title="Trip cover">
       {open && <>
         <p className="mb-4 text-sm leading-relaxed text-muted">A postcard for your destination, or a photo of your own. Everyone in the trip sees the saved cover.</p>
         <div className="cover-preview" aria-label="Trip cover preview">{draft === 'custom' && !photo ? <span className="p-4 text-center text-sm text-muted">Choose a photo to preview it.</span> : <TripArtwork cover={draft === 'auto' ? automatic : draft} photo={photo} />}{draft === 'none' && <span className="travel-heading text-2xl">Your trip.</span>}</div>

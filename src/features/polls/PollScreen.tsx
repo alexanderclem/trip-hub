@@ -228,7 +228,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSa
     setError(null)
     try {
       await vote(option, me, next)
-      setMessage(next === null ? 'Vote removed from this device. Changes sync when connected.' : 'Vote saved on this device. Changes sync when connected.')
+      setMessage(next === null ? 'Vote removed.' : 'Vote saved.')
       onSaved()
     } catch {
       setPending(null)
@@ -263,7 +263,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSa
           </button>
         )}
       </div>
-      <div role="group" aria-label={`Your vote for ${option.label}`} aria-busy={saving} className="mt-3 grid grid-cols-4 gap-1.5">
+      <div role="group" aria-label={`Your vote for ${option.label}`} aria-busy={saving} className="poll-score mt-3 grid grid-cols-4 gap-1.5">
         {VOTE_SCORES.map((s) => (
           <button
             key={s}

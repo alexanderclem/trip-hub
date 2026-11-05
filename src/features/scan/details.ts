@@ -14,6 +14,13 @@ export const scanDetailsSchema = z.object({
   confirmation_code: text(40).describe('Booking reference, PNR or confirmation number'),
   flight: text(20).describe('Flight number like "UA 1234"'),
   notes: text(300).describe('Anything else useful in one short sentence'),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional().describe('Travel, event or check-in date printed on the document; never the purchase date'),
+  start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().optional().describe('Printed departure, event or check-in time, HH:mm; null if absent'),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional().describe('Printed arrival, end or check-out date'),
+  end_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().optional().describe('Printed arrival, end or check-out time, HH:mm'),
+  start_timezone: text(80).optional().describe('IANA time zone only if explicitly identifiable from the document; null if uncertain'),
+  end_timezone: text(80).optional().describe('IANA arrival time zone only if explicitly identifiable from the document; null if uncertain'),
+  item_kind: z.enum(['flight', 'transport', 'lodging', 'reservation', 'activity', 'meal']).nullable().optional().describe('Type of booking, if identifiable'),
 })
 export type ScanDetails = z.infer<typeof scanDetailsSchema>
 
@@ -44,6 +51,7 @@ export function parseDetails(raw: unknown): ScanDetails | null {
   const out: Record<string, unknown> = {}
   for (const [key, field] of Object.entries(scanDetailsSchema.shape)) {
     let v = (value as Record<string, unknown>)[key]
+    if (v === undefined && field.isOptional()) continue
     if (key === 'currency' && typeof v === 'string') v = SYMBOLS[v.trim()] ?? v.trim().toUpperCase()
     const parsed = field.safeParse(typeof v === 'string' && v.trim() === '' ? null : v ?? null)
     out[key] = parsed.success ? parsed.data : null
@@ -55,5 +63,5 @@ export function parseDetails(raw: unknown): ScanDetails | null {
 /** Keeps `a`'s values and fills its gaps from `b`. */
 export function mergeDetails(a: ScanDetails | null, b: ScanDetails | null): ScanDetails | null {
   if (!a || !b) return a ?? b
-  return Object.fromEntries(Object.keys(scanDetailsSchema.shape).map((k) => [k, a[k as keyof ScanDetails] ?? b[k as keyof ScanDetails]])) as ScanDetails
+  return Object.fromEntries(Object.keys(scanDetailsSchema.shape).filter(k => a[k as keyof ScanDetails] !== undefined || b[k as keyof ScanDetails] !== undefined).map((k) => [k, a[k as keyof ScanDetails] ?? b[k as keyof ScanDetails]])) as ScanDetails
 }

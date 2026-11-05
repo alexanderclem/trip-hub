@@ -150,7 +150,7 @@ export function ExpenseFormScreen() {
       <PageHeader title={expenseId ? 'Edit expense' : 'Add expense'} back={`/t/${tripId}/money`} />
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4 pb-0">
         <Field label="What for?">
-          <Input value={d.description} onChange={(e) => set('description', e.target.value)} maxLength={200} placeholder="Dinner at Café Sky" />
+          <Input value={d.description} onChange={(e) => set('description', e.target.value)} maxLength={200} placeholder="Dinner in Le Marais" />
         </Field>
         <div className="grid grid-cols-[1fr_6rem] gap-2">
           <Field label="Amount">

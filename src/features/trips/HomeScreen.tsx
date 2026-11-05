@@ -9,7 +9,7 @@ import type { Member, Trip } from '@/data/types'
 import { dateRange } from '@/lib/time'
 import { Avatar, Card, Disclosure, LinkButton } from '@/ui'
 import { Brand } from '@/ui/Brand'
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle, Skeleton } from '@/ui/collection'
+import { Empty, EmptyHeader, EmptyTitle, Skeleton } from '@/ui/collection'
 import { AccountCard } from '@/features/account/AccountCard'
 import { JoinByLink } from './JoinByLink'
 import { InstallAppButton } from '@/features/install/InstallAppDialog'
@@ -99,17 +99,16 @@ export function HomeScreen() {
           ) : (
             <Empty>
               <img src="/brand/packed-for-anywhere.svg" alt="" width="360" height="170" className="w-64 max-w-full" />
-              <EmptyHeader><EmptyTitle>{past.length ? 'Where to next?' : 'No trips yet'}</EmptyTitle><EmptyDescription>{past.length ? 'Your past trips are tucked away below. Start something new when you’re ready.' : 'Create a trip, or join one with an invite link below.'}</EmptyDescription></EmptyHeader>
+              <EmptyHeader><EmptyTitle>No upcoming trips</EmptyTitle></EmptyHeader>
             </Empty>
           )}
           {!!past.length && <Disclosure summary={<span>Past trips <span className="ml-1 text-muted">· {past.length}</span></span>} className="past-trips mt-8 border-t border-line pt-3"><div className="saved-trips-grid pb-2">{past.map((trip) => <TripCard key={trip.id} trip={trip} members={data?.byTrip.get(trip.id) ?? []} now={now} />)}</div></Disclosure>}
-          <p className="mt-5 text-xs leading-relaxed text-muted">Saved on this device. Open a trip to see its sync status.</p>
         </section>
 
         <div className="space-y-6">
         <div className="home-discover">
           <Compass aria-hidden="true" className="size-5 text-action" />
-          <div><h2>Still choosing where to go?</h2><p>Find a starting point for your next trip.</p><Link to="/inspire" className="ui-link">Help me plan <ArrowRight aria-hidden="true" className="size-4" /></Link></div>
+          <div><h2>Trip suggestions</h2><Link to="/inspire" className="ui-link">Get suggestions <ArrowRight aria-hidden="true" className="size-4" /></Link></div>
         </div>
         <div id="join" className="scroll-mt-6"><JoinByLink /></div>
         <AccountCard />

@@ -18,7 +18,7 @@ async function seed(page: Page, online = false) {
       trips: { [tripId]: { tripId, memberId: me, joinedAt: '2027-01-01T12:00:00Z' } } } }))
   }, { tripId, me })
   await page.goto('/app')
-  await expect(page.getByText('No trips yet', { exact: true })).toBeVisible()
+  await expect(page.getByText('No upcoming trips', { exact: true })).toBeVisible()
   await page.evaluate(async ({ tripId, me, placeId }) => {
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })

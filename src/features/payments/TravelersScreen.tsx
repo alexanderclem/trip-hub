@@ -77,9 +77,9 @@ function ContactEditor({ contact, onSaved }: { contact: ContactRow; onSaved: (c:
   }
   return (
     <div className="mt-2 space-y-2 rounded-surface bg-mist/60 p-3">
-      <label className="block text-sm font-[550]" htmlFor={`tags-${contact.id}`}>Tags, separated by commas</label>
+      <label className="block text-sm font-medium" htmlFor={`tags-${contact.id}`}>Tags, separated by commas</label>
       <Input id={`tags-${contact.id}`} value={tags} onChange={(e) => setTags(e.target.value)} placeholder="repeat, vip" />
-      <label className="block text-sm font-[550]" htmlFor={`notes-${contact.id}`}>Notes (only you see these)</label>
+      <label className="block text-sm font-medium" htmlFor={`notes-${contact.id}`}>Notes (only you see these)</label>
       <Textarea id={`notes-${contact.id}`} rows={3} maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} />
       <ErrorNote error={error} />
       <Button variant="secondary" className="w-full" disabled={busy} onClick={() => void submit()}>{busy ? 'Saving…' : 'Save'}</Button>

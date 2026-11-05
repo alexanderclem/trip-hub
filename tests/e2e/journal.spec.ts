@@ -26,7 +26,7 @@ async function seed(page: Page, baseURL: string, phase: 'planning' | 'preparing'
   // The empty home state appears after Dexie's first read has created every store.
   // An unrelated page heading can render before that asynchronous schema initialization.
   await page.goto('/app')
-  await page.getByText('No trips yet', { exact: true }).waitFor()
+  await page.getByText('No upcoming trips', { exact: true }).waitFor()
   await page.evaluate(async ({ tripId, me, maya, noah, pollId, placeId, itemId, taskId, pastId, phase }) => {
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
@@ -133,7 +133,7 @@ test('cover selection survives reload, preserves other settings, and permits a p
   await seed(page, baseURL!)
   await page.goto(`${root}/overview`)
   await page.getByRole('button', { name: 'Change trip cover' }).click()
-  const dialog = page.getByRole('dialog', { name: 'A little more you.' })
+  const dialog = page.getByRole('dialog', { name: 'Trip cover' })
   await dialog.getByLabel('By the water').focus()
   await page.keyboard.press('ArrowRight')
   await expect(dialog.getByLabel('Into the mountains')).toBeChecked()
@@ -162,7 +162,7 @@ test('cover save failure keeps selection and allows retry without duplicate writ
   await seed(page, baseURL!)
   await page.goto(`${root}/overview`)
   await page.getByRole('button', { name: 'Change trip cover' }).click()
-  const dialog = page.getByRole('dialog', { name: 'A little more you.' })
+  const dialog = page.getByRole('dialog', { name: 'Trip cover' })
   await dialog.getByText('Around the city', { exact: true }).click()
   await page.evaluate(() => {
     const original = IDBObjectStore.prototype.put
@@ -211,7 +211,7 @@ test('completing your remaining vote updates the group summary', async ({ page, 
   await page.goto(`${root}/overview`)
   await page.getByRole('link', { name: 'Cast your vote' }).click()
   await page.getByRole('group', { name: 'Your vote for Costa da Caparica' }).getByRole('button').first().click()
-  await expect(page.getByRole('status').filter({ hasText: 'Vote saved on this device' })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'Vote saved.' })).toBeVisible()
   await page.goBack()
   await expect(page.getByText('Waiting on Maya and Noah', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Cast your vote' })).toHaveCount(0)
@@ -276,7 +276,7 @@ test('planning shortcuts lead to the real trip screens and preserve trip context
   await page.goto(`${root}/overview`)
   const planning = page.getByRole('navigation', { name: 'Trip planning', exact: true })
   await expect(planning.getByRole('link')).toHaveCount(3)
-  for (const [label, path, title] of [['Find our places', 'more/places', 'Places'], ['Decide together', 'more/vote', 'Votes'], ['See the plan', 'plan', 'Plan']]) {
+  for (const [label, path, title] of [['Saved places', 'more/places', 'Places'], ['Votes', 'more/vote', 'Votes'], ['Itinerary', 'plan', 'Plan']]) {
     await planning.getByRole('link', { name: new RegExp(`^${label}`) }).click()
     await expect(page).toHaveURL(new RegExp(`${root}/${path}(\\?|$)`))
     await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible()

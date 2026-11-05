@@ -27,5 +27,6 @@ from `public/fonts/` (no runtime font requests):
 - Antonio (already archived here), now subset to `Antonio-Variable.woff2`, for route codes and
   display numerals. License at `public/fonts/Antonio-OFL.txt`.
 
-No new images were added. The homepage's places and routes come from `seed/guatemala-2027/`
-(OpenStreetMap data); traveler names, votes, times, tickets and amounts are labelled examples.
+No new images were added. The homepage now uses a Paris example with a day in Versailles.
+Traveler names, votes, schedules, tickets and amounts are labelled examples. The original
+Guatemala seed and offline map packs remain available for that real trip.

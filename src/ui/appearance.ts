@@ -18,7 +18,7 @@ let appearance = readAppearance()
 function applyAppearance() {
   const dark = appearance === 'dark' || (appearance === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
   document.documentElement.dataset.theme = dark ? 'stowaway-dark' : 'stowaway-light'
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#10212a' : '#f7f9f9')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#10262e' : '#f1f4f5')
 }
 
 /** One app-wide listener keeps system changes and other tabs in sync. */

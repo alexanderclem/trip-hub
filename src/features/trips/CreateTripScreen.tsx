@@ -122,7 +122,7 @@ export function CreateTripScreen() {
         <div className="trip-create-intro"><h2 className="travel-heading">Create your trip.</h2></div>
         {draft && <p className="rounded-surface bg-brand-50 p-3 text-sm text-ink">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name. The itinerary is added as tentative items you can edit.</p>}
         <Field label="Trip name">
-          <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="NYC spring break 2027" />
+          <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="Paris with friends" />
         </Field>
         <Field label="Your name" hint="How the group will see you.">
           <Input required maxLength={40} value={form.yourName} onChange={set('yourName')} />

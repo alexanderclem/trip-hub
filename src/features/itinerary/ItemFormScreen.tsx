@@ -1,18 +1,23 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { useMyMemberId } from '@/data/device'
+import { useMyMemberId, useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { useMembers, usePlaces, useTrip } from '@/data/hooks'
 import { ITEM_KINDS, ITEM_STATUSES, type ItemKind, type ItineraryItem, type PlaceCategory } from '@/data/types'
 import { newId } from '@/lib/ids'
 import { minorUnits } from '@/lib/money'
 import { checkLocalTime, isValidZone, normalizeLocal } from '@/lib/time'
-import { Button, DateInput, Disclosure, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Button, DateInput, Disclosure, ErrorNote, Field, Input, LinkButton, PageHeader, Select, Textarea } from '@/ui'
 import { PlacePicker } from '@/features/places/PlacePicker'
 import { saveItem, useItem } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
 import { PlaceIdentity } from '@/features/places/PlaceIdentity'
 import { useToast } from '@/ui/ToastProvider'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '@/data/db'
+import { ticketPlanDraft } from '@/features/tickets/toPlan'
+import { duplicateEndDate, undoDuplicate } from './reschedule'
 
 const ZONES = [
   'America/Guatemala', 'America/Mexico_City', 'America/El_Salvador', 'America/Costa_Rica', 'America/Panama',
@@ -67,11 +72,17 @@ export function ItemFormScreen() {
   const notify = useToast()
   const [draftItemId] = useState(newId)
   const me = useMyMemberId(tripId)
+  const mayPlan = can(useTripAccess(tripId), 'plan')
   const trip = useTrip(tripId)
   const loadedPlaces = usePlaces(tripId)
   const places = loadedPlaces ?? []
   const members = useMembers(tripId) ?? []
   const existing = useItem(itemId)
+  const copyId = !itemId ? search.get('copy') : null
+  const copy = useLiveQuery(async () => copyId ? (await db.itinerary_items.get(copyId)) ?? null : undefined, [copyId])
+  const ticketId = !itemId ? search.get('ticket') : null
+  const sourceTicket = useLiveQuery(async () => ticketId ? (await db.attachments.get(ticketId)) ?? null : undefined, [ticketId])
+  const ticketItem = useItem(sourceTicket?.item_id ?? undefined)
   const tripTz = trip?.timezone ?? 'America/New_York'
   const [error, setError] = useState<string | null>(null)
   const [invalid, setInvalid] = useState<{ name: string; message: string } | null>(null)
@@ -84,18 +95,25 @@ export function ItemFormScreen() {
   // Initialise once: from the item being edited, or from ?day=, ?place= and ?title= (a vote's winner).
   useEffect(() => {
     if (f || !trip) return
-    if (itemId) {
-      if (!existing) return
-      const s = normalizeLocal(existing.start_local)
-      const e = existing.end_local ? normalizeLocal(existing.end_local) : null
+    if (itemId || copyId) {
+      const source = itemId ? existing : copy
+      if (!source || source.deleted_at || source.trip_id !== tripId) return
+      const s = normalizeLocal(source.start_local)
+      const e = source.end_local ? normalizeLocal(source.end_local) : null
       setF({
-        title: existing.title, kind: existing.kind, placeId: existing.place_id, toPlaceId: existing.to_place_id,
-        allDay: existing.all_day, startDate: s.slice(0, 10), startTime: s.slice(11), endDate: e?.slice(0, 10) ?? s.slice(0, 10), endTime: e?.slice(11) ?? '',
-        startTz: existing.start_tz, endTz: existing.end_tz ?? existing.start_tz, status: existing.status, code: existing.confirmation_code ?? '',
-        everyone: !existing.attendee_ids, attendees: existing.attendee_ids ?? [], notes: existing.notes ?? '',
-        cost: existing.est_cost_minor != null ? String(existing.est_cost_minor / 10 ** minorUnits(existing.est_cost_currency ?? 'USD')) : '',
-        costCurrency: existing.est_cost_currency ?? trip.local_currency ?? trip.base_currency,
+        title: source.title, kind: source.kind, placeId: source.place_id, toPlaceId: source.to_place_id,
+        allDay: source.all_day, startDate: s.slice(0, 10), startTime: s.slice(11), endDate: e?.slice(0, 10) ?? s.slice(0, 10), endTime: e?.slice(11) ?? '',
+        startTz: source.start_tz, endTz: source.end_tz ?? source.start_tz, status: copyId ? 'tentative' : source.status, code: copyId ? '' : source.confirmation_code ?? '',
+        everyone: !source.attendee_ids, attendees: source.attendee_ids ?? [], notes: source.notes ?? '',
+        cost: source.est_cost_minor != null ? String(source.est_cost_minor / 10 ** minorUnits(source.est_cost_currency ?? 'USD')) : '',
+        costCurrency: source.est_cost_currency ?? trip.local_currency ?? trip.base_currency,
       })
+      return
+    }
+    if (ticketId) {
+      if (!sourceTicket || sourceTicket.deleted_at || sourceTicket.trip_id !== tripId) return
+      const draft = ticketPlanDraft(sourceTicket, trip)
+      setF({ ...draft, placeId: null, toPlaceId: null, allDay: false, status: 'tentative', everyone: true, attendees: [], cost: '', costCurrency: trip.local_currency ?? trip.base_currency })
       return
     }
     if (search.get('place') && !loadedPlaces) return // wait for places so the form can be prefilled
@@ -119,7 +137,7 @@ export function ItemFormScreen() {
       startTz: eventZone, endTz: eventZone, status: importedEvent || place && !['booked', 'visited'].includes(place.status) ? 'tentative' : 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : place?.notes ?? '', cost: '',
       costCurrency: trip.local_currency ?? trip.base_currency,
     })
-  }, [f, trip, itemId, existing, search, places, loadedPlaces, tripTz, members])
+  }, [f, trip, tripId, itemId, existing, copyId, copy, ticketId, sourceTicket, search, places, loadedPlaces, tripTz, members])
 
   const travel = f?.kind === 'flight' || f?.kind === 'transport'
   const showZones = travel || (f && (f.startTz !== tripTz || f.endTz !== tripTz))
@@ -132,6 +150,9 @@ export function ItemFormScreen() {
     return null
   }, [f])
 
+  if (ticketId && (sourceTicket === null || sourceTicket && (sourceTicket.deleted_at || sourceTicket.trip_id !== tripId)) || copyId && (copy === null || copy && (copy.deleted_at || copy.trip_id !== tripId))) return <><PageHeader title="Add to itinerary" back={`/t/${tripId}/plan`} /><p className="p-4">The source was removed or is unavailable.</p></>
+  if ((ticketId || copyId) && !mayPlan) return <><PageHeader title="Itinerary" back={`/t/${tripId}/plan`} /><p className="p-4">You do not have permission to edit this itinerary.</p></>
+  if (ticketId && ticketItem && !ticketItem.deleted_at && ticketItem.trip_id === tripId) return <><PageHeader title="Ticket" back={`/t/${tripId}/tickets/${ticketId}`} /><div className="space-y-4 p-4"><p>Already linked to {ticketItem.title}.</p><LinkButton to={`/t/${tripId}/plan/${ticketItem.id}`}>View itinerary item</LinkButton></div></>
   if (!f) return <PageHeader title={itemId ? 'Edit' : 'Add to plan'} back={`/t/${tripId}/plan`} />
 
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -180,9 +201,13 @@ export function ItemFormScreen() {
     setSaving(true)
     setError(null)
     try {
-      await saveItem(item, me)
+      await saveItem(item, me, ticketId ?? undefined)
+      if (copyId) {
+        const saved = await db.itinerary_items.get(item.id)
+        notify({ message: 'Item duplicated.', undo: saved ? () => undoDuplicate(saved, me) : undefined })
+      } else if (ticketId) notify({ message: 'Added to itinerary.' })
       if (!itemId && search.get('place')) {
-        notify({ message: `${item.title} added to the plan. Saved on this device; shared after syncing.` })
+        notify({ message: `${item.title} added to itinerary.` })
         navigate(`/t/${tripId}/plan?day=${f.startDate}`, { replace: true })
       } else navigate(`/t/${tripId}/plan/${item.id}`, { replace: true })
     } catch (err) {
@@ -196,7 +221,8 @@ export function ItemFormScreen() {
   // Who's going, cost and notes are optional: closed for a new item, open when any of them is already filled in.
   const hasOptional = !f.everyone || !!f.cost || !!f.notes
   const sourcePlace = !itemId && search.get('place') ? places.find((place) => place.id === f.placeId) : undefined
-  const back = itemId ? `/t/${tripId}/plan/${itemId}` : `/t/${tripId}/plan?day=${f.startDate}`
+  const back = itemId ? `/t/${tripId}/plan/${itemId}` : ticketId ? `/t/${tripId}/tickets/${ticketId}` : copyId ? `/t/${tripId}/plan/${copyId}` : `/t/${tripId}/plan?day=${f.startDate}`
+  const nameField = <Field label="Name"><Input value={f.title} onChange={(event) => set('title', event.target.value)} maxLength={200} required placeholder={travel ? 'UA 1234 to New York' : 'Walk along the High Line'} /></Field>
   const activityFields = <div className="space-y-4">
     <div role="radiogroup" aria-label="Type" className="grid grid-cols-4 gap-1.5">
       {ITEM_KINDS.map((kind) => {
@@ -214,14 +240,15 @@ export function ItemFormScreen() {
       }} />
     </Field>
     {travel && <Field label="To"><PlacePicker places={places} value={f.toPlaceId} label="To place" onChange={(id) => set('toPlaceId', id)} /></Field>}
-    <Field label="Name"><Input value={f.title} onChange={(event) => set('title', event.target.value)} maxLength={200} required placeholder={travel ? 'UA 1234 to New York' : 'Walk along the High Line'} /></Field>
+    {!ticketId && nameField}
   </div>
   return (
     <div className="min-h-full">
-      <PageHeader title={itemId ? 'Edit' : 'Add to plan'} back={sourcePlace ? `/t/${tripId}/more/places/${sourcePlace.id}` : back} />
+      <PageHeader title={itemId ? 'Edit' : copyId ? 'Duplicate item' : ticketId ? 'Review itinerary item' : 'Add to plan'} back={sourcePlace ? `/t/${tripId}/more/places/${sourcePlace.id}` : back} />
       <form onSubmit={submit} noValidate onInput={() => setInvalid(null)} className="mx-auto max-w-md space-y-4 p-4 pb-0">
-        {sourcePlace && <section className="plan-source-place" aria-label="Your saved place"><p className="notebook-label mb-3">From your saved places</p><PlaceIdentity place={sourcePlace} members={members} compact /><p className="mt-3 text-sm leading-relaxed text-muted">Choose when to go. The place{sourcePlace.notes ? ' and its notes are' : ' is'} already here.</p></section>}
-        {sourcePlace ? <Disclosure summary="Edit place, name & activity type">{activityFields}</Disclosure> : activityFields}
+        {sourceTicket && ticketId && <section className="plan-source-place" aria-label="Source ticket"><p className="ui-label">Ticket</p><Link to={`/t/${tripId}/tickets/${sourceTicket.id}`} className="ui-link">{sourceTicket.title}</Link></section>}
+        {sourcePlace && <section className="plan-source-place" aria-label="Your saved place"><p className="notebook-label mb-3">From your saved places</p><PlaceIdentity place={sourcePlace} members={members} compact /></section>}
+        {ticketId ? <>{nameField}<Disclosure summary={`${KIND_STYLE[f.kind].label} · Type and locations`}>{activityFields}</Disclosure></> : sourcePlace ? <Disclosure summary="Edit place, name & activity type">{activityFields}</Disclosure> : activityFields}
 
         <label className="flex min-h-11 items-center gap-2 text-sm">
           <input type="checkbox" checked={f.allDay} onChange={(e) => set('allDay', e.target.checked)} className="ui-check" /> All day
@@ -229,13 +256,13 @@ export function ItemFormScreen() {
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium text-ink">{f.kind === 'lodging' ? 'Check in' : travel ? 'Departs' : 'Starts'}</legend>
           <div className="grid grid-cols-2 gap-2">
-            <DateInput name="startDate" aria-label="Start date" value={f.startDate} required {...flag('startDate')} onValue={(date) => setF((c) => c && { ...c, startDate: date, endDate: c.endDate < date ? date : c.endDate })} />
+            <DateInput name="startDate" aria-label="Start date" value={f.startDate} required {...flag('startDate')} onValue={(date) => setF((c) => c && { ...c, startDate: date, endDate: copy ? duplicateEndDate(copy, date) : c.endDate < date ? date : c.endDate })} />
             {!f.allDay && <Input type="time" name="startTime" aria-label="Start time" value={f.startTime} required {...flag('startTime')} onChange={(e) => set('startTime', e.target.value)} />}
           </div>
           <FieldProblem invalid={invalid} names={['startDate', 'startTime']} />
           {showZones && !f.allDay && (
             <Select aria-label="Start time zone" value={f.startTz} onChange={(e) => setF((c) => c && { ...c, startTz: e.target.value, endTz: c.endTz === c.startTz ? e.target.value : c.endTz })}>
-              {[...new Set([tripTz, ...ZONES])].map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
+              {[...new Set([tripTz, f.startTz, f.endTz, ...ZONES])].map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
             </Select>
           )}
         </fieldset>
@@ -248,7 +275,7 @@ export function ItemFormScreen() {
           <FieldProblem invalid={invalid} names={['endDate', 'endTime']} />
           {showZones && !f.allDay && (
             <Select aria-label="End time zone" value={f.endTz} onChange={(e) => set('endTz', e.target.value)}>
-              {[...new Set([tripTz, ...ZONES])].map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
+              {[...new Set([tripTz, f.startTz, f.endTz, ...ZONES])].map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
             </Select>
           )}
         </fieldset>
@@ -308,7 +335,7 @@ export function ItemFormScreen() {
 
         <div className="ui-form-actions">
           <ErrorNote error={error ?? (invalid && !DATE_TIME_FIELDS.includes(invalid.name) ? invalid.message : null)} />
-          <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : sourcePlace ? 'Add to the plan' : 'Save'}</Button>
+          <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : sourcePlace ? 'Add to the plan' : ticketId ? 'Add to itinerary' : copyId ? 'Add copy' : 'Save'}</Button>
         </div>
       </form>
     </div>

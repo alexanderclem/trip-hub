@@ -37,7 +37,7 @@ export default defineConfig({
         short_name: 'Stowaway',
         description: 'Your group trip, all in one place. Save places, vote on favorites, and keep your itinerary, tickets, and shared costs together.',
         theme_color: '#17343f',
-        background_color: '#f7f9f9',
+        background_color: '#f1f4f5',
         display: 'standalone',
         start_url: '/app',
         icons: [

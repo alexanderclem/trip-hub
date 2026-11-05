@@ -78,7 +78,7 @@ export function PlaceFormScreen() {
       <PageHeader title={placeId ? 'Edit place' : 'Add place'} back={placeId ? `/t/${tripId}/more/places/${placeId}` : fromMap ? `/t/${tripId}/map` : `/t/${tripId}/more/places`} />
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4 pb-0">
         <Field label="Name">
-          <Input required maxLength={200} {...text('name')} placeholder="Café Sky" />
+          <Input required maxLength={200} {...text('name')} placeholder="Musée d’Orsay" />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Type">

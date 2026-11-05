@@ -25,6 +25,13 @@ Use these before writing new class strings (`src/styles/index.css`, `src/ui`):
 
 ## Keeping screens uncluttered
 
+Typography uses locally served Barlow for titles, controls and body content. Use 600 for
+headings/actions, 500 for supporting labels, and 400 for prose. Condensed uppercase type is
+reserved for small travel metadata; Antonio belongs to route codes. Do not uppercase page
+titles, buttons, tabs, names or financial amounts. Use tabular numerals for times and amounts,
+comfortable line height, and a maximum measure of 65ch for prose. Shared typography roles live
+in `src/styles/tokens.css`; use those before adding a screen-specific font or tracking value.
+
 These rules came out of the October 2026 clean-up; `tests/e2e/screens.spec.ts` screenshots every trip screen for checking them by eye (`SHOTS_DIR=<dir>`).
 
 - Keep navigation purposeful. Home may expose the three-step Places → Votes → Plan loop with real counts, especially for phone users; avoid other redundant destinations.

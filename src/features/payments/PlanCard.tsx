@@ -50,7 +50,7 @@ export function PlanCard({ tripId, offer }: { tripId: string; offer: TripOffer }
       <SectionTitle>Payment plan and refunds</SectionTitle>
       <form onSubmit={submit} className="mt-3 space-y-4">
         <fieldset>
-          <legend className="text-sm font-[550] text-ink">Payments after the deposit</legend>
+          <legend className="text-sm font-medium text-ink">Payments after the deposit</legend>
           <p className="mt-1 text-xs text-muted">Leave empty for one balance payment{offer.balance_due_date ? ` by ${offer.balance_due_date}` : ''}. Up to 4; they must add up to {usd(left)}.</p>
           <ul className="mt-2 space-y-2">
             {rows.map((r, i) => (
@@ -66,7 +66,7 @@ export function PlanCard({ tripId, offer }: { tripId: string; offer: TripOffer }
         </fieldset>
 
         <fieldset>
-          <legend className="text-sm font-[550] text-ink">Refund steps</legend>
+          <legend className="text-sm font-medium text-ink">Refund steps</legend>
           <p className="mt-1 text-xs text-muted">Shown with your policy, and suggested when you refund. For example: 100% back 60 or more days before, 50% back 30 or more.</p>
           {tiers.length > 0 && <div className="mt-2 flex gap-2 text-xs text-muted" aria-hidden="true"><span className="w-24">Back (%)</span><span className="w-28">Days or more before</span></div>}
           <ul className="mt-1 space-y-2">

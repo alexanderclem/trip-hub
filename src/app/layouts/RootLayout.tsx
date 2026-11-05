@@ -18,6 +18,7 @@ export function RootLayout() {
   const reducedMotion = useMotionPreference()
   const previousPath = useRef(pathname)
   const inTrip = pathname.startsWith('/t/') && !pathname.endsWith('/who')
+  const publicPage = Boolean(publicPages[pathname]) || ['/privacy', '/terms'].includes(pathname)
 
   useEffect(() => {
     if (!publicPages[pathname] && !['/privacy', '/terms'].includes(pathname)) prepareOfflineApp()
@@ -63,7 +64,7 @@ export function RootLayout() {
     }
   }, [pathname, hash])
   return (
-    <ToastProvider><ConfirmProvider><div className="flex h-full flex-col">
+    <ToastProvider><ConfirmProvider><div className={`${publicPage ? '' : 'app-world '}flex h-full flex-col`}>
       {/* Inside a trip the screen header's sync button says this, in the same place every time. */}
       {!online && !inTrip && (
         <div className="pt-safe bg-warning px-4 py-1.5 text-center text-sm text-warning-ink">

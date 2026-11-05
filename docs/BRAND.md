@@ -5,14 +5,17 @@ Address: `joinstowaway.app`.
 
 ## Message hierarchy
 
-1. **Promise:** Your group trip. All in one place.
+1. **Headline:** Plan a trip with friends.
 2. **Explanation:** Save places, vote on favorites, and build an itinerary together.
    Keep tickets and shared expenses with the plan.
-3. **Supporting signature:** The whole trip, tucked away.
 
-Use the promise and the explanation together when introducing the product. The
-signature is an occasional brand detail, not the product explanation. The same
-message appears on the homepage, social preview, and browser metadata.
+Use the headline to introduce the product. Demonstrate the features with the trip
+example; avoid helper paragraphs that repeat the visible controls.
+
+The public example is **Paris in spring 2027**, including a day in Versailles.
+Use Paris places, neighborhood votes, train tickets and euro expenses consistently.
+Names, schedules, votes and amounts are illustrative, labelled as an example trip.
+Organizer payment previews retain USD to match the supported launch currency.
 
 ## Voice
 
@@ -44,8 +47,9 @@ Do not fabricate missing details. Product demonstrations must be labeled example
 ## Visual identity
 
 The interface is a calm trip workspace: cool off-white, white surfaces, ocean
-ink, and a small coral brand accent. Native system sans-serif, clear weight and
-spacing hierarchy, and a consistent left reading edge keep trip details and
+ink, and a small coral brand accent. Self-hosted Barlow carries headings, body text and
+controls; Barlow Condensed is reserved for small travel labels, and Antonio for route codes.
+Sentence case, clear weight and spacing hierarchy, and a consistent left reading edge keep trip details and
 actions associated. Use sentence case. The exact palette,
 typography and component states live in `src/styles/themes.css`,
 `src/styles/tokens.css` and [UI_COMPONENTS.md](UI_COMPONENTS.md).

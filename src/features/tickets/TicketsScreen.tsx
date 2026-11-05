@@ -101,7 +101,7 @@ function TicketCard({ att, onPhone, item, zone }: { att: Attachment; onPhone: bo
     : { text: 'Not downloaded yet', Icon: Download, cls: 'text-muted' }
   return (
     <li>
-      <Link to={att.id} className="block rounded-surface border border-line bg-surface p-4 hover:border-action">
+      <Link to={att.id} className="travel-ticket block rounded-surface border border-line bg-surface p-4 hover:border-action">
         <div className="flex items-start gap-3">
           <Morph name={morphName('ticket', att.id, 'icon')}><span className="flex size-11 shrink-0 items-center justify-center rounded-control bg-brand-50 text-action"><Icon aria-hidden="true" className="size-5" /></span></Morph>
           <div className="min-w-0 flex-1">
@@ -110,8 +110,8 @@ function TicketCard({ att, onPhone, item, zone }: { att: Attachment; onPhone: bo
             {item && item.title !== att.title && <p className="truncate text-sm text-muted">{item.title}</p>}
           </div>
         </div>
-        {att.confirmation_code && <Morph name={morphName('ticket', att.id, 'code')}><p className="mt-3 w-fit font-mono text-2xl font-semibold tracking-wider break-all">{att.confirmation_code}</p></Morph>}
-        <p className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${status.cls}`}><status.Icon aria-hidden="true" className="size-4" />{status.text}</p>
+        {att.confirmation_code && <Morph name={morphName('ticket', att.id, 'code')}><p className="travel-ticket-code mt-3 w-fit font-semibold break-all">{att.confirmation_code}</p></Morph>}
+        <p className={`travel-ticket-stub flex items-center gap-1.5 pt-3 text-xs font-medium ${status.cls}`}><status.Icon aria-hidden="true" className="size-4" />{status.text}</p>
       </Link>
     </li>
   )

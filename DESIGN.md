@@ -21,39 +21,34 @@ colors:
   on-coral-dark: "#10262e"
 typography:
   display:
-    fontFamily: "Antonio, 'Barlow Condensed', 'Arial Narrow', sans-serif"
+    fontFamily: "Antonio, 'Barlow Condensed', sans-serif"
     fontSize: "min(12.6cqi, 10.25rem)"
     fontWeight: 700
     lineHeight: 0.86
     letterSpacing: "-0.005em"
-  display-close:
-    fontFamily: "Antonio, 'Barlow Condensed', 'Arial Narrow', sans-serif"
-    fontSize: "clamp(3rem, 8vw, 6.5rem)"
-    fontWeight: 700
-    lineHeight: 0.92
   code:
-    fontFamily: "Antonio, 'Barlow Condensed', 'Arial Narrow', sans-serif"
+    fontFamily: "Antonio, 'Barlow Condensed', sans-serif"
     fontSize: "2.25rem"
     fontWeight: 700
     lineHeight: 1
   headline:
     fontFamily: "Barlow, system-ui, sans-serif"
-    fontSize: "clamp(2.375rem, 5vw, 4.25rem)"
+    fontSize: "clamp(2.25rem, 4.6vw, 4rem)"
     fontWeight: 700
-    lineHeight: 1.02
+    lineHeight: 1.08
     letterSpacing: "-0.02em"
   headline-page:
     fontFamily: "Barlow, system-ui, sans-serif"
-    fontSize: "clamp(2.125rem, 4.4vw, 3.75rem)"
+    fontSize: "clamp(2rem, 4vw, 3.5rem)"
     fontWeight: 700
-    lineHeight: 1.04
-    letterSpacing: "-0.015em"
+    lineHeight: 1.1
+    letterSpacing: "-0.02em"
   title:
-    fontFamily: "'Barlow Condensed', 'Arial Narrow', sans-serif"
-    fontSize: "clamp(2.125rem, 4.2vw, 3.5rem)"
-    fontWeight: 700
-    lineHeight: 1
-    letterSpacing: "-0.005em"
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "clamp(1.75rem, 3.2vw, 2.75rem)"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.02em"
   body:
     fontFamily: "Barlow, system-ui, sans-serif"
     fontSize: "1.0625rem"
@@ -61,20 +56,21 @@ typography:
     lineHeight: 1.6
   fine:
     fontFamily: "Barlow, system-ui, sans-serif"
-    fontSize: "0.8125rem"
+    fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.55
   control:
-    fontFamily: "'Barlow Condensed', 'Arial Narrow', sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 700
-    letterSpacing: "0.04em"
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 600
+    lineHeight: 1.4
+    letterSpacing: "0"
   label:
     fontFamily: "'Barlow Condensed', 'Arial Narrow', sans-serif"
     fontSize: "0.8125rem"
     fontWeight: 600
     lineHeight: 1.4
-    letterSpacing: "0.12em"
+    letterSpacing: "0.08em"
 rounded:
   stub: "0px"
   stamp: "4px"
@@ -198,14 +194,14 @@ components:
 
 Every public page is one long luggage tag hung on an ocean-ink ground. The header carries the eyelet the tag hangs from, the footer closes the sheet, and everything between is printed on cool thermal stock in ink: route codes at display scale, travelers in condensed print, the plan as a routing, tickets as tear-off stubs, barcodes as the closing mark. Sections are separated by perforated tear lines with notches cut from both edges. The page reads like a trip printing itself, line by line.
 
-The density is a printed document's: hard 2px ink strokes, dashed rules, uppercase condensed field print, and generous blocks of air between stops. Colour is almost entirely ink on stock. Coral is the one loud colour and belongs to the group's choice and the primary action; signal yellow marks what is still open. State is shown as print density (solid, half-toned, ghost), never as a new colour. Dark mode is the same tag printed in reverse.
+The density is a printed document's: hard 2px ink strokes, dashed rules, small condensed travel labels, and generous blocks of air between stops. Colour is almost entirely ink on stock. Coral is the one loud colour and belongs to the group's choice and the primary action; signal yellow marks what is still open. State is shown as print density (solid, half-toned, ghost), never as a new colour. Dark mode is the same tag printed in reverse.
 
-**Scope.** This world governs the public website only: the landing page, How it works, Pricing, For organizers, Help, Not found and the legal pages, all inside the shared website frame and its world stylesheet (`src/features/website/tag.css`). The signed-in app keeps its own calm-workspace system, defined in `src/styles/tokens.css` and `src/styles/themes.css` and described in `docs/UI_COMPONENTS.md` and the visual identity section of `docs/BRAND.md`. Nothing here applies to the app, and the app's tokens are not part of this file.
+**Scope.** The public website uses the luggage-tag composition. The working app shares its palette, fonts and printed details through `src/styles/app-theme.css`, while retaining its task-focused layouts. Shared typography roles live in `src/styles/tokens.css` and the component guidance in `docs/UI_COMPONENTS.md`.
 
 **Key Characteristics:**
 - One sheet of tag stock on an ink ground, with an eyelet at the top and 22px sheet corners top and bottom.
 - Perforated tear lines are the section dividers; dashed rules divide inside a section.
-- Antonio route codes (GUA, ANT, PAN, SMR) are the display voice; Barlow carries headlines and body; Barlow Condensed prints every label and control.
+- Antonio route codes (CDG, PAR, VRS, MON) are the display voice; Barlow carries headings, body and controls; Barlow Condensed is reserved for small travel labels.
 - Coral appears only on the group's choice and the primary action.
 - Print density shows state: confirmed solid, tentative half-toned, empty as a dashed ghost tag.
 - Motion prints in once and stamps; nothing loops.
@@ -215,7 +211,7 @@ The density is a printed document's: hard 2px ink strokes, dashed rules, upperca
 Ocean ink on cool thermal stock, with one coral and one signal yellow kept to precise jobs.
 
 ### Primary
-- **Priority Coral** (coral): the primary action (the Create a trip tear stub and the website primary button), the PRIORITY stamp, the vote winner's ring and the highlighter under the winner's name, your own vote tick, the picked lake code on the routing strip, text selection and the focus outline. Text on coral is always ink (on-coral).
+- **Priority Coral** (coral): the primary action (the Create a trip tear stub and the website primary button), the PRIORITY stamp, the vote winner's ring and the highlighter under the winner's name, your own vote tick, the picked neighborhood code on the routing strip, text selection and the focus outline. Text on coral is always ink (on-coral).
 
 ### Secondary
 - **Signal Yellow** (signal): "still open". The open plan slot waiting on the vote, and the Beta availability label on Pricing. Text on it is fixed ocean ink (on-signal) in both themes.
@@ -237,25 +233,34 @@ Ocean ink on cool thermal stock, with one coral and one signal yellow kept to pr
 
 ## Typography
 
-**Display Font:** Antonio (with Barlow Condensed, Arial Narrow)
-**Body Font:** Barlow (with system-ui)
-**Label/Mono Font:** Barlow Condensed (with Arial Narrow)
-
-**Character:** Antonio's tall, tight caps print route codes like a baggage system; Barlow, a plain grotesque from the same signage family, keeps headlines and sentences readable; Barlow Condensed is the tag's field print for every label, control and section title. All three are self-hosted WOFF2 under the OFL (provenance in `docs/DESIGN_ASSETS.md`).
+All fonts are self-hosted WOFF2 under the OFL. Barlow carries sentence-case headings,
+body copy, names, controls, navigation and financial information. Barlow Condensed is
+reserved for small uppercase travel metadata. Antonio gives route codes their identity.
 
 ### Hierarchy
-- **Display** (Antonio 700, sized to the container at min(12.6cqi, 10.25rem), line-height 0.86): the hero route GUA → ANT → PAN, printed on one line. The closing line uses display-close (clamp 3rem to 6.5rem, uppercase).
-- **Code** (Antonio 700, 2.25rem): three-letter codes on vote options, mini tags (2rem), day routes (clamp 2.25rem to 3.25rem), the offline stub (clamp 2.25rem to 3rem) and the routing strip (1.375rem on phones, 1.875rem on the rail).
-- **Headline** (Barlow 700, clamp 2.375rem to 4.25rem, line-height 1.02, -0.02em): the landing h1 only. Subpage h1s use headline-page (clamp 2.125rem to 3.75rem, max 20ch).
-- **Title** (Barlow Condensed 700, clamp 2.125rem to 3.5rem, line-height 1, uppercase): stop and section h2s. Subpage section h2s step down to clamp 2rem to 3rem; card titles in condensed uppercase run 1.5rem to 2rem.
-- **Body** (Barlow 400, 1.0625rem, line-height 1.6): sentences. Intros max 40ch at up to 1.25rem; ledes max 46ch in faded print; FAQ answers max 62ch.
-- **Label** (Barlow Condensed 600, 0.8125rem, 0.12em, uppercase): field print, data labels (dt), strip labels, the hero's print row. Controls use the control style (Barlow Condensed 700, 1.125rem to 1.25rem, 0.04em, uppercase).
-- **Fine** (Barlow 400, 0.8125rem, faded print): the example disclosures and small print under every demonstration.
+- **Route display:** Antonio 700, container-sized up to 10.25rem. Keep readable place names nearby.
+- **Headline:** Barlow 700, 2.25–4rem, line-height 1.08. Subpage titles use 2–3.5rem at 1.1.
+- **Section title:** Barlow 600, 1.75–2.75rem, line-height 1.2 and -0.02em tracking. Sentence case.
+- **Card title:** Barlow 600, 1.0625–1.5rem, line-height 1.3. App section titles use 1.125rem.
+- **Body:** Barlow 400, 1rem in the app and 1.0625rem publicly, line-height 1.6–1.65.
+  Keep prose to 65ch; shorter intros stay around 40–46ch. Do not constrain structured rows.
+- **Control:** Barlow 600, 1rem, line-height 1.4, normal tracking and sentence case.
+- **Travel label:** Barlow Condensed 600, 0.8125rem, modest tracking and uppercase. Use only
+  for a printed field or travel metadata; regular form labels use Barlow in sentence case.
+- **Secondary information:** Barlow 400–500, 0.8125–0.875rem, line-height 1.5.
+- **Numbers:** tabular numerals for times and amounts. Financial amounts and actual booking
+  references use Barlow for readability; they are not decorative route lettering.
 
 ### Named Rules
-**The Code Is Print Rule.** Route codes are decoration of a fact already stated in words. Every code is hidden from assistive tech and the readable name sits beside it (or in screen-reader text). Barcodes are the same: decorative, always next to the text they encode.
+**The Code Is Print Rule.** Route codes decorate a fact stated in words. Hide decorative
+codes and barcodes from assistive technology and supply the readable meaning nearby.
 
-**The Field, Not Kicker Rule.** Small uppercase print is a field on the tag: a label with its value (Travelers · 8, Paid by / Maya, Updated / October 30, 2026). It never sits alone above a heading as a section label.
+**The Field, Not Kicker Rule.** Small uppercase print identifies a travel field or metadata.
+Never use condensed capitals as the default for section headings, buttons or long text.
+
+**The Hierarchy Rule.** Reserve the largest type for the page's subject. Body, captions,
+controls and statuses have distinct roles; stronger weight is not the default everywhere.
+Use actual supplied weights, preserve user text scaling and let containers grow.
 
 ## Layout
 
@@ -290,15 +295,15 @@ The tag sheet has 22px corners top and bottom; perforations cut 11px semicircula
 ## Components
 
 ### Buttons
-Tactile print: uppercase condensed labels, 2px ink strokes, nothing glossy.
+Tactile print: sentence-case Barlow controls, small condensed travel labels, 2px ink strokes, nothing glossy.
 - **Tear stub (signature primary):** the landing page's Create a trip and Join trip are tear-off stubs (88px tall, 76px on phones, 64px compact). Primary is coral with ink text; secondary is an ink outline with a punched hole rim. Each carries a large label (clamp 1.625rem to 2.125rem) and one line of field print. Hover lifts 2px with an ink tint (primary darkens coral by 14% ink); press drops 1px; transitions 160ms on the world easing.
-- **Website primary:** subpage primary actions are coral buttons, 52px, 8px corners, 1.25rem condensed uppercase; hover darkens and lifts 1px.
+- **Website primary:** subpage primary actions are coral buttons, 52px, 8px corners, 1rem Barlow 600 in sentence case; hover darkens and lifts 1px.
 - **Ink and quiet buttons:** in-demo actions (Save another place) are 48px with an ink stroke, quiet by default and filled ink on hover. Disabled drops to 55% opacity.
-- **Text link:** condensed uppercase at 1.1875rem with a 2px ink underline that thickens to 3px on hover.
+- **Text link:** Barlow 600 at 1rem in sentence case with an ink underline.
 - **Focus:** every interactive element shows a 3px coral outline offset 3px.
 
 ### Chips (choice buttons)
-- **Style:** vote scores (No way, Maybe, Keen, Must-do) and the Join name picker: 44px (52px for names), 2px ink stroke, 8px corners, condensed uppercase.
+- **Style:** vote scores (No way, Maybe, Keen, Must-do) and the Join name picker: 44px (52px for names), 2px ink stroke, 8px corners, Barlow 600 in sentence case.
 - **State:** hover takes an 8% ink tint; pressed (aria-pressed) fills ink with stock text. Pressed is never coral.
 
 ### Cards / Containers
@@ -306,15 +311,15 @@ Tactile print: uppercase condensed labels, 2px ink strokes, nothing glossy.
 - **Background:** card white on stock, 2px ink stroke.
 - **Shadow Strategy:** flat; only the winner ring (see Elevation & Depth).
 - **Internal Padding:** 1rem to 1.25rem; lists inside run under a 2px ink rule with 1px dashed rule separators and 52px rows.
-- **Variants:** vote option (code, town, points, tick bar of the group's votes with yours in coral), day card (route codes, Day n title, time / what / state rows), mini tag (string hole, code, place, "Saved by"), stub card (dashed tear edge, barcode, cost fields in tabular condensed figures).
+- **Variants:** vote option (code, town, points, tick bar of the group's votes with yours in coral), day card (route codes, Day n title, time / what / state rows), mini tag (string hole, code, place, "Saved by"), stub card (dashed tear edge, barcode, cost fields in tabular Barlow figures).
 
 ### Inputs / Fields
 - **Style:** 2px ink stroke, 8px corners, card-white fill, ink text (fee calculator and the early-access form). A checked choice fills ink.
 - **Focus:** the world's 3px coral outline.
 
 ### Navigation
-- **Header:** the drawn wordmark at left, condensed uppercase links (1.0625rem, 0.04em) at right from 1100px. Hover underlines 2px; the current page underlines 3px in ink. Open app is boxed with a 2px ink stroke. Below 1100px a 44px boxed menu button opens a full-width list of 52px rows on dashed rules; Escape closes it and returns focus.
-- **Routing strip:** route codes with small labels (GUA Trip, ANT Save, ··· Vote, PAN Plan, OFF Offline, TIX Tickets, YOU Join). The lake code is a ghost (outline only) until the vote; then it prints solid on coral with the stamp animation. The stop being read is lit in ink. There are no stop numerals.
+- **Header:** the drawn wordmark at left, sentence-case Barlow links (0.9375rem, normal tracking) at right from 1100px. Hover underlines 2px; the current page underlines 3px in ink. Open app is boxed with a 2px ink stroke. Below 1100px a 44px boxed menu button opens a full-width list of 52px rows on dashed rules; Escape closes it and returns focus.
+- **Routing strip:** on desktop, route codes with small labels (CDG Trip, PAR Save, ··· Vote, VRS Plan, OFF Offline, TIX Tickets, YOU Join). The neighborhood code is a ghost (outline only) until the vote; then it prints solid on coral with the stamp animation. Below 1100px, show only the readable labels so visitors can scan the sections. The stop being read is lit in ink. There are no stop numerals.
 - **Footer:** the tag's bottom edge: wordmark and signature line, a two- to four-column link grid, the appearance picker printed flat, and a barcode for joinstowaway.app.
 
 ### PRIORITY Stamp
@@ -330,7 +335,7 @@ Drawn from its own text so each tag has a stable, different code. Ink bars, 34px
 The opening of every secondary page: h1 and intro, an optional action row, and a printed field list stating facts about the page (Groups / Free, Status / Not found, Updated / October 30, 2026). Then a perforation.
 
 ### Motion
-Print-in is a left-to-right clip reveal (300ms to 620ms on cubic-bezier(.16, 1, .3, 1)), staggered for the route codes and travelers and triggered once per stop as it scrolls into view. The stamp is the only other motion. Nothing loops. Reduced motion removes all animation and transition and shows the printed state.
+The hero prints itself on the first load of the page: a 3px ink print head runs down the tag face (1500ms, cubic-bezier(.42, .06, .3, 1)), and the print just behind it develops from a 4px half-tone to solid ink over about 8rem, the Print Density Rule played in time. The travelers then print one name at a time, and coral lands last, stamped onto Create a trip (520ms, a 1.045 press). Later visits to home in the same session show the tag already printed. Elsewhere, print-in is a left-to-right clip reveal (300ms to 620ms on cubic-bezier(.16, 1, .3, 1)), triggered once per stop as it scrolls into view. The stamp is the only other motion. Nothing loops. Reduced motion removes all animation and transition and shows the printed state.
 
 ## Do's and Don'ts
 
@@ -339,9 +344,13 @@ Print-in is a left-to-right clip reveal (300ms to 620ms on cubic-bezier(.16, 1, 
 - **Do** separate stops and sections with the Perforation, and divide within a section with 1px or 2px dashed rule lines.
 - **Do** print state as density: solid for confirmed, the half-tone dot for tentative, a dashed ghost for empty.
 - **Do** put a readable name beside every route code and barcode, and hide the code itself from assistive tech.
-- **Do** label every demonstration honestly in fine print (example names, example votes, example amounts, real places).
+- **Do** introduce the homepage's demonstrations together as an example trip. Keep individual example labels on standalone previews; avoid repeating disclaimers below each section of the same trip.
+- **Do** use short feature names and action labels. Let the trip demonstrate the details. Omit explanatory captions that repeat the heading, controls, or example; put necessary setup instructions in the FAQ.
+- **Do** write factual status messages and specific changes. Avoid encouragement, metaphors, slogans, and reassurance beneath ordinary controls.
 - **Do** use the Tag Head with printed fields to open a secondary page.
 - **Do** keep targets at 44px or more and the 3px coral focus outline on everything interactive.
+- **Do** carry the luggage-tag palette, locally served fonts, flat ink borders and dashed rules into the app. Use Barlow for headings, body and controls, Barlow Condensed for small travel metadata, and Antonio for route codes.
+- **Do** keep the app's primary actions coral and its selected controls ink. Preserve semantic warning, danger, success, and itinerary-category colors.
 
 ### Don't:
 - **Don't** use coral outside the Coral Ledger: not for links, hovers, the current nav item, pressed chips or the lit strip stop.
@@ -350,4 +359,10 @@ Print-in is a left-to-right clip reveal (300ms to 620ms on cubic-bezier(.16, 1, 
 - **Don't** put small uppercase print alone above a heading as a section label; field print always pairs a label with its value.
 - **Don't** number the stops; the routing strip identifies them by route code.
 - **Don't** retype, recolour or rotate the Stowaway wordmark or mark; use the drawn lockup from `src/ui/Brand.tsx`.
-- **Don't** apply this world to the signed-in app, or the app's tokens to the public site.
+- **Don't** use the public page's oversized display scale or decorative route codes for the app's everyday navigation. Trip names, dates, real confirmation codes and saved states provide the character there.
+
+## App theme
+
+The app now shares the luggage-tag direction at a practical working scale. `src/styles/fonts.css` supplies the local fonts to both surfaces. `themes.css` defines the matching light/dark paper, ink, coral and semantic roles; `app-theme.css` translates them into app components under `.app-world`.
+
+Desktop trips sit inside a rounded sheet on ocean ink, with a dashed workspace rail and a clear current navigation item. Phones keep full-width content, a ruled header, and the existing bottom navigation. Cards use a 2px ink outline; grouped records, itinerary entries and document stubs use dashed internal rules. Inputs retain regular-width 16px body text. Document cards show actual confirmation codes and download states. App theme changes preserve the public site's own composition and the application's navigation, storage and offline behavior.

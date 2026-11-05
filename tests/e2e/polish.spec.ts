@@ -248,13 +248,13 @@ test('the homepage vote updates the plan without requests, layout shifts or lost
   const before = await vote.boundingBox()
   const requests: string[] = []
   page.on('request', r => requests.push(r.url()))
-  const mustDo = page.getByRole('group', { name: 'Your vote for San Marcos La Laguna' }).getByRole('button', { name: 'Must-do', exact: true })
+  const mustDo = page.getByRole('group', { name: 'Your vote for Montmartre' }).getByRole('button', { name: 'Must-do', exact: true })
   await mustDo.focus()
   await page.keyboard.press('Enter')
   await expect(mustDo).toBeFocused()
   await expect(mustDo).toHaveAttribute('aria-pressed', 'true')
-  await expect(vote.getByRole('status')).toContainText('The group picked San Marcos La Laguna')
-  await expect(page.locator('#plan').getByText('Stay in San Marcos La Laguna')).toBeVisible()
+  await expect(vote.getByRole('status')).toContainText('Montmartre')
+  await expect(page.locator('#plan').getByText('Explore Montmartre')).toBeVisible()
   expect((await vote.boundingBox())!.height).toBeCloseTo(before!.height, -1)
   expect(requests).toEqual([])
   expect(errors).toEqual([])
@@ -289,7 +289,7 @@ test('public visits defer offline downloads; entering the app installs it for of
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
   await page.goto('/')
   await page.getByRole('button', { name: 'Save another place' }).click()
-  await expect(page.getByRole('heading', { name: 'Museo del Café', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Musée d’Orsay', exact: true })).toBeVisible()
 })
 
 test('invite copying locks duplicate actions, reports failure, and permits retry', async ({ page, baseURL }) => {
@@ -327,13 +327,13 @@ test('vote failure preserves the choice; rapid retry saves one local revision', 
   await expect(choice).toHaveAttribute('aria-pressed', 'true')
   await group.getByRole('button').first().evaluate(button => { (button as HTMLButtonElement).click(); (button as HTMLButtonElement).click() })
   await expect(group.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByRole('status').filter({ hasText: 'Vote saved on this device' })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'Vote saved.' })).toBeVisible()
   const votes = await rows(page, 'poll_votes')
   expect(votes).toHaveLength(1)
   expect(votes[0]._lrev).toBe(2)
   await group.getByRole('button').first().click()
   await expect(group.getByRole('button').first()).toHaveAttribute('aria-pressed', 'false')
-  await expect(page.getByRole('status').filter({ hasText: 'Vote removed from this device' })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'Vote removed.' })).toBeVisible()
 })
 
 test('itinerary save retains input after failure and prevents duplicate submissions', async ({ page, baseURL }) => {

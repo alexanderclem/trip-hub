@@ -6,7 +6,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { CalendarPlus, Check, Copy, FileText, MapPin, Pencil, Plus, Receipt, Trash2, Users } from 'lucide-react'
 import { useAttachments } from '@/features/tickets/files'
-import { useMyMemberId } from '@/data/device'
+import { useMyMemberId, useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatMoney } from '@/lib/money'
@@ -22,6 +23,7 @@ import { KIND_STYLE, STATUS_TEXT } from './kinds'
 import { onDay } from './layout'
 import { Morph, morphName } from '@/ui/Morph'
 import { rowLoader, useFirstRow } from '@/data/firstRow'
+import { RescheduleDialog } from './RescheduleDialog'
 
 const city = (zone: string) => zone.split('/').pop()!.replace(/_/g, ' ')
 
@@ -30,6 +32,7 @@ export function ItemDetailScreen() {
   const { tripId, itemId } = useParams() as { tripId: string; itemId: string }
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
+  const mayPlan = can(useTripAccess(tripId), 'plan')
   const trip = useTrip(tripId)
   const item = useFirstRow(itemId, useItem(itemId))
   const items = useItems(tripId) ?? []
@@ -38,6 +41,7 @@ export function ItemDetailScreen() {
   const legCtx = useLegContext(tripId)
   const { zone, tripZone } = useDisplayZone(trip)
   const [copied, setCopied] = useState(false)
+  const [rescheduling, setRescheduling] = useState(false)
   const tickets = (useAttachments(tripId) ?? []).filter((t) => t.att.item_id === itemId)
 
   if (!item || item.deleted_at) {
@@ -153,7 +157,7 @@ export function ItemDetailScreen() {
         <Card>
           <div className="flex flex-wrap items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-muted" />{!going && <span>Everyone</span>}{(going ?? members).map((m) => <TravelerLink key={m.id} member={m} />)}{going?.length === 0 && <span>Nobody yet</span>}</div>
           {item.est_cost_minor != null && item.est_cost_currency && <p className="mt-2 text-sm text-muted">Estimated cost: {formatMoney(item.est_cost_minor, item.est_cost_currency)}</p>}
-          {item.notes && <p className="mt-2 text-sm whitespace-pre-wrap text-ink">{item.notes}</p>}
+          {item.notes && <p className="itinerary-notes mt-2 text-sm whitespace-pre-wrap text-ink">{item.notes}</p>}
         </Card>
 
         <Card>
@@ -176,6 +180,10 @@ export function ItemDetailScreen() {
           </Link>
         </Card>
 
+        {mayPlan && <div className="grid gap-2 sm:grid-cols-2">
+          <Button variant="secondary" onClick={() => setRescheduling(true)}>Reschedule</Button>
+          <LinkButton variant="secondary" to={`/t/${tripId}/plan/new?copy=${item.id}`}>Duplicate</LinkButton>
+        </div>}
         <div className="grid gap-2 sm:grid-cols-2">
           <LinkButton variant="secondary" to={`/t/${tripId}/money/new?item=${item.id}`}>
             <Receipt aria-hidden="true" className="size-4" /> Log what it cost
@@ -186,6 +194,7 @@ export function ItemDetailScreen() {
         </div>
 
         <CommentThread tripId={tripId} type="item" subjectId={item.id} me={me} />
+        {rescheduling && <RescheduleDialog item={item} items={items} zone={zone} me={me} onClose={() => setRescheduling(false)} onSaved={nextDay => navigate(`/t/${tripId}/plan?day=${nextDay}`)} />}
 
         <Button
           variant="danger"

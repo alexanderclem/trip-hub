@@ -79,7 +79,7 @@ export function MoneyScreen() {
         ) : (
           <>
             {/* The one number people open this screen for, without a box around it. */}
-            <section aria-label="Your balance" className="px-1">
+            <section aria-label="Your balance" className="balance-stub px-1">
               <div className="flex min-h-11 items-center justify-between gap-3">
                 <p className="ui-label">Your balance</p>
                 {local && local !== base && <Segmented label="Show amounts in" value={showLocal ? 'local' : 'base'} onChange={setMoneyView} options={[{ value: 'base', label: base }, { value: 'local', label: `≈ ${local}` }]} />}

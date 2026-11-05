@@ -13,6 +13,7 @@ import { rememberSource } from './features/funnel/events'
 import './styles/index.css'
 import './styles/journal.css'
 import './styles/travel-notebook.css'
+import './styles/app-theme.css'
 
 initializeAppearance()
 initializeInstallPrompt()

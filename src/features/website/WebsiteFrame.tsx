@@ -44,7 +44,7 @@ export function WebsiteFrame({ children }: { children: ReactNode }) {
         <div className="tag-shell tag-foot-inner">
           <div className="tag-foot-brand">
             <Link to="/" aria-label="Stowaway home" className="tag-home"><Brand className="tag-brand" /></Link>
-            <p>The whole trip, tucked away.</p>
+            <p>Group trip planner</p>
           </div>
           <nav aria-label="Footer navigation" className="tag-foot-nav">
             <Link to="/how-it-works">How it works</Link><Link to="/pricing">Pricing</Link><Link to="/operators">For organizers</Link><Link to="/help">Help & contact</Link>

@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 
 test('the website introduces Stowaway, then opens the app and create flow', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Your group trip. All in one place.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Plan a trip with friends.' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toHaveCount(0)
   // The header and footer each carry the lockup: the mark master and the drawn wordmark.
   const homes = page.getByRole('link', { name: 'Stowaway home', exact: true })
@@ -35,19 +35,19 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
 test('the trip on the homepage saves, votes, plans, goes offline and joins without saving anything', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Save another place' }).click()
-  await expect(page.getByRole('heading', { name: 'Museo del Café', exact: true })).toBeVisible()
-  // Seven example votes leave two lake towns level until the visitor scores them.
+  await expect(page.getByRole('heading', { name: 'Musée d’Orsay', exact: true })).toBeVisible()
+  // Seven example votes leave two neighborhoods tied until the visitor scores them.
   const plan = page.locator('#plan')
   await expect(plan.getByText('Still deciding: vote above')).toBeVisible()
-  await page.getByRole('group', { name: 'Your vote for San Pedro La Laguna' }).getByRole('button', { name: 'Must-do', exact: true }).click()
-  await expect(page.locator('#vote').getByRole('status')).toContainText('The group picked San Pedro La Laguna')
-  await expect(plan.getByText('Stay in San Pedro La Laguna')).toBeVisible()
+  await page.getByRole('group', { name: 'Your vote for Le Marais' }).getByRole('button', { name: 'Must-do', exact: true }).click()
+  await expect(page.locator('#vote').getByRole('status')).toContainText('Le Marais')
+  await expect(plan.getByText('Explore Le Marais')).toBeVisible()
   await expect(plan.getByText('Priority', { exact: true })).toBeVisible()
   const airplane = page.getByRole('button', { name: /^Airplane mode/ })
   await expect(airplane).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByText('Offline. Everything you prepared is still here.')).toBeVisible()
+  await expect(page.getByText('Available offline')).toBeVisible()
   await airplane.click()
-  await expect(page.getByText('Online. Changes sync with the group.')).toBeVisible()
+  await expect(page.getByText('Connected')).toBeVisible()
   await page.getByRole('group', { name: 'Who are you?' }).getByRole('button', { name: 'Sam', exact: true }).click()
   await expect(page.locator('#join').getByRole('status')).toContainText("You're in as Sam")
   await page.reload()
@@ -120,7 +120,7 @@ test('returning travelers get the website at root and their workspace in the app
     }))
   })
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Your group trip. All in one place.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Plan a trip with friends.' })).toBeVisible()
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Open app', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Your trips.' })).toBeVisible()
 })
@@ -172,7 +172,7 @@ test('the homepage preserves long headings and immediate feedback with reduced m
 test('the introduction and primary action fit a 1280 by 800 laptop', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
-  for (const locator of [page.getByRole('heading', { level: 1 }), page.locator('.tag-intro').first(), page.getByRole('link', { name: 'Create a trip', exact: true }).first(), page.getByRole('link', { name: 'Join trip', exact: true }).first()]) {
+  for (const locator of [page.getByRole('heading', { level: 1 }), page.getByRole('link', { name: 'Create a trip', exact: true }).first(), page.getByRole('link', { name: 'Join trip', exact: true }).first()]) {
     const box = await locator.boundingBox()
     expect(box!.y).toBeGreaterThanOrEqual(0)
     expect(box!.y + box!.height).toBeLessThanOrEqual(800)
