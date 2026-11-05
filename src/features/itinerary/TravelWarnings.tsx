@@ -2,8 +2,9 @@ import { Link } from 'react-router'
 import { AlertTriangle } from 'lucide-react'
 import { formatRange, MODE_LABEL, SOURCE_LABEL } from '@/features/routing/legs'
 import { needsTravelBuffer, type Transfer } from './travel'
+import { Button } from '@/ui'
 
-export function TravelWarnings({ transfers, tripId }: { transfers: Transfer[]; tripId: string }) {
+export function TravelWarnings({ transfers, tripId, onReview }: { transfers: Transfer[]; tripId: string; onReview?: (transfer: Transfer) => void }) {
   const warnings = transfers.filter(needsTravelBuffer)
   if (!warnings.length) return null
   return (
@@ -13,8 +14,9 @@ export function TravelWarnings({ transfers, tripId }: { transfers: Transfer[]; t
         {warnings.map((t) => (
           <li key={`${t.from.id}:${t.to.id}`} className="py-2 text-sm">
             <Link to={`/t/${tripId}/plan/${t.to.id}`} className="flex min-h-11 items-center font-medium underline underline-offset-2">{t.from.title} → {t.to.title}</Link>
-            <p>{Math.floor(t.gapS! / 60)} min between plans; allow {formatRange(t.option.minS, t.option.maxS)} by {MODE_LABEL[t.option.mode].label.toLowerCase()}.</p>
-            <p className="mt-1 text-xs">{t.fromPlace.name} → {t.toPlace.name} · {SOURCE_LABEL[t.option.source]}</p>
+            {t.fromPlace.id === t.toPlace.id ? <p>{Math.floor(t.gapS! / 60)} min between plans; allow {t.bufferS / 60} min for check-in / waiting.</p> : <><p>{Math.floor(t.gapS! / 60)} min between plans; allow {formatRange(t.option.minS, t.option.maxS)} by {MODE_LABEL[t.option.mode].label.toLowerCase()}.</p>{t.bufferS > 0 && <p className="mt-1 text-sm">Plus {t.bufferS / 60} min for check-in / waiting · {Math.ceil(t.requiredS / 60)} min total.</p>}</>}
+            <p className="mt-1 text-xs">{t.fromPlace.name}{t.fromPlace.id !== t.toPlace.id && <> → {t.toPlace.name} · {SOURCE_LABEL[t.option.source]}</>}</p>
+            {onReview && <Button variant="secondary" className="mt-2" onClick={() => onReview(t)} aria-haspopup="dialog">Review fixes</Button>}
           </li>
         ))}
       </ul>

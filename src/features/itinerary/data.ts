@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from '@/data/db'
+import { db, type TripDb } from '@/data/db'
 import { useDevice } from '@/data/device'
 import { save, softDelete } from '@/data/repo'
 import type { DayNote, ItineraryItem, Trip } from '@/data/types'
@@ -35,7 +35,7 @@ export function useDisplayZone(trip: Trip | undefined): { zone: string; view: 't
  * Saves an item, deriving its instants locally (so the plan works offline; the server derives the
  * same ones). A place put on the plan is marked "planned" if it was still an idea or shortlisted.
  */
-export async function saveItem(item: ItineraryItem, memberId: string | null, attachmentId?: string): Promise<void> {
+export async function saveItem(item: ItineraryItem, memberId: string | null, attachmentId?: string, database: TripDb = db): Promise<void> {
   const start_local = normalizeLocal(item.start_local)
   const end_local = item.end_local ? normalizeLocal(item.end_local) : null
   const row: ItineraryItem = {
@@ -47,33 +47,38 @@ export async function saveItem(item: ItineraryItem, memberId: string | null, att
     end_at: end_local ? toInstant(end_local, item.end_tz ?? item.start_tz) : null,
   }
   if (row.end_at && row.end_at < row.start_at) throw new Error('It ends before it starts.')
-  await db.transaction('rw', [db.itinerary_items, db.attachments, db.places, db.polls, db.poll_options, db._outbox], async () => {
+  await database.transaction('rw', [database.itinerary_items, database.attachments, database.places, database.polls, database.poll_options, database._outbox], async () => {
+    for (const placeId of [row.place_id, row.to_place_id]) {
+      if (!placeId) continue
+      const place = await database.places.get(placeId)
+      if (!place || place.deleted_at || place.trip_id !== row.trip_id) throw new Error('Choose a place that is still available on this trip.')
+    }
     if (row.details?.decision_poll_id) {
-      const poll = await db.polls.get(row.details.decision_poll_id)
-      const option = await db.poll_options.get(row.details.decision_option_id ?? '')
+      const poll = await database.polls.get(row.details.decision_poll_id)
+      const option = await database.poll_options.get(row.details.decision_option_id ?? '')
       // Ordinary edits remain possible after a vote is reopened; a new handoff must be current.
-      const previous = await db.itinerary_items.get(row.id)
+      const previous = await database.itinerary_items.get(row.id)
       if (previous?.deleted_at) throw new Error('This planned choice was removed. Link a different item from the vote.')
       if (!previous && (!poll || poll.deleted_at || poll.trip_id !== row.trip_id || poll.status !== 'closed' || poll.winner_option_id !== option?.id || !option || option.deleted_at || option.poll_id !== poll.id || option.trip_id !== row.trip_id)) throw new Error('This decision changed. Return to the vote to review it.')
-      const duplicate = await db.itinerary_items.where('trip_id').equals(row.trip_id).filter((i) => i.id !== row.id && !i.deleted_at && i.status !== 'cancelled' && i.details?.decision_poll_id === row.details.decision_poll_id && i.details?.decision_option_id === row.details.decision_option_id).first()
+      const duplicate = await database.itinerary_items.where('trip_id').equals(row.trip_id).filter((i) => i.id !== row.id && !i.deleted_at && i.status !== 'cancelled' && i.details?.decision_poll_id === row.details.decision_poll_id && i.details?.decision_option_id === row.details.decision_option_id).first()
       if (duplicate) throw new Error('This choice is already in the plan. Return to the vote to view it.')
     }
-    const attachment = attachmentId ? await db.attachments.get(attachmentId) : undefined
+    const attachment = attachmentId ? await database.attachments.get(attachmentId) : undefined
     if (attachmentId) {
       if (!attachment || attachment.deleted_at || attachment.trip_id !== item.trip_id) throw new Error('This ticket is no longer available.')
       if (attachment.item_id && attachment.item_id !== item.id) {
-        const linked = await db.itinerary_items.get(attachment.item_id)
+        const linked = await database.itinerary_items.get(attachment.item_id)
         if (linked && !linked.deleted_at) throw new Error('This ticket is already linked to an itinerary item.')
       }
     }
-    await save('itinerary_items', row, memberId)
-    if (attachment) await save('attachments', { ...attachment, item_id: item.id }, memberId)
+    await save('itinerary_items', row, memberId, database)
+    if (attachment) await save('attachments', { ...attachment, item_id: item.id }, memberId, database)
 
     for (const placeId of [row.place_id, row.to_place_id]) {
       if (!placeId) continue
-      const place = await db.places.get(placeId)
+      const place = await database.places.get(placeId)
       if (place && !place.deleted_at && (place.status === 'catalog' || place.status === 'shortlist')) {
-        await save('places', { ...place, status: row.status === 'confirmed' && row.confirmation_code ? 'booked' : 'planned' }, memberId)
+        await save('places', { ...place, status: row.status === 'confirmed' && row.confirmation_code ? 'booked' : 'planned' }, memberId, database)
       }
     }
   })

@@ -52,7 +52,7 @@ export function SavedAreaCard({ trip }: { trip: Trip }) {
           {progress ? (
             <div className="mt-3" role="status">
               <div className="h-2 overflow-hidden rounded-full bg-mist">
-                <div className="h-full bg-action transition-[width]" style={{ width: `${Math.round((progress[0] / progress[1]) * 100)}%` }} />
+                <div className="h-full w-full bg-action transition-transform duration-300 ease-out motion-reduce:transition-none" style={{ transform: `translateX(${Math.round((progress[0] / progress[1]) * 100) - 100}%)` }} />
               </div>
               <p className="mt-1 text-xs text-muted">Saving map: {progress[0]} of {progress[1]} pieces</p>
             </div>

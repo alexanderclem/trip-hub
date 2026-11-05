@@ -18,7 +18,7 @@ const nameOf = (entry: { table: string; payload: Record<string, unknown> }) =>
 function useSyncDetails(tripId: string) {
   return useLiveQuery(async () => {
     const [pending, rejected] = await Promise.all([db._outbox.orderBy('seq').toArray(), db._deadletter.toArray()])
-    return { pending, rejected: rejected.filter((entry) => belongsTo(entry, tripId)) }
+    return { pending, rejected: rejected.filter((entry) => !entry.resolvedAt && belongsTo(entry, tripId)) }
   }, [tripId])
 }
 

@@ -84,7 +84,7 @@ export async function push(remote: Remote, database: TripDb = defaultDb): Promis
 }
 
 async function markPushed(entries: OutboxEntry[], database: TripDb) {
-  await database.transaction('rw', [database._outbox, ...SYNCED_TABLES.map((t) => database.table(t))], async () => {
+  await database.transaction('rw', [database._outbox, database._deadletter, ...SYNCED_TABLES.map((t) => database.table(t))], async () => {
     for (const e of entries) {
       const current = await database._outbox.get(e.seq!)
       // If the row was edited again while this push was in flight, keep the newer entry.
@@ -92,13 +92,15 @@ async function markPushed(entries: OutboxEntry[], database: TripDb) {
       const t = database.table(e.table)
       const row = await t.get(e.rowId)
       if (row && row._lrev === e.lrev) await t.update(e.rowId, { _dirty: 0 })
+      await database._deadletter.filter((entry) => entry.table === e.table && entry.rowId === e.rowId && !entry.resolvedAt).modify({ resolvedAt: Date.now() })
     }
   })
 }
 
 async function deadLetter(e: OutboxEntry, err: RemoteError, database: TripDb) {
   await database.transaction('rw', [database._outbox, database._deadletter, database.table(e.table)], async () => {
-    await database._outbox.delete(e.seq!)
+    const current = await database._outbox.get(e.seq!)
+    if (current?.lrev === e.lrev) await database._outbox.delete(e.seq!)
     await database._deadletter.add({
       table: e.table,
       rowId: e.rowId,
@@ -106,8 +108,10 @@ async function deadLetter(e: OutboxEntry, err: RemoteError, database: TripDb) {
       error: `${err.status}: ${err.message}`,
       at: Date.now(),
     })
-    // Let the server's copy flow back in on the next pull.
-    await database.table(e.table).update(e.rowId, { _dirty: 0 })
+    // A rejection applies only to the version sent. A newer edit must stay queued and dirty.
+    const table = database.table(e.table)
+    const row = await table.get(e.rowId)
+    if (row?._lrev === e.lrev) await table.update(e.rowId, { _dirty: 0 })
   })
 }
 
@@ -115,6 +119,8 @@ async function backoff(entries: OutboxEntry[], err: RemoteError, database: TripD
   const now = Date.now()
   await database.transaction('rw', database._outbox, async () => {
     for (const e of entries) {
+      const current = await database._outbox.get(e.seq!)
+      if (current?.lrev !== e.lrev) continue
       const attempts = e.attempts + 1
       const delay = Math.min(MAX_BACKOFF_MS, 2_000 * 2 ** (attempts - 1))
       await database._outbox.update(e.seq!, {

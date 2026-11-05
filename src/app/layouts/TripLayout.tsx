@@ -21,6 +21,7 @@ import { QuickAdd } from '@/features/trips/QuickAdd'
 import { useSlidingHighlight } from '@/ui/effects'
 import { CommandMenu } from '@/ui/CommandMenu'
 import { TripSwitcher } from './TripSwitcher'
+import { preloadPaths } from '@/app/preload'
 
 // Keep the phone navigation compact; desktop exposes the full trip workspace.
 const tabs = [
@@ -105,6 +106,8 @@ function TripShell({ tripId }: { tripId: string }) {
   const content = useRef<HTMLElement>(null)
   const previousPath = useRef(pathname)
   const scrollPositions = useRef(new globalThis.Map<string, number>())
+  // The tabs are one tap away from every screen, so their code is ready before that tap.
+  useEffect(() => preloadPaths(tabs.map(({ to }) => `/t/${tripId}/${to}`)), [tripId])
   useLayoutEffect(() => {
     const scroller = content.current
     if (!scroller) return

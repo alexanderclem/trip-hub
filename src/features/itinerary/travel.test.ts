@@ -25,6 +25,14 @@ const before = item('coffee', '09:00', '10:00', 'a')
 const after = item('tour', '10:15', '11:15', 'b')
 
 describe('travel buffers', () => {
+  it('allows preparation at the same place without inventing a journey', () => {
+    const items = [before, { ...after, place_id: 'a', details: { check_in_minutes: '20' } }]
+    const transfer = planTransfers(items, places, ctx, zone, ['alex'])[0]!
+    expect(transfer.option.maxS).toBe(0)
+    expect(transfer.requiredS).toBe(1200)
+    expect(needsTravelBuffer(transfer)).toBe(true)
+    expect(transfer.leaveAt).toBe(Date.parse('2027-03-15T09:55:00-06:00'))
+  })
   it('flags a short gap, deduplicates shared routes, and computes departure from the upper estimate', () => {
     const transfers = planTransfers([after, before], places, ctx, zone, ['alex', 'sam'])
     expect(transfers).toHaveLength(1)

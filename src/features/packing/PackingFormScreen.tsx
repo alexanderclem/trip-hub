@@ -6,6 +6,7 @@ import { useMembers } from '@/data/hooks'
 import type { PackingKind } from '@/data/types'
 import { Button, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { deletePackingItem, savePackingItem, usePacking, usePackingItem, type PackingFields } from './data'
+import { cue } from '@/ui/feedback'
 
 const KINDS: { value: PackingKind; label: string; hint: string }[] = [
   { value: 'everyone', label: 'Everyone brings', hint: 'Each person ticks their own' },
@@ -39,7 +40,7 @@ function PackingEditor({ tripId, itemId, initial }: { tripId: string; itemId?: s
     e.preventDefault()
     if (busy) return
     setBusy(true); setError(null)
-    try { await savePackingItem(tripId, itemId, fields, me); navigate(back) }
+    try { await savePackingItem(tripId, itemId, fields, me); cue('success'); navigate(back) }
     catch (err) { setError(err instanceof Error ? err.message : 'Could not save. Try again.'); setBusy(false) }
   }
   async function remove() {

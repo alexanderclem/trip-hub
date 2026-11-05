@@ -188,6 +188,45 @@ describe('push', () => {
     expect(server.tables.get('places')!.get('p1')!.name).toBe('v2 (during push)')
     expect(await db._outbox.count()).toBe(0)
   })
+
+  it('a rejected in-flight version cannot discard a newer local edit', async () => {
+    await save('places', place('p1', 'rejected version'), 'ana', db)
+    const original = server.write.bind(server)
+    server.write = async () => {
+      server.write = original
+      await save('places', place('p1', 'newer version'), 'ana', db)
+      server.online = false // leave the newer version waiting so a pull can try to overwrite it
+      return { status: 400, message: 'invalid old version' }
+    }
+    await push(server, db)
+    expect(await db._outbox.count()).toBe(1)
+    expect(await db.places.get('p1')).toMatchObject({ name: 'newer version', _dirty: 1 })
+    expect((await db._deadletter.toArray())[0]?.payload.name).toBe('rejected version')
+    server.online = true
+    await server.serverEdit('places', place('p1', 'server copy'))
+    await pull(server, TRIP, db, ['places'])
+    expect((await db.places.get('p1'))?.name).toBe('newer version')
+    await resetBackoff(db)
+    await push(server, db)
+    expect(server.tables.get('places')?.get('p1')?.name).toBe('newer version')
+    const history = await db._deadletter.toArray()
+    expect(history[0]?.resolvedAt).toBeGreaterThan(0)
+    expect(history[0]?.payload.name).toBe('rejected version')
+  })
+
+  it('a failed older request cannot delay a newer edit with its backoff', async () => {
+    await save('places', place('p1', 'v1'), 'ana', db)
+    const original = server.write.bind(server)
+    server.write = async () => {
+      server.write = original
+      await save('places', place('p1', 'v2'), 'ana', db)
+      return { status: 503, message: 'temporarily unavailable' }
+    }
+    await push(server, db)
+    expect(await db._outbox.orderBy('seq').first()).toMatchObject({ attempts: 0, nextAttemptAt: 0 })
+    await push(server, db)
+    expect(server.tables.get('places')?.get('p1')?.name).toBe('v2')
+  })
 })
 
 describe('pull', () => {

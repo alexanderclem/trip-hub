@@ -1,6 +1,6 @@
 import { Check, Clock3, Lightbulb, ListPlus, Ticket, X } from 'lucide-react'
 import type { Place, PlaceStatus } from '@/data/types'
-import { CATEGORY_STYLE, STATUS_LABEL } from './categories'
+import { CATEGORY_STYLE, STATUS_LABEL, categoryTone } from './categories'
 
 const statusStyles: Record<PlaceStatus, { Icon: typeof Check; className: string }> = {
   catalog: { Icon: Lightbulb, className: 'bg-mist/60 text-muted' },
@@ -18,7 +18,7 @@ export function PlaceStatusBadge({ status }: { status: PlaceStatus }) {
 
 export function PlaceCategoryIcon({ category }: { category: Place['category'] }) {
   const { Icon, color } = CATEGORY_STYLE[category]
-  return <span className="flex size-11 shrink-0 items-center justify-center rounded-control border border-line bg-mist/40" style={{ color }}><Icon aria-hidden="true" className="size-5" /></span>
+  return <span className="flex size-11 shrink-0 items-center justify-center rounded-control border border-line bg-mist/40" style={{ color: categoryTone(color) }}><Icon aria-hidden="true" className="size-5" /></span>
 }
 
 // Only public web links are suitable for these external quick actions.

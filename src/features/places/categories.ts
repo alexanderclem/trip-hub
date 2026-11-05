@@ -27,6 +27,13 @@ export const CATEGORY_STYLE: Record<PlaceCategory, { label: string; color: strin
   other: { label: 'Other', color: '#68716f', Icon: CircleDot },
 }
 
+/**
+ * A category colour used as an icon or text on the page. The raw tones are dark enough for a white
+ * icon on a map pin, but on dark paper they fall to about 2:1, so dark mode lifts them toward ink
+ * (`--stowaway-category-lift` in themes.css). Pins keep the raw `color`.
+ */
+export const categoryTone = (color: string) => `color-mix(in oklab, ${color}, var(--stowaway-ink) var(--stowaway-category-lift, 0%))`
+
 export const STATUS_LABEL: Record<PlaceStatus, string> = {
   catalog: 'Idea pool',
   shortlist: 'Shortlist',

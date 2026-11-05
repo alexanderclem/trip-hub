@@ -18,7 +18,8 @@ export function EmptyDescription(props: ComponentProps<'p'>) {
 }
 
 export function Skeleton({ className = '', ...props }: ComponentProps<'div'>) {
-  return <div data-slot="skeleton" className={`skeleton rounded-control bg-mist motion-safe:animate-pulse ${className}`} {...props} />
+  // A translated shimmer (index.css), not daisyUI's background-position sweep, which repaints every frame.
+  return <div data-slot="skeleton" className={`ui-skeleton-bar ${className}`} {...props} />
 }
 
 /** Placeholder rows while a list loads from the phone, in place of a line of "Loading…" text. */

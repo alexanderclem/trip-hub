@@ -7,6 +7,7 @@ import { supabaseRemote } from './remote'
 import { publishReminders } from '@/features/notifications/reminders'
 import { fetchAccess, needsRefetch } from '../access'
 import { useDevice } from '../device'
+import type { TableName } from '../types'
 import { dropTrip } from '../reset'
 import { flushEvents, sendToSupabase } from '@/features/funnel/events'
 
@@ -31,7 +32,8 @@ const PUSH_RETRY_MS = 30_000
 const POKE_DEBOUNCE_MS = 500
 
 let running: Promise<void> | null = null
-const requested = new Set<string>()
+// null means a full reconciliation; a set holds realtime table hints. Full requests always win.
+const requested = new Map<string, Set<TableName> | null>()
 /** How each trip's latest cycle ended. `cycle` never throws, so this is the only record of failure. */
 const outcomes = new Map<string, { ok: boolean; error: string | null }>()
 let activeTripId: string | null = null
@@ -41,14 +43,15 @@ function setStatus(tripId: string, status: Partial<SyncStatus>) {
 }
 
 /** Runs one push+pull cycle. Calls made while a cycle is running coalesce into one more. */
-export function syncNow(tripId: string): Promise<void> {
-  requested.add(tripId)
+export function syncNow(tripId: string, tables?: TableName[]): Promise<void> {
+  const pending = requested.get(tripId)
+  requested.set(tripId, !tables || pending === null ? null : new Set([...(pending ?? []), ...tables]))
   if (running) return running
   running = (async () => {
     while (requested.size) {
-      const next = requested.values().next().value!
+      const [next, changed] = requested.entries().next().value!
       requested.delete(next)
-      await cycle(next)
+      await cycle(next, changed === null ? undefined : SYNCED_TABLES.filter((table) => changed.has(table)))
     }
   })().finally(() => {
     running = null
@@ -73,7 +76,7 @@ export async function syncNowChecked(tripId: string): Promise<void> {
   if (!outcome?.ok) throw new Error(outcome?.error ?? 'Could not refresh the trip. Try again.')
 }
 
-async function cycle(tripId: string) {
+async function cycle(tripId: string, tables?: TableName[]) {
   const fail = (error: string) => outcomes.set(tripId, { ok: false, error })
   try {
   if (!navigator.onLine) {
@@ -84,12 +87,13 @@ async function cycle(tripId: string) {
   setStatus(tripId, { phase: 'syncing', lastError: null })
   const pushed = await push(supabaseRemote)
   setStatus(tripId, { phase: 'refreshing' })
-  if ((await checkAccess(tripId)) === 'removed') {
+  const access = await checkAccess(tripId)
+  if (access === 'removed') {
     setStatus(tripId, { phase: 'idle', lastError: null })
     fail('You no longer have access to this trip.')
     return
   }
-  const pulled = await pull(supabaseRemote, tripId)
+  const pulled = await pull(supabaseRemote, tripId, db, access === 'refetch' ? undefined : tables)
   if (pulled.error) {
     setStatus(tripId, {
       phase: navigator.onLine ? 'error' : 'offline',
@@ -100,6 +104,10 @@ async function cycle(tripId: string) {
     const head = await db._outbox.orderBy('seq').first()
     setStatus(tripId, { phase: 'error', lastError: head?.lastError ?? 'Some changes are waiting to sync' })
     fail(`Changes from this phone haven't been shared yet: ${head?.lastError ?? 'they are waiting to sync'}`)
+  } else if (await db._deadletter.filter((entry) => !entry.resolvedAt && (entry.rowId === tripId || entry.payload.trip_id === tripId)).count() > 0) {
+    const error = 'Some saved changes need review. Open sync details before preparing for offline.'
+    setStatus(tripId, { phase: 'error', lastError: error })
+    fail(error)
   } else {
     setStatus(tripId, { phase: 'idle', lastSyncedAt: new Date().toISOString(), lastError: null })
     outcomes.set(tripId, { ok: true, error: null })
@@ -120,7 +128,7 @@ async function cycle(tripId: string) {
  * follows brings back only what the phone may now see. Waits while changes are still queued, so
  * nothing typed on this phone is thrown away.
  */
-async function checkAccess(tripId: string): Promise<'ok' | 'removed'> {
+async function checkAccess(tripId: string): Promise<'ok' | 'removed' | 'refetch'> {
   const access = await fetchAccess(tripId)
   if (access === 'unknown') return 'ok'
   const device = useDevice.getState()
@@ -136,6 +144,8 @@ async function checkAccess(tripId: string): Promise<'ok' | 'removed'> {
     const waiting = await db._outbox.filter((e) => e.rowId === tripId || e.payload.trip_id === tripId).count()
     if (waiting > 0) return 'ok' // try again on the next cycle, after these are pushed
     await dropTrip(tripId)
+    device.setAccess(tripId, access)
+    return 'refetch'
   }
   device.setAccess(tripId, access)
   return 'ok'
@@ -146,9 +156,18 @@ export function startSync(tripId: string): () => void {
   activeTripId = tripId
   useSyncStatus.setState({ tripId, phase: navigator.onLine ? 'syncing' : 'offline', lastSyncedAt: null, lastError: null })
   let pokeTimer: ReturnType<typeof setTimeout> | undefined
-  const poke = () => {
+  const changed = new Set<TableName>()
+  let fullPull = false
+  const poke = (table?: TableName) => {
+    if (table) changed.add(table)
+    else fullPull = true
     clearTimeout(pokeTimer)
-    pokeTimer = setTimeout(() => void syncNow(tripId), POKE_DEBOUNCE_MS)
+    pokeTimer = setTimeout(() => {
+      const tables = fullPull ? undefined : [...changed]
+      changed.clear()
+      fullPull = false
+      void syncNow(tripId, tables)
+    }, POKE_DEBOUNCE_MS)
   }
 
   const onOnline = () => {
@@ -180,7 +199,7 @@ export function startSync(tripId: string): () => void {
     channel.on(
       'postgres_changes',
       { event: '*', schema: 'public', table, filter: table === 'trips' ? `id=eq.${tripId}` : `trip_id=eq.${tripId}` },
-      poke,
+      () => poke(table),
     )
   }
   // The socket must carry this device's JWT before joining, or RLS silently filters every event.

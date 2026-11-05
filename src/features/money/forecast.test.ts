@@ -28,6 +28,12 @@ function expense(over: Partial<ExpenseDraft>): ExpenseRow {
 }
 
 describe('forecast', () => {
+  it('treats explicit zero costs as free, counts unconvertible plans, and deduplicates attendees', () => {
+    const f = forecast({ items: [item('free', { est_cost_minor: 0, est_cost_currency: 'USD' }), item('unknown', { est_cost_minor: 1000, est_cost_currency: 'XYZ' }), item('shared', { est_cost_minor: 1000, est_cost_currency: 'USD', attendee_ids: ['ana', 'ana', 'ben'] })], expenses: [], memberIds: members, me: 'ana', base: 'USD', snapshot })
+    expect(f.missingEstimates).toBe(1)
+    expect(f.plannedMinor).toBe(500)
+    expect(f.planned.find((p) => p.item.id === 'free')!.shareMinor).toBe(0)
+  })
   it('adds my share of logged expenses to my share of planned estimates', () => {
     const f = forecast({
       items: [

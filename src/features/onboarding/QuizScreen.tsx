@@ -127,7 +127,7 @@ export function QuizScreen() {
         <Button variant="ghost" className="-mr-4" onClick={skip}>{retake ? 'Not now' : 'Skip for now'}</Button>
       </div>
       <div role="progressbar" aria-label="Quiz progress" aria-valuemin={1} aria-valuemax={QUESTIONS.length} aria-valuenow={step + 1} className="mt-2 h-1.5 overflow-hidden rounded-full bg-mist">
-        <div className="h-full rounded-full bg-action transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }} />
+        <div className="h-full w-full rounded-full bg-action transition-transform duration-300 ease-out motion-reduce:transition-none" style={{ transform: `translateX(${((step + 1) / QUESTIONS.length) * 100 - 100}%)` }} />
       </div>
       {/* What's been said so far scrolls up above the current question, like any chat. */}
       <div className="mt-5 space-y-3">

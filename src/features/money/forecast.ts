@@ -46,14 +46,15 @@ export function forecast(opts: {
   let missingEstimates = 0
   for (const item of items.filter(live)) {
     if (logged.has(item.id)) continue
-    const people = item.attendee_ids ?? memberIds
-    const hasEstimate = item.est_cost_minor != null && item.est_cost_minor > 0 && !!item.est_cost_currency
+    const people = [...new Set(item.attendee_ids ?? memberIds)]
+    const hasEstimate = item.est_cost_minor != null && Number.isSafeInteger(item.est_cost_minor) && item.est_cost_minor >= 0 && !!item.est_cost_currency
     if (!hasEstimate) {
       if (COSTLY.has(item.kind) && people.includes(me)) missingEstimates++
       continue
     }
     const rate = rateFor(item.est_cost_currency!, base, snapshot)
-    if (!rate || !people.length) continue
+    if (!people.length) continue
+    if (!rate) { if (people.includes(me)) missingEstimates++; continue }
     const totalMinor = toBaseMinor(item.est_cost_minor!, item.est_cost_currency!, rate.rate, base)
     groupPlannedMinor += totalMinor
     const at = people.indexOf(me)

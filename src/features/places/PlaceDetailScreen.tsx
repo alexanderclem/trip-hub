@@ -148,10 +148,10 @@ function AddLink({ tripId, placeId, me }: { tripId: string; placeId: string; me:
 
   return (
     <form onSubmit={add} className="space-y-2">
-      <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" type="url" />
+      <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" type="url" aria-label="Link address" />
       <div className="flex gap-2">
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label (optional)" className="min-w-0 flex-1" />
-        <Select value={kind} onChange={(e) => setKind(e.target.value as LinkKind)} className="w-28">
+        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label (optional)" aria-label="Link label (optional)" className="min-w-0 flex-1" />
+        <Select value={kind} onChange={(e) => setKind(e.target.value as LinkKind)} aria-label="Link type" className="w-28">
           {LINK_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
         </Select>
       </div>

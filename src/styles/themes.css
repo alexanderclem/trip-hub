@@ -93,6 +93,7 @@
   --stowaway-meal-ink: #f2bd9f;
   --stowaway-stay-bg: #332e45;
   --stowaway-stay-ink: #d1c6ed;
+  --stowaway-category-lift: 50%;
   --color-base-100: var(--stowaway-surface);
   --color-base-200: var(--stowaway-canvas);
   --color-base-300: var(--stowaway-mist);

@@ -71,13 +71,41 @@ typography:
     fontWeight: 600
     lineHeight: 1.4
     letterSpacing: "0.08em"
+  caption:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "0.8125rem"
+    fontWeight: 400
+    lineHeight: 1.5
+  row-title:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 600
+    lineHeight: 1.4
+  app-section:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 600
+    lineHeight: 1.35
+  app-entry-title:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "1.375rem"
+    fontWeight: 600
+    lineHeight: 1.3
+  card-title:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "1.5rem"
+    fontWeight: 600
+    lineHeight: 1.3
 rounded:
   stub: "0px"
+  mark: "2px"
   stamp: "4px"
   field: "6px"
   control: "8px"
   card: "10px"
+  shell: "18px"
   sheet: "22px"
+  phone-sheet: "1.5rem"
   pill: "999px"
 spacing:
   edge-min: "8px"
@@ -248,6 +276,10 @@ reserved for small uppercase travel metadata. Antonio gives route codes their id
 - **Travel label:** Barlow Condensed 600, 0.8125rem, modest tracking and uppercase. Use only
   for a printed field or travel metadata; regular form labels use Barlow in sentence case.
 - **Secondary information:** Barlow 400–500, 0.8125–0.875rem, line-height 1.5.
+- **Caption floor:** 0.8125rem (13px) is the smallest text anyone reads. Tailwind's `text-xs`
+  is remapped to it in `src/styles/index.css`, and CSS uses `var(--stowaway-text-caption)`.
+  Only the initials inside a 20px avatar dot go smaller. Form fields stay at 16px so iPhone
+  Safari never zooms on focus.
 - **Numbers:** tabular numerals for times and amounts. Financial amounts and actual booking
   references use Barlow for readability; they are not decorative route lettering.
 
@@ -300,7 +332,9 @@ Tactile print: sentence-case Barlow controls, small condensed travel labels, 2px
 - **Website primary:** subpage primary actions are coral buttons, 52px, 8px corners, 1rem Barlow 600 in sentence case; hover darkens and lifts 1px.
 - **Ink and quiet buttons:** in-demo actions (Save another place) are 48px with an ink stroke, quiet by default and filled ink on hover. Disabled drops to 55% opacity.
 - **Text link:** Barlow 600 at 1rem in sentence case with an ink underline.
-- **Focus:** every interactive element shows a 3px coral outline offset 3px.
+- **Focus:** every interactive element shows a 3px coral outline offset 3px over a 3px ink ring
+  (`box-shadow: 0 0 0 3px ink`). Coral alone is 2.4:1 on light stock; the ink ring carries the
+  contrast in both themes. Fields drop the ring and put the coral outline straight on their ink edge.
 
 ### Chips (choice buttons)
 - **Style:** vote scores (No way, Maybe, Keen, Must-do) and the Join name picker: 44px (52px for names), 2px ink stroke, 8px corners, Barlow 600 in sentence case.
@@ -348,9 +382,12 @@ The hero prints itself on the first load of the page: a 3px ink print head runs 
 - **Do** use short feature names and action labels. Let the trip demonstrate the details. Omit explanatory captions that repeat the heading, controls, or example; put necessary setup instructions in the FAQ.
 - **Do** write factual status messages and specific changes. Avoid encouragement, metaphors, slogans, and reassurance beneath ordinary controls.
 - **Do** use the Tag Head with printed fields to open a secondary page.
-- **Do** keep targets at 44px or more and the 3px coral focus outline on everything interactive.
+- **Do** keep targets at 44px or more (segmented options, chips, checkboxes through their row label)
+  and the coral-over-ink focus ring on everything interactive.
 - **Do** carry the luggage-tag palette, locally served fonts, flat ink borders and dashed rules into the app. Use Barlow for headings, body and controls, Barlow Condensed for small travel metadata, and Antonio for route codes.
 - **Do** keep the app's primary actions coral and its selected controls ink. Preserve semantic warning, danger, success, and itinerary-category colors.
+- **Do** pass place-category colours through `categoryTone()` (`src/features/places/categories.ts`) whenever they colour an icon or text on paper. Dark mode lifts them 50% toward ink (`--stowaway-category-lift`); map pins keep the raw tone under a white icon.
+- **Do** keep overlays flat: dialogs, sheets, toasts and the add button carry no blurred shadow, and backdrops are the ground colour at 45%.
 
 ### Don't:
 - **Don't** use coral outside the Coral Ledger: not for links, hovers, the current nav item, pressed chips or the lit strip stop.
@@ -364,5 +401,7 @@ The hero prints itself on the first load of the page: a 3px ink print head runs 
 ## App theme
 
 The app now shares the luggage-tag direction at a practical working scale. `src/styles/fonts.css` supplies the local fonts to both surfaces. `themes.css` defines the matching light/dark paper, ink, coral and semantic roles; `app-theme.css` translates them into app components under `.app-world`.
+
+**Group pick (the app's one authored moment).** The PRIORITY stamp appears in the app as "Group pick" (`src/features/polls/PickStamp.tsx`, `src/styles/group-pick.css`). When a vote closes in front of someone, the Decided card prints in, the winner's name takes the coral highlighter, and the stamp lands. "Add to the plan" carries the place and its stamp into the form (view transition), and saving flies them onto the new plan row (a FLIP, because the plan loads after it mounts). The row gives under the stamp and develops from half-tone to solid. Plan rows for places that won a vote keep the stamp. Reduced motion shows every state already printed. Nothing else in the app stamps.
 
 Desktop trips sit inside a rounded sheet on ocean ink, with a dashed workspace rail and a clear current navigation item. Phones keep full-width content, a ruled header, and the existing bottom navigation. Weight follows use: lists of things to tap (row groups) keep the 2px ink outline, while section containers (`.ui-card`) print on a 1px tear rule so a stack of them reads as one page. Grouped records, itinerary entries and document stubs use dashed internal rules. Long settings-style screens group their cards under small labels by who they affect (the group, the trip, this phone) rather than stacking a box per setting. A record's own screen (a plan item) prints as one framed record whose parts (when, confirmation, where, who, tickets) are divided by dashed rules. Inputs retain regular-width 16px body text. Document cards show actual confirmation codes and download states. App theme changes preserve the public site's own composition and the application's navigation, storage and offline behavior.

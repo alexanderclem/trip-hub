@@ -110,7 +110,7 @@ export function OfflineMapCard({ trip }: { trip: Trip }) {
           {progress != null ? (
             <div className="mt-3">
               <div className="h-2 overflow-hidden rounded-full bg-mist">
-                <div className="h-full bg-action transition-[width]" style={{ width: `${Math.round((progress / total) * 100)}%` }} />
+                <div className="h-full w-full bg-action transition-transform duration-300 ease-out motion-reduce:transition-none" style={{ transform: `translateX(${Math.round((progress / total) * 100) - 100}%)` }} />
               </div>
               <p className="mt-1 text-xs text-muted">
                 {mb(progress)} of {mb(total)}

@@ -39,8 +39,8 @@ export function UpNextCard({ tripId, items, places, members, me, zone, transfers
       {transfer && (
         <div className="up-next-departure">
           <Clock3 aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-          <div className="min-w-0"><p className="font-semibold">{transfer.leaveAt < now ? 'Suggested departure was' : 'Leave by'} <span className="tabular-nums">{formatInZone(new Date(transfer.leaveAt).toISOString(), zone, 'HH:mm')}</span></p>
-          <p className="mt-1 wrap-anywhere text-sm">{MODE_LABEL[transfer.option.mode].label} · {formatRange(transfer.option.minS, transfer.option.maxS)}</p></div>
+          <div className="min-w-0"><p className="font-semibold">{transfer.fromPlace.id === transfer.toPlace.id ? transfer.leaveAt < now ? 'Preparation was due by' : 'Start preparation by' : transfer.leaveAt < now ? 'Suggested departure was' : 'Leave by'} <span className="tabular-nums">{formatInZone(new Date(transfer.leaveAt).toISOString(), zone, 'HH:mm')}</span></p>
+          <p className="mt-1 wrap-anywhere text-sm">{transfer.fromPlace.id === transfer.toPlace.id ? `${transfer.bufferS / 60} min check-in / waiting` : `${MODE_LABEL[transfer.option.mode].label} · ${formatRange(transfer.option.minS, transfer.option.maxS)}`}</p></div>
         </div>
       )}
       <div className="up-next-actions">
@@ -48,7 +48,7 @@ export function UpNextCard({ tripId, items, places, members, me, zone, transfers
         {ticket && <Link to={`/t/${tripId}/tickets/${ticket.att.id}`} className="ui-link"><Ticket aria-hidden="true" className="size-4" />{ticket.onPhone ? 'Open ticket' : 'View ticket · not downloaded'}</Link>}
       </div>
       <Disclosure summary={transfer ? 'About this travel estimate' : 'Travel guidance'} className="up-next-guidance">
-        {transfer ? <><p>From {transfer.fromPlace.name} · {SOURCE_LABEL[transfer.option.source]}.</p><p className="mt-1">Departure allows the upper travel estimate. Add time for check-in or waiting.</p></> : <p>{place ? 'A departure estimate needs a previous stop with travel information.' : 'Add a place to this plan for travel guidance.'}</p>}
+        {transfer ? transfer.fromPlace.id === transfer.toPlace.id ? <p>Allows {transfer.bufferS / 60} minutes for check-in and waiting at {transfer.toPlace.name}.</p> : <><p>From {transfer.fromPlace.name} · {SOURCE_LABEL[transfer.option.source]}.</p><p className="mt-1">Departure allows the upper travel estimate{transfer.bufferS ? ` plus ${transfer.bufferS / 60} minutes for check-in and waiting` : ''}. {transfer.bufferS ? '' : 'Set check-in or waiting time when editing this activity.'}</p></> : <p>{place ? 'A departure estimate needs a previous stop with travel information.' : 'Add a place to this plan for travel guidance.'}</p>}
       </Disclosure>
     </section>
   )

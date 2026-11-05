@@ -28,6 +28,8 @@ import { useDaySuggestions } from '@/features/suggest/data'
 import { SuggestionsCard } from '@/features/suggest/SuggestionsCard'
 import { Agenda } from './Agenda'
 import { useContentChange, useSlidingHighlight } from '@/ui/effects'
+import { scheduleIssues, type ScheduleIssue } from './fixes'
+import { ScheduleFixDialog } from './ScheduleFixDialog'
 
 const HOUR_PX = 60
 const GUTTER = '3.25rem'
@@ -44,6 +46,7 @@ export function PlanScreen() {
   const { zone } = useDisplayZone(trip)
   const [params, setParams] = useSearchParams()
   const [view, setView] = useState<'agenda' | 'timeline'>('agenda')
+  const [fixing, setFixing] = useState<ScheduleIssue | null>(null)
   const viewHighlight = useSlidingHighlight<HTMLDivElement>(view, '[aria-pressed="true"]')
 
   const days = useMemo(() => planDays(trip?.start_date ?? null, trip?.end_date ?? null, items ?? [], zone), [trip, items, zone])
@@ -59,6 +62,8 @@ export function PlanScreen() {
   const conflicts = layout.blocks.filter((b) => b.conflict).length
   const mine = useMemo(() => itemsFor(items ?? [], me), [items, me])
   const transfers = useMemo(() => legCtx ? planTransfers(items ?? [], places, legCtx, trip?.timezone ?? zone, members.map((m) => m.id)) : [], [items, places, legCtx, trip?.timezone, zone, members])
+  const issues = useMemo(() => scheduleIssues(items ?? [], transfers), [items, transfers])
+  const dayOverlaps = issues.filter((issue) => issue.kind === 'overlap' && (dayKey(issue.to.start_at, zone) === day || dayKey(issue.from.start_at, zone) === day))
   const tempUnit = useDevice((s) => s.tempUnit)
   const weatherRows = useWeather(tripId)
   const locs = useMemo(() => (trip ? dayLocations(days, items ?? [], places, trip, trip.timezone) : {}), [days, items, places, trip])
@@ -134,7 +139,6 @@ export function PlanScreen() {
       <div ref={dayContent} id="plan-day-content" role="tabpanel" aria-labelledby={`plan-day-${day}`} className="plan-day-content mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
         <UpNextCard tripId={tripId} items={items} places={places} members={members} me={me} zone={zone} transfers={transfers} withinHours={24} />
         <div className="plan-date-heading">
-          <p className="notebook-label">Day {String(days.indexOf(day) + 1).padStart(2, '0')} of {days.length}<span>{perDay[day]?.count || 0} {(perDay[day]?.count || 0) === 1 ? 'plan' : 'plans'}</span></p>
           <SectionTitle>{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</SectionTitle>
         </div>
         <div className="plan-toolbar">
@@ -165,11 +169,14 @@ export function PlanScreen() {
           </Link>
         ))}
         {conflicts > 0 && (
-          <p role="alert" className="flex items-center gap-2 rounded-surface bg-danger px-3 py-2 text-sm text-danger-ink">
+          <div role="alert" className="rounded-surface bg-danger px-3 py-2 text-sm text-danger-ink">
+            <p className="flex items-center gap-2">
             <AlertTriangle aria-hidden="true" className="size-4 shrink-0" /> {conflicts} items overlap for the same people
-          </p>
+            </p>
+            {mayPlan && legCtx && dayOverlaps.map((issue) => <div key={issue.id} className="mt-2 flex flex-wrap items-center justify-between gap-x-3 border-t border-danger-ink/20 pt-2"><span className="min-w-0 break-words">{issue.from.title} → {issue.to.title}</span><Button variant="secondary" onClick={() => setFixing(issue)} aria-haspopup="dialog">Review fixes</Button></div>)}
+          </div>
         )}
-        <TravelWarnings tripId={tripId} transfers={transfers.filter((t) => dayKey(t.to.start_at, zone) === day)} />
+        <TravelWarnings tripId={tripId} transfers={transfers.filter((t) => dayKey(t.to.start_at, zone) === day)} onReview={mayPlan && legCtx ? (transfer) => setFixing(issues.find((issue) => issue.from.id === transfer.from.id && issue.to.id === transfer.to.id) ?? null) : undefined} />
         {empty ? (
           <Empty>
             <CalendarDays aria-hidden="true" className="size-8 text-action" />
@@ -182,7 +189,7 @@ export function PlanScreen() {
             </LinkButton>}
           </Empty>
         ) : view === 'agenda' ? (
-          <Agenda day={day} blocks={layout.blocks} zone={zone} tripId={tripId} placeOf={placeOf} members={members} />
+          <Agenda day={day} blocks={layout.blocks} zone={zone} tripId={tripId} placeOf={placeOf} />
         ) : (
           <Timeline blocks={layout.blocks} fromHour={layout.fromHour} toHour={layout.toHour} zone={zone} day={day} tripId={tripId} placeOf={placeOf} />
         )}
@@ -206,6 +213,7 @@ export function PlanScreen() {
 
       {/* An empty day already offers the same action in the middle of the screen. */}
       {!empty && mayPlan && <Fab to={`/t/${tripId}/plan/new?day=${day}`} label="Add to plan" />}
+      {fixing && mayPlan && legCtx && <ScheduleFixDialog key={fixing.id} issue={fixing} items={items} places={places} ctx={legCtx} trip={trip} zone={zone} members={members.map((m) => m.id)} me={me} onClose={() => setFixing(null)} />}
     </div>
   )
 }

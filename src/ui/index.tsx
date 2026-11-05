@@ -11,9 +11,12 @@ import { useMotionPreference } from './MotionProvider'
 import { motionTiming } from './motion'
 import { avatarPalette } from './avatarPalette'
 import { Morph } from './Morph'
+import { cue } from './feedback'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 const MotionLink = m.create(Link)
+/** A press gives under the finger: down a pixel and in a touch, then springs back (motionTiming.feedback). */
+const PRESS = { y: 1, scale: 0.98 }
 
 export function Button({
   variant = 'primary',
@@ -23,7 +26,7 @@ export function Button({
   const reducedMotion = useMotionPreference()
   return (
     <m.button
-      whileTap={!reducedMotion && !props.disabled ? { y: 1 } : undefined}
+      whileTap={!reducedMotion && !props.disabled ? PRESS : undefined}
       transition={motionTiming.feedback}
       {...props}
       className={cx(
@@ -36,7 +39,7 @@ export function Button({
 
 export function LinkButton({ variant = 'primary', className, ...props }: ComponentProps<typeof MotionLink> & { variant?: 'primary' | 'secondary' | 'ghost' }) {
   const reducedMotion = useMotionPreference()
-  return <MotionLink whileTap={reducedMotion ? undefined : { y: 1 }} transition={motionTiming.feedback} {...props} className={cx('btn', variant === 'primary' ? 'btn-primary' : variant === 'secondary' ? 'btn-outline' : 'btn-ghost', 'ui-button', `ui-button-${variant}`, className)} />
+  return <MotionLink whileTap={reducedMotion ? undefined : PRESS} transition={motionTiming.feedback} {...props} className={cx('btn', variant === 'primary' ? 'btn-primary' : variant === 'secondary' ? 'btn-outline' : 'btn-ghost', 'ui-button', `ui-button-${variant}`, className)} />
 }
 
 const FieldDescription = createContext<string | undefined>(undefined)
@@ -246,15 +249,15 @@ export function Segmented<T extends string>({ label, value, options, onChange, c
       buttons[index]?.focus()
     }}>
       {options.map((o) => (
-        <button key={o.value} type="button" role="radio" tabIndex={value === o.value ? 0 : -1} aria-checked={value === o.value} title={o.title} aria-label={o.ariaLabel} onClick={() => onChange(o.value)}>{o.label}</button>
+        <button key={o.value} type="button" role="radio" tabIndex={value === o.value ? 0 : -1} aria-checked={value === o.value} title={o.title} aria-label={o.ariaLabel} onClick={() => { if (value !== o.value) cue('tap'); onChange(o.value) }}>{o.label}</button>
       ))}
     </div>
   )
 }
 
 /** A filter or toggle pill. `pressed` makes it a toggle; without it, it is a plain action. */
-export function Chip({ pressed, className, ...props }: ComponentProps<'button'> & { pressed?: boolean }) {
-  return <button type="button" aria-pressed={pressed} {...props} className={cx('ui-chip', className)} />
+export function Chip({ pressed, className, onClick, ...props }: ComponentProps<'button'> & { pressed?: boolean }) {
+  return <button type="button" aria-pressed={pressed} {...props} onClick={(event) => { if (pressed !== undefined) cue('tap'); onClick?.(event) }} className={cx('ui-chip', className)} />
 }
 
 /** A list of destinations or records in one bordered group, divided by rules instead of a card each. */

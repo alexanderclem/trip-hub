@@ -25,6 +25,7 @@ import { Morph, morphName } from '@/ui/Morph'
 import { rowLoader, useFirstRow } from '@/data/firstRow'
 import { journeyDirection } from '@/features/arrivals/model'
 import { RescheduleDialog } from './RescheduleDialog'
+import { arrivalBuffers } from './buffers'
 
 const city = (zone: string) => zone.split('/').pop()!.replace(/_/g, ' ')
 
@@ -73,6 +74,7 @@ export function ItemDetailScreen() {
   const prevPlace = prev && placeOf(prev.to_place_id ?? prev.place_id)
   const options = prevPlace && place && legCtx && prevPlace.id !== place.id ? travelOptions(prevPlace, place, legCtx) : []
   const going = item.attendee_ids ? members.filter((m) => item.attendee_ids!.includes(m.id)) : null
+  const author = members.find((member) => member.id === item.created_by)
 
   return (
     <div className="min-h-full pb-10">
@@ -156,7 +158,9 @@ export function ItemDetailScreen() {
         <div className="item-record-part">
           <div className="flex flex-wrap items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-muted" />{!going && <span>Everyone</span>}{(going ?? members).map((m) => <TravelerLink key={m.id} member={m} />)}{going?.length === 0 && <span>Nobody yet</span>}</div>
           {item.est_cost_minor != null && item.est_cost_currency && <p className="mt-2 text-sm text-muted">Estimated cost: {formatMoney(item.est_cost_minor, item.est_cost_currency)}</p>}
+          {arrivalBuffers(item).totalS > 0 && <p className="mt-2 text-sm text-muted">Arrival buffers: {arrivalBuffers(item).checkIn} min check-in / preparation + {arrivalBuffers(item).waiting} min waiting.</p>}
           {item.notes && <p className="itinerary-notes mt-2 text-sm whitespace-pre-wrap text-ink">{item.notes}</p>}
+          {author && <p className="mt-3 text-sm text-muted">Added by <TravelerLink member={author} /></p>}
         </div>
         <div className="item-record-part">
           <SectionTitle className="mb-1">Tickets</SectionTitle>

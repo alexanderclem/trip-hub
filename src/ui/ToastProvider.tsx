@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
 import { X } from 'lucide-react'
+import { cue } from './feedback'
 
 type Notice = { message: string; undo?: () => Promise<void>; undoLabel?: string }
 type Toast = Notice & { id: number; busy?: boolean; error?: string }
@@ -20,6 +21,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((previous) => previous.map((item) => item.id === toast.id ? { ...item, busy: true, error: undefined } : item))
     try {
       await toast.undo()
+      cue('toggle')
       setToasts((previous) => previous.map((item) => item.id === toast.id ? { id: item.id, message: 'Change undone.' } : item))
     } catch (error) {
       setToasts((previous) => previous.map((item) => item.id === toast.id ? { ...item, busy: false, error: error instanceof Error ? error.message : 'Could not undo. Try again.' } : item))

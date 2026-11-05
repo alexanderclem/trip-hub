@@ -1,0 +1,54 @@
+/* The group's pick (src/features/polls/PickStamp.tsx). One authored moment in two beats:
+   1. A vote closes in front of you: the Decided card prints in, the winner's name takes the coral
+      highlighter, and the stamp lands on it with a small press of the card underneath.
+   2. Add to the plan: the place and its stamp travel (Morph) through the form into the plan row,
+      which then develops from the half-tone (tentative print) to solid.
+   Nothing loops. Reduced motion shows every state already printed. */
+
+.pick-stamp {
+  display: inline-flex; flex-shrink: 0; align-items: center;
+  padding: .125rem .5rem; border: 2px solid var(--stowaway-on-primary); border-radius: 4px;
+  background: var(--stowaway-coral); color: var(--stowaway-on-primary);
+  font-family: var(--stowaway-font-label); font-size: var(--stowaway-text-caption); font-weight: 700;
+  letter-spacing: .12em; line-height: 1.35; text-transform: uppercase; white-space: nowrap;
+  transform: rotate(-5deg);
+}
+.agenda-pick { margin-top: .5rem; line-height: 1; }
+.agenda-pick .pick-stamp { transform-origin: left center; }
+
+/* The winner's name keeps the website's coral highlighter. An underline paints beneath the glyphs
+   and follows every wrapped line, unlike a background on the block. */
+.pick-winner .place-identity-name {
+  text-decoration-line: underline; text-decoration-color: color-mix(in srgb, var(--stowaway-coral) 60%, transparent);
+  text-decoration-thickness: .36em; text-underline-offset: -.2em; text-decoration-skip-ink: none;
+}
+
+/* The row that just landed: a half-tone sheet under it fades, so the stop prints solid. */
+.agenda-landed > .agenda-stop { position: relative; isolation: isolate; }
+/* Until the group's picks load (a frame or two) the row waits unseen, so it can fly in rather than jump. */
+.agenda-landed[data-landed='true'] > .agenda-stop { visibility: hidden; }
+.agenda-landed > .agenda-stop::before {
+  content: ''; position: absolute; inset: 0 -.5rem; z-index: -1; border-radius: var(--stowaway-radius-control);
+  background: radial-gradient(circle, color-mix(in srgb, var(--stowaway-ink) 22%, transparent) 1px, transparent 1.4px) 0 0 / 5px 5px;
+  opacity: 0; pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pick-decided[data-stamping] { animation: pick-print 560ms var(--stowaway-feedback-ease) var(--pick-delay, 0ms) both; }
+  .pick-decided[data-stamping] > * { animation: pick-press 300ms cubic-bezier(.3, 1.4, .5, 1) calc(var(--pick-delay, 0ms) + 670ms) both; }
+  .pick-decided[data-stamping] .pick-winner .place-identity-name { animation: pick-highlight 420ms ease-out calc(var(--pick-delay, 0ms) + 720ms) both; }
+  .pick-stamp[data-stamping] { animation: pick-stamp 420ms var(--stowaway-feedback-ease) var(--pick-delay, 0ms) both; }
+  /* Develops once the flying stamp hits the row (Agenda sets --pick-impact). */
+  .agenda-landed > .agenda-stop::before { animation: pick-develop 1100ms var(--stowaway-feedback-ease) var(--pick-impact, 120ms) both; }
+}
+
+@keyframes pick-print { from { clip-path: inset(-3rem 100% -3rem -3rem); opacity: .35; } to { clip-path: inset(-3rem); opacity: 1; } }
+@keyframes pick-stamp {
+  0% { transform: rotate(-14deg) scale(1.6); opacity: 0; }
+  60% { transform: rotate(-3deg) scale(.94); opacity: 1; }
+  100% { transform: rotate(-5deg) scale(1); opacity: 1; }
+}
+/* The card gives a little under the stamp, then settles. */
+@keyframes pick-press { 0%, 100% { transform: none; } 35% { transform: translateY(1.5px) scale(.996); } }
+@keyframes pick-highlight { from { text-decoration-color: transparent; } }
+@keyframes pick-develop { from { opacity: 1; } to { opacity: 0; } }

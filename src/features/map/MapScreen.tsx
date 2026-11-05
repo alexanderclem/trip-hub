@@ -17,7 +17,7 @@ import { DateTime } from 'luxon'
 import { PLACE_CATEGORIES, type Place, type PlaceCategory } from '@/data/types'
 import type { LatLng } from '@/lib/geo'
 import { Button, Chip, HeaderTools } from '@/ui'
-import { CATEGORY_STYLE } from '@/features/places/categories'
+import { CATEGORY_STYLE, categoryTone } from '@/features/places/categories'
 import { addPinImages } from './pinImages'
 import { ME_ID, PlaceSheet, Sheet, type OriginChoice } from './PlaceSheet'
 
@@ -541,7 +541,7 @@ export default function MapScreen() {
               const { label, color, Icon } = CATEGORY_STYLE[c]
               return (
                 <Chip key={c} pressed={!hidden.has(c)} onClick={() => toggle(c)}>
-                  <Icon aria-hidden="true" className="size-4" style={hidden.has(c) ? { color } : undefined} /> {label}
+                  <Icon aria-hidden="true" className="size-4" style={hidden.has(c) ? { color: categoryTone(color) } : undefined} /> {label}
                 </Chip>
               )
             })}

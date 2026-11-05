@@ -134,7 +134,7 @@ test('task completion rolls back on local failure and undo survives navigation',
   await page.waitForURL(`${root}/plan`)
   await expect(page.getByRole('heading', { name: 'Plan', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Undo task change: Book the shuttle' }).click()
-  await expect(page.getByText('Change undone on this device.')).toBeVisible()
+  await expect(page.getByText('Change undone.', { exact: true })).toBeVisible()
   expect(await storedTask(page)).toMatchObject({ completed: false, notes: 'Meet at the station' })
   await page.screenshot({ path: `${shots}/undo-toast-390.png` })
 })
@@ -206,7 +206,7 @@ test('saved destination facts stay visible while reconnecting and revalidating',
 test('a slow image shows its local placeholder, then reveals the decoded photo', async ({ page }) => {
   let release!: () => void
   const gate = new Promise<void>((resolve) => { release = resolve })
-  await page.route('**/images/trip-covers/flat-v2/lake-small.jpg', async (route) => { await gate; await route.continue() })
+  await page.route('**/images/trip-covers/flat-v2/city-small.jpg', async (route) => { await gate; await route.continue() })
   await page.goto('/operators', { waitUntil: 'domcontentloaded' })
   const image = page.locator('.operator-booking-image')
   await image.scrollIntoViewIfNeeded()

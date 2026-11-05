@@ -153,13 +153,16 @@ export async function downloadMissing(tripId: string, onProgress?: (done: number
   return { done, failed }
 }
 
+/** Read after downloading or syncing, so readiness never uses a stale render's ticket list. */
+export async function attachmentsOnPhone(tripId: string) {
+  const atts = await db.attachments.where('trip_id').equals(tripId).filter(alive).toArray()
+  const files = await db.files.bulkGet(atts.map((a) => fileKey(a.id)))
+  return atts.map((a, i) => ({ att: a, onPhone: !!files[i] }))
+}
+
 /** Live: attachments plus whether each one's file is on this phone. */
 export function useAttachments(tripId: string) {
-  return useLiveQuery(async () => {
-    const atts = await db.attachments.where('trip_id').equals(tripId).filter(alive).toArray()
-    const files = await db.files.bulkGet(atts.map((a) => fileKey(a.id)))
-    return atts.map((a, i) => ({ att: a, onPhone: !!files[i] }))
-  }, [tripId])
+  return useLiveQuery(() => attachmentsOnPhone(tripId), [tripId])
 }
 
 /** Frees phone storage held by removed tickets (works offline; the server copy goes after 7 days). */

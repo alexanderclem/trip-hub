@@ -44,6 +44,9 @@ interface DeviceState {
   setMoneyView: (v: 'base' | 'local') => void
   tempUnit: TempUnit
   setTempUnit: (u: TempUnit) => void
+  /** Touch and sound cues when something is ticked, voted or saved (src/ui/feedback.ts). */
+  cues: { haptics: boolean; sound: boolean }
+  setCues: (cues: Partial<{ haptics: boolean; sound: boolean }>) => void
   /** Push notifications this phone has turned on, per trip (the server keeps the subscription). */
   push: Record<string, PushSetting>
   setPush: (tripId: string, setting: PushSetting | null) => void
@@ -82,6 +85,8 @@ export const useDevice = create<DeviceState>()(
       setMoneyView: (moneyView) => set({ moneyView }),
       tempUnit: defaultTempUnit(),
       setTempUnit: (tempUnit) => set({ tempUnit }),
+      cues: { haptics: true, sound: false },
+      setCues: (cues) => set((s) => ({ cues: { ...s.cues, ...cues } })),
       push: {},
       setPush: (tripId, setting) =>
         set((s) => {

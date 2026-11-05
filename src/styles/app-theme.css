@@ -3,7 +3,10 @@
 .app-world { background: var(--stowaway-canvas); color: var(--stowaway-ink); }
 .app-world :is(h1, h2, h3) { overflow-wrap: anywhere; text-wrap: balance; }
 .app-world ::selection { background: var(--stowaway-coral); color: var(--stowaway-on-primary); }
-.app-world :where(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid var(--stowaway-coral); outline-offset: 3px; }
+/* Coral alone is 2.4:1 on light stock, so an ink ring sits inside it: the pair reads on any paper. */
+.app-world :is(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid var(--stowaway-coral); outline-offset: 3px; box-shadow: 0 0 0 3px var(--stowaway-ink); }
+/* Fields already carry a 2px ink edge, so their coral ring sits directly on it. */
+.app-world .ui-field:focus-visible { outline-offset: 0; box-shadow: none; }
 
 /* Barlow carries hierarchy and controls. Condensed print is reserved for small metadata. */
 .app-world .ui-page-title { font-size: clamp(1.5rem, 2vw, 2rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: var(--stowaway-leading-heading); }
@@ -89,6 +92,27 @@
 .app-world .agenda-stop h3 { letter-spacing: 0; }
 .app-world .agenda-time { font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; }
 .app-world .agenda-status { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); letter-spacing: 0; }
+
+/* A short home screen: trip identity, one priority, then the plan. */
+.overview-simple .overview-main { max-width: 48rem; margin-inline: auto; }
+.overview-simple .overview-group-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .5rem; }
+.overview-simple .overview-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1.5rem; }
+.overview-simple .overview-footer .ui-link { min-height: 44px; }
+.overview-simple .overview-empty-plan { display: flex; min-height: 60px; padding-block: .75rem; }
+.app-world .overview-simple .overview-journal { max-width: 48rem; margin: .5rem auto 1.25rem; padding-bottom: .5rem; border-bottom: 1px solid var(--stowaway-border); }
+.app-world .overview-simple .overview-journal-top { margin-bottom: .75rem; }
+.app-world .overview-simple .overview-journal-content { grid-template-columns: minmax(0, 1fr) 4rem; align-items: center; gap: 1rem; }
+.app-world .overview-simple .overview-journal-plain .overview-journal-content { grid-template-columns: minmax(0, 1fr); }
+.app-world .trip-overview.overview-simple .overview-journal h1 { font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1.2; text-wrap: pretty; }
+.app-world .overview-simple .overview-meta { margin-top: .5rem; }
+.app-world .overview-simple .overview-postcard .overview-art { height: 4rem; }
+.app-world .overview-simple .overview-focus { padding: 1.125rem; }
+.app-world .overview-simple .overview-focus h2 { font-size: 1.375rem; line-height: 1.3; }
+.app-world .overview-simple .overview-focus .ui-button { font-size: 1rem; }
+.overview-simple .shared-places-heading h2 { margin: 0; font-size: 1.125rem; }
+.overview-simple .trip-day-preview { padding: 1rem; }
+.overview-simple .preview-stops > li > a { padding-block: .75rem; }
+.offline-summary > .ui-disclosure > summary { min-height: 44px; }
 .app-world .plan-day-details { border-top-style: dashed; }
 .app-world .poll-score button { border: 2px solid var(--stowaway-ink); font-family: var(--stowaway-font-body); font-size: .875rem; font-weight: 600; line-height: 1.4; }
 .app-world .poll-score button[aria-pressed='true'] { background: var(--stowaway-ink); color: var(--stowaway-on-action); }

@@ -25,6 +25,7 @@ export async function dropTrip(tripId: string): Promise<void> {
   await db._outbox.filter((e) => e.rowId === tripId || e.payload.trip_id === tripId).delete()
   await db._deadletter.filter((e) => e.rowId === tripId || e.payload.trip_id === tripId).delete()
   await db._meta.where('key').startsWith(`cursor:${tripId}:`).delete()
+  await db._meta.where('key').startsWith(`budget:${tripId}:`).delete()
 }
 
 /** Removes pre-reset trips from this phone. True if anything was removed. */

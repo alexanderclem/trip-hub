@@ -24,6 +24,7 @@ import { TripDetailsForm } from './TripDetailsForm'
 import { TripCoverPicker } from './TripCoverPicker'
 import { TripArtwork } from './TripArtwork'
 import { tripCover } from './presentation'
+import { cue, hapticsSupported } from '@/ui/feedback'
 
 export function SettingsScreen() {
   const confirm = useConfirm()
@@ -36,6 +37,8 @@ export function SettingsScreen() {
   const [legs, setLegs] = useState<{ busy: boolean; msg: string | null; error: string | null }>({ busy: false, msg: null, error: null })
   const tempUnit = useDevice((s) => s.tempUnit)
   const setTempUnit = useDevice((s) => s.setTempUnit)
+  const cues = useDevice((s) => s.cues)
+  const setCues = useDevice((s) => s.setCues)
   const access = useTripAccess(tripId)
   // Once a trip has an organizer, only organizers replace its link (rotate_share_token).
   const mayReplaceLink = !access.organized || isStaff(access)
@@ -109,6 +112,17 @@ export function SettingsScreen() {
             <span>Temperatures</span>
             <Segmented label="Temperatures" value={tempUnit} onChange={setTempUnit} options={[{ value: 'F', label: '°F' }, { value: 'C', label: '°C' }]} className="w-28" />
           </div>
+          {/* A cue plays at once when switched on, so the person feels or hears what they chose. */}
+          {hapticsSupported() && (
+            <label className="mt-2 flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm">
+              <span>Vibrate when you tick, vote or save</span>
+              <input type="checkbox" className="ui-check" checked={cues.haptics} onChange={(e) => { setCues({ haptics: e.target.checked }); if (e.target.checked) cue('success', { haptics: true, sound: false }) }} />
+            </label>
+          )}
+          <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm">
+            <span>Play a soft sound too</span>
+            <input type="checkbox" className="ui-check" checked={cues.sound} onChange={(e) => { setCues({ sound: e.target.checked }); if (e.target.checked) cue('success', { haptics: false, sound: true }) }} />
+          </label>
         </Card>
         </section>
 
@@ -182,7 +196,7 @@ function FactorInput({ value, onSave }: { value: number; onSave: (v: number) => 
         if (v >= 1 && v <= 4) onSave(Math.round(v * 10) / 10)
         else setText(String(value))
       }}
-      className="w-14 rounded-control border border-control px-2 py-1 text-center"
+      className="min-h-11 w-16 rounded-control border border-control px-2 py-1 text-center text-base"
       aria-label="Road time multiplier"
     />
   )

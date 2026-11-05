@@ -13,6 +13,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle, ListSkeleton } from '
 import { setTaskCompleted, undoTaskCompleted, useTasks } from './data'
 import { useToast } from '@/ui/ToastProvider'
 import { Stowie } from '@/features/stowie/Stowie'
+import { cue } from '@/ui/feedback'
 
 export function TasksScreen() {
   const { tripId } = useParams() as { tripId: string }
@@ -44,6 +45,7 @@ export function TasksScreen() {
   async function toggle(task: TripTask) {
     if (locked.current.has(task.id)) return
     locked.current.add(task.id)
+    cue(task.completed ? 'toggle' : 'success')
     setError(null)
     setPending((ids) => [...ids, task.id])
     setOptimistic((previous) => ({ ...previous, [task.id]: !task.completed }))
@@ -51,7 +53,7 @@ export function TasksScreen() {
       await setTaskCompleted(task.id, !task.completed, me)
       notify({ message: `${task.completed ? 'Reopened' : 'Completed'}: ${task.title}`, undoLabel: `Undo task change: ${task.title}`, undo: () => undoTaskCompleted(task.id, !task.completed, me) })
     }
-    catch (e) { setOptimistic((previous) => { const next = { ...previous }; delete next[task.id]; return next }); setError(e instanceof Error ? e.message : 'Could not save. Try again.') }
+    catch (e) { cue('error'); setOptimistic((previous) => { const next = { ...previous }; delete next[task.id]; return next }); setError(e instanceof Error ? e.message : 'Could not save. Try again.') }
     finally { locked.current.delete(task.id); setPending((ids) => ids.filter((id) => id !== task.id)) }
   }
 

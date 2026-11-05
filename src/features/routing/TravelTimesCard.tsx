@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { Place } from '@/data/types'
 import { Card } from '@/ui'
-import { CATEGORY_STYLE } from '@/features/places/categories'
+import { CATEGORY_STYLE, categoryTone } from '@/features/places/categories'
 import { bestTime, travelOptions, type LegContext } from './legs'
 import { isPick } from './requestLegs'
 import { TrafficEstimate, TrafficNotice } from './TrafficEstimate'
@@ -35,11 +35,9 @@ export function TravelTimesCard({ place, places, ctx }: { place: Place; places: 
           return (
             <li key={p.id}>
               <div className="mb-1 flex items-center gap-2">
-                <Icon className="size-4" style={{ color }} />
-                <Link to={`../${p.id}`} relative="path" className="min-w-0 flex-1 truncate font-medium">
-                  {p.name}
-                </Link>
-                <button onClick={() => setReportFor(reportFor === p.id ? null : p.id)} className="text-xs text-action">
+                <Icon aria-hidden="true" className="size-4 shrink-0" style={{ color: categoryTone(color) }} />
+                <Link to={`../${p.id}`} relative="path" className="flex min-h-11 min-w-0 flex-1 items-center font-medium"><span className="truncate">{p.name}</span></Link>
+                <button type="button" onClick={() => setReportFor(reportFor === p.id ? null : p.id)} aria-expanded={reportFor === p.id} className="ui-link shrink-0">
                   Report time
                 </button>
               </div>

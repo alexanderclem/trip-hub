@@ -117,16 +117,15 @@ export function CreateTripScreen() {
   }
 
   return (
-    <div className="min-h-full">
+    <main className="min-h-full">
       <PageHeader title="New trip" back="/app" />
       {loadingDraft && <LoadingState title="Loading your trip idea…" />}
       <form onSubmit={submit} className="trip-create-form mx-auto max-w-xl space-y-5 p-5 sm:p-8">
-        <div className="trip-create-intro"><h2 className="travel-heading">Create your trip.</h2></div>
         {draft && <p className="rounded-surface bg-brand-50 p-3 text-sm text-ink">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name. The itinerary is added as tentative items you can edit.</p>}
         <Field label="Trip name">
           <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="Paris with friends" />
         </Field>
-        <Field label="Your name" hint="How the group will see you.">
+        <Field label="Your name">
           <Input required maxLength={40} value={form.yourName} onChange={set('yourName')} />
         </Field>
         <details className="ui-disclosure rounded-surface border border-line bg-surface px-4 py-1" open={draft ? true : undefined}>
@@ -136,7 +135,6 @@ export function CreateTripScreen() {
           onChange={(startDate, endDate) => setForm((f) => ({ ...f, startDate, endDate }))} />
         <div>
           <p className="text-sm font-medium text-ink">Where are you going?</p>
-          <p className="mt-1 text-xs text-muted">Optional. Sets the time zone and local currency. Settle-up currency is chosen separately.</p>
           {areas.length > 0 && (
             <ul aria-label="Destinations" className="mt-2 flex flex-wrap gap-2">
               {areas.map((a) => (
@@ -151,9 +149,12 @@ export function CreateTripScreen() {
           )}
           {areas.length < MAX_AREAS && <div className="mt-2"><DestinationSearch onPick={addDestination} placeholder={areas.length ? 'Add another town' : 'Search for a town or city'} /></div>}
         </div>
-        <details className="ui-disclosure border-t border-line pt-2">
-          <summary><span className="min-w-0 flex-1">Time zone & currencies</span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
-        <Field label="Destination time zone" hint="Trip times are shown in this zone unless you switch to your phone's time.">
+          </div>
+        </details>
+        <details className="ui-disclosure rounded-surface border border-line bg-surface px-4 py-1">
+          <summary><span className="min-w-0 flex-1">Time zone & currencies<span className="block text-xs font-normal text-muted">{form.timezone.split('/').at(-1)?.replaceAll('_', ' ')} · {form.baseCurrency.toUpperCase()}{form.localCurrency !== form.baseCurrency ? ` / ${form.localCurrency.toUpperCase()}` : ''}</span></span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
+          <div className="space-y-4 pb-4 pt-2">
+        <Field label="Destination time zone">
           <Select value={form.timezone} onChange={set('timezone')}>
             {zones.map((z) => (
               <option key={z} value={z}>
@@ -170,18 +171,15 @@ export function CreateTripScreen() {
             <Input maxLength={3} value={form.localCurrency} onChange={set('localCurrency')} />
           </Field>
         </div>
-        </details>
           </div>
         </details>
-        <p className="text-xs leading-relaxed text-muted">{form.startDate || 'Dates to be decided'} · {form.timezone.replaceAll('_', ' ')} · Settle up in {form.baseCurrency.toUpperCase() || 'a currency you choose'}. Add or change dates and time zone later in Trip settings.</p>
         <ErrorNote error={error} />
         {createdTripId && error && <Link className="inline-flex min-h-11 items-center text-action" to={`/t/${createdTripId}/overview`}>Open the created trip →</Link>}
-        {busy && <p role="status" className="text-sm text-muted">Creating your shared trip and saving a copy on this device…</p>}
         <Button type="submit" className="w-full" disabled={busy || loadingDraft || (!!draftId && !draft)}>
           {busy ? 'Creating…' : 'Create trip'}
         </Button>
         {!draftId && <Link to="/inspire" className="ui-link">Need a starting point? Help me plan →</Link>}
       </form>
-    </div>
+    </main>
   )
 }

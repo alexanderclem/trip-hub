@@ -84,22 +84,24 @@ test('trip cards show destination, group, countdown, and separately disclosed pa
   await expect(page.getByRole('heading', { name: 'Your trips.' })).toBeVisible()
 })
 
-test('overview shows live decision counts and opens exactly the unassigned task filter', async ({ page, baseURL }) => {
+test('overview shows one priority and compact task counts with the correct filter', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await page.goto(`${root}/overview`)
   await expect(page.getByRole('heading', { name: 'A day by the water?' })).toBeVisible()
-  await expect(page.getByText('3 travelers still need to vote', { exact: true })).toBeVisible()
-  await expect(page.getByText('2 tasks need an owner', { exact: true })).toBeVisible()
-  // All three first steps are done in this seed, so the checklist is gone rather than collapsed.
+  await expect(page.locator('.overview-focus')).toHaveCount(1)
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect((await page.locator('.overview-focus').boundingBox())!.y).toBeLessThan(360)
+  expect((await page.locator('.preview-stops li').first().boundingBox())!.y).toBeLessThan(760)
+  await expect(page.getByRole('heading', { name: 'Group decisions' })).toHaveCount(0)
   await expect(page.locator('.overview-setup')).toHaveCount(0)
-  const taskLink = page.getByRole('link', { name: /2 tasks need an owner/ })
+  const taskLink = page.getByRole('link', { name: 'Tasks 2 unassigned' })
   await taskLink.scrollIntoViewIfNeeded()
   const scroll = await page.locator('#trip-content').evaluate(el => el.scrollTop)
   await taskLink.click()
   await expect(page.getByRole('button', { name: 'Unassigned', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('link', { name: 'Book the airport transfer' })).toBeVisible()
   await page.goBack()
-  await expect(page.getByRole('heading', { name: 'Group decisions' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trip essentials' })).toBeVisible()
   await expect.poll(() => page.locator('#trip-content').evaluate(el => el.scrollTop)).toBeCloseTo(scroll, 0)
 })
 
@@ -134,7 +136,7 @@ test('quick add works by keyboard, restores focus, and reaches every creation fl
 
 test('cover selection survives reload, preserves other settings, and permits a plain trip', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
-  await page.goto(`${root}/overview`)
+  await page.goto(`${root}/more/settings`)
   await page.getByRole('button', { name: 'Change trip cover' }).click()
   const dialog = page.getByRole('dialog', { name: 'Trip cover' })
   await dialog.getByLabel('By the water').focus()
@@ -149,6 +151,7 @@ test('cover selection survives reload, preserves other settings, and permits a p
   await expect(dialog.getByLabel('Into the mountains')).toBeChecked()
   await dialog.getByText('Just the essentials', { exact: true }).click()
   await dialog.getByRole('button', { name: 'Save cover' }).click()
+  await page.goto(`${root}/overview`)
   await expect(page.locator('.overview-art')).toHaveCount(0)
   const settings = await page.evaluate(async tripId => {
     // Wait for the app to create its database; opening it first would make an empty one.
@@ -165,7 +168,7 @@ test('cover selection survives reload, preserves other settings, and permits a p
 
 test('cover save failure keeps selection and allows retry without duplicate writes', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
-  await page.goto(`${root}/overview`)
+  await page.goto(`${root}/more/settings`)
   await page.getByRole('button', { name: 'Change trip cover' }).click()
   const dialog = page.getByRole('dialog', { name: 'Trip cover' })
   await dialog.getByText('Around the city', { exact: true }).click()
@@ -213,15 +216,15 @@ test('travel day keeps departure, map and ticket handy while explaining estimate
   if (shots) await card.screenshot({ path: `${shots}/travel-departure.png` })
 })
 
-test('completing your remaining vote updates the group summary', async ({ page, baseURL }) => {
+test('completing your remaining vote clears the home priority', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await page.goto(`${root}/overview`)
   await page.getByRole('link', { name: 'Cast your vote' }).click()
   await page.getByRole('group', { name: 'Your vote for Costa da Caparica' }).getByRole('button').first().click()
   await expect(page.getByRole('status').filter({ hasText: 'Vote saved.' })).toBeVisible()
   await page.goBack()
-  await expect(page.getByText('Waiting on Maya and Noah', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Cast your vote' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Put a place in the plan' })).toBeVisible()
 })
 
 test('task completion gives feedback, updates the group summary, and persists after reload', async ({ page, baseURL }) => {
@@ -233,7 +236,7 @@ test('task completion gives feedback, updates the group summary, and persists af
   await page.reload()
   await expect(page.getByRole('checkbox', { name: 'Mark Book the airport transfer incomplete' })).toBeChecked()
   await page.goto(`${root}/overview`)
-  await expect(page.getByRole('link', { name: /1 task needs an owner/ })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Tasks 1 unassigned' })).toBeVisible()
 })
 
 for (const phase of ['planning', 'preparing', 'traveling', 'empty'] as const) {
@@ -250,7 +253,7 @@ for (const phase of ['planning', 'preparing', 'traveling', 'empty'] as const) {
       await expect(page.locator('.up-next-guidance > div')).toBeVisible()
       await page.locator('.up-next-guidance > summary').click()
     }
-    if (phase === 'preparing') await expect(page.getByRole('heading', { name: 'Get ready for offline' })).toBeVisible()
+    if (phase === 'preparing') await expect(page.getByRole('region', { name: 'Offline access' })).toBeVisible()
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 960 })
       if (await page.locator('#trip-content').count()) await page.locator('#trip-content').evaluate(el => { el.scrollTop = 0 })
@@ -263,6 +266,10 @@ for (const phase of ['planning', 'preparing', 'traveling', 'empty'] as const) {
     await noOverflow(page)
     await page.evaluate(() => { document.documentElement.style.fontSize = '' })
     await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' })
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'stowaway-dark')
+    await noOverflow(page)
+    if (shots) await page.screenshot({ path: `${shots}/${phase}-dark-320.png` })
     await page.getByRole('button', { name: 'Add', exact: true }).click()
     await expect(page.getByRole('dialog', { name: 'Add to your trip' })).toBeVisible()
     await expect(page.locator('.quick-add-list a').first()).toHaveCSS('transition-duration', '0s')
@@ -278,20 +285,12 @@ for (const phase of ['planning', 'preparing', 'traveling', 'empty'] as const) {
   })
 }
 
-test('planning shortcuts lead to the real trip screens and preserve trip context', async ({ page, baseURL }) => {
+test('home essentials and tabs reach the real trip screens and preserve context', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await page.goto(`${root}/overview`)
-  const planning = page.getByRole('navigation', { name: 'Trip planning', exact: true })
-  // Places and Votes are the planning links; the plan itself is reached from the day preview's
-  // "Full plan" (and the Plan tab), so Home doesn't repeat an Itinerary link.
-  await expect(planning.getByRole('link')).toHaveCount(2)
-  const preview = page.getByRole('region', { name: /, \d+ \w+$/ })
-  for (const [link, path, title] of [
-    [planning.getByRole('link', { name: /^Saved places/ }), 'more/places', 'Places'],
-    [planning.getByRole('link', { name: /^Votes/ }), 'more/vote', 'Votes'],
-    [preview.getByRole('link', { name: 'Full plan' }), 'plan', 'Plan'],
-  ] as const) {
-    await link.click()
+  for (const [label, path, title] of [['Places', 'more/places', 'Places'], ['Vote', 'more/vote', 'Votes'], ['Plan', 'plan', 'Plan']]) {
+    const entry = label === 'Places' ? page.getByRole('link', { name: /^Places / }) : page.getByRole('navigation', { name: 'Trip navigation', exact: true }).filter({ visible: true }).getByRole('link', { name: label, exact: true })
+    await entry.click()
     await expect(page).toHaveURL(new RegExp(`${root}/${path}(\\?|$)`))
     await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible()
     await expect(page.locator('.app-page-header .ui-eyebrow')).toHaveText('A long weekend in Lisbon')
@@ -300,8 +299,38 @@ test('planning shortcuts lead to the real trip screens and preserve trip context
       await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeHidden()
     }
     await page.goBack()
-    await expect(planning).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'A long weekend in Lisbon', level: 1 })).toBeVisible()
   }
+})
+
+test('inviting is available on demand and restores keyboard focus', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await page.goto(`${root}/overview`)
+  const invite = page.getByRole('button', { name: 'Invite', exact: true })
+  await invite.focus()
+  await page.keyboard.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'Invite friends', exact: true })
+  await expect(dialog).toContainText('Anyone with this link')
+  await expect(dialog.getByRole('button', { name: 'Copy', exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(dialog).not.toBeVisible()
+  await expect(invite).toBeFocused()
+})
+
+test('offline preparation stays compact and exposes failures without a false success', async ({ page, baseURL }) => {
+  await seed(page, baseURL!, 'preparing')
+  await page.goto(`${root}/overview`)
+  const offline = page.getByRole('region', { name: 'Offline access' })
+  await offline.getByRole('button', { name: 'Download all', exact: true }).click()
+  await expect(offline.getByRole('status')).toHaveText('Offline download incomplete')
+  await expect(offline.getByRole('list', { name: 'Download problems' })).toContainText("You're offline")
+  await expect(offline.getByRole('button', { name: 'Retry', exact: true })).toBeVisible()
+  await expect(offline.locator('details')).not.toHaveAttribute('open')
+  await offline.locator('summary').focus()
+  await page.keyboard.press('Enter')
+  await expect(offline.locator('details')).toHaveAttribute('open')
+  await expect(offline.locator('details')).toContainText('Trip data · Failed')
+  expect(await page.evaluate(tripId => localStorage.getItem(`trip-hub:offline-ready:${tripId}`), tripId)).toBeNull()
 })
 
 test('segmented settings support arrow keys, wraparound, and a single tab stop', async ({ page, baseURL }) => {

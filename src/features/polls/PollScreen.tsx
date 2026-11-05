@@ -1,6 +1,8 @@
 import { TravelerLink } from '@/features/trips/TravelerLink'
 import { useConfirm } from '@/ui/ConfirmProvider'
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react'
+import { useMotionPreference } from '@/ui/MotionProvider'
+import { PickStamp } from './PickStamp'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { CalendarCheck, Check, Clock, Lock, LockOpen, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
@@ -26,6 +28,7 @@ import { useItems } from '@/features/itinerary/data'
 import { useTripAccess } from '@/data/device'
 import { DecisionHandoff } from './DecisionHandoff'
 import { can } from '@/data/access'
+import { cue } from '@/ui/feedback'
 
 /** The current time, refreshed often enough for a deadline to pass while the page is open. */
 function useNow(everyMs = 30_000) {
@@ -63,6 +66,9 @@ export function PollScreen() {
   const [tab, setTab] = useState<'vote' | 'results'>('vote')
   const [shareOpen, setShareOpen] = useState(false)
   const [votedHere, setVotedHere] = useState(false)
+  const [statusError, setStatusError] = useState<string | null>(null)
+  const [statusBusy, setStatusBusy] = useState(false)
+  const statusLock = useRef(false)
   const tabHighlight = useSlidingHighlight<HTMLDivElement>(tab, '[aria-selected="true"]')
 
   const ranked = useMemo(() => (data ? rankOptions(data.options, data.votes, Math.max(1, members.length)) : []), [data, members.length])
@@ -72,12 +78,31 @@ export function PollScreen() {
   const finalised = useRef<string | null>(null)
   const due = !!data && !data.poll.deleted_at && data.poll.status === 'open' && votingEnded(data.poll, now)
   useEffect(() => {
-    if (!mayPlan || !due || !online || !loadedMembers || !data || finalised.current === data.poll.id) return
+    if (!due || !mayPlan || !online || !loadedMembers || !data || finalised.current === data.poll.id) return
     finalised.current = data.poll.id
-    void save('polls', { ...data.poll, status: 'closed', winner_option_id: leader(ranked)?.option.id ?? null }, me)
-  }, [mayPlan, due, online, loadedMembers, data, ranked, me])
+    void save('polls', { ...data.poll, status: 'closed', winner_option_id: leader(ranked)?.option.id ?? null }, me).catch(() => { setStatusError('Could not record the result. Use Close voting to try again.'); finalised.current = null })
+  }, [due, mayPlan, online, loadedMembers, data, ranked, me])
 
   const sharing = useSharePoll(trip, data && !data.poll.deleted_at ? data.poll : undefined, data?.options ?? [])
+
+  // The stamp lands only when the decision happens in front of you: you close the vote, its deadline
+  // passes, or another phone closes it while this screen is open. Later visits show it printed.
+  const recorded = data === undefined ? undefined : data && !data.poll.deleted_at && data.poll.status === 'closed' ? data.poll.winner_option_id : null
+  const reduced = useMotionPreference()
+  const decidedRef = useRef<HTMLDivElement>(null)
+  const sawUndecided = useRef(false)
+  const [stamp, setStamp] = useState<{ id: string; delay: number } | null>(null)
+  useEffect(() => {
+    if (recorded === undefined) return
+    if (!recorded) { sawUndecided.current = true; setStamp(null); return }
+    if (!sawUndecided.current) return
+    sawUndecided.current = false
+    // Bring the card into view first (Close voting sits at the bottom), then let the stamp land.
+    const card = decidedRef.current?.getBoundingClientRect()
+    const away = !!card && (card.top < 0 || card.bottom > window.innerHeight)
+    if (away) decidedRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' })
+    setStamp({ id: recorded, delay: away && !reduced ? 480 : 120 })
+  }, [recorded, reduced])
 
   if (data === undefined) return <PageHeader title="Vote" back={`/t/${tripId}/more/vote`} />
   if (data === null || data.poll.deleted_at) {
@@ -102,10 +127,15 @@ export function PollScreen() {
   const winnerPlace = winner && placeOf(winner)
 
   async function setStatus(status: Poll['status']) {
+    if (statusLock.current || !mayPlan) return
+    statusLock.current = true; setStatusBusy(true); setStatusError(null)
     const top = leader(ranked)
     // Reopening drops the deadline, or the vote would close again at once.
-    await save('polls', { ...poll, status, winner_option_id: status === 'closed' ? (top?.option.id ?? null) : null, closes_at: status === 'open' ? null : poll.closes_at }, me)
-    if (status === 'closed') setTab('results')
+    try {
+      await save('polls', { ...poll, status, winner_option_id: status === 'closed' ? (top?.option.id ?? null) : null, closes_at: status === 'open' ? null : poll.closes_at }, me)
+      if (status === 'closed') setTab('results')
+    } catch { setStatusError('Could not save the voting status. Try again.') }
+    finally { statusLock.current = false; setStatusBusy(false) }
   }
 
   return (
@@ -130,16 +160,21 @@ export function PollScreen() {
 
         {closed && !winner && mayPlan && options.length > 0 && <Card><h2 className="ui-section-title">Choose for the group</h2><p className="mt-2 text-sm text-muted">There isn’t a winning option from the votes yet. You can choose one together.</p><WinnerChoice poll={poll} options={options} me={me} /></Card>}
         {winner && (
+          <div ref={decidedRef} className="pick-decided scroll-mt-20" data-stamping={stamp?.id === winner.id || undefined} style={{ '--pick-delay': `${stamp?.delay ?? 0}ms` } as CSSProperties}>
           <Card framed>
-            <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-medium text-ink"><Trophy aria-hidden="true" className="size-4" />Decided</p><Stowie mood="delighted" size={36} animated={false} /></div>
-            {winnerPlace ? <div className="mt-4"><PlaceIdentity place={winnerPlace} members={members} compact /></div> : <p className="ui-section-title mt-1">{winner.label}</p>}
+            <div className="flex items-center justify-between gap-3">
+              <p className="flex items-center gap-2 text-sm font-medium text-ink"><Trophy aria-hidden="true" className="size-4" />Decided</p>
+              <span className="flex items-center gap-3"><PickStamp placeId={winnerPlace?.id} stamping={stamp?.id === winner.id} delay={(stamp?.delay ?? 0) + 420} /><Stowie mood="delighted" size={36} animated={false} /></span>
+            </div>
+            {winnerPlace ? <div className="pick-winner mt-4"><PlaceIdentity place={winnerPlace} members={members} compact morph="pick" /></div> : <p className="pick-winner ui-section-title mt-1"><span className="place-identity-name">{winner.label}</span></p>}
             {mayPlan && poll.status === 'closed' && <WinnerChoice key={poll.winner_option_id} poll={poll} options={options} me={me} />}
             <div className="mt-3">
               {winner.starts_on && trip ? (
-                <TripDatesAction trip={trip} option={winner} me={me} />
+                mayPlan ? <TripDatesAction trip={trip} option={winner} me={me} /> : <p className="text-sm text-muted">The organizer can set these as the trip’s dates.</p>
               ) : <DecisionHandoff key={winner.id} poll={poll} option={winner} items={items} members={members} mayPlan={mayPlan} />}
             </div>
           </Card>
+          </div>
         )}
 
         <div ref={tabHighlight.ref} role="tablist" aria-label="View" className="ui-segmented grid-cols-2">
@@ -176,8 +211,9 @@ export function PollScreen() {
 
         <CommentThread tripId={tripId} type="poll" subjectId={poll.id} me={me} prompt="Say why, or suggest something else" />
 
-        {mayPlan && <Button variant="secondary" className="w-full" onClick={() => setStatus(closed ? 'open' : 'closed')}>
-          {closed ? <><LockOpen aria-hidden="true" className="size-4" />Reopen voting</> : <><Lock aria-hidden="true" className="size-4" />Close voting and pick the winner</>}
+        <ErrorNote error={statusError} />
+        {mayPlan && <Button variant="secondary" className="w-full" disabled={statusBusy} onClick={() => setStatus(closed && poll.status === 'closed' ? 'open' : 'closed')}>
+          {poll.status === 'closed' ? <><LockOpen aria-hidden="true" className="size-4" />Reopen voting</> : <><Lock aria-hidden="true" className="size-4" />Close voting and pick the winner</>}
         </Button>}
       </div>
       <Dialog open={shareOpen} onClose={() => setShareOpen(false)} title="Share this vote"><SharePollCard sharing={sharing} bare /></Dialog>
@@ -218,6 +254,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSa
   async function castVote(next: VoteScore | null) {
     if (closed || inFlight.current) return
     inFlight.current = true
+    cue('toggle')
     setSaving(true)
     setPending({ score: next })
     setMessage('Saving your vote…')
@@ -227,6 +264,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSa
       setMessage(next === null ? 'Vote removed.' : 'Vote saved.')
       onSaved()
     } catch {
+      cue('error')
       setPending(null)
       setMessage('')
       setError('Your vote could not be saved. Try again; your previous choice is unchanged.')

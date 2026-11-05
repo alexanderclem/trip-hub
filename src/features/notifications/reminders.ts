@@ -27,7 +27,7 @@ export function remindersFor(transfers: Transfer[], memberId: string, now: numbe
       item_id: t.to.id,
       leave_at: new Date(t.leaveAt).toISOString(),
       item_start_at: new Date(Date.parse(t.to.start_at)).toISOString(),
-      note: `${MODE_LABEL[t.option.mode].label} from ${t.fromPlace.name}, ${minutes(t.option.minS)}–${minutes(t.option.maxS)} min`.slice(0, 160),
+      note: (t.fromPlace.id && t.fromPlace.id === t.toPlace.id ? `Check-in / waiting at ${t.toPlace.name}, ${minutes(t.bufferS)} min` : `${MODE_LABEL[t.option.mode].label} from ${t.fromPlace.name}, ${minutes(t.option.minS)}–${minutes(t.option.maxS)} min${t.bufferS ? ` + ${minutes(t.bufferS)} min check-in / waiting` : ''}`).slice(0, 160),
     }))
     .slice(0, 100)
 }

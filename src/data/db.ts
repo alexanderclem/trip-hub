@@ -24,6 +24,8 @@ export interface DeadLetter {
   payload: Record<string, unknown>
   error: string
   at: number
+  /** A later accepted edit resolved this rejection; keep its payload as history. */
+  resolvedAt?: number
 }
 
 /** A funnel event waiting to be sent (src/features/funnel/events.ts). This phone only, never synced. */

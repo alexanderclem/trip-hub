@@ -9,6 +9,7 @@ import { Button, ErrorNote, PageHeader } from '@/ui'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { addStarters, claim, setMyCheck, setPacked, tally, usePacking } from './data'
 import { suggestedStarters } from './starters'
+import { cue } from '@/ui/feedback'
 
 const CHIP = 'min-h-11 rounded-control border px-3 text-sm font-medium'
 const chip = (on: boolean) => `${CHIP} ${on ? 'border-action bg-action text-on-action' : 'border-line bg-surface text-ink hover:bg-brand-50'}`
@@ -172,7 +173,7 @@ function Section({ id, title, hint, count, children }: { id: string; title: stri
 function Tick({ checked, disabled, label, onChange }: { checked: boolean; disabled?: boolean; label: string; onChange: (v: boolean) => void }) {
   return (
     <label className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-control hover:bg-brand-50">
-      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} aria-label={`Packed ${label}`} className="ui-check" />
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => { cue(e.target.checked ? 'success' : 'toggle'); onChange(e.target.checked) }} aria-label={`Packed ${label}`} className="ui-check" />
     </label>
   )
 }

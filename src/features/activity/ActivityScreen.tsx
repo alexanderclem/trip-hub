@@ -10,7 +10,7 @@ import { GROUPS, groupOf, type ActivityGroup } from './feed'
 import { ListSkeleton } from '@/ui/collection'
 
 const LABEL: Record<ActivityGroup, string> = { votes: 'Votes', plan: 'Plan', places: 'Places', money: 'Money', tasks: 'Tasks', tickets: 'Tickets', comments: 'Comments' }
-const CHIP = 'min-h-11 shrink-0 rounded-control border px-3 text-sm font-medium'
+const CHIP = 'min-h-11 min-w-11 shrink-0 rounded-control border px-3 text-sm font-medium'
 const chip = (on: boolean) => `${CHIP} ${on ? 'border-action bg-action text-on-action' : 'border-line bg-surface text-ink hover:bg-brand-50'}`
 
 export function ActivityScreen() {

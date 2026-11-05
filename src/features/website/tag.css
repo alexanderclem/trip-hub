@@ -41,7 +41,7 @@
   --tag-halftone: radial-gradient(circle, color-mix(in srgb, var(--tag-ink) 22%, transparent) 1px, transparent 1.4px) 0 0 / 5px 5px;
 }
 .tag-world ::selection { background: var(--tag-coral); color: var(--tag-on-coral); }
-.tag-world :where(a, button, summary, input, select):focus-visible { outline: 3px solid var(--tag-coral); outline-offset: 3px; border-radius: 4px; }
+.tag-world :where(a, button, summary, input, select):focus-visible { outline: 3px solid var(--tag-coral); outline-offset: 3px; border-radius: 4px; box-shadow: 0 0 0 3px var(--tag-ink); }
 .tag-world :where(h1, h2, h3) { text-wrap: balance; overflow-wrap: anywhere; }
 .tag-world p { text-wrap: pretty; }
 .tag-world a { color: inherit; }
@@ -170,7 +170,7 @@
 .tag-strip { position: sticky; top: 0; z-index: 5; background: var(--tag-stock); border-bottom: 2px solid var(--tag-ink); }
 .tag-strip ol { display: flex; overflow-x: auto; list-style: none; scrollbar-width: none; padding-inline: calc(var(--tag-pad) - .5rem); }
 .tag-strip ol::-webkit-scrollbar { display: none; }
-.tag-strip a { display: flex; align-items: baseline; gap: .375rem; min-height: 48px; padding-inline: .5rem; padding-top: .625rem; white-space: nowrap; color: var(--tag-print); text-decoration: none; }
+.tag-strip a { display: flex; align-items: baseline; gap: .375rem; min-height: 48px; min-width: 44px; padding-inline: .5rem; padding-top: .625rem; white-space: nowrap; color: var(--tag-print); text-decoration: none; }
 .tag-strip-code { font-family: var(--tag-display); font-size: 1.375rem; font-weight: 700; line-height: 1; color: var(--tag-ink); }
 .tag-strip-label { font-family: var(--tag-cond); font-size: .8125rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
 .tag-strip a.is-ghost .tag-strip-code { color: transparent; -webkit-text-stroke: 1px var(--tag-rule); }

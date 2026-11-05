@@ -77,7 +77,7 @@ test('a shared vote link opens the vote with no signal, and bad targets go nowhe
   await page.getByRole('button', { name: 'Copy' }).click()
   await expect(page.getByText('Copied. Paste it into your group chat.')).toBeVisible()
   const copied = await page.evaluate(() => navigator.clipboard.readText())
-  expect(copied).toBe(`Vote: “Where do we stay at the lake?” · 2 options\n${new URL(baseURL!).origin}/join?to=vote/${pollId}#t=${token}`)
+  expect(copied.replace(/\r\n/g, '\n')).toBe(`Vote: “Where do we stay at the lake?” · 2 options\n${new URL(baseURL!).origin}/join?to=vote/${pollId}#t=${token}`)
   await shot(page, 'vote-share-390')
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog', { name: 'Share this vote' })).toBeHidden()
@@ -183,7 +183,8 @@ test('a passed deadline ends voting, records the winner, and the winner goes ont
   }, pollId)).toEqual(['closed', optA])
 
   await page.getByRole('link', { name: 'Add to the plan' }).click()
-  await page.waitForURL(/\/plan\/new\?title=/)
+  await page.waitForURL(/\/plan\/new\?poll=/)
+  await expect(page.getByRole('heading', { name: 'Schedule group choice', exact: true })).toBeVisible()
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Casa del Mundo')
   expect(errors).toEqual([])
 })

@@ -57,7 +57,7 @@ async function noOverflow(page: Page) {
 
 test('new trip starts with two fields and optional details keep their values', async ({ page }) => {
   await page.goto('/new')
-  await expect(page.getByRole('heading', { name: 'Create your trip.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'New trip' })).toBeVisible()
   await expect(page.getByLabel('Trip name', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Your name')).toBeVisible()
   await expect(page.getByLabel('Starts', { exact: true })).not.toBeVisible()
@@ -66,12 +66,14 @@ test('new trip starts with two fields and optional details keep their values', a
   const optional = page.getByText('Add dates and destination (optional)', { exact: true })
   await optional.click()
   await page.getByLabel('Starts', { exact: true }).fill('2027-03-13')
-  await page.getByText('Time zone & currencies', { exact: true }).click()
+  await page.locator('summary').filter({ hasText: 'Time zone & currencies' }).click()
   await page.getByLabel('Destination time zone').selectOption('Asia/Tokyo')
   await optional.click()
-  await expect(page.getByText(/2027-03-13 · Asia\/Tokyo/)).toBeVisible()
+  await page.locator('summary').filter({ hasText: 'Time zone & currencies' }).click()
+  await expect(page.getByText('Tokyo · USD', { exact: true })).toBeVisible()
   await optional.click()
   await expect(page.getByLabel('Starts', { exact: true })).toHaveValue('2027-03-13')
+  await page.locator('summary').filter({ hasText: 'Time zone & currencies' }).click()
   await expect(page.getByLabel('Destination time zone')).toHaveValue('Asia/Tokyo')
   await page.setViewportSize({ width: 320, height: 740 })
   await noOverflow(page)
@@ -148,7 +150,8 @@ for (const [phase, date] of [['planning', '2027-03-01'], ['preparing', '2027-03-
       await expect(headings.first()).toHaveText('Book the shuttle')
       await expect(page.getByRole('button', { name: 'Download all', exact: true })).toHaveCount(0)
     } else {
-      await expect(headings.first()).toHaveText(phase === 'traveling' ? 'Up next for you' : 'Get ready for offline')
+      if (phase === 'traveling') await expect(headings.first()).toHaveText('Up next for you')
+      await expect(page.getByRole('region', { name: 'Offline access' })).toBeVisible()
       await expect(page.getByRole('button', { name: 'Download all', exact: true })).toBeVisible()
     }
     const tabs = page.getByRole('navigation', { name: 'Trip navigation' }).filter({ visible: true }).getByRole('link')

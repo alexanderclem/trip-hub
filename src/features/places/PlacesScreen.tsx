@@ -45,8 +45,8 @@ export function PlacesScreen() {
         title="Places"
         back={`/t/${tripId}/more`}
         action={mayPlan &&
-          <Link to="new" className="flex size-10 items-center justify-center rounded-full text-action active:bg-brand-50" aria-label="Add place">
-            <Plus className="size-6" />
+          <Link to="new" className="flex size-11 items-center justify-center rounded-full text-action active:bg-brand-50" aria-label="Add place">
+            <Plus aria-hidden="true" className="size-6" />
           </Link>
         }
       />
@@ -74,7 +74,7 @@ export function PlacesScreen() {
           <h2 className="text-sm font-semibold text-ink">{q.trim() ? 'Search results' : showPool ? 'All places' : 'Your places'}</h2>
           <label className="ml-auto flex items-center gap-1.5 text-xs text-muted">
             Sort
-            <select value={sort} onChange={(e) => setSort(e.target.value as 'area' | 'rating')} className="min-h-9 rounded-control border border-control bg-surface px-2 text-xs">
+            <select value={sort} onChange={(e) => setSort(e.target.value as 'area' | 'rating')} className="min-h-11 rounded-control border border-control bg-surface px-2 text-base text-ink">
               <option value="area">By town</option>
               <option value="rating">Best rated</option>
             </select>
@@ -124,7 +124,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
     <button
       onClick={onClick}
       aria-pressed={active}
-      className={`min-h-11 shrink-0 rounded-full border px-3 py-2 text-sm ${
+      className={`min-h-11 min-w-11 shrink-0 rounded-full border px-3 py-2 text-sm ${
         active ? 'border-action bg-brand-50 text-ink' : 'border-control bg-surface text-ink hover:bg-brand-50'
       }`}
     >

@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react'
 import type { RatingSummary } from '@/features/polls/rank'
+import { cue } from '@/ui/feedback'
 
 /** Five tappable stars. Tapping your current rating again clears it. */
 export function StarsInput({ value, onChange, label = 'Your rating' }: { value: number | null; onChange: (v: number | null) => void; label?: string }) {
@@ -11,12 +12,12 @@ export function StarsInput({ value, onChange, label = 'Your rating' }: { value: 
           <button
             key={n}
             type="button"
-            onClick={() => onChange(value === n ? null : n)}
+            onClick={() => { cue('toggle'); onChange(value === n ? null : n) }}
             aria-pressed={value === n}
             aria-label={`${n} star${n > 1 ? 's' : ''}`}
             className="ui-press flex size-11 items-center justify-center rounded-control hover:bg-warning/70 active:bg-warning/70"
           >
-            <Star aria-hidden="true" className={`size-7 ${on ? 'fill-amber-400 text-warning-ink' : 'text-stone-300'}`} />
+            <Star aria-hidden="true" className={`size-7 ${on ? 'fill-current text-warning-ink' : 'text-control'}`} />
           </button>
         )
       })}
@@ -30,7 +31,7 @@ export function StarsSummary({ summary, compact = false }: { summary: RatingSumm
   const text = `${summary.average.toFixed(1)}`
   return (
     <span className="inline-flex items-center gap-1 text-sm text-ink" aria-label={`Group rating ${text} out of 5 from ${summary.count} ${summary.count === 1 ? 'person' : 'people'}`}>
-      <Star aria-hidden="true" className="size-4 fill-amber-400 text-warning-ink" />
+      <Star aria-hidden="true" className="size-4 fill-current text-warning-ink" />
       <span className="font-medium tabular-nums">{text}</span>
       {!compact && <span className="text-muted">· {summary.count}</span>}
     </span>

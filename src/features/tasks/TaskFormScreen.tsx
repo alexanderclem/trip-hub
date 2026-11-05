@@ -3,16 +3,21 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { useMyMemberId } from '@/data/device'
 import { useMembers } from '@/data/hooks'
-import { Button, DateInput, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Button, DateInput, ErrorNote, Field, Input, LinkButton, PageHeader, Select, Textarea } from '@/ui'
 import { deleteTask, saveTask, useTask, type TaskFields } from './data'
 import { ListSkeleton } from '@/ui/collection'
+import { useItems } from '@/features/itinerary/data'
+import { cue } from '@/ui/feedback'
 
 export function TaskFormScreen() {
   const { tripId, taskId } = useParams() as { tripId: string; taskId?: string }
   const [query] = useSearchParams()
   const task = useTask(taskId)
+  const items = useItems(tripId)
+  const linkedPlan = taskId ? items?.find((item) => item.details.booking_task_id === taskId && item.status !== 'cancelled') : undefined
   const back = `/t/${tripId}/more/tasks`
   return <div className="min-h-full pb-24"><PageHeader title={taskId ? 'Edit task' : 'Add task'} back={back} />
+    {linkedPlan && <div className="mx-auto max-w-md px-4 pt-4"><LinkButton variant="secondary" to={`/t/${tripId}/plan/${linkedPlan.id}`}>View {linkedPlan.title} in the plan</LinkButton></div>}
     {taskId && task === undefined ? <ListSkeleton label="Loading task…" className="p-4" />
       : (taskId && task === null) || task?.deleted_at || (task && task.trip_id !== tripId) ? <p className="p-4 text-muted">This task is no longer available.</p>
         : <TaskEditor key={taskId ?? 'new'} tripId={tripId} taskId={taskId} initial={task ?? { title: '', assignee_id: query.get('assignee'), due_date: null, notes: null }} />}
@@ -33,7 +38,7 @@ function TaskEditor({ tripId, taskId, initial }: { tripId: string; taskId?: stri
     e.preventDefault()
     if (busy) return
     setBusy(true); setError(null)
-    try { await saveTask(tripId, taskId, fields, me); navigate(back) }
+    try { await saveTask(tripId, taskId, fields, me); cue('success'); navigate(back) }
     catch (err) { setError(err instanceof Error ? err.message : 'Could not save. Try again.'); setBusy(false) }
   }
   async function remove() {

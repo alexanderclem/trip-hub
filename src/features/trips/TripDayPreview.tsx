@@ -18,9 +18,10 @@ export function TripDayPreview({ tripId, day, items, places, zone, today }: {
     <ol className="preview-stops">{rows.slice(0, 3).map((item) => {
       const style = KIND_STYLE[item.kind]
       const place = places.find((place) => place.id === item.place_id)
+      const location = place && !item.title.toLocaleLowerCase().includes(place.name.toLocaleLowerCase()) ? place.name : null
       return <li key={item.id}><Link to={`/t/${tripId}/plan/${item.id}`}>
         <span className={`preview-stop-icon ${style.bg} ${style.text}`}><style.Icon aria-hidden="true" className="size-4" /></span>
-        <span className="preview-stop-body"><strong>{item.title}</strong><span>{place?.name ?? style.label}{item.status === 'idea' ? ' · Idea' : item.status === 'tentative' ? ' · Tentative' : ''}</span></span>
+        <span className="preview-stop-body"><strong>{item.title}</strong>{(location || item.status !== 'confirmed') && <span>{[location, item.status === 'idea' ? 'Idea' : item.status === 'tentative' ? 'Tentative' : null].filter(Boolean).join(' · ')}</span>}</span>
         <span className="preview-stop-time">{item.all_day ? 'All day' : formatInZone(item.start_at, zone)}</span>
       </Link></li>
     })}</ol>

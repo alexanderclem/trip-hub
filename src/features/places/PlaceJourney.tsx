@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { ArrowRight, CalendarPlus, Check, Vote } from 'lucide-react'
+import { ArrowRight, CalendarPlus, Check, Circle, Vote } from 'lucide-react'
 import type { ItineraryItem, Member, Place } from '@/data/types'
 import type { usePolls } from '@/features/polls/data'
 import { votingEnded } from '@/features/polls/rank'
@@ -21,7 +21,7 @@ export function PlaceJourney({ place, members, items, polls, membersReady, mayPl
   return <section className="place-journey" aria-labelledby="place-journey-title">
     <h2 id="place-journey-title" className="sr-only">Planning progress</h2>
     <ol className="place-journey-stages" aria-label="Place planning progress">
-      {['Saved idea', chosen ? 'Group choice' : 'Group vote', 'In the plan'].map((label, index) => <li key={index} aria-current={ready && stage === index ? 'step' : undefined} data-reached={ready && (index === 0 || index === 1 && chosen || index === 2 && !!visits?.length)}><span aria-hidden="true">{ready && (index === 0 || index === 1 && chosen || index === 2 && !!visits?.length) ? <Check className="size-3.5" /> : index + 1}</span>{label}</li>)}
+      {['Saved idea', chosen ? 'Group choice' : 'Group vote', 'In the plan'].map((label, index) => <li key={index} aria-current={ready && stage === index ? 'step' : undefined} data-reached={ready && (index === 0 || index === 1 && chosen || index === 2 && !!visits?.length)}><span aria-hidden="true">{ready && (index === 0 || index === 1 && chosen || index === 2 && !!visits?.length) ? <Check className="size-3.5" /> : <Circle className="size-3.5" />}</span>{label}</li>)}
     </ol>
     {!ready ? <p className="text-sm text-muted" role="status">Checking the group’s votes and plan…</p> : <>
       {!!decisions?.length && <ul className="place-journey-decisions">{decisions.map(({ poll, options, votes }) => {

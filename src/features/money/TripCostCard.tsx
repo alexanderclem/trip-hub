@@ -7,6 +7,7 @@ import { useItems } from '@/features/itinerary/data'
 import type { RateTable } from '@/lib/fx'
 import { Card, SectionTitle } from '@/ui'
 import { forecast } from './forecast'
+import { BudgetSummary } from './BudgetSummary'
 
 /** "What will this trip cost me?": spent so far plus my share of planned estimates. */
 export function TripCostCard({ trip, me, memberIds, expenses, snapshot, fmt }: {
@@ -20,7 +21,7 @@ export function TripCostCard({ trip, me, memberIds, expenses, snapshot, fmt }: {
   const items = useItems(trip.id)
   const [open, setOpen] = useState(false)
   const f = useMemo(() => (items ? forecast({ items, expenses, memberIds, me, base: trip.base_currency, snapshot }) : null), [items, expenses, memberIds, me, trip.base_currency, snapshot])
-  if (!f || (f.spentMinor === 0 && f.planned.length === 0 && f.missingEstimates === 0)) return null
+  if (!f) return null
   // Estimates are approximate; the local-currency view already starts with "≈".
   const approx = (v: number) => `≈ ${fmt(v).replace(/^≈ /, '')}`
 
@@ -32,6 +33,7 @@ export function TripCostCard({ trip, me, memberIds, expenses, snapshot, fmt }: {
         <div className="flex items-baseline justify-between gap-3 px-1"><dt className="text-muted">Still planned</dt><dd className="font-semibold tabular-nums">{approx(f.plannedMinor)}</dd></div>
         <div className="flex items-baseline justify-between gap-3 rounded-surface bg-brand-50 px-3 py-2 text-ink"><dt className="font-medium">Trip total</dt><dd className="text-lg font-semibold tabular-nums">{approx(f.spentMinor + f.plannedMinor)}</dd></div>
       </dl>
+      <BudgetSummary tripId={trip.id} me={me} currency={trip.base_currency} totalMinor={f.spentMinor + f.plannedMinor} incomplete={f.missingEstimates > 0} />
       {f.planned.length > 0 && (
         <>
           <button aria-expanded={open} aria-controls="planned-costs" onClick={() => setOpen(!open)} className="mt-2 flex min-h-11 w-full items-center justify-between rounded-control px-1 text-sm font-medium text-action hover:bg-brand-50">

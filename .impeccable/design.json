@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-04T23:30:00Z",
+  "generatedAt": "2026-11-05T12:00:00Z",
   "title": "Design System: Stowaway public website (Luggage Tag)",
   "extensions": {
     "scope": "Public website only (src/features/website, src/features/legal). The signed-in app keeps its own calm-workspace system in src/styles/tokens.css, src/styles/themes.css and docs/UI_COMPONENTS.md.",
@@ -362,6 +362,11 @@
         "name": "winner-highlighter",
         "value": "inset 0 -.4em 0 color-mix(in srgb, var(--tag-coral) 55%, transparent)",
         "purpose": "Under the winner's name in the vote result."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 3px solid coral; outline-offset: 3px; box-shadow: 0 0 0 3px ink",
+        "purpose": "Keyboard focus on every control. The ink ring carries the contrast that coral alone (2.4:1 on light stock) cannot; fields drop the ring and outline their own ink edge."
       }
     ],
     "motion": [
@@ -555,7 +560,10 @@
       "Do put a readable name beside every route code and barcode, and hide the code itself from assistive tech.",
       "Do label every demonstration honestly in fine print (example names, example votes, example amounts, real places).",
       "Do use the Tag Head with printed fields to open a secondary page.",
-      "Do keep targets at 44px or more and the 3px coral focus outline on everything interactive."
+      "Do keep targets at 44px or more (segmented options, chips, checkboxes through their row label) and the coral-over-ink focus ring on everything interactive.",
+      "Do keep anything people read at 13px (0.8125rem) or larger; text-xs is remapped to it, and form fields stay at 16px.",
+      "Do pass place-category colours through categoryTone() when they colour an icon or text; dark mode lifts them toward ink.",
+      "Do keep overlays flat: no blurred shadows on dialogs, sheets, toasts or the add button; backdrops are the ground at 45%."
     ],
     "donts": [
       "Don't use coral outside the Coral Ledger: not for links, hovers, the current nav item, pressed chips or the lit strip stop.",

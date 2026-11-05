@@ -2,7 +2,8 @@ import { initializeAppearance } from './ui/appearance'
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
-import { router } from './router'
+import { router, routes } from './router'
+import { installIntentPreload } from './app/preload'
 import { MotionProvider } from './ui/MotionProvider'
 import { initializeInstallPrompt } from './features/install/installPrompt'
 import { clearPreResetTrips } from './data/reset'
@@ -14,9 +15,11 @@ import './styles/index.css'
 import './styles/journal.css'
 import './styles/travel-notebook.css'
 import './styles/app-theme.css'
+import './styles/group-pick.css'
 
 initializeAppearance()
 initializeInstallPrompt()
+installIntentPreload(routes)
 rememberSource(location.search)
 
 // Saves the server would refuse for this phone's role fail at once, with a reason the form shows.

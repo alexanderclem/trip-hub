@@ -4,7 +4,7 @@ import type { ItineraryItem } from '@/data/types'
 import { saveMany, softDelete, toPayload } from '@/data/repo'
 import { checkLocalTime, findConflicts, normalizeLocal, toInstant } from '@/lib/time'
 
-export interface SchedulePreview { before: ItineraryItem[]; after: ItineraryItem[]; conflicts: number }
+export interface SchedulePreview { before: ItineraryItem[]; after: ItineraryItem[]; conflicts: number; context?: ItineraryItem[] }
 
 export function duplicateEndDate(source: ItineraryItem, date: string): string {
   const next = DateTime.fromISO(date, { zone: 'utc' })
@@ -14,11 +14,14 @@ export function duplicateEndDate(source: ItineraryItem, date: string): string {
   return next.plus({ days: end.diff(start, 'days').days }).toISODate()!
 }
 
-function atInstant(item: ItineraryItem, delta: number): ItineraryItem {
+export function atInstant(item: ItineraryItem, delta: number): ItineraryItem {
   const local = (instant: string, zone: string) => DateTime.fromMillis(Date.parse(instant) + delta, { zone }).toFormat("yyyy-MM-dd'T'HH:mm")
   const start_local = local(item.start_at, item.start_tz)
   const end_local = item.end_at ? local(item.end_at, item.end_tz ?? item.start_tz) : null
-  return { ...item, start_local, start_at: toInstant(start_local, item.start_tz), end_local, end_at: end_local ? toInstant(end_local, item.end_tz ?? item.start_tz) : null }
+  const start_at = toInstant(start_local, item.start_tz)
+  const end_at = end_local ? toInstant(end_local, item.end_tz ?? item.start_tz) : null
+  if (Date.parse(start_at) !== Date.parse(item.start_at) + delta || item.end_at && end_at && Date.parse(end_at) !== Date.parse(item.end_at) + delta) throw new Error('This move crosses a repeated clock hour. Choose the times manually.')
+  return { ...item, start_local, start_at, end_local, end_at }
 }
 
 export function previewSchedule(items: ItineraryItem[], itemId: string, date: string, time: string, shiftLater: boolean, zone: string): SchedulePreview {
@@ -68,6 +71,12 @@ export async function undoDuplicate(saved: ItineraryItem, me: string | null, dat
 export async function applySchedule(preview: SchedulePreview, me: string | null, database: TripDb = db): Promise<() => Promise<void>> {
   let written: ItineraryItem[] = []
   await database.transaction('rw', database.itinerary_items, database._outbox, async () => {
+    if (preview.context) {
+      const tripId = preview.before[0]?.trip_id
+      if (!tripId) throw new Error('No schedule change to save.')
+      const current = await database.itinerary_items.where('trip_id').equals(tripId).filter((i) => !i.deleted_at).toArray()
+      if (current.length !== preview.context.length || preview.context.some((item) => !current.some((row) => row.id === item.id && unchanged(item, row)))) throw new Error('The itinerary changed. Close this preview and try again.')
+    }
     for (const original of preview.before) {
       const current = await database.itinerary_items.get(original.id)
       if (!current || !unchanged(original, current)) throw new Error('The itinerary changed. Close this preview and try again.')

@@ -13,11 +13,18 @@ import { PlacePicker } from '@/features/places/PlacePicker'
 import { saveItem, useItem } from './data'
 import { KIND_STYLE, STATUS_TEXT } from './kinds'
 import { PlaceIdentity } from '@/features/places/PlaceIdentity'
+import { PickStamp, launchFlight } from '@/features/polls/PickStamp'
 import { useToast } from '@/ui/ToastProvider'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/data/db'
 import { ticketPlanDraft } from '@/features/tickets/toPlan'
 import { duplicateEndDate, undoDuplicate } from './reschedule'
+import { usePoll } from '@/features/polls/data'
+import { saveVotePlan, suggestedAttendees, votePlanId } from '@/features/polls/toPlan'
+import { BudgetImpact } from '@/features/money/BudgetImpact'
+import { parseMinor } from '@/features/money/build'
+import { arrivalBuffers } from './buffers'
+import { cue } from '@/ui/feedback'
 
 const ZONES = [
   'America/Guatemala', 'America/Mexico_City', 'America/El_Salvador', 'America/Costa_Rica', 'America/Panama',
@@ -67,6 +74,8 @@ interface FormState {
   journeyLocation: string
   journeyStay: string
   journeyTransfer: string
+  checkIn: string
+  waiting: string
 }
 
 export function ItemFormScreen() {
@@ -80,13 +89,19 @@ export function ItemFormScreen() {
   const trip = useTrip(tripId)
   const loadedPlaces = usePlaces(tripId)
   const places = loadedPlaces ?? []
-  const members = useMembers(tripId) ?? []
+  const loadedMembers = useMembers(tripId)
+  const members = loadedMembers ?? []
   const existing = useItem(itemId)
   const copyId = !itemId ? search.get('copy') : null
   const copy = useLiveQuery(async () => copyId ? (await db.itinerary_items.get(copyId)) ?? null : undefined, [copyId])
   const ticketId = !itemId ? search.get('ticket') : null
   const sourceTicket = useLiveQuery(async () => ticketId ? (await db.attachments.get(ticketId)) ?? null : undefined, [ticketId])
   const ticketItem = useItem(sourceTicket?.item_id ?? undefined)
+  const sourcePollId = !itemId && !copyId && !ticketId ? search.get('poll') : null
+  const sourceOptionId = sourcePollId ? search.get('option') : null
+  const sourceVote = usePoll(sourcePollId ?? '')
+  const voteOption = sourceVote?.options.find((option) => option.id === sourceOptionId)
+  const linkedVoteItem = useLiveQuery(async () => sourcePollId && sourceOptionId ? (await db.itinerary_items.get(votePlanId(tripId, { pollId: sourcePollId, optionId: sourceOptionId }))) ?? null : null, [tripId, sourcePollId, sourceOptionId])
   const tripTz = trip?.timezone ?? 'America/New_York'
   const [error, setError] = useState<string | null>(null)
   const [invalid, setInvalid] = useState<{ name: string; message: string } | null>(null)
@@ -94,6 +109,9 @@ export function ItemFormScreen() {
   const [more, setMore] = useState<boolean | null>(null)
   const savingRef = useRef(false)
   const [f, setF] = useState<FormState | null>(null)
+  const [needsBooking, setNeedsBooking] = useState(false)
+  const [bookingOwner, setBookingOwner] = useState(me ?? '')
+  const [bookingDue, setBookingDue] = useState('')
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((cur) => (cur ? { ...cur, [k]: v } : cur))
 
   // Initialise once: from the item being edited, or from ?day=, ?place= and ?title= (a vote's winner).
@@ -112,20 +130,23 @@ export function ItemFormScreen() {
         everyone: !source.attendee_ids, attendees: source.attendee_ids ?? [], notes: source.notes ?? '',
         cost: source.est_cost_minor != null ? String(source.est_cost_minor / 10 ** minorUnits(source.est_cost_currency ?? 'USD')) : '',
         costCurrency: source.est_cost_currency ?? trip.local_currency ?? trip.base_currency,
+        checkIn: String(arrivalBuffers(source).checkIn), waiting: String(arrivalBuffers(source).waiting),
       })
       return
     }
     if (ticketId) {
       if (!sourceTicket || sourceTicket.deleted_at || sourceTicket.trip_id !== tripId) return
       const draft = ticketPlanDraft(sourceTicket, trip)
-      setF({ journey: '', journeyLocation: '', journeyStay: '', journeyTransfer: '', ...draft, placeId: null, toPlaceId: null, allDay: false, status: 'tentative', everyone: true, attendees: [], cost: '', costCurrency: trip.local_currency ?? trip.base_currency })
+      setF({ journey: '', journeyLocation: '', journeyStay: '', journeyTransfer: '', ...draft, placeId: null, toPlaceId: null, allDay: false, status: 'tentative', everyone: true, attendees: [], cost: '', costCurrency: trip.local_currency ?? trip.base_currency, checkIn: '0', waiting: '0' })
       return
     }
+    if (sourcePollId && (!sourceVote || !voteOption || loadedMembers === undefined || !loadedPlaces)) return
+    if (sourcePollId && (sourceVote?.poll.trip_id !== tripId || sourceVote.poll.status !== 'closed' || sourceVote.poll.winner_option_id !== voteOption?.id || voteOption?.starts_on)) return
     if (search.get('place') && !loadedPlaces) return // wait for places so the form can be prefilled
     const attendee = search.get('attendee')
     if (attendee && !members.length) return
     const selectedAttendee = members.find((m) => m.id === attendee)
-    const place = places.find((p) => p.id === search.get('place'))
+    const place = places.find((p) => p.id === (voteOption?.place_id ?? search.get('place')))
     const importedEvent = !!place?.external_ids.ticketmaster
     const day = search.get('day') ?? (importedEvent ? place?.external_ids.event_date : undefined) ?? trip.start_date ?? DateTime.now().toISODate()!
     const journey = ['arrival', 'departure'].includes(search.get('journey') ?? '') ? search.get('journey')! : ''
@@ -138,13 +159,14 @@ export function ItemFormScreen() {
     if (requestedZone) { try { new Intl.DateTimeFormat('en', { timeZone: requestedZone }).format(); eventZone = requestedZone } catch { /* Keep the trip zone for invalid links. */ } }
     setF({
       journey, journeyLocation: '', journeyStay: '', journeyTransfer: '',
-      title: place?.name ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: importedEvent && !asked,
+      title: place?.name ?? voteOption?.label ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: importedEvent && !asked,
       startDate: day, startTime: asked ?? (lodging ? '15:00' : kind === 'meal' ? '19:00' : '09:00'),
       endDate: lodging ? DateTime.fromISO(day).plus({ days: 1 }).toISODate()! : day, endTime: lodging ? '11:00' : '',
-      startTz: eventZone, endTz: eventZone, status: search.get('decision') || journey || importedEvent || place && !['booked', 'visited'].includes(place.status) ? 'tentative' : 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : place?.notes ?? '', cost: '',
+      startTz: eventZone, endTz: eventZone, status: search.get('decision') || sourcePollId || journey || importedEvent || place && !['booked', 'visited'].includes(place.status) ? 'tentative' : 'confirmed', code: '', everyone: sourcePollId ? false : !selectedAttendee, attendees: sourcePollId && voteOption && sourceVote ? suggestedAttendees(voteOption, sourceVote.votes, members) : selectedAttendee ? [selectedAttendee.id] : [], notes: sourcePollId ? [voteOption?.description, place?.notes, voteOption?.url].filter(Boolean).join('\n\n') : importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : place?.notes ?? '', cost: '',
       costCurrency: trip.local_currency ?? trip.base_currency,
+      checkIn: '0', waiting: '0',
     })
-  }, [f, trip, tripId, itemId, existing, copyId, copy, ticketId, sourceTicket, search, places, loadedPlaces, tripTz, members])
+  }, [f, trip, tripId, itemId, existing, copyId, copy, ticketId, sourceTicket, search, places, loadedPlaces, tripTz, members, loadedMembers, sourcePollId, sourceVote, voteOption])
 
   const travel = f?.kind === 'flight' || f?.kind === 'transport'
   const showZones = travel || (f && (f.startTz !== tripTz || f.endTz !== tripTz))
@@ -157,8 +179,11 @@ export function ItemFormScreen() {
     return null
   }, [f])
 
+  const voteUnavailable = !!sourcePollId && sourceVote !== undefined && (!sourceVote || sourceVote.poll.deleted_at || sourceVote.poll.trip_id !== tripId || !voteOption || sourceVote.poll.status !== 'closed' || sourceVote.poll.winner_option_id !== voteOption.id || !!voteOption.starts_on)
+  if (voteUnavailable) return <><PageHeader title="Schedule group choice" back={`/t/${tripId}/more/vote`} /><div className="space-y-3 p-4"><p>This choice is no longer available. Return to the vote and review its result.</p><LinkButton to={`/t/${tripId}/more/vote`}>View votes</LinkButton></div></>
+  if (sourcePollId && linkedVoteItem) return <><PageHeader title="Group choice" back={`/t/${tripId}/more/vote/${sourcePollId}`} /><div className="space-y-3 p-4"><p>{linkedVoteItem.deleted_at || linkedVoteItem.status === 'cancelled' ? 'This choice was previously removed or cancelled.' : 'This choice is already in the plan.'}</p><LinkButton to={`/t/${tripId}/plan/${linkedVoteItem.id}`}>View itinerary item</LinkButton></div></>
   if (ticketId && (sourceTicket === null || sourceTicket && (sourceTicket.deleted_at || sourceTicket.trip_id !== tripId)) || copyId && (copy === null || copy && (copy.deleted_at || copy.trip_id !== tripId))) return <><PageHeader title="Add to itinerary" back={`/t/${tripId}/plan`} /><p className="p-4">The source was removed or is unavailable.</p></>
-  if ((ticketId || copyId) && !mayPlan) return <><PageHeader title="Itinerary" back={`/t/${tripId}/plan`} /><p className="p-4">You do not have permission to edit this itinerary.</p></>
+  if (!mayPlan) return <><PageHeader title="Itinerary" back={`/t/${tripId}/plan`} /><p className="p-4">You do not have permission to edit this itinerary.</p></>
   if (ticketId && ticketItem && !ticketItem.deleted_at && ticketItem.trip_id === tripId) return <><PageHeader title="Ticket" back={`/t/${tripId}/tickets/${ticketId}`} /><div className="space-y-4 p-4"><p>Already linked to {ticketItem.title}.</p><LinkButton to={`/t/${tripId}/plan/${ticketItem.id}`}>View itinerary item</LinkButton></div></>
   if (!f) return <PageHeader title={itemId ? 'Edit' : 'Add to plan'} back={`/t/${tripId}/plan`} />
 
@@ -182,8 +207,10 @@ export function ItemFormScreen() {
     const start_local = `${f.startDate}T${f.allDay ? '00:00' : f.startTime || '00:00'}`
     const hasEnd = f.allDay ? f.endDate !== f.startDate : !!f.endTime
     const end_local = hasEnd ? `${f.endDate}T${f.allDay ? '00:00' : f.endTime}` : null
-    const amount = f.cost.trim() ? Number(f.cost) : null
-    if (amount != null && !(amount >= 0)) return setError('Cost must be a number.')
+    const costMinor = f.cost.trim() ? parseMinor(f.cost, f.costCurrency) : null
+    if (f.cost.trim() && (costMinor === null || !Number.isSafeInteger(costMinor))) return setError('Enter a valid cost using the currency’s decimal places.')
+    if (!f.everyone && !f.attendees.length) return setError('Choose at least one traveler, or select Everyone.')
+    if ([f.checkIn, f.waiting].some((value) => !/^\d+$/.test(value) || Number(value) > 1440)) return setError('Check-in and waiting time must be whole minutes from 0 to 1,440.')
     const item: ItineraryItem = {
       ...(existing ?? {}),
       id: existing?.id ?? (search.get('decision') && search.get('option') && !copyId ? stableId(tripId, 'decision-plan', search.get('option')!) : draftItemId),
@@ -202,16 +229,24 @@ export function ItemFormScreen() {
       status: f.status,
       confirmation_code: f.code.trim() || null,
       attendee_ids: f.everyone ? null : f.attendees,
-      details: { ...existing?.details, journey_direction: travel ? f.journey : '', journey_location: f.journeyLocation.trim(), journey_stay: f.journeyStay.trim(), journey_transfer: f.journeyTransfer.trim(), ...(!itemId && !copyId && search.get('decision') && search.get('option') ? { decision_poll_id: search.get('decision')!, decision_option_id: search.get('option')! } : {}) },
+      details: { ...existing?.details, journey_direction: travel ? f.journey : '', journey_location: f.journeyLocation.trim(), journey_stay: f.journeyStay.trim(), journey_transfer: f.journeyTransfer.trim(), check_in_minutes: f.checkIn, waiting_minutes: f.waiting, ...(!itemId && !copyId && search.get('decision') && search.get('option') ? { decision_poll_id: search.get('decision')!, decision_option_id: search.get('option')! } : {}) },
       notes: f.notes.trim() || null,
-      est_cost_minor: amount == null ? null : Math.round(amount * 10 ** minorUnits(f.costCurrency)),
-      est_cost_currency: amount == null ? null : f.costCurrency,
+      est_cost_minor: costMinor,
+      est_cost_currency: costMinor == null ? null : f.costCurrency,
     }
     savingRef.current = true
     setSaving(true)
     setError(null)
     try {
+      if (sourcePollId && sourceOptionId) {
+        const savedId = await saveVotePlan(item, { pollId: sourcePollId, optionId: sourceOptionId }, needsBooking ? { assigneeId: bookingOwner, dueDate: bookingDue } : null, me)
+        cue('success')
+        notify({ message: needsBooking ? 'Choice scheduled and booking task added.' : 'Group choice added to the plan.' })
+        navigate(`/t/${tripId}/plan/${savedId}`, { replace: true })
+        return
+      }
       await saveItem(item, me, ticketId ?? undefined)
+      cue('success')
       if (!itemId && search.get('decision')) {
         notify({ message: 'Added to the plan on this phone. It will sync when connected.' })
         navigate(`/t/${tripId}/more/vote/${search.get('decision')}`, { replace: true })
@@ -223,7 +258,9 @@ export function ItemFormScreen() {
       } else if (ticketId) notify({ message: 'Added to itinerary.' })
       if (!itemId && search.get('place')) {
         notify({ message: `${item.title} added to itinerary.` })
-        navigate(`/t/${tripId}/plan?day=${f.startDate}`, { replace: true })
+        // The plan lands this row: the place (and a vote's stamp) fly into it, then it prints solid.
+        launchFlight(item.id, document.querySelector('.plan-source-place'))
+        navigate(`/t/${tripId}/plan?day=${f.startDate}`, { replace: true, state: { landed: item.id } })
       } else navigate(`/t/${tripId}/plan/${item.id}`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -234,9 +271,9 @@ export function ItemFormScreen() {
 
   const flag = (name: string) => (invalid?.name === name ? { 'aria-invalid': true, 'aria-describedby': `${name}-problem` } : {})
   // Who's going, cost and notes are optional: closed for a new item, open when any of them is already filled in.
-  const hasOptional = !f.everyone || !!f.cost || !!f.notes
-  const sourcePlace = !itemId && search.get('place') ? places.find((place) => place.id === f.placeId) : undefined
-  const back = itemId ? `/t/${tripId}/plan/${itemId}` : ticketId ? `/t/${tripId}/tickets/${ticketId}` : copyId ? `/t/${tripId}/plan/${copyId}` : `/t/${tripId}/plan?day=${f.startDate}`
+  const hasOptional = !!sourcePollId || !f.everyone || !!f.cost || !!f.notes || Number(f.checkIn) > 0 || Number(f.waiting) > 0
+  const sourcePlace = !itemId && (search.get('place') || sourcePollId) ? places.find((place) => place.id === f.placeId) : undefined
+  const back = itemId ? `/t/${tripId}/plan/${itemId}` : sourcePollId ? `/t/${tripId}/more/vote/${sourcePollId}` : ticketId ? `/t/${tripId}/tickets/${ticketId}` : copyId ? `/t/${tripId}/plan/${copyId}` : `/t/${tripId}/plan?day=${f.startDate}`
   const nameField = <Field label="Name"><Input value={f.title} onChange={(event) => set('title', event.target.value)} maxLength={200} required placeholder={travel ? 'UA 1234 to New York' : 'Walk along the High Line'} /></Field>
   const activityFields = <div className="space-y-4">
     <div role="radiogroup" aria-label="Type" className="grid grid-cols-4 gap-1.5">
@@ -259,10 +296,14 @@ export function ItemFormScreen() {
   </div>
   return (
     <div className="min-h-full">
-      <PageHeader title={itemId ? 'Edit' : copyId ? 'Duplicate item' : ticketId ? 'Review itinerary item' : 'Add to plan'} back={sourcePlace ? `/t/${tripId}/more/places/${sourcePlace.id}` : back} />
+      <PageHeader title={itemId ? 'Edit' : sourcePollId ? 'Schedule group choice' : copyId ? 'Duplicate item' : ticketId ? 'Review itinerary item' : 'Add to plan'} back={sourcePollId ? back : sourcePlace ? `/t/${tripId}/more/places/${sourcePlace.id}` : back} />
       <form onSubmit={submit} noValidate onInput={() => setInvalid(null)} className="mx-auto max-w-md space-y-4 p-4 pb-0">
+        {sourcePollId && sourceVote && <section aria-label="Winning vote" className="border-b border-line pb-3"><p className="text-sm font-semibold">{sourceVote.poll.title}</p><p className="mt-1 text-sm text-muted">Group choice · {voteOption?.label}</p></section>}
         {sourceTicket && ticketId && <section className="plan-source-place" aria-label="Source ticket"><p className="ui-label">Ticket</p><Link to={`/t/${tripId}/tickets/${sourceTicket.id}`} className="ui-link">{sourceTicket.title}</Link></section>}
-        {sourcePlace && <section className="plan-source-place" aria-label="Your saved place"><p className="notebook-label mb-3">From your saved places</p><PlaceIdentity place={sourcePlace} members={members} compact /></section>}
+        {sourcePlace && <section className="plan-source-place" aria-label="Your saved place">
+          <div className="mb-3 flex items-center justify-between gap-3"><p className="notebook-label">From your saved places</p>{search.get('from') === 'vote' && <PickStamp placeId={sourcePlace.id} />}</div>
+          <PlaceIdentity place={sourcePlace} members={members} compact morph="pick" />
+        </section>}
         {ticketId ? <>{nameField}<Disclosure summary={`${KIND_STYLE[f.kind].label} · Type and locations`}>{activityFields}</Disclosure></> : sourcePlace ? <Disclosure summary="Edit place, name & activity type">{activityFields}</Disclosure> : activityFields}
 
         {travel && <section className="space-y-3 rounded-surface border border-line p-4" aria-label="Group travel details">
@@ -325,6 +366,7 @@ export function ItemFormScreen() {
           <div className="space-y-4">
           <fieldset>
             <legend className="text-sm font-medium text-ink">Who's going</legend>
+            {sourcePollId && <p className="mt-1 text-xs text-muted">Suggested from positive votes. Review attendance before saving.</p>}
             <label className="mt-1 flex min-h-11 items-center gap-2 text-sm">
               <input type="checkbox" checked={f.everyone} onChange={(e) => set('everyone', e.target.checked)} className="ui-check" /> Everyone
             </label>
@@ -351,15 +393,34 @@ export function ItemFormScreen() {
               </Select>
             </Field>
           </div>
+          {!f.allDay && <fieldset>
+            <legend className="text-sm font-medium">Arrival buffers</legend>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <Field label="Check-in / preparation (min)"><Input type="number" inputMode="numeric" min={0} max={1440} step={1} value={f.checkIn} onChange={(event) => set('checkIn', event.target.value)} /></Field>
+              <Field label="Waiting time (min)"><Input type="number" inputMode="numeric" min={0} max={1440} step={1} value={f.waiting} onChange={(event) => set('waiting', event.target.value)} /></Field>
+            </div>
+            <p className="mt-1 text-xs text-muted">Added to travel time before this activity starts.</p>
+          </fieldset>}
           <Field label="Notes">
             <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Meeting point, what to bring, who booked it…" />
           </Field>
           </div>
         </Disclosure>
 
+        {sourcePollId && <section aria-label="Booking follow-up" className="border-t border-line pt-3">
+          <label className="flex min-h-11 items-center gap-3 text-sm font-medium"><input className="ui-check" type="checkbox" checked={needsBooking} onChange={(event) => { setNeedsBooking(event.target.checked); if (event.target.checked && !bookingOwner && me) setBookingOwner(me) }} />Create a booking task</label>
+          {needsBooking && <div className="mt-2 space-y-3">
+            <Field label="Who will book it?"><Select value={bookingOwner} onChange={(event) => setBookingOwner(event.target.value)} required><option value="">Choose a traveler</option>{members.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}</Select></Field>
+            <Field label="Book by"><DateInput value={bookingDue} onValue={setBookingDue} required max={f.startDate} /></Field>
+            <p className="text-xs text-muted">Adds a task with an owner and deadline. This does not make a reservation.</p>
+          </div>}
+        </section>}
+
+        {trip && <BudgetImpact tripId={tripId} me={me} base={trip.base_currency} itemId={existing?.id ?? draftItemId} costMinor={f.cost.trim() ? parseMinor(f.cost, f.costCurrency) : null} costCurrency={f.costCurrency} attendees={f.everyone ? null : f.attendees} status={f.status} />}
+
         <div className="ui-form-actions">
           <ErrorNote error={error ?? (invalid && !DATE_TIME_FIELDS.includes(invalid.name) ? invalid.message : null)} />
-          <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : sourcePlace ? 'Add to the plan' : ticketId ? 'Add to itinerary' : copyId ? 'Add copy' : 'Save'}</Button>
+          <Button type="submit" className="w-full" disabled={saving} aria-busy={saving}>{saving ? 'Saving…' : sourcePollId ? 'Schedule this choice' : sourcePlace ? 'Add to the plan' : ticketId ? 'Add to itinerary' : copyId ? 'Add copy' : 'Save'}</Button>
         </div>
       </form>
     </div>

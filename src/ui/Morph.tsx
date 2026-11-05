@@ -22,4 +22,4 @@ export function Morph({ name, text = false, children }: {
 }
 
 /** Names for the parts of a record that travel between its list row and its own screen. */
-export const morphName = (kind: 'plan' | 'place' | 'ticket', id: string, part: 'icon' | 'title' | 'time' | 'code') => `${kind}-${part}-${id}`
+export const morphName = (kind: 'plan' | 'place' | 'ticket' | 'pick', id: string, part: 'icon' | 'title' | 'time' | 'code' | 'stamp') => `${kind}-${part}-${id}`

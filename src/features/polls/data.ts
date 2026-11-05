@@ -40,6 +40,16 @@ export function usePoll(pollId: string) {
 }
 
 /** Open polls and which of them already include this place. */
+/** Places the group picked: the winners of closed votes. Plan rows for them carry the Group pick stamp. */
+export function useGroupPicks(tripId: string) {
+  return useLiveQuery(async () => {
+    const decided = await db.polls.where('trip_id').equals(tripId).filter((p) => alive(p) && p.status === 'closed' && !!p.winner_option_id).toArray()
+    if (!decided.length) return new Set<string>()
+    const winners = await db.poll_options.bulkGet(decided.map((p) => p.winner_option_id!))
+    return new Set(winners.flatMap((o) => (o && alive(o) && o.place_id ? [o.place_id] : [])))
+  }, [tripId])
+}
+
 export function usePollsForPlace(tripId: string, placeId: string) {
   return useLiveQuery(async () => {
     const [polls, options] = await Promise.all([

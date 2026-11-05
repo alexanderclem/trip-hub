@@ -16,6 +16,7 @@ import { buildExpense, parseMinor, type ExpenseDraft } from './build'
 import { deleteExpense, saveExpense, useExpense, useMoney } from './data'
 import { detailsAmountMinor } from '@/features/scan/client'
 import { updateAttachment } from '@/features/tickets/files'
+import { cue } from '@/ui/feedback'
 
 const METHODS: { id: SplitMethod; label: string }[] = [
   { id: 'equal', label: 'Equally' },
@@ -138,6 +139,7 @@ export function ExpenseFormScreen() {
     if ('error' in result) return setError(result.error)
     setSaving(true)
     await saveExpense(result.expense, me)
+    cue('success')
     if (receiptId) await updateAttachment(receiptId, { expense_id: result.expense.id }, me).catch(() => {})
     navigate(`/t/${tripId}/money`, { replace: true })
   }
@@ -206,7 +208,7 @@ export function ExpenseFormScreen() {
           <div role="radiogroup" aria-label="Split method" className="ui-segmented mt-1 grid-cols-4">
             {METHODS.map((m) => (
               <button key={m.id} type="button" role="radio" aria-checked={d.splitMethod === m.id} onClick={() => set('splitMethod', m.id)}
-                className="min-h-10">{m.label}</button>
+                className="min-h-11">{m.label}</button>
             ))}
           </div>
           <ul className="mt-2 divide-y divide-line rounded-surface border border-line bg-surface">
@@ -215,9 +217,12 @@ export function ExpenseFormScreen() {
               const share = shares?.get(r.memberId)?.owed
               return (
                 <li key={r.memberId} className="flex min-h-12 items-center gap-2 px-3 py-1.5">
-                  <input type="checkbox" checked={r.included} onChange={(e) => setRow(i, { included: e.target.checked })} aria-label={`Include ${m.display_name}`} className="ui-check" />
-                  <Avatar name={m.display_name} color={m.color} photo={m.avatar_url} size="sm" />
-                  <span className={`min-w-0 flex-1 truncate text-sm ${r.included ? '' : 'text-muted line-through'}`}>{m.display_name}</span>
+                  {/* The whole name is the tap target, not just the 20px box. */}
+                  <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-2">
+                    <input type="checkbox" checked={r.included} onChange={(e) => setRow(i, { included: e.target.checked })} aria-label={`Include ${m.display_name}`} className="ui-check" />
+                    <Avatar name={m.display_name} color={m.color} photo={m.avatar_url} size="sm" />
+                    <span className={`min-w-0 flex-1 truncate text-sm ${r.included ? '' : 'text-muted line-through'}`}>{m.display_name}</span>
+                  </label>
                   {r.included && d.splitMethod !== 'equal' && (
                     <Input inputMode="decimal" aria-label={`${m.display_name} ${d.splitMethod}`} value={r.value} onChange={(e) => setRow(i, { value: e.target.value })}
                       placeholder={d.splitMethod === 'shares' ? '1' : d.splitMethod === 'percent' ? '%' : '0.00'} className="w-20 px-2 py-1.5 text-right" />
