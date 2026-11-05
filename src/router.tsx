@@ -65,6 +65,7 @@ export const routes: RouteObject[] = [
           { path: 'more/tasks', lazy: () => import('./features/tasks/TasksScreen').then((m) => ({ Component: m.TasksScreen })) },
           { path: 'more/tasks/new', lazy: () => import('./features/tasks/TaskFormScreen').then((m) => ({ Component: m.TaskFormScreen })) },
           { path: 'more/tasks/:taskId', lazy: () => import('./features/tasks/TaskFormScreen').then((m) => ({ Component: m.TaskFormScreen })) },
+          { path: 'more/arrivals', lazy: () => import('./features/arrivals/ArrivalsScreen').then((m) => ({ Component: m.ArrivalsScreen })) },
           { path: 'more/packing', lazy: () => import('./features/packing/PackingScreen').then((m) => ({ Component: m.PackingScreen })) },
           { path: 'more/packing/new', lazy: () => import('./features/packing/PackingFormScreen').then((m) => ({ Component: m.PackingFormScreen })) },
           { path: 'more/packing/:itemId', lazy: () => import('./features/packing/PackingFormScreen').then((m) => ({ Component: m.PackingFormScreen })) },

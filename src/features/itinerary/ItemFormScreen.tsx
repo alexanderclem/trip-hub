@@ -5,7 +5,7 @@ import { useMyMemberId, useTripAccess } from '@/data/device'
 import { can } from '@/data/access'
 import { useMembers, usePlaces, useTrip } from '@/data/hooks'
 import { ITEM_KINDS, ITEM_STATUSES, type ItemKind, type ItineraryItem, type PlaceCategory } from '@/data/types'
-import { newId } from '@/lib/ids'
+import { newId, stableId } from '@/lib/ids'
 import { minorUnits } from '@/lib/money'
 import { checkLocalTime, isValidZone, normalizeLocal } from '@/lib/time'
 import { Button, DateInput, Disclosure, ErrorNote, Field, Input, LinkButton, PageHeader, Select, Textarea } from '@/ui'
@@ -63,6 +63,10 @@ interface FormState {
   notes: string
   cost: string
   costCurrency: string
+  journey: string
+  journeyLocation: string
+  journeyStay: string
+  journeyTransfer: string
 }
 
 export function ItemFormScreen() {
@@ -101,6 +105,7 @@ export function ItemFormScreen() {
       const s = normalizeLocal(source.start_local)
       const e = source.end_local ? normalizeLocal(source.end_local) : null
       setF({
+        journey: source.details?.journey_direction ?? '', journeyLocation: source.details?.journey_location ?? '', journeyStay: source.details?.journey_stay ?? '', journeyTransfer: source.details?.journey_transfer ?? '',
         title: source.title, kind: source.kind, placeId: source.place_id, toPlaceId: source.to_place_id,
         allDay: source.all_day, startDate: s.slice(0, 10), startTime: s.slice(11), endDate: e?.slice(0, 10) ?? s.slice(0, 10), endTime: e?.slice(11) ?? '',
         startTz: source.start_tz, endTz: source.end_tz ?? source.start_tz, status: copyId ? 'tentative' : source.status, code: copyId ? '' : source.confirmation_code ?? '',
@@ -113,7 +118,7 @@ export function ItemFormScreen() {
     if (ticketId) {
       if (!sourceTicket || sourceTicket.deleted_at || sourceTicket.trip_id !== tripId) return
       const draft = ticketPlanDraft(sourceTicket, trip)
-      setF({ ...draft, placeId: null, toPlaceId: null, allDay: false, status: 'tentative', everyone: true, attendees: [], cost: '', costCurrency: trip.local_currency ?? trip.base_currency })
+      setF({ journey: '', journeyLocation: '', journeyStay: '', journeyTransfer: '', ...draft, placeId: null, toPlaceId: null, allDay: false, status: 'tentative', everyone: true, attendees: [], cost: '', costCurrency: trip.local_currency ?? trip.base_currency })
       return
     }
     if (search.get('place') && !loadedPlaces) return // wait for places so the form can be prefilled
@@ -123,7 +128,8 @@ export function ItemFormScreen() {
     const place = places.find((p) => p.id === search.get('place'))
     const importedEvent = !!place?.external_ids.ticketmaster
     const day = search.get('day') ?? (importedEvent ? place?.external_ids.event_date : undefined) ?? trip.start_date ?? DateTime.now().toISODate()!
-    const kind = (place && KIND_FOR_CATEGORY[place.category]) ?? 'activity'
+    const journey = ['arrival', 'departure'].includes(search.get('journey') ?? '') ? search.get('journey')! : ''
+    const kind = journey ? 'flight' : (place && KIND_FOR_CATEGORY[place.category]) ?? 'activity'
     const lodging = kind === 'lodging'
     const time = search.get('time') ?? (importedEvent ? place?.external_ids.event_time : undefined)
     const asked = time && /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : null
@@ -131,10 +137,11 @@ export function ItemFormScreen() {
     const requestedZone = search.get('zone') ?? (importedEvent ? place?.external_ids.event_zone : undefined)
     if (requestedZone) { try { new Intl.DateTimeFormat('en', { timeZone: requestedZone }).format(); eventZone = requestedZone } catch { /* Keep the trip zone for invalid links. */ } }
     setF({
+      journey, journeyLocation: '', journeyStay: '', journeyTransfer: '',
       title: place?.name ?? search.get('title')?.slice(0, 120) ?? '', kind, placeId: place?.id ?? null, toPlaceId: null, allDay: importedEvent && !asked,
       startDate: day, startTime: asked ?? (lodging ? '15:00' : kind === 'meal' ? '19:00' : '09:00'),
       endDate: lodging ? DateTime.fromISO(day).plus({ days: 1 }).toISODate()! : day, endTime: lodging ? '11:00' : '',
-      startTz: eventZone, endTz: eventZone, status: importedEvent || place && !['booked', 'visited'].includes(place.status) ? 'tentative' : 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : place?.notes ?? '', cost: '',
+      startTz: eventZone, endTz: eventZone, status: search.get('decision') || journey || importedEvent || place && !['booked', 'visited'].includes(place.status) ? 'tentative' : 'confirmed', code: '', everyone: !selectedAttendee, attendees: selectedAttendee ? [selectedAttendee.id] : [], notes: importedEvent ? `Event suggestion from Ticketmaster. Check availability and book separately.${!asked ? ' Start time to be announced.' : ''}` : place?.notes ?? '', cost: '',
       costCurrency: trip.local_currency ?? trip.base_currency,
     })
   }, [f, trip, tripId, itemId, existing, copyId, copy, ticketId, sourceTicket, search, places, loadedPlaces, tripTz, members])
@@ -168,6 +175,9 @@ export function ItemFormScreen() {
       bad.focus()
       return
     }
+    if (!mayPlan) return setError('Only the trip’s organizers can change this itinerary.')
+    if (travel && f.journey && (f.allDay || !f.everyone && !f.attendees.length)) return setError('Travel on the board needs a time and at least one traveler.')
+    if (travel && f.journey === 'arrival' && !f.endTime) return setError('Add the arrival time so the group knows when you get in.')
     if (![f.startTz, f.endTz].every(isValidZone)) return setError('Unknown time zone.')
     const start_local = `${f.startDate}T${f.allDay ? '00:00' : f.startTime || '00:00'}`
     const hasEnd = f.allDay ? f.endDate !== f.startDate : !!f.endTime
@@ -176,7 +186,7 @@ export function ItemFormScreen() {
     if (amount != null && !(amount >= 0)) return setError('Cost must be a number.')
     const item: ItineraryItem = {
       ...(existing ?? {}),
-      id: existing?.id ?? draftItemId,
+      id: existing?.id ?? (search.get('decision') && search.get('option') && !copyId ? stableId(tripId, 'decision-plan', search.get('option')!) : draftItemId),
       trip_id: tripId,
       title: f.title.trim(),
       kind: f.kind,
@@ -192,7 +202,7 @@ export function ItemFormScreen() {
       status: f.status,
       confirmation_code: f.code.trim() || null,
       attendee_ids: f.everyone ? null : f.attendees,
-      details: existing?.details ?? {},
+      details: { ...existing?.details, journey_direction: travel ? f.journey : '', journey_location: f.journeyLocation.trim(), journey_stay: f.journeyStay.trim(), journey_transfer: f.journeyTransfer.trim(), ...(!itemId && !copyId && search.get('decision') && search.get('option') ? { decision_poll_id: search.get('decision')!, decision_option_id: search.get('option')! } : {}) },
       notes: f.notes.trim() || null,
       est_cost_minor: amount == null ? null : Math.round(amount * 10 ** minorUnits(f.costCurrency)),
       est_cost_currency: amount == null ? null : f.costCurrency,
@@ -202,6 +212,11 @@ export function ItemFormScreen() {
     setError(null)
     try {
       await saveItem(item, me, ticketId ?? undefined)
+      if (!itemId && search.get('decision')) {
+        notify({ message: 'Added to the plan on this phone. It will sync when connected.' })
+        navigate(`/t/${tripId}/more/vote/${search.get('decision')}`, { replace: true })
+        return
+      }
       if (copyId) {
         const saved = await db.itinerary_items.get(item.id)
         notify({ message: 'Item duplicated.', undo: saved ? () => undoDuplicate(saved, me) : undefined })
@@ -250,6 +265,15 @@ export function ItemFormScreen() {
         {sourcePlace && <section className="plan-source-place" aria-label="Your saved place"><p className="notebook-label mb-3">From your saved places</p><PlaceIdentity place={sourcePlace} members={members} compact /></section>}
         {ticketId ? <>{nameField}<Disclosure summary={`${KIND_STYLE[f.kind].label} · Type and locations`}>{activityFields}</Disclosure></> : sourcePlace ? <Disclosure summary="Edit place, name & activity type">{activityFields}</Disclosure> : activityFields}
 
+        {travel && <section className="space-y-3 rounded-surface border border-line p-4" aria-label="Group travel details">
+          <Field label="Show on arrivals & departures"><Select value={f.journey} onChange={(e) => set('journey', e.target.value)}><option value="">Local travel / not on the board</option><option value="arrival">Arrival</option><option value="departure">Departure</option></Select></Field>
+          {f.journey && <>
+            <p className="text-sm text-muted">Shared with the group. Enter departure and arrival times in each location’s time zone. Choose travelers under More options.</p>
+            <Field label={f.journey === 'arrival' ? 'Arrival airport or station' : 'Departure airport or station'} hint="Optional if you selected a place above. Use the same name to find possible shared rides."><Input value={f.journeyLocation} onChange={(e) => set('journeyLocation', e.target.value)} maxLength={200} /></Field>
+            <Field label="Staying at"><Input value={f.journeyStay} onChange={(e) => set('journeyStay', e.target.value)} maxLength={200} placeholder="Hotel or accommodation" /></Field>
+            <Field label="Transfer / meeting point"><Textarea value={f.journeyTransfer} onChange={(e) => set('journeyTransfer', e.target.value)} maxLength={2000} placeholder="Who’s arranging the ride, where to meet…" /></Field>
+          </>}
+        </section>}
         <label className="flex min-h-11 items-center gap-2 text-sm">
           <input type="checkbox" checked={f.allDay} onChange={(e) => set('allDay', e.target.checked)} className="ui-check" /> All day
         </label>
@@ -267,10 +291,10 @@ export function ItemFormScreen() {
           )}
         </fieldset>
         <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-ink">{f.kind === 'lodging' ? 'Check out' : travel ? 'Arrives' : 'Ends'} <span className="font-normal text-muted">(optional)</span></legend>
+          <legend className="text-sm font-medium text-ink">{f.kind === 'lodging' ? 'Check out' : travel ? 'Arrives' : 'Ends'} <span className="font-normal text-muted">{travel && f.journey === 'arrival' ? '(required for the board)' : '(optional)'}</span></legend>
           <div className="grid grid-cols-2 gap-2">
-            <DateInput name="endDate" aria-label="End date" value={f.endDate} min={f.startDate} {...flag('endDate')} onValue={(date) => set('endDate', date)} />
-            {!f.allDay && <Input type="time" name="endTime" aria-label="End time" value={f.endTime} {...flag('endTime')} onChange={(e) => set('endTime', e.target.value)} />}
+            <DateInput name="endDate" aria-label="End date" required={travel && f.journey === 'arrival'} value={f.endDate} min={f.startDate} {...flag('endDate')} onValue={(date) => set('endDate', date)} />
+            {!f.allDay && <Input type="time" name="endTime" aria-label="End time" required={travel && f.journey === 'arrival'} value={f.endTime} {...flag('endTime')} onChange={(e) => set('endTime', e.target.value)} />}
           </div>
           <FieldProblem invalid={invalid} names={['endDate', 'endTime']} />
           {showZones && !f.allDay && (

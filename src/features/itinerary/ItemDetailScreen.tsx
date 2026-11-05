@@ -23,6 +23,7 @@ import { KIND_STYLE, STATUS_TEXT } from './kinds'
 import { onDay } from './layout'
 import { Morph, morphName } from '@/ui/Morph'
 import { rowLoader, useFirstRow } from '@/data/firstRow'
+import { journeyDirection } from '@/features/arrivals/model'
 import { RescheduleDialog } from './RescheduleDialog'
 
 const city = (zone: string) => zone.split('/').pop()!.replace(/_/g, ' ')
@@ -112,6 +113,8 @@ export function ItemDetailScreen() {
           )}
         </Card>
 
+        {journeyDirection(item) && <Card><h2 className="ui-section-title">{journeyDirection(item) === 'arrival' ? 'Arrival details' : 'Departure details'}</h2>{item.details.journey_location && <p className="mt-2 text-sm break-words">{item.details.journey_location}</p>}{item.details.journey_stay && <p className="mt-2 text-sm break-words">Staying at: {item.details.journey_stay}</p>}{item.details.journey_transfer && <p className="mt-2 whitespace-pre-wrap break-words text-sm">Transfer / meeting point: {item.details.journey_transfer}</p>}<Link to={`/t/${tripId}/more/arrivals`} className="ui-link mt-3">Arrivals & departures board</Link></Card>}
+        {item.details?.decision_poll_id && <Link to={`/t/${tripId}/more/vote/${item.details.decision_poll_id}`} className="ui-link">View the group’s decision & booking steps</Link>}
         {item.confirmation_code && (
           <Card>
             <p className="ui-label">Confirmation</p>

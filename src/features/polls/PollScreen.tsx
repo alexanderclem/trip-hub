@@ -3,14 +3,14 @@ import { useConfirm } from '@/ui/ConfirmProvider'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { CalendarCheck, CalendarPlus, Check, Clock, Lock, LockOpen, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
+import { CalendarCheck, Check, Clock, Lock, LockOpen, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
 import { Stowie } from '@/features/stowie/Stowie'
 import { useMyMemberId } from '@/data/device'
 import { useMembers, usePlaces, useTrip } from '@/data/hooks'
 import { save, softDelete } from '@/data/repo'
 import { VOTE_SCORES, type Member, type Place, type Poll, type PollOption, type PollVote, type Trip, type VoteScore } from '@/data/types'
 import { useOnline } from '@/lib/useOnline'
-import { Button, Card, DateInput, ErrorNote, Field, Input, LinkButton, PageHeader, Status } from '@/ui'
+import { Button, Card, DateInput, ErrorNote, Field, Input, PageHeader, Select, Status } from '@/ui'
 import { useSlidingHighlight } from '@/ui/effects'
 import { PlaceCategoryIcon } from '@/features/places/PlaceSummary'
 import { StarsSummary } from '@/features/ratings/Stars'
@@ -24,6 +24,7 @@ import { Dialog } from '@/ui/Dialog'
 import { PlaceIdentity } from '@/features/places/PlaceIdentity'
 import { useItems } from '@/features/itinerary/data'
 import { useTripAccess } from '@/data/device'
+import { DecisionHandoff } from './DecisionHandoff'
 import { can } from '@/data/access'
 
 /** The current time, refreshed often enough for a deadline to pass while the page is open. */
@@ -71,10 +72,10 @@ export function PollScreen() {
   const finalised = useRef<string | null>(null)
   const due = !!data && !data.poll.deleted_at && data.poll.status === 'open' && votingEnded(data.poll, now)
   useEffect(() => {
-    if (!due || !online || !loadedMembers || !data || finalised.current === data.poll.id) return
+    if (!mayPlan || !due || !online || !loadedMembers || !data || finalised.current === data.poll.id) return
     finalised.current = data.poll.id
     void save('polls', { ...data.poll, status: 'closed', winner_option_id: leader(ranked)?.option.id ?? null }, me)
-  }, [due, online, loadedMembers, data, ranked, me])
+  }, [mayPlan, due, online, loadedMembers, data, ranked, me])
 
   const sharing = useSharePoll(trip, data && !data.poll.deleted_at ? data.poll : undefined, data?.options ?? [])
 
@@ -99,7 +100,6 @@ export function PollScreen() {
   const winnerId = poll.status === 'closed' ? poll.winner_option_id : closed ? (leader(ranked)?.option.id ?? null) : null
   const winner = winnerId ? options.find((o) => o.id === winnerId) : undefined
   const winnerPlace = winner && placeOf(winner)
-  const plannedWinner = winnerPlace ? items?.find((item) => item.place_id === winnerPlace.id && item.status !== 'cancelled') : undefined
 
   async function setStatus(status: Poll['status']) {
     const top = leader(ranked)
@@ -128,20 +128,16 @@ export function PollScreen() {
           </p>
         )}
 
+        {closed && !winner && mayPlan && options.length > 0 && <Card><h2 className="ui-section-title">Choose for the group</h2><p className="mt-2 text-sm text-muted">There isn’t a winning option from the votes yet. You can choose one together.</p><WinnerChoice poll={poll} options={options} me={me} /></Card>}
         {winner && (
           <Card framed>
             <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-medium text-ink"><Trophy aria-hidden="true" className="size-4" />Decided</p><Stowie mood="delighted" size={36} animated={false} /></div>
             {winnerPlace ? <div className="mt-4"><PlaceIdentity place={winnerPlace} members={members} compact /></div> : <p className="ui-section-title mt-1">{winner.label}</p>}
+            {mayPlan && poll.status === 'closed' && <WinnerChoice key={poll.winner_option_id} poll={poll} options={options} me={me} />}
             <div className="mt-3">
               {winner.starts_on && trip ? (
                 <TripDatesAction trip={trip} option={winner} me={me} />
-              ) : plannedWinner ? (
-                <LinkButton to={`/t/${tripId}/plan/${plannedWinner.id}`} variant="secondary" className="w-full"><CalendarCheck aria-hidden="true" className="size-4" />View in the plan</LinkButton>
-              ) : winnerPlace && !items ? <p role="status" className="text-sm text-muted">Checking the itinerary…</p> : mayPlan ? (
-                <LinkButton to={`/t/${poll.trip_id}/plan/new?${winnerPlace ? `place=${winnerPlace.id}` : `title=${encodeURIComponent(winner.label)}`}`} className="w-full">
-                  <CalendarPlus aria-hidden="true" className="size-4" />Add to the plan
-                </LinkButton>
-              ) : null}
+              ) : <DecisionHandoff key={winner.id} poll={poll} option={winner} items={items} members={members} mayPlan={mayPlan} />}
             </div>
           </Card>
         )}
@@ -180,9 +176,9 @@ export function PollScreen() {
 
         <CommentThread tripId={tripId} type="poll" subjectId={poll.id} me={me} prompt="Say why, or suggest something else" />
 
-        <Button variant="secondary" className="w-full" onClick={() => setStatus(closed ? 'open' : 'closed')}>
+        {mayPlan && <Button variant="secondary" className="w-full" onClick={() => setStatus(closed ? 'open' : 'closed')}>
           {closed ? <><LockOpen aria-hidden="true" className="size-4" />Reopen voting</> : <><Lock aria-hidden="true" className="size-4" />Close voting and pick the winner</>}
-        </Button>
+        </Button>}
       </div>
       <Dialog open={shareOpen} onClose={() => setShareOpen(false)} title="Share this vote"><SharePollCard sharing={sharing} bare /></Dialog>
     </div>
@@ -425,4 +421,21 @@ function AddOptionCard({ poll, options, places, me }: { poll: Poll; options: Pol
       </form>
     </Card>
   )
+}
+
+/** The group may choose a different outcome; votes remain preferences, not a booking. */
+function WinnerChoice({ poll, options, me }: { poll: Poll; options: PollOption[]; me: string }) {
+  const confirm = useConfirm()
+  const [selected, setSelected] = useState(poll.winner_option_id ?? options[0]?.id ?? '')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  return <details className="mt-3 text-sm"><summary className="min-h-11 cursor-pointer py-3 text-action">Choose a different option</summary><form className="space-y-3" onSubmit={async (e) => {
+    e.preventDefault()
+    if (busy || !selected || selected === poll.winner_option_id) return
+    if (!await confirm('Change the group’s choice? Existing itinerary items, booking tasks and confirmations stay as they are. Review them before arranging anything new.')) return
+    setBusy(true); setError(null)
+    try { await save('polls', { ...poll, winner_option_id: selected }, me) }
+    catch { setError('Could not change the choice. Try again.') }
+    finally { setBusy(false) }
+  }}><Field label="Group’s chosen option"><Select required value={selected} disabled={busy} onChange={(e) => setSelected(e.target.value)}>{options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}</Select></Field><Button type="submit" disabled={busy || selected === poll.winner_option_id} variant="secondary">Save group’s choice</Button><ErrorNote error={error} /></form></details>
 }

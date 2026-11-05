@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router'
-import { Backpack, ClipboardCheck, Compass, HandCoins, Lightbulb, MapPin, Settings, ShieldPlus, Sparkles, Ticket, Wallet } from 'lucide-react'
+import { PlaneLanding, Backpack, ClipboardCheck, Compass, HandCoins, Lightbulb, MapPin, Settings, ShieldPlus, Sparkles, Ticket, Wallet } from 'lucide-react'
 import { useTripAccess } from '@/data/device'
 import { isStaff } from '@/data/access'
 import { useTrip } from '@/data/hooks'
@@ -25,6 +25,7 @@ export function MoreScreen() {
           <Row to="emergency" icon={icon(ShieldPlus)} title="Emergency info" />
         </RowGroup>
         <RowGroup label="Getting ready">
+          <Row to="arrivals" icon={icon(PlaneLanding)} title="Arrivals & departures" />
           <Row to="tasks" icon={icon(ClipboardCheck)} title="Tasks" />
           <Row to="packing" icon={icon(Backpack)} title="Packing list" />
           <Row to="ideas" icon={icon(Lightbulb)} title="Trip ideas & travel preferences" />

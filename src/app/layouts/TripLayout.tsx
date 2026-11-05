@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Link, Navigate, Outlet, useLocation, useNavigate, useNavigationType, useParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Backpack, CalendarDays, ClipboardCheck, Compass, Home, Lightbulb, Map, MapPin, MoreHorizontal, Settings, ShieldPlus, Sparkles, Ticket, Vote, Wallet } from 'lucide-react'
+import { PlaneLanding, Backpack, CalendarDays, ClipboardCheck, Compass, Home, Lightbulb, Map, MapPin, MoreHorizontal, Settings, ShieldPlus, Sparkles, Ticket, Vote, Wallet } from 'lucide-react'
 import { db } from '@/data/db'
 import { useDevice, useTripAccess } from '@/data/device'
 import { PendingScreen, RemovedScreen } from '@/features/trips/AccessScreens'
@@ -40,6 +40,7 @@ const desktopGroups = [
     { to: 'more/explore', label: 'Explore destination', Icon: Compass },
   ] },
   { label: 'Getting ready', items: [
+    { to: 'more/arrivals', label: 'Arrivals & departures', Icon: PlaneLanding },
     { to: 'more/tasks', label: 'Tasks', Icon: ClipboardCheck },
     { to: 'more/packing', label: 'Packing list', Icon: Backpack },
     { to: 'more/ideas', label: 'Trip ideas', Icon: Lightbulb },
