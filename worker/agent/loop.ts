@@ -5,9 +5,9 @@
 import { DateTime } from 'luxon'
 import { AGENT_SYSTEM, tripMessage } from './prompt'
 import { DEEPSEEK_TOOLS, argSchemas, type ToolName } from './tools'
-import { Ledger, resolve, stayFor, type Constraints, type Resolved } from './schedule'
+import { Ledger, repairStay, resolve, stayFor, type Constraints, type Resolved } from './schedule'
 import { MAX_ROUTE_REQUESTS, applyRoute, computeRoute, planRoutes, type Optimised } from './routes'
-import { SetupError, ToolInputError, checkActivityTimes, searchActivities, searchFlights, searchHotels, type ProviderEnv } from './providers'
+import { SetupError, ToolInputError, checkActivityTimes, findAirport, searchActivities, searchFlights, searchHotels, type ProviderEnv } from './providers'
 
 export interface AgentEnv extends ProviderEnv {
   DEEPSEEK_API_KEY?: string
@@ -46,6 +46,8 @@ const TOURS_OFF = 'Tours cannot be booked for this trip. Do not search for tours
 
 /** What the server already looked up for the trip's own dates (see tripMessage). */
 export interface Ready {
+  /** Round trip from the origin on the trip's first and last days, when the destination airport is clear. */
+  flights?: { slices: { origin: string; destination: string; departure_date: string }[]; results: unknown[] }
   hotels: { checkin: string; checkout: string; rooms: number; adults_per_room: number; results: unknown[] }[]
   tours: unknown[] | 'unavailable'
 }
@@ -60,7 +62,18 @@ export async function prefetch(c: AgentInput, env: AgentEnv, ledger: Ledger, doF
   const perRoom = Math.ceil(c.adults / rooms)
   const nextDay = DateTime.fromISO(c.start).plus({ days: 1 }).toISODate()!
   const stays = [{ checkin: c.start, checkout: c.end }, ...(c.origin && nextDay < c.end ? [{ checkin: nextDay, checkout: c.end }] : [])]
-  const [hotels, tours] = await Promise.all([
+  const [flights, hotels, tours] = await Promise.all([
+    // The slowest call (often 10 to 15 s on a route the provider hasn't cached), so it starts first.
+    (async (): Promise<Ready['flights']> => {
+      if (!c.origin) return undefined
+      try {
+        const destination = await findAirport(c.destination, c.countryCode, env, doFetch)
+        if (!destination || destination === c.origin) return undefined
+        const slices = [{ origin: c.origin, destination, departure_date: c.start }, { origin: destination, destination: c.origin, departure_date: c.end }]
+        const results = await searchFlights({ slices, adults: c.adults, cabin_class: 'economy', max_connections: null }, env, ledger, c.currency, doFetch)
+        return results.length ? { slices, results } : undefined
+      } catch (error) { if (error instanceof SetupError || error instanceof AgentError) throw error; return undefined }
+    })(),
     Promise.all(stays.filter((s) => s.checkout > s.checkin).map(async (s) => {
       try {
         const results = await searchHotels({ city_name: c.destination, country_code: c.countryCode, checkin: s.checkin, checkout: s.checkout, adults_per_room: perRoom, rooms, currency: c.currency, max_nightly_minor: null, min_stars: null }, env, ledger, doFetch)
@@ -71,7 +84,7 @@ export async function prefetch(c: AgentInput, env: AgentEnv, ledger: Ledger, doF
       .then((r): unknown[] | 'unavailable' => r)
       .catch((error: unknown): unknown[] | 'unavailable' => { if (error instanceof SetupError) throw error; return error instanceof Error && / 40[13]$/.test(error.message) ? 'unavailable' : [] }),
   ])
-  return { hotels: hotels.flat(), tours }
+  return { ...(flights ? { flights } : {}), hotels: hotels.flat(), tours }
 }
 
 export class AgentError extends Error {}
@@ -126,8 +139,15 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
           // Parallel submits in one turn are checked one at a time; once a plan passes, the rest are moot.
           if (final) return reply({ ok: true })
           submits++
-          const a = argSchemas.submit_itinerary.parse(parsed.data)
-          const resolved = resolve(a.nodes, ledger, input, now)
+          let a = argSchemas.submit_itinerary.parse(parsed.data)
+          let resolved = resolve(a.nodes, ledger, input, now)
+          // A hotel booked from the wrong night is swapped for the same hotel's rate on the right
+          // nights when we already have one, instead of costing a resubmit.
+          const swapped = resolved.errors.length ? repairStay(a.nodes, resolved, ledger, input) : null
+          if (swapped) {
+            const again = resolve(swapped, ledger, input, now)
+            if (again.errors.length < resolved.errors.length) { a = { ...a, nodes: swapped }; resolved = again }
+          }
           if (resolved.errors.length) {
             console.warn('[agent-submit]', { attempt: submits, errors: resolved.errors.slice(0, 12) })
             if (submits >= LIMITS.submitAttempts) throw new AgentError(giveUpMessage(resolved.errors))

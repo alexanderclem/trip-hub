@@ -45,14 +45,17 @@ export async function handleAgent(request: Request, env: AgentHandlerEnv, doFetc
   const input = parsed.data
   try {
     const headers = { apikey: env.SUPABASE_PUBLISHABLE_KEY, Authorization: authorization }
+    // The trip reads use the caller's own token (RLS decides), so they start alongside the session check.
+    const reads = Promise.all([
+      doFetch(`${env.SUPABASE_URL}/rest/v1/trips?id=eq.${input.tripId}&deleted_at=is.null&select=start_date,end_date,timezone,base_currency`, { headers, signal: AbortSignal.timeout(10000) }),
+      doFetch(`${env.SUPABASE_URL}/rest/v1/places?trip_id=eq.${input.tripId}&deleted_at=is.null&status=in.(shortlist,planned,booked)&lat=not.is.null&select=id,name,lat,lng&limit=60`, { headers, signal: AbortSignal.timeout(10000) }),
+    ])
+    reads.catch(() => {})
     const auth = await doFetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers, signal: AbortSignal.timeout(10000) })
     if (!auth.ok) return json({ error: 'Your session has expired. Refresh and try again.' }, 401)
     const user = z.object({ id: z.string().uuid() }).parse(await auth.json())
     if (!(await env.AGENT_RATE_LIMITER.limit({ key: `user:${user.id}` })).success) return json({ error: 'One plan at a time: wait a minute and try again.' }, 429)
-    const [tripRes, placesRes] = await Promise.all([
-      doFetch(`${env.SUPABASE_URL}/rest/v1/trips?id=eq.${input.tripId}&deleted_at=is.null&select=start_date,end_date,timezone,base_currency`, { headers, signal: AbortSignal.timeout(10000) }),
-      doFetch(`${env.SUPABASE_URL}/rest/v1/places?trip_id=eq.${input.tripId}&deleted_at=is.null&status=in.(shortlist,planned,booked)&lat=not.is.null&select=id,name,lat,lng&limit=60`, { headers, signal: AbortSignal.timeout(10000) }),
-    ])
+    const [tripRes, placesRes] = await reads
     if (!tripRes.ok || !placesRes.ok) return json({ error: 'Could not read this trip. Try again.' }, 503)
     const trip = z.array(tripRow).parse(await tripRes.json())[0]
     if (!trip) return json({ error: 'Join this trip first.' }, 403)

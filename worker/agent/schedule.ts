@@ -198,6 +198,19 @@ export function stayGaps(stays: Stay[], blocks: Block[], c: Constraints): string
   return out
 }
 
+/**
+ * One stay whose nights don't match landing → last departure (usually an overnight flight landing a
+ * day later than the model assumed): swap in the same hotel's rate for the right nights, if searched.
+ */
+export function repairStay(nodes: SubmittedNode[], r: Resolved, ledger: Ledger, c: Constraints): SubmittedNode[] | null {
+  const stay = r.stays.length === 1 ? r.stays[0]! : null
+  if (!stay) return null
+  const { first, last } = destinationWindow(r.blocks, c)
+  if (stay.rate.checkin === first && stay.rate.checkout === last) return null
+  const swap = ledger.all().find((e): e is HotelRate => e.kind === 'hotel' && e.hotelId === stay.rate.hotelId && e.checkin === first && e.checkout === last && e.currency === c.currency)
+  return swap ? nodes.map((n, i) => (i === stay.node ? { ...n, ref: swap.id, day: swap.checkin } : n)) : null
+}
+
 /** Where the group sleeps on a given night: the start and end point of that day's route. */
 export function stayFor(day: string, stays: Stay[]): HotelRate | null {
   return stays.find((s) => s.rate.checkin <= day && day < s.rate.checkout)?.rate

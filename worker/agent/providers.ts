@@ -99,6 +99,23 @@ export async function searchFlights(a: Args<'search_flights'>, env: ProviderEnv,
     segments: o.segments.map((s) => `${s.flight} ${s.from} ${s.departLocal.slice(0, 16)} → ${s.to} ${s.arriveLocal.slice(0, 16)} (local times)`) }))
 }
 
+const liteAirportSearch = z.object({ data: z.array(z.object({ airports: z.array(z.object({ iata: z.string(), country: z.string().nullish(), tz: z.string().nullish() })).default([]) })) })
+
+/**
+ * The most relevant airport for a destination in its country, or null (the model then picks one).
+ * LiteAPI returns country names, so the trip's ISO code is turned into an English name to compare.
+ */
+export async function findAirport(query: string, countryCode: string, env: ProviderEnv, doFetch: Fetch = fetch): Promise<string | null> {
+  const key = need(env.LITEAPI_KEY, 'LITEAPI_KEY')
+  let country: string | undefined
+  try { country = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode)?.toLowerCase() } catch { return null }
+  const parsed = liteAirportSearch.parse(await call(doFetch, `https://api.liteapi.travel/v3.0/data/flights/airports?${new URLSearchParams({ q: query })}`, { method: 'GET', headers: liteHeaders(key) }))
+  const match = parsed.data.flatMap((d) => d.airports).find((a) => /^[A-Z]{3}$/.test(a.iata) && a.country?.toLowerCase() === country)
+  if (!match) return null
+  if (match.tz && IANAZone.isValidZone(match.tz)) AIRPORT_ZONES.set(match.iata, match.tz)
+  return match.iata
+}
+
 // ─── LiteAPI ─────────────────────────────────────────────────────────────────
 const liteRates = z.object({
   data: z.array(z.object({ hotelId: z.string(), roomTypes: z.array(z.object({

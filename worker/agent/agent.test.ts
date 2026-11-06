@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DateTime } from 'luxon'
-import { Ledger, resolve, type Constraints, type FlightOffer, type HotelRate, type ActivitySlot } from './schedule'
+import { Ledger, repairStay, resolve, type Constraints, type FlightOffer, type HotelRate, type ActivitySlot } from './schedule'
 import { applyRoute, planRoutes } from './routes'
 import { DEEPSEEK_TOOLS, TOOLS } from './tools'
 import { AGENT_SYSTEM } from './prompt'
@@ -62,6 +62,16 @@ describe('resolve', () => {
     expect(r.errors).toEqual([])
     expect(r.totalMinor).toBe(flight.totalMinor + hotel.totalMinor)
     expect(r.blocks.filter((b) => b.kind === 'flight')).toHaveLength(2)
+  })
+  it('swaps a hotel booked from the wrong night for the same hotel on the right nights', () => {
+    const late: HotelRate = { ...hotel, id: 'rate_late', checkin: '2027-03-21' }
+    const l = ledger(); l.put(late)
+    const nodes = [base[0]!, node({ kind: 'hotel', ref: 'rate_late', day: '2027-03-21' })]
+    const r = resolve(nodes, l, trip, NOW)
+    expect(r.errors).toContain('No hotel for the night of 2027-03-20.')
+    const fixed = repairStay(nodes, r, l, trip)!
+    expect(fixed[1]).toMatchObject({ ref: 'rate_1', day: '2027-03-20' })
+    expect(resolve(fixed, l, trip, NOW).errors).toEqual([])
   })
   it('accepts a plan built from ledger ids and totals it', () => {
     const r = resolve([...base, node({ kind: 'activity', ref: 'T1~A~2027-03-22~09:00', day: '2027-03-22', start_time: '09:00' })], ledger(slot('T1~A~2027-03-22~09:00', '2027-03-22', '09:00')), trip, NOW)
@@ -239,6 +249,24 @@ describe('runAgent', () => {
     expect(tourCalls).toBe(1)
     expect(sent[1]!.messages.at(-1)!.content).toMatch(/Tours cannot be booked/)
     expect(plan.usage.timings?.modelMs).toHaveLength(2)
+  })
+
+  it('searches the round trip itself when the destination airport is clear, so the model can submit at once', async () => {
+    const sent: { messages: { role: string; content: string | null }[] }[] = []
+    let flightBody: { legs: { origin: string; destination: string; date: string }[] } | null = null
+    const fake = (async (url: string | URL | Request, init?: RequestInit) => {
+      const u = String(url)
+      if (u.includes('deepseek')) { sent.push(JSON.parse(String(init!.body))); return Response.json({ choices: [{ message: { content: null, ...submit('s1', flightAndHotel) }, finish_reason: 'tool_calls' }] }) }
+      if (u.includes('/data/flights/airports?')) return Response.json({ data: [{ airports: [{ iata: 'ANU', country: 'Antigua and Barbuda', tz: 'America/Antigua' }, { iata: 'GUA', country: 'Guatemala', tz: zone }] }] })
+      if (u.endsWith('/flights/rates')) { flightBody = JSON.parse(String(init!.body)); return Response.json({ data: [] }) }
+      if (u.endsWith('/hotels/rates') || u.includes('/experiences/')) return Response.json({ data: [] })
+      throw new Error(`unexpected ${u}`)
+    }) as typeof fetch
+    await runAgent({ ...trip, origin: 'SFO', destination: 'Antigua', countryCode: 'GT', vibe: '', notes: '', travelMode: 'DRIVE' },
+      { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm', LITEAPI_KEY: 'l' }, fake, NOW, ledger())
+    // The airport in the trip's country wins over a better text match elsewhere.
+    expect(flightBody!.legs.map((l) => [l.origin, l.destination, l.date])).toEqual([['SFO', 'GUA', '2027-03-20'], ['GUA', 'SFO', '2027-03-27']])
+    expect(sent).toHaveLength(1)
   })
 
   it('keeps a plan whose free stops do not fit Google’s drive times, flagged as unrouted', async () => {
