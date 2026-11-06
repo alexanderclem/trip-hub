@@ -117,6 +117,7 @@ export function HomeScreen() {
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5 text-xs text-muted"><AppearancePicker />
         <InstallAppButton />
         <Link to="/connections" className="inline-flex min-h-11 items-center font-medium text-action">Connected apps</Link>
+        <Link to="/travel-history" className="inline-flex min-h-11 items-center font-medium text-action">Your travel history</Link>
       </footer>
     </main>
   )

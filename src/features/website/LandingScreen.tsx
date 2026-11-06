@@ -34,41 +34,45 @@ export function LandingScreen() {
 
   return (
     <WebsiteFrame>
+      {/* The hero leads with the message; the example trip hangs beside it as one tag. The routing
+          strip starts below the hero, so the first screen is only the header and this. */}
+      <section id="trip" data-stop="trip" className={printing ? 'tag-hero is-printing' : 'tag-hero'} aria-labelledby="hero-title">
+        <div className="tag-shell tag-hero-grid">
+          <div className="tag-hero-copy">
+            <h1 id="hero-title">Plan a trip<br />with friends.</h1>
+            <p className="tag-lede">Free. Friends join from one link, nothing to download, and the plan works offline.</p>
+            <div className="tag-hero-stubs">
+              <Link to="/new" className="tag-tear is-primary">
+                <span className="tag-tear-label">Create a trip</span>
+              </Link>
+              <Link to="/app#join" className="tag-tear">
+                <span className="tag-tear-label">Join trip</span>
+              </Link>
+            </div>
+          </div>
+          <figure className="tag-sample">
+            <figcaption className="tag-print-row">
+              <span>Example trip · {TRIP.destination}</span><span className="tag-print-id">{TRIP.season}</span>
+            </figcaption>
+            <p className="tag-route" aria-hidden="true">
+              {TRIP.route.map((code, index) => <span key={code}>{index > 0 && <span className="tag-arrow">→</span>}{code}</span>)}
+            </p>
+            <p className="tag-print tag-route-names">Charles de Gaulle · Paris · Versailles</p>
+            <div className="tag-pax">
+              <p className="tag-print">Travelers · {TRAVELERS.length}</p>
+              <ol aria-label="Travelers (example names)">
+                {TRAVELERS.map((name, index) => <li key={name} style={{ '--i': index } as React.CSSProperties}>{name}</li>)}
+              </ol>
+            </div>
+            <div className="tag-hero-code" aria-hidden="true"><Barcode value="STOWAWAY-PARIS" /></div>
+          </figure>
+        </div>
+        <Perforation />
+      </section>
+
       <div className="tag-journey">
         <RouteStrip winner={winner} />
         <div className="tag-journey-stops">
-          <section id="trip" data-stop="trip" className={printing ? 'tag-hero is-printing' : 'tag-hero'} aria-labelledby="hero-title">
-            <div className="tag-shell">
-              <div className="tag-print-row">
-                <span>Example trip · {TRIP.destination}</span><span className="tag-print-id">{TRIP.season}</span>
-              </div>
-              <p className="tag-route" aria-hidden="true">
-                {TRIP.route.map((code, index) => <span key={code} style={{ '--i': index } as React.CSSProperties}>{index > 0 && <span className="tag-arrow">→</span>}{code}</span>)}
-              </p>
-              <div className="tag-hero-grid">
-                <div className="tag-hero-copy">
-                  <h1 id="hero-title">Plan a trip<br />with friends.</h1>
-                  <p className="tag-lede">Free. Friends join from one link, nothing to download, and the plan works offline.</p>
-                </div>
-                <div className="tag-hero-stubs">
-                  <Link to="/new" className="tag-tear is-primary">
-                    <span className="tag-tear-label">Create a trip</span>
-                  </Link>
-                  <Link to="/app#join" className="tag-tear">
-                    <span className="tag-tear-label">Join trip</span>
-                  </Link>
-                </div>
-                <div className="tag-pax">
-                  <p className="tag-print">Travelers · {TRAVELERS.length}</p>
-                  <ol aria-label="Travelers (example names)">
-                    {TRAVELERS.map((name, index) => <li key={name} style={{ '--i': index } as React.CSSProperties}><span className="tag-pax-seq" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>{name}</li>)}
-                  </ol>
-                  <div className="tag-hero-code" aria-hidden="true"><Barcode value="STOWAWAY-PARIS" /></div>
-                </div>
-              </div>
-            </div>
-            <Perforation />
-          </section>
           <SaveStop />
           <VoteStop mine={mine} setMine={setMine} winner={winner} />
           <PlanStop winner={winner} />

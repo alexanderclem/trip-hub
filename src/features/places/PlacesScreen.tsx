@@ -5,7 +5,8 @@ import { Link, useParams } from 'react-router'
 import { ArrowUpRight, MapPin, Navigation, Plus, Search } from 'lucide-react'
 import { usePlaces } from '@/data/hooks'
 import { PLACE_CATEGORIES, type PlaceCategory } from '@/data/types'
-import { Input, PageHeader } from '@/ui'
+import { Field, Input, PageHeader, Select } from '@/ui'
+import { haversineM } from '@/lib/geo'
 import { CATEGORY_STYLE } from './categories'
 import { googleMapsUrl } from '@/lib/geo'
 import { PlaceCategoryIcon, PlaceStatusBadge, placeActionClass } from './PlaceSummary'
@@ -21,7 +22,10 @@ export function PlacesScreen() {
   const [q, setQ] = useState('')
   const [cat, setCat] = useState<PlaceCategory | null>(null)
   const [showPool, setShowPool] = useState(false)
-  const [sort, setSort] = useState<'area' | 'rating'>('area')
+  const [sort, setSort] = useState<'area' | 'rating' | 'distance'>('area')
+  const [anchorId, setAnchorId] = useState('')
+  const anchor = places?.find((p) => p.id === anchorId && p.lat != null && p.lng != null)
+  const distance = (p: { lat: number | null; lng: number | null }) => anchor?.lat != null && anchor.lng != null && p.lat != null && p.lng != null ? haversineM({ lat: anchor.lat, lng: anchor.lng }, { lat: p.lat, lng: p.lng }) : Infinity
   const ratings = useRatingSummaries(tripId)
 
   const filtered = useMemo(() => {
@@ -31,11 +35,11 @@ export function PlacesScreen() {
       .filter((p) => !cat || p.category === cat)
       .filter((p) => !needle || `${p.name} ${p.area ?? ''} ${p.tags.join(' ')}`.toLowerCase().includes(needle))
       .sort((a, b) =>
-        sort === 'rating'
+        sort === 'distance' ? distance(a) - distance(b) || a.name.localeCompare(b.name) : sort === 'rating'
           ? (ratings?.get(b.id)?.average ?? 0) - (ratings?.get(a.id)?.average ?? 0) || (ratings?.get(b.id)?.count ?? 0) - (ratings?.get(a.id)?.count ?? 0) || a.name.localeCompare(b.name)
           : (a.area ?? '').localeCompare(b.area ?? '') || a.name.localeCompare(b.name),
       )
-  }, [places, q, cat, showPool, sort, ratings])
+  }, [places, q, cat, showPool, sort, ratings, anchor])
 
   const poolCount = places?.filter((p) => p.status === 'catalog').length ?? 0
 
@@ -74,13 +78,17 @@ export function PlacesScreen() {
           <h2 className="text-sm font-semibold text-ink">{q.trim() ? 'Search results' : showPool ? 'All places' : 'Your places'}</h2>
           <label className="ml-auto flex items-center gap-1.5 text-xs text-muted">
             Sort
-            <select value={sort} onChange={(e) => setSort(e.target.value as 'area' | 'rating')} className="min-h-11 rounded-control border border-control bg-surface px-2 text-base text-ink">
+            <select value={sort} onChange={(e) => setSort(e.target.value as 'area' | 'rating' | 'distance')} className="min-h-11 rounded-control border border-control bg-surface px-2 text-base text-ink">
               <option value="area">By town</option>
               <option value="rating">Best rated</option>
+              <option value="distance">Nearest to a place</option>
             </select>
           </label>
           <p role="status" className="text-xs text-muted">{places ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}` : 'Loading places…'}</p>
         </div>
+        {sort === 'distance' && <Field label="Measure distance from" hint="Straight-line distance between map pins, not walking or driving distance. Places without pins appear last.">
+          <Select value={anchorId} onChange={(e) => setAnchorId(e.target.value)}><option value="">Choose a hotel or other place</option>{places?.filter((p) => p.lat != null && p.lng != null).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select>
+        </Field>}
         {!places && <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="rounded-surface border border-line bg-surface p-4"><Skeleton className="h-10 w-10" /><Skeleton className="mt-4 h-5 w-3/4" /><Skeleton className="mt-3 h-4 w-1/2" /></div>)}</div>}
         {places && filtered.length === 0 && (
           <Empty>
@@ -105,6 +113,7 @@ export function PlacesScreen() {
                   {(p.area || p.address) && <p className="mt-2 flex items-start gap-1.5 text-sm text-muted"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{p.address || p.area}</span></p>}
                   {p.notes && <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-muted">{p.notes}</p>}
                   {!at && <p className="mt-3 text-xs text-warning-ink">No map pin yet</p>}
+                  {sort === 'distance' && anchor && Number.isFinite(distance(p)) && <p className="mt-3 text-xs text-muted">{(distance(p) / 1000).toFixed(1)} km from {anchor.name} · straight line</p>}
                 </Link>
                 <div className="mx-4 flex flex-wrap gap-2 border-t border-line py-3">
                   {at && <Link to={`/t/${tripId}/map?place=${encodeURIComponent(p.id)}`} className={placeActionClass}><MapPin aria-hidden="true" className="size-4" />On map</Link>}

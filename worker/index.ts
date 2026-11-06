@@ -5,6 +5,8 @@ import { handleScan } from './scan'
 import { handleInvite, isInvitePath } from './invite'
 import { handleAgent, handleAgentWarm, type AgentHandlerEnv } from './agent/handler'
 import { classifyPath } from '../src/features/website/routes'
+import { handleImport } from './import'
+import { handleCalendar } from './calendar'
 import { AXES, assistReplySchema, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema, tidyIdea } from '../src/features/discovery/model'
 
 export interface Env extends ConnectorEnv, TravelEnv, AgentHandlerEnv {
@@ -123,6 +125,8 @@ export default {
   async fetch(request: Request, env: Env, ctx?: { waitUntil(work: Promise<unknown>): void }): Promise<Response> {
     const path = new URL(request.url).pathname
     if (path === '/api/travel-info') return handleTravel(request, env)
+    if (path === '/api/import') return handleImport(request, env)
+    if (path === '/api/calendar.ics') return handleCalendar(request, env)
     if (path === '/mcp' || path === '/.well-known/oauth-protected-resource' || path === '/.well-known/oauth-protected-resource/mcp') return handleConnector(request, env)
     if (path === '/api/scan') return handleScan(request, env)
     if (path === '/api/agent-plan') return handleAgent(request, env)

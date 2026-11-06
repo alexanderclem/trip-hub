@@ -17,6 +17,7 @@ import { requestLegs } from '@/features/routing/requestLegs'
 import { OfflineMapCard } from '@/features/map/offline/OfflineMapCard'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { NotificationsCard } from '@/features/notifications/NotificationsCard'
+import { CalendarFeedCard } from '@/features/itinerary/CalendarFeedCard'
 import { save } from '@/data/repo'
 import { Button, Card, Disclosure, ErrorNote, PageHeader, SectionTitle, Segmented } from '@/ui'
 import { rotateShareToken } from './actions'
@@ -105,6 +106,7 @@ export function SettingsScreen() {
         <h2 id="settings-phone-title" className="ui-label px-0.5">This phone</h2>
         <OfflineReadyCard trip={trip} />
         <NotificationsCard tripId={tripId} />
+        <CalendarFeedCard tripId={tripId} />
         <Card>
           <SectionTitle>Display</SectionTitle>
           <div className="mt-3"><AppearancePicker showLabel={false} /></div>

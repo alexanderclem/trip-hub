@@ -4,7 +4,7 @@ import { publicPages } from './metadata'
 export const redirects: Record<string, string> = { '/operators': '/organizers' }
 
 /** Top-level segments that belong to the app (trips, joining, accounts, organizer tools). Never indexed. */
-const APP = /^\/(app|quiz|new|inspire|join|signin|auth|oauth|connections|organize|unsubscribe|b|go|t)(\/|$)/
+const APP = /^\/(app|quiz|new|inspire|join|signin|auth|oauth|connections|travel-history|organize|unsubscribe|b|go|t)(\/|$)/
 
 export type PathKind =
   | { kind: 'asset' }

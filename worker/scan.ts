@@ -62,7 +62,7 @@ async function vision(env: ScanEnv, kind: string, image: string, text: string): 
         { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } },
       ],
     }],
-    max_tokens: 650,
+    max_tokens: 1000,
   })
   try {
     const { response } = await run()
@@ -87,7 +87,7 @@ async function fromText(env: ScanEnv, kind: string, text: string): Promise<ScanD
       { role: 'user', content: `This is a ${kind}. Its text (may contain OCR errors):\n${text.slice(0, 8000)}` },
     ],
     response_format: { type: 'json_schema', json_schema: z.toJSONSchema(scanDetailsSchema) },
-    max_tokens: 650,
+    max_tokens: 1000,
   })
   return parseDetails(result.response)
 }

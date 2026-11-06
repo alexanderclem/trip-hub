@@ -21,6 +21,10 @@ export const scanDetailsSchema = z.object({
   start_timezone: text(80).optional().describe('IANA time zone only if explicitly identifiable from the document; null if uncertain'),
   end_timezone: text(80).optional().describe('IANA arrival time zone only if explicitly identifiable from the document; null if uncertain'),
   item_kind: z.enum(['flight', 'transport', 'lodging', 'reservation', 'activity', 'meal']).nullable().optional().describe('Type of booking, if identifiable'),
+  baggage: text(500).optional().describe('Printed baggage allowance or restrictions; never infer airline policy'),
+  breakfast: text(500).optional().describe('Printed breakfast inclusions or extra charges'),
+  parking: text(500).optional().describe('Printed parking availability, instructions or costs'),
+  cancellation: text(1000).optional().describe('Printed cancellation deadline, penalties or refund terms'),
 })
 export type ScanDetails = z.infer<typeof scanDetailsSchema>
 
