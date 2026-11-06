@@ -4,7 +4,7 @@
 // Nothing is booked here: offers are listed with their expiry, and Finalize only queues the email.
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { DateTime } from 'luxon'
-import { useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { useMembers, useTrip } from '@/data/hooks'
 import { tripAreas, tripDestination } from '@/features/destinations/destinations'
 import { formatMoney } from '@/lib/money'
@@ -102,7 +102,14 @@ export function LivePlanner({ tripId, onDone }: { tripId: string; onDone?(): voi
         <p className="mt-1 text-sm text-muted">Stowie checks real flights, hotels and tours, then fits them around your saved places. Nothing is booked.</p>
       </header>
 
-      {missingDates && <p className="rounded-surface bg-brand-50 p-3 text-sm">Set the trip dates first. The planner needs them to price stays.</p>}
+      {missingDates ? (
+        <div className="flex flex-col gap-3 rounded-surface bg-brand-50 p-3">
+          <p className="text-sm"><strong>This trip has no dates yet.</strong> Live prices depend on when you travel, so add the dates first.</p>
+          <Link to={`/t/${tripId}/more/settings`} className="inline-flex min-h-11 w-fit items-center rounded-control bg-action px-4 text-sm font-medium text-on-action">Set trip dates</Link>
+        </div>
+      ) : (
+        <p className="text-xs text-muted">Times use the trip’s time zone, {trip.timezone.replace(/_/g, ' ')}. <Link to={`/t/${tripId}/more/settings`} className="text-action underline">Change</Link></p>
+      )}
 
       {editing || !saved ? (
         <form onSubmit={run} className="flex flex-col gap-3">
@@ -118,7 +125,7 @@ export function LivePlanner({ tripId, onDone }: { tripId: string; onDone?(): voi
           <Segmented label="Getting around" value={form.travelMode} onChange={(v) => setForm((f) => ({ ...f, travelMode: v }))} options={[{ value: 'DRIVE', label: 'Driving' }, { value: 'WALK', label: 'Walking' }]} />
           <ErrorNote error={error} />
           <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy || missingDates}>{busy ? 'Checking live prices…' : 'Find a plan'}</Button>
+            {!missingDates && <Button type="submit" disabled={busy}>{busy ? 'Checking live prices…' : 'Find a plan'}</Button>}
             {busy && <Button type="button" variant="secondary" onClick={() => request.current?.abort()}>Stop</Button>}
             {!busy && saved && <Button type="button" variant="ghost" onClick={() => setEditing(false)}>Back to the plan</Button>}
             {!busy && onDone && <Button type="button" variant="ghost" onClick={onDone}>Close</Button>}
