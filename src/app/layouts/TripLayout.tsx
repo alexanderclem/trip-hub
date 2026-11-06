@@ -193,7 +193,7 @@ function TripShell({ tripId }: { tripId: string }) {
             </div>
           </div>)}
         </nav>
-        <nav aria-label="Trip settings" className="shrink-0 border-t border-line pt-2">
+        <nav aria-label="Trip settings" className="sticky -bottom-5 mt-auto -mb-5 shrink-0 border-t border-line bg-inherit pt-2 pb-5">
           {desktopGroups[2]!.items.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={desktopCurrent === to ? 'page' : undefined} className={`flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium pointer-fine:min-h-10 ${desktopCurrent === to ? 'bg-mist text-ink' : 'text-muted hover:bg-brand-50 hover:text-ink'}`}><Icon aria-hidden="true" className="size-5 shrink-0" />{label}</Link>)}
         </nav>
         <div className="mt-auto shrink-0 pt-3">

@@ -211,7 +211,7 @@ test('travel day keeps departure, map and ticket handy while explaining estimate
   await expect(guidance.locator('div')).toBeHidden()
   await guidance.locator('summary').focus(); await page.keyboard.press('Enter')
   await expect(guidance).toContainText('Our hotel')
-  await expect(guidance).toContainText('Add time for check-in or waiting.')
+  await expect(guidance).toContainText('Set check-in or waiting time when editing this activity.')
   await expect(guidance.locator('summary')).toBeFocused()
   if (shots) await card.screenshot({ path: `${shots}/travel-departure.png` })
 })
