@@ -72,16 +72,17 @@ export function resolve(nodes: SubmittedNode[], ledger: Ledger, c: Constraints, 
 
   nodes.forEach((n, i) => {
     const where = label(i, n)
-    if (n.day < c.start || n.day > c.end) errors.push(`${where}: ${n.day} is outside the trip (${c.start} to ${c.end}).`)
     if (n.kind === 'free') {
-      if (!n.start_time || !n.duration_minutes) { errors.push(`${where}: free time needs start_time and duration_minutes.`); return }
-      const place = n.ref ? c.places.find((p) => p.id === n.ref) : null
-      if (n.ref && !place) { errors.push(`${where}: ${n.ref} is not one of trip.places. Use a listed place_id or null.`); return }
+      // Free time is unbooked, so its problems are repaired here (settleFree) instead of costing a resubmit.
+      if (!n.start_time || !n.duration_minutes || n.day < c.start || n.day > c.end) return
+      const place = n.ref ? c.places.find((p) => p.id === n.ref) ?? null : null
       const start = at(n.day, n.start_time, c.zone)
+      if (!start.isValid) return
       const end = start.plus({ minutes: n.duration_minutes })
       blocks.push({ node: i, kind: 'free', title: place?.name ?? n.note, ref: place?.id ?? null, start, end, busyFrom: start, busyTo: end, lat: place?.lat ?? null, lng: place?.lng ?? null, fixed: false })
       return
     }
+    if (n.day < c.start || n.day > c.end) errors.push(`${where}: ${n.day} is outside the trip (${c.start} to ${c.end}).`)
     const entry = n.ref ? ledger.get(n.ref) : undefined
     if (!entry) { errors.push(`${where}: unknown reference. Use only ids returned by a tool in this conversation.`); return }
     if (n.kind === 'flight') {
@@ -111,10 +112,51 @@ export function resolve(nodes: SubmittedNode[], ledger: Ledger, c: Constraints, 
     blocks.push({ node: i, kind: 'activity', title: entry.title, ref: entry.id, start, end, busyFrom: start.minus({ minutes: BUFFER.betweenStops }), busyTo: end, lat: entry.lat, lng: entry.lng, fixed: true })
   })
 
-  errors.push(...conflicts(blocks), ...stayGaps(stays, blocks, c))
+  const settled = settleFree(blocks, destinationWindow(blocks, c), c.zone)
+  errors.push(...conflicts(settled), ...stayGaps(stays, settled, c))
   if (c.budgetMinor !== null && totalMinor > c.budgetMinor) errors.push(`Total ${totalMinor} ${c.currency} (minor units) is over the budget of ${c.budgetMinor}. Swap something for a cheaper offer.`)
-  blocks.sort((a, b) => a.start.toMillis() - b.start.toMillis())
-  return { blocks, stays, totalMinor, errors }
+  settled.sort((a, b) => a.start.toMillis() - b.start.toMillis())
+  return { blocks: settled, stays, totalMinor, errors }
+}
+
+/** Free time shorter than this after trimming isn't worth showing. */
+export const MIN_FREE_MINUTES = 30
+
+/**
+ * Free blocks give way to everything booked: each is trimmed out of flights, tours and their buffers
+ * (and out of earlier free time), and dropped if it falls off the destination days or under 30 minutes.
+ * Only booked items can clash after this, and those are the model's to fix.
+ */
+export function settleFree(blocks: Block[], window: { first: string; last: string }, zone: string): Block[] {
+  const fixed = blocks.filter((b) => b.kind !== 'free')
+  const kept: Block[] = []
+  const minutes = (from: DateTime, to: DateTime) => to.diff(from, 'minutes').minutes
+  for (const f of blocks.filter((b) => b.kind === 'free').sort((a, b) => a.start.toMillis() - b.start.toMillis())) {
+    const day = f.start.setZone(zone).toISODate()!
+    if (day < window.first || day > window.last) continue
+    let s = f.start, e = f.end
+    const taken = [...fixed.map((b) => [b.busyFrom, b.busyTo] as const), ...kept.map((b) => [b.start, b.end] as const)]
+      .sort(([a], [b]) => a.toMillis() - b.toMillis())
+    for (const [from, to] of taken) {
+      if (to <= s || from >= e) continue
+      if (from <= s) s = to
+      // Something booked sits inside the free time: keep the longer usable side.
+      else if (minutes(s, from) < MIN_FREE_MINUTES && minutes(to, e) >= MIN_FREE_MINUTES) s = to
+      else e = from
+      if (e <= s) break
+    }
+    if (minutes(s, e) < MIN_FREE_MINUTES) continue
+    kept.push({ ...f, start: s, end: e, busyFrom: s, busyTo: e })
+  }
+  return [...fixed, ...kept]
+}
+
+/** The first and last local dates the group is at the destination (landing to final departure). */
+export function destinationWindow(blocks: Block[], c: Constraints): { first: string; last: string } {
+  const flights = blocks.filter((b) => b.kind === 'flight')
+  const first = flights.length ? DateTime.min(...flights.map((f) => f.end))!.setZone(c.zone).toISODate()! : c.start
+  const last = flights.length > 1 ? DateTime.max(...flights.map((f) => f.start))!.setZone(c.zone).toISODate()! : c.end
+  return { first, last }
 }
 
 /** Any two blocks whose busy windows overlap. Free blocks may overlap each other's buffers only. */
@@ -136,9 +178,7 @@ export function conflicts(blocks: Block[]): string[] {
 /** Every night between landing and the last departure needs exactly one stay. */
 export function stayGaps(stays: Stay[], blocks: Block[], c: Constraints): string[] {
   const out: string[] = []
-  const flights = blocks.filter((b) => b.kind === 'flight')
-  const first = flights.length ? DateTime.min(...flights.map((f) => f.end))!.setZone(c.zone).toISODate()! : c.start
-  const last = flights.length > 1 ? DateTime.max(...flights.map((f) => f.start))!.setZone(c.zone).toISODate()! : c.end
+  const { first, last } = destinationWindow(blocks, c)
   for (let night = DateTime.fromISO(first, { zone: c.zone }); night.toISODate()! < last; night = night.plus({ days: 1 })) {
     const d = night.toISODate()!
     const covering = stays.filter((s) => s.rate.checkin <= d && d < s.rate.checkout)

@@ -74,6 +74,27 @@ describe('resolve', () => {
     const r = resolve([...base, node({ kind: 'activity', ref: a.id, day: a.date }), node({ kind: 'activity', ref: b.id, day: b.date })], ledger(a, b), trip, NOW)
     expect(r.errors.join()).toMatch(/30 min to get between stops/)
   })
+  it('trims free time out of airport and tour buffers instead of rejecting the plan', () => {
+    const s = slot('T4~A~2027-03-22~14:00', '2027-03-22', '14:00', 120)
+    const r = resolve([...base,
+      // Departure is 14:00 on the 27th, so the airport owns 11:00 onwards: dropped.
+      node({ kind: 'free', ref: 'p-market', day: '2027-03-27', start_time: '12:00', duration_minutes: 60 }),
+      // Runs into the tour's 30-minute lead-in: cut back to 13:30.
+      node({ kind: 'free', ref: 'p-cerro', day: '2027-03-22', start_time: '12:00', duration_minutes: 120 }),
+      // Overlaps the free time before it and then the tour: what's left is under 30 minutes, dropped.
+      node({ kind: 'free', ref: null, note: 'Coffee', day: '2027-03-22', start_time: '13:15', duration_minutes: 30 }),
+      // Outside the trip, and an unknown place: dropped, and kept as a plain note.
+      node({ kind: 'free', ref: null, day: '2027-04-01', start_time: '10:00', duration_minutes: 60 }),
+      node({ kind: 'free', ref: 'p-gone', note: 'Walk', day: '2027-03-23', start_time: '10:00', duration_minutes: 60 }),
+      node({ kind: 'activity', ref: s.id, day: s.date })], ledger(s), trip, NOW)
+    expect(r.errors).toEqual([])
+    const free = r.blocks.filter((b) => b.kind === 'free').map((b) => [b.node, b.start.toFormat('MM-dd HH:mm'), b.end.toFormat('HH:mm'), b.ref])
+    expect(free).toEqual([[3, '03-22 12:00', '13:30', 'p-cerro'], [6, '03-23 10:00', '11:00', null]])
+  })
+  it('still sends clashes between booked items back to the model', () => {
+    const s = slot('T5~A~2027-03-27~12:00', '2027-03-27', '12:00', 60)
+    expect(resolve([...base, node({ kind: 'activity', ref: s.id, day: s.date })], ledger(s), trip, NOW).errors.join()).toMatch(/clashes.*airport/)
+  })
   it('catches a start time the model misremembered, budget overruns, missing nights and expired offers', () => {
     const s = slot('T3~A~2027-03-22~09:00', '2027-03-22', '09:00')
     expect(resolve([...base, node({ kind: 'activity', ref: s.id, day: s.date, start_time: '10:00' })], ledger(s), trip, NOW).errors.join()).toMatch(/starts at 09:00/)
@@ -131,11 +152,10 @@ describe('runAgent', () => {
         { id: 'c1', type: 'function', function: { name: 'search_flights', arguments: JSON.stringify({ slices: [{ origin: 'SFO', destination: 'GUA', departure_date: '2027-03-20' }, { origin: 'GUA', destination: 'SFO', departure_date: '2027-03-27' }], adults: 2, cabin_class: 'economy', max_connections: null }) } },
         { id: 'c2', type: 'function', function: { name: 'search_hotels', arguments: JSON.stringify({ city_name: 'Antigua Guatemala', country_code: 'GT', checkin: '2027-03-20', checkout: '2027-03-27', adults_per_room: 2, rooms: 1, currency: 'USD', max_nightly_minor: null, min_stars: null }) } },
       ] },
-      // First submission puts free time inside the airport buffer.
+      // First submission forgets the hotel (a booking problem the model has to fix).
       { tool_calls: [{ id: 'c3', type: 'function', function: { name: 'submit_itinerary', arguments: JSON.stringify({ summary: 'A week in Antigua.', assumptions: [], nodes: [
         { kind: 'flight', ref: 'off_1', day: '2027-03-20', start_time: null, duration_minutes: null, note: '' },
-        { kind: 'hotel', ref: 'rate_1', day: '2027-03-20', start_time: null, duration_minutes: null, note: '' },
-        { kind: 'free', ref: 'p-market', day: '2027-03-27', start_time: '12:00', duration_minutes: 60, note: '' },
+        { kind: 'free', ref: 'p-market', day: '2027-03-22', start_time: '10:00', duration_minutes: 60, note: '' },
       ] }) } }] },
       { tool_calls: [{ id: 'c4', type: 'function', function: { name: 'submit_itinerary', arguments: JSON.stringify({ summary: 'A week in Antigua.', assumptions: [], nodes: [
         { kind: 'flight', ref: 'off_1', day: '2027-03-20', start_time: null, duration_minutes: null, note: '' },
@@ -159,15 +179,50 @@ describe('runAgent', () => {
     const plan = await runAgent({ ...trip, origin: 'SFO', destination: 'Antigua Guatemala', countryCode: 'GT', vibe: 'relaxed', notes: '', travelMode: 'DRIVE' },
       { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm', LITEAPI_KEY: 'l', GOOGLE_ROUTES_API_KEY: 'g' }, fake, NOW)
 
-    // The clash went back to the model as a tool result.
+    // The missing nights went back to the model as a tool result.
     const toolReply = sent[2]!.messages.at(-1)!
     expect(toolReply.role).toBe('tool')
-    expect(toolReply.content).toMatch(/clashes.*airport/)
+    expect(toolReply.content).toMatch(/No hotel for the night/)
     // The system prompt is the unchanged first message on every turn (the cached prefix).
     expect(new Set(sent.map((s) => s.messages[0]!.content)).size).toBe(1)
     expect(plan.totalMinor).toBe(230000)
     expect(plan.bookable.map((b) => b.ref).sort()).toEqual(['off_1', 'rate_1'])
     expect(plan.days.find((d) => d.date === '2027-03-22')!.items[0]).toMatchObject({ title: 'Mercado', start: '10:00', routed: true })
     expect(plan.usage).toMatchObject({ modelTurns: 3, cachedPromptTokens: 1800 })
+  })
+
+  const submit = (id: string, nodes: object[]) => ({ tool_calls: [{ id, type: 'function' as const, function: { name: 'submit_itinerary', arguments: JSON.stringify({ summary: 'A week.', assumptions: [], nodes }) } }] })
+  const flightAndHotel = [
+    { kind: 'flight', ref: 'off_1', day: '2027-03-20', start_time: null, duration_minutes: null, note: '' },
+    { kind: 'hotel', ref: 'rate_1', day: '2027-03-20', start_time: null, duration_minutes: null, note: '' },
+  ]
+  const scripted = (turns: object[], routes: unknown) => {
+    let n = 0
+    return (async (url: string | URL | Request) => {
+      const u = String(url)
+      if (u.includes('deepseek')) return Response.json({ choices: [{ message: { content: null, ...turns[n++] }, finish_reason: 'tool_calls' }] })
+      if (u.includes('routes.googleapis')) return Response.json(routes)
+      throw new Error(`unexpected ${u}`)
+    }) as typeof fetch
+  }
+  // The ledger is seeded directly, standing in for the searches a real first turn would make.
+  const run = (doFetch: typeof fetch, l: Ledger) => runAgent({ ...trip, origin: 'SFO', destination: 'Antigua Guatemala', countryCode: 'GT', vibe: 'relaxed', notes: '', travelMode: 'DRIVE' },
+    { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm', GOOGLE_ROUTES_API_KEY: 'g' }, doFetch, NOW, l)
+
+  it('keeps a plan whose free stops do not fit Google’s drive times, flagged as unrouted', async () => {
+    const plan = await run(scripted([submit('s1', [...flightAndHotel,
+      { kind: 'free', ref: 'p-market', day: '2027-03-22', start_time: '20:00', duration_minutes: 115, note: '' },
+    ])], { routes: [{ optimizedIntermediateWaypointIndex: [0], legs: [{ duration: '600s' }, { duration: '1800s' }] }] }), ledger())
+    const item = plan.days.find((d) => d.date === '2027-03-22')!.items[0]!
+    expect(item).toMatchObject({ start: '20:00', end: '21:55', routed: false })
+  })
+
+  it('checks the last attempt and explains what was wrong when every attempt fails', async () => {
+    const broke = [flightAndHotel[0]!]
+    await expect(run(scripted([submit('a', broke), submit('b', broke), submit('c', broke), submit('d', broke), submit('e', broke)], {}), ledger()))
+      .rejects.toThrow(/hotel for every night/)
+    // The fourth attempt is checked, and a valid one there is accepted.
+    const ok = await run(scripted([submit('a', broke), submit('b', broke), submit('c', broke), submit('d', flightAndHotel)], {}), ledger())
+    expect(ok.bookable.map((b) => b.ref).sort()).toEqual(['off_1', 'rate_1'])
   })
 })

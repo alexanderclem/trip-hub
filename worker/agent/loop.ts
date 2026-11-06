@@ -40,9 +40,8 @@ export interface FinalPlan {
 
 export class AgentError extends Error {}
 
-export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof fetch = fetch, now: DateTime = DateTime.utc()): Promise<FinalPlan> {
+export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof fetch = fetch, now: DateTime = DateTime.utc(), ledger: Ledger = new Ledger()): Promise<FinalPlan> {
   if (!env.DEEPSEEK_API_KEY || !env.DEEPSEEK_MODEL) throw new SetupError('DEEPSEEK_API_KEY and DEEPSEEK_MODEL must be set on the server.')
-  const ledger = new Ledger()
   let subrequests = 0
   const counted: typeof fetch = (url, init) => {
     if (++subrequests > LIMITS.subrequests) throw new AgentError('This plan needed more lookups than one request allows. Narrow the dates or the brief.')
@@ -77,15 +76,17 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
       if (!parsed.success) return reply({ error: 'Invalid arguments', issues: parsed.error.issues.map((i: { path: PropertyKey[]; message: string }) => `${i.path.join('.')}: ${i.message}`) })
       try {
         if (name === 'submit_itinerary') {
-          if (++submits > LIMITS.submitAttempts) throw new AgentError('The planner could not produce a plan without clashes. Try fewer activities or a looser budget.')
+          // Parallel submits in one turn are checked one at a time; once a plan passes, the rest are moot.
+          if (final) return reply({ ok: true })
+          submits++
           const a = argSchemas.submit_itinerary.parse(parsed.data)
           const resolved = resolve(a.nodes, ledger, input, now)
           if (resolved.errors.length) {
-            console.warn('[agent-submit]', { errors: resolved.errors.slice(0, 12) })
+            console.warn('[agent-submit]', { attempt: submits, errors: resolved.errors.slice(0, 12) })
+            if (submits >= LIMITS.submitAttempts) throw new AgentError(giveUpMessage(resolved.errors))
             return reply({ ok: false, errors: resolved.errors })
           }
           const routed = await optimise(resolved, input, env, counted, now)
-          if (routed.errors.length) return reply({ ok: false, errors: routed.errors })
           final = finalPlan(a, resolved, routed.optimised, routed.unrouted, input, ledger, usage)
           return reply({ ok: true })
         }
@@ -123,21 +124,31 @@ async function chat(messages: Message[], env: AgentEnv, doFetch: typeof fetch): 
 async function optimise(r: Resolved, c: AgentInput, env: AgentEnv, doFetch: typeof fetch, now: DateTime) {
   const { segments, unrouted } = planRoutes(r, c, c.travelMode, now)
   const optimised: Optimised[] = []
-  const errors: string[] = []
   // Without a Routes key the plan is still valid; it just isn't reordered.
-  if (!env.GOOGLE_ROUTES_API_KEY) return { optimised, unrouted: [...unrouted, ...segments.flatMap((s) => s.stops)], errors }
+  if (!env.GOOGLE_ROUTES_API_KEY) return { optimised, unrouted: [...unrouted, ...segments.flatMap((s) => s.stops)] }
   for (const seg of segments.slice(0, MAX_ROUTE_REQUESTS)) {
     try {
       const { result, error } = applyRoute(seg, await computeRoute(seg.body, env.GOOGLE_ROUTES_API_KEY, doFetch), c.zone)
-      if (error) errors.push(error)
       if (result) optimised.push(result)
+      // The stops already passed the 30-minute rule, so a tight or unroutable segment keeps the model's
+      // times and is flagged as unrouted. Rejecting the whole plan over free time used up every attempt.
+      else { unrouted.push(...seg.stops); if (error) console.warn('[agent-route]', { error }) }
     } catch (error) {
       if (error instanceof AgentError) throw error
       unrouted.push(...seg.stops)
     }
   }
   unrouted.push(...segments.slice(MAX_ROUTE_REQUESTS).flatMap((s) => s.stops))
-  return { optimised, unrouted, errors }
+  return { optimised, unrouted }
+}
+
+/** What to tell the traveller when every attempt failed, based on what the last one got wrong. */
+export function giveUpMessage(errors: string[]): string {
+  const all = errors.join('\n')
+  if (/over the budget/.test(all)) return 'The planner could not fit flights, hotels and tours within the budget. Try a higher budget or fewer booked activities.'
+  if (/No hotel for the night|Two hotels overlap/.test(all)) return 'The planner could not line up a hotel for every night. Try again, or check the trip dates.'
+  if (/clashes/.test(all)) return 'The planner could not fit the booked tours around the flights. Try fewer activities.'
+  return 'The planner could not finish a plan that passed every check. Try again, or simplify the brief.'
 }
 
 function finalPlan(a: { summary: string; assumptions: string[] }, r: Resolved, routes: Optimised[], unrouted: Resolved['blocks'], c: AgentInput, ledger: Ledger, usage: FinalPlan['usage']): FinalPlan {
