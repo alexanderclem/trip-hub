@@ -8,8 +8,15 @@
   "compatibility_date": "2026-09-01",
   "assets": {
     "binding": "ASSETS",
-    // Agent and crawler files go to the Worker too, so a missing one is a real 404, not the app's page.
-    "run_worker_first": ["/api/*", "/join", "/join/*", "/mcp", "/.well-known/*", "/llms.txt", "/llms-full.txt", "/robots.txt", "/sitemap.xml"],
+    // Every page goes to the Worker first (worker/index.ts servePage): app routes get noindex, unknown
+    // paths a real 404, plain http a redirect. Static files skip it, so public/_headers still applies
+    // to them (the service worker's no-cache, font caching) and they cost no Worker requests.
+    "run_worker_first": [
+      "/*",
+      "!/assets/*", "!/fonts/*", "!/map-assets/*", "!/packs/*", "!/brand/*", "!/images/*",
+      "!/sw.js", "!/registerSW.js", "!/push-sw.js", "!/workbox-*", "!/manifest.webmanifest",
+      "!/appearance.js", "!/icon.svg", "!/icon-192.png", "!/icon-512.png", "!/apple-touch-icon.png"
+    ],
     "directory": "./dist",
     "not_found_handling": "single-page-application"
   },

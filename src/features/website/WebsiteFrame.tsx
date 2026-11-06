@@ -11,7 +11,7 @@ import './tag.css'
 const links = [
   { to: '/how-it-works', label: 'How it works' },
   { to: '/pricing', label: 'Pricing' },
-  { to: '/operators', label: 'For organizers' },
+  { to: '/organizers', label: 'For organizers' },
   { to: '/help', label: 'Help' },
 ]
 
@@ -47,8 +47,10 @@ export function WebsiteFrame({ children }: { children: ReactNode }) {
             <p>Group trip planner</p>
           </div>
           <nav aria-label="Footer navigation" className="tag-foot-nav">
-            <Link to="/how-it-works">How it works</Link><Link to="/pricing">Pricing</Link><Link to="/operators">For organizers</Link><Link to="/help">Help & contact</Link>
-            <Link to="/help#about">About</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/app">Open app</Link>
+            <Link to="/how-it-works">How it works</Link><Link to="/pricing">Pricing</Link><Link to="/organizers">For organizers</Link><Link to="/help">Help & contact</Link>
+            <Link to="/group-expenses">Split group expenses</Link><Link to="/tools/trip-cost-splitter">Trip cost splitter</Link><Link to="/compare/best-group-trip-planner-apps">Group trip apps compared</Link><Link to="/compare/splitwise-alternative-for-group-trips">Splitwise alternative</Link>
+            <Link to="/spring-break-trip-planner">Spring break trips</Link><Link to="/bachelor-party-trip-planner">Bachelor & bachelorette trips</Link><Link to="/help#about">About</Link><Link to="/app">Open app</Link>
+            <Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link>
           </nav>
           <div className="tag-foot-meta">
             <AppearancePicker />

@@ -51,7 +51,7 @@ test('public pages render useful HTML before JavaScript, with distinct metadata'
   const context = await browser.newContext({ javaScriptEnabled: false, serviceWorkers: 'block', baseURL })
   const page = await context.newPage()
   const titles = new Set<string>()
-  for (const path of ['/', '/how-it-works', '/operators', '/pricing', '/help']) {
+  for (const path of ['/', '/how-it-works', '/organizers', '/pricing', '/help']) {
     const response = await page.goto(path)
     expect(response?.status()).toBe(200)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
@@ -73,7 +73,7 @@ test('marketing navigation, availability and reflow work on phone and desktop', 
   await page.getByRole('navigation', { name: 'Website pages' }).getByRole('link', { name: 'Pricing', exact: true }).focus()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: 'Open navigation' })).toBeFocused()
-  for (const path of ['/', '/how-it-works', '/operators', '/pricing', '/help']) {
+  for (const path of ['/', '/how-it-works', '/organizers', '/pricing', '/help']) {
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 })
       await page.goto(path)
@@ -207,7 +207,7 @@ test('a slow image shows its local placeholder, then reveals the decoded photo',
   let release!: () => void
   const gate = new Promise<void>((resolve) => { release = resolve })
   await page.route('**/images/trip-covers/flat-v2/city-small.jpg', async (route) => { await gate; await route.continue() })
-  await page.goto('/operators', { waitUntil: 'domcontentloaded' })
+  await page.goto('/organizers', { waitUntil: 'domcontentloaded' })
   const image = page.locator('.operator-booking-image')
   await image.scrollIntoViewIfNeeded()
   await expect(image).toHaveAttribute('data-ready', 'false')
@@ -220,7 +220,7 @@ test('a slow image shows its local placeholder, then reveals the decoded photo',
 
 test('public pages retain content and targets in dark mode, reduced motion and enlarged text', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' })
-  for (const path of ['/operators', '/pricing', '/help', '/how-it-works']) {
+  for (const path of ['/organizers', '/pricing', '/help', '/how-it-works']) {
     await page.setViewportSize({ width: 640, height: 900 })
     await page.goto(path)
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'stowaway-dark')

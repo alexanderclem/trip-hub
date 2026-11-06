@@ -6,6 +6,7 @@ import { RouteStrip } from './tag/RouteStrip'
 import { JoinStop, OfflineStop, PlanStop, SaveStop, StubsStop, VoteStop, type Winner } from './tag/stops'
 import { NEIGHBORHOODS, TRAVELERS, TRIP, total, type Code } from './tag/trip'
 import { Stowie } from '@/features/stowie/Stowie'
+import { MAINTAINER } from './metadata'
 
 /** The neighborhood with the most points, or null while tied. */
 function pickWinner(mine: Partial<Record<Code, number>>): Winner {
@@ -47,6 +48,7 @@ export function LandingScreen() {
               <div className="tag-hero-grid">
                 <div className="tag-hero-copy">
                   <h1 id="hero-title">Plan a trip<br />with friends.</h1>
+                  <p className="tag-lede">Stowaway is a free group trip planner. Friends join from one link, with nothing to download, then save places, vote, build the day-by-day plan, split costs and keep tickets that work offline.</p>
                 </div>
                 <div className="tag-hero-stubs">
                   <Link to="/new" className="tag-tear is-primary">
@@ -76,10 +78,25 @@ export function LandingScreen() {
         </div>
       </div>
 
+      <section className="tag-faq-wrap" aria-labelledby="why-title">
+        <div className="tag-shell tag-faq-grid">
+          <div>
+            <h2 id="why-title">Why Stowaway exists</h2>
+          </div>
+          <div className="tag-story">
+            <p className="tag-lede">A group trip usually lives in four places: ideas in the group chat, a planning app only one person uses, costs in a spreadsheet or a split-the-bill app, and tickets in everyone’s inbox. Stowaway puts all of it behind one link the whole group can open.</p>
+            <p className="tag-lede">It started as the planner for our own spring break: a group of friends heading to Antigua and Lake Atitlán in Guatemala in March 2027. Much of that trip runs on boats and mountain roads with patchy signal, so the plan, the tickets and the map had to keep working offline.</p>
+            <p className="tag-lede">Stowaway is built and run by {MAINTAINER.name}. Planning a trip with your group is free and stays free; only tools for people who sell trips are paid. Questions or ideas: <a href={`mailto:${MAINTAINER.email}`}>{MAINTAINER.email}</a>.</p>
+            <p className="tag-story-links"><Link to="/group-expenses" className="tag-link">How splitting costs works</Link><Link to="/compare/best-group-trip-planner-apps" className="tag-link">Compare group trip apps</Link></p>
+          </div>
+        </div>
+        <Perforation />
+      </section>
+
       <section className="tag-band" aria-labelledby="organizers-title">
         <div className="tag-shell tag-band-inner">
           <h2 id="organizers-title">Planning trips for others?</h2>
-          <Link to="/operators" className="tag-link">Stowaway for organizers</Link>
+          <Link to="/organizers" className="tag-link">Stowaway for organizers</Link>
         </div>
         <Perforation />
       </section>
@@ -94,6 +111,7 @@ export function LandingScreen() {
             <details><summary>Is it really free?</summary><p>Yes. Group trips are free, including offline use. Paid tools are for organizers.</p></details>
             <details><summary>Who can see our trip?</summary><p>Anyone with the invite link can see the group's plans and documents. Share it only with your group. Read our <Link to="/privacy">privacy policy</Link>.</p></details>
             <details><summary>How does offline work?</summary><p>Before you go, open the trip's settings while online and choose Ready for offline. Your plan and downloaded tickets work without signal. Download maps separately. Creating or joining a trip needs a connection.</p></details>
+            <details><summary>How do we split costs?</summary><p>Log each cost as it happens: who paid, and how to split it (equally, by shares, exact amounts or percentages). Stowaway keeps a running balance for everyone and works out the fewest payments to settle up. <Link to="/group-expenses">More about group expenses</Link>.</p></details>
             <details><summary>Does Stowaway book travel or move money?</summary><p>No. Book travel and settle up your usual way. Stowaway keeps the plans, tickets and shared balances together.</p></details>
           </div>
         </div>

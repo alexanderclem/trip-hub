@@ -414,3 +414,16 @@
 
 /* Links inside FAQ answers underline in ink on hover too; coral stays with the group's choice. */
 .tag-faq p a:hover, .tag-world .website-faq p a:hover { text-decoration-color: var(--tag-ink); }
+
+/* Homepage: the story beside the questions */
+.tag-story { display: grid; gap: .25rem; }
+.tag-story .tag-lede { max-width: 60ch; }
+.tag-lede a { color: var(--tag-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.tag-story-links { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin-top: 1rem; }
+/* Section tabs never shrink under the 44px touch target; the strip scrolls instead. */
+.tag-strip li { flex-shrink: 0; }
+.tag-world .splitter-cost, .tag-world .compare-wrap { border: 2px solid var(--tag-ink); border-radius: 8px; background: var(--tag-card); }
+.tag-world .splitter-icon { border: 2px solid var(--tag-ink); border-radius: 8px; background: var(--tag-card); color: var(--tag-ink); }
+.tag-world .splitter-add { border: 2px dashed var(--tag-ink); border-radius: 8px; color: var(--tag-ink); }
+.tag-world .compare-table thead th { background: var(--tag-stock); border-bottom: 2px solid var(--tag-ink); }
+.tag-world .compare-table th, .tag-world .compare-table td { border-color: var(--tag-rule); }

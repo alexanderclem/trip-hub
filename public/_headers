@@ -1,3 +1,10 @@
+# Pages get their security headers from the Worker (worker/index.ts SECURITY_HEADERS); these
+# cover the static files that skip it (see run_worker_first in wrangler.jsonc).
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+
 # Crawlers must receive the robots file as plain text.
 /robots.txt
   Content-Type: text/plain; charset=utf-8
@@ -13,3 +20,7 @@
 # Hashed build assets never change.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Fonts aren't hashed, so they're cached for a month rather than forever.
+/fonts/*
+  Cache-Control: public, max-age=2592000

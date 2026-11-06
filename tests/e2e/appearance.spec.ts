@@ -102,7 +102,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
-    for (const path of ['/', '/app', '/new', '/pricing', '/operators', '/signin', '/privacy', '/terms', '/not-found']) {
+    for (const path of ['/', '/app', '/new', '/pricing', '/organizers', '/signin', '/privacy', '/terms', '/not-found']) {
       await page.goto(path)
       await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
       for (const width of [320, 768, 1440]) {

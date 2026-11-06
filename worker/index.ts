@@ -4,6 +4,7 @@ import { handleConnector, type ConnectorEnv } from './connector'
 import { handleScan } from './scan'
 import { handleInvite, isInvitePath } from './invite'
 import { handleAgent, type AgentHandlerEnv } from './agent/handler'
+import { classifyPath } from '../src/features/website/routes'
 import { AXES, assistReplySchema, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema, tidyIdea } from '../src/features/discovery/model'
 
 export interface Env extends ConnectorEnv, TravelEnv, AgentHandlerEnv {
@@ -70,6 +71,47 @@ export async function assetOrNotFound(request: Request, env: Pick<Env, 'ASSETS'>
   return response
 }
 
+/** Sent with every page. Framing is refused; the camera (receipt and ticket scans) and location stay available. */
+export const SECURITY_HEADERS: Record<string, string> = {
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-Frame-Options': 'DENY',
+  'Content-Security-Policy': "frame-ancestors 'none'",
+  'Permissions-Policy': 'camera=(self), geolocation=(self), microphone=(), payment=(), usb=()',
+}
+
+function withHeaders(response: Response, extra: Record<string, string> = {}, status?: number): Response {
+  const out = new Response(response.body, { status: status ?? response.status, statusText: status ? '' : response.statusText, headers: response.headers })
+  for (const [name, value] of Object.entries({ ...SECURITY_HEADERS, ...extra })) out.headers.set(name, value)
+  return out
+}
+
+/**
+ * Every navigation: plain http moves to https, website pages are served as prerendered, app routes
+ * get the app shell marked noindex (the SPA fallback would otherwise serve the homepage, with its
+ * canonical, at every trip URL), and unknown paths are real 404s that still render the app's
+ * not-found screen.
+ */
+export async function servePage(request: Request, env: Pick<Env, 'ASSETS'>): Promise<Response> {
+  const url = new URL(request.url)
+  if (url.protocol === 'http:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+    url.protocol = 'https:'
+    return Response.redirect(url.toString(), 301)
+  }
+  const route = classifyPath(url.pathname)
+  if (route.kind === 'asset') return assetOrNotFound(request, env)
+  if (route.kind === 'redirect') return new Response(null, { status: 301, headers: { Location: `${route.to}${url.search}`, ...SECURITY_HEADERS } })
+  if (route.kind === 'page') return withHeaders(await env.ASSETS.fetch(request))
+  // /app is served from app.html: the shell without any prerendered page, which the router fills in.
+  const shell = await env.ASSETS.fetch(new Request(new URL('/app', url), {
+    method: request.method === 'HEAD' ? 'HEAD' : 'GET',
+    headers: route.kind === 'app' ? request.headers : undefined,
+  }))
+  if (route.kind === 'app') return withHeaders(shell, { 'X-Robots-Tag': 'noindex' })
+  return withHeaders(shell, { 'X-Robots-Tag': 'noindex', 'Cache-Control': 'no-store' }, 404)
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname
@@ -79,7 +121,7 @@ export default {
     if (path === '/api/agent-plan') return handleAgent(request, env)
     if (isInvitePath(path) && (request.method === 'GET' || request.method === 'HEAD')) return handleInvite(request, env)
     if (path.startsWith('/api/') && path !== '/api/travel-ai') return json({ error: 'Not found' }, 404)
-    if (path !== '/api/travel-ai') return assetOrNotFound(request, env)
+    if (path !== '/api/travel-ai') return servePage(request, env)
     if (request.method !== 'POST') return json({ error: 'Use POST for AI planning.' }, 405)
     if (!env.AI || !env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY || !env.AI_RATE_LIMITER) return json({ error: 'AI planning is not connected on this server yet. You can still set preferences manually.' }, 503)
     const origin = request.headers.get('origin')
