@@ -33,7 +33,8 @@ async function seed(page: Page, s: Setup) {
 
 /** The app scrolls inside its own container, so the People card is captured on its own. */
 async function shootPeople(page: Page, name: string) {
-  const card = page.locator('section').filter({ has: page.getByRole('heading', { name: /^People/ }) })
+  // Settings groups cards in an outer section too; the card is the innermost match.
+  const card = page.locator('section').filter({ has: page.getByRole('heading', { name: /^People/ }) }).last()
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 844 })
     await card.scrollIntoViewIfNeeded()

@@ -151,6 +151,9 @@ test('cover selection survives reload, preserves other settings, and permits a p
   await expect(dialog.getByLabel('Into the mountains')).toBeChecked()
   await dialog.getByText('Just the essentials', { exact: true }).click()
   await dialog.getByRole('button', { name: 'Save cover' }).click()
+  // Navigating straight away can cancel the IndexedDB write; wait for the save to land first.
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'Cover saved on this device' })).toBeVisible()
   await page.goto(`${root}/overview`)
   await expect(page.locator('.overview-art')).toHaveCount(0)
   const settings = await page.evaluate(async tripId => {
