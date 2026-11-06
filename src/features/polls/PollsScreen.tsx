@@ -54,9 +54,9 @@ export function PollsScreen() {
       <PageHeader
         title="Votes"
         action={!!polls?.length && mayPlan && (
-          <button type="button" onClick={() => setCreating((v) => !v)} className="ui-icon-button text-action" aria-label="New vote" aria-expanded={creating}>
-            <Plus aria-hidden="true" className="size-6" />
-          </button>
+          <Button variant="secondary" onClick={() => setCreating((v) => !v)} aria-expanded={creating}>
+            <Plus aria-hidden="true" className="size-4" />New vote
+          </Button>
         )}
       />
       <div className="mx-auto max-w-2xl space-y-4 p-4">

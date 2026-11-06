@@ -48,8 +48,6 @@ test('destination search explains its progress and distinguishes local from sett
   await expect(page.getByRole('status')).toContainText('Searching destinations…')
   release()
   await page.getByRole('button', { name: 'Paris, France', exact: true }).click()
-  // The summary also shows the current zone and currencies, so match the start of its text.
-  await page.locator('summary', { hasText: /^Time zone & currencies/ }).click()
   await expect(page.getByLabel('Local currency', { exact: true })).toHaveValue('EUR')
   await expect(page.getByLabel('Settle-up currency', { exact: true })).toHaveValue('USD')
   await expect(page.getByRole('combobox', { name: 'Destination time zone', exact: true })).toHaveValue('Europe/Paris')

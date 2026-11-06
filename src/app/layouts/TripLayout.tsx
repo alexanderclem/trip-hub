@@ -10,13 +10,13 @@ import { adoptProfile, useMyTripProfile, useSeedMyProfile } from '@/features/onb
 import { startSync } from '@/data/sync/controller'
 import { useAutoLegs } from '@/features/routing/requestLegs'
 import { useAttachmentSync } from '@/features/tickets/files'
-import { SyncStatusButton } from '@/features/sync/SyncStatus'
+import { SyncStatusButton, SyncStrip } from '@/features/sync/SyncStatus'
 import { useUnseenActivity } from '@/features/activity/data'
 import { StowieCompanion } from '@/features/stowie/StowieCompanion'
 import { Brand } from '@/ui/Brand'
 import { LoadingState } from '@/ui/LoadingState'
 import { PageTransition } from '@/ui/PageTransition'
-import { HeaderTools, HeaderTripName } from '@/ui'
+import { HeaderStatus, HeaderTools, HeaderTripName } from '@/ui'
 import { QuickAdd } from '@/features/trips/QuickAdd'
 import { useSlidingHighlight } from '@/ui/effects'
 import { CommandMenu } from '@/ui/CommandMenu'
@@ -176,6 +176,7 @@ function TripShell({ tripId }: { tripId: string }) {
   const unseen = useUnseenActivity(tripId, joined[tripId]?.memberId ?? null)
   const news = unseen > 0 && <span className="rounded-full bg-action px-2 py-0.5 text-xs font-semibold text-on-action"><span aria-hidden="true">{unseen > 9 ? '9+' : unseen}</span><span className="sr-only"> {unseen === 1 ? '1 new update' : `${unseen} new updates`}</span></span>
   // Shared actions stay in the header, clear of the map, forms, and floating add buttons.
+  const status = useMemo(() => <SyncStrip tripId={tripId} />, [tripId])
   const tools = useMemo(() => <div className="trip-header-tools"><QuickAdd tripId={tripId} /><StowieCompanion tripId={tripId} /><span className="trip-header-sync lg:hidden"><SyncStatusButton tripId={tripId} /></span></div>, [tripId])
   return (
     <div className="trip-shell flex h-full min-w-0 flex-col lg:flex-row">
@@ -186,8 +187,8 @@ function TripShell({ tripId }: { tripId: string }) {
           trips={(trips ?? []).filter((t): t is NonNullable<typeof t> => !!t && !t.deleted_at)}
           onPick={(id) => navigate(`/t/${id}/overview`)} />
         <nav aria-label="Trip navigation" className="mt-5 shrink-0 space-y-4 pb-2">
-          {desktopGroups.slice(0, 2).map(({ label: groupLabel, items }) => <div key={groupLabel}>
-            <p className="mb-1 px-3 text-xs font-semibold text-muted">{groupLabel}</p>
+          {desktopGroups.slice(0, 2).map(({ label: groupLabel, items }) => <div key={groupLabel} role="group" aria-label={groupLabel}>
+            <p aria-hidden="true" className="mb-1 px-3 text-xs font-semibold text-muted">{groupLabel}</p>
             <div className="space-y-1 pointer-fine:space-y-0.5">
               {items.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={desktopCurrent === to ? 'page' : undefined} className={`flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium pointer-fine:min-h-10 ${desktopCurrent === to ? 'bg-mist text-ink' : 'text-muted hover:bg-brand-50 hover:text-ink'}`}><Icon aria-hidden="true" className="size-5 shrink-0" /><span className="flex-1">{label}</span>{to === 'overview' && news}</Link>)}
             </div>
@@ -202,11 +203,11 @@ function TripShell({ tripId }: { tripId: string }) {
       </aside>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <main id="trip-content" tabIndex={-1} ref={content} onScroll={(event) => scrollPositions.current.set(locationKey, event.currentTarget.scrollTop)} className="relative min-h-0 min-w-0 flex-1 overflow-y-auto outline-none">
-          <HeaderTools value={<><CommandMenu tripId={tripId} />{tools}</>}><HeaderTripName value={trip?.name}><PageTransition routeKey={pathname} className="h-full min-w-0"><Outlet /></PageTransition></HeaderTripName></HeaderTools>
+          <HeaderTools value={<><CommandMenu tripId={tripId} />{tools}</>}><HeaderStatus value={status}><HeaderTripName value={trip?.name}><PageTransition routeKey={pathname} className="h-full min-w-0"><Outlet /></PageTransition></HeaderTripName></HeaderStatus></HeaderTools>
         </main>
         <nav ref={tabBar.ref} aria-label="Trip navigation" className="trip-tabs pb-safe grid shrink-0 grid-cols-5 border-t border-line bg-surface lg:hidden">
           <span className="trip-tab-track" aria-hidden="true"><span className="trip-tab-bar" style={tabBar.style} /></span>
-          {tabs.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={current === to ? 'page' : undefined} className="trip-tab"><span className="relative"><Icon className="size-6" aria-hidden="true" />{to === 'overview' && unseen > 0 && <span className="absolute -right-1.5 -top-1 size-2.5 rounded-full border-2 border-surface bg-brand-accent"><span className="sr-only">{unseen === 1 ? '1 new update' : `${unseen} new updates`}</span></span>}</span>{label}</Link>)}
+          {tabs.map(({ to, label, Icon }) => <Link key={to} to={`${root}/${to}`} aria-current={current === to ? 'page' : undefined} className="trip-tab"><span className="relative"><Icon className="size-6" aria-hidden="true" />{to === 'overview' && unseen > 0 && <span className="absolute -right-1.5 -top-1 size-2.5 rounded-full border-2 border-surface bg-ink"><span className="sr-only">{unseen === 1 ? '1 new update' : `${unseen} new updates`}</span></span>}</span>{label}</Link>)}
         </nav>
       </div>
     </div>

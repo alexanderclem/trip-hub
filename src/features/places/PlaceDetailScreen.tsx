@@ -8,7 +8,7 @@ import { save, softDelete } from '@/data/repo'
 import { LINK_KINDS, type Link as TripLink, type LinkKind } from '@/data/types'
 import { googleMapsUrl, tripadvisorUrl } from '@/lib/geo'
 import { newId } from '@/lib/ids'
-import { Button, Card, Disclosure, ErrorNote, Input, PageHeader, SectionTitle, Select } from '@/ui'
+import { Button, Card, Disclosure, ErrorNote, Input, PageHeader, SectionTitle, Select, Status } from '@/ui'
 import { STATUS_LABEL } from './categories'
 import { TravelTimesCard } from '@/features/routing/TravelTimesCard'
 import { GroupRatingCard } from '@/features/ratings/GroupRatingCard'
@@ -20,6 +20,7 @@ import { useItems } from '@/features/itinerary/data'
 import { usePolls } from '@/features/polls/data'
 import { useNow } from '@/lib/useNow'
 import { PlaceIdentity } from './PlaceIdentity'
+import { morphName } from '@/ui/Morph'
 import { PlaceJourney } from './PlaceJourney'
 import { rowLoader, useFirstRow } from '@/data/firstRow'
 
@@ -56,6 +57,7 @@ export function PlaceDetailScreen() {
     <div className="place-notebook min-h-full pb-8">
       <PageHeader
         title={place.name}
+        titleMorph={morphName('place', place.id, 'title')}
         back={`/t/${tripId}/more/places`}
         action={mayPlan &&
           <Link to="edit" className="ui-icon-button text-action" aria-label="Edit">
@@ -64,9 +66,10 @@ export function PlaceDetailScreen() {
         }
       />
       <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
-        <div className="place-notebook-intro"><p className="notebook-label mb-3">{STATUS_LABEL[place.status]}</p><PlaceIdentity place={place} members={members} morph /></div>
+        <div className="place-notebook-intro"><PlaceIdentity place={place} members={members} morph nameInHeader status={<Status tone={place.status === 'rejected' ? 'quiet' : undefined} className="ms-2 align-middle">{STATUS_LABEL[place.status]}</Status>} /></div>
         <PlaceJourney place={place} members={members} items={items} polls={polls} membersReady={loadedMembers !== undefined} mayPlan={mayPlan} now={now} />
-        {mayPlan && me && <AddToPollCard place={place} memberId={me} />}
+        {/* A vote is the way into the plan; once the place is planned, booked or visited it has done its job. */}
+        {mayPlan && me && (place.status === 'catalog' || place.status === 'shortlist') && <AddToPollCard place={place} memberId={me} />}
 
         {me && <GroupRatingCard place={place} memberId={me} />}
 

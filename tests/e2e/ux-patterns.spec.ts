@@ -87,10 +87,12 @@ test('marketing navigation, availability and reflow work on phone and desktop', 
 
 test('command search supports keyboard navigation without intercepting text entry', async ({ page }) => {
   await seed(page)
+  // Search is a keyboard tool: its header button shows from 640px; phones reach everything from More.
+  await page.setViewportSize({ width: 1024, height: 800 })
   await page.keyboard.press('Control+k')
   const search = page.getByRole('combobox', { name: 'Search trip commands' })
   await expect(search).toBeFocused()
-  await page.screenshot({ path: `${shots}/command-menu-390.png` })
+  await page.screenshot({ path: `${shots}/command-menu-1024.png` })
   await search.fill('ticket')
   await expect(page.getByRole('option', { name: 'Tickets & documents' })).toHaveAttribute('aria-selected', 'true')
   await page.keyboard.press('Enter')
@@ -128,9 +130,7 @@ test('task completion rolls back on local failure and undo survives navigation',
   expect((await storedTask(page)).completed).toBe(false)
   await page.getByRole('checkbox').click()
   await expect(page.getByRole('button', { name: 'Undo task change: Book the shuttle' })).toBeVisible()
-  await page.getByRole('button', { name: 'Search trip commands' }).click()
-  await page.getByRole('combobox', { name: 'Search trip commands' }).fill('day-by-day')
-  await page.keyboard.press('Enter')
+  await page.getByRole('navigation', { name: 'Trip navigation' }).getByRole('link', { name: 'Plan', exact: true }).click()
   await page.waitForURL(`${root}/plan`)
   await expect(page.getByRole('heading', { name: 'Plan', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Undo task change: Book the shuttle' }).click()

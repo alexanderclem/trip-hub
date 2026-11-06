@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { Check, Plane, Plus, Ticket, Wifi, WifiOff } from 'lucide-react'
 import { Barcode, Perforation, PriorityStamp, usePrintIn } from './parts'
 import { DAYS, IDEAS, NEIGHBORHOODS, SCORES, TRAVELERS, total, type Code } from './trip'
@@ -51,11 +52,19 @@ export function SaveStop() {
 
 /** 02 Vote: the signature interaction. Seven friends are level; the visitor's vote decides. */
 export function VoteStop({ mine, setMine, winner }: { mine: Partial<Record<Code, number>>; setMine: (next: Partial<Record<Code, number>>) => void; winner: Winner }) {
-  const level = !winner
+  const points = (option: (typeof NEIGHBORHOODS)[number]) => total(option.votes) + (mine[option.code] ?? 0)
+  const top = Math.max(...NEIGHBORHOODS.map(points))
+  const tied = NEIGHBORHOODS.filter((option) => points(option) === top).map((option) => option.name)
+  const tiedNames = tied.length > 1 ? `${tied.slice(0, -1).join(', ')} and ${tied.at(-1)}` : ''
+  const voted = Object.values(mine).some((score) => score !== undefined)
   return (
     <Stop id="vote" title="Vote to decide" wide>
       <div className="tag-vote">
         <p className="tag-vote-question">Where should we spend the afternoon?</p>
+        {/* Says what the buttons do before anyone taps, then what the vote decided. */}
+        <p className="tag-vote-result" role="status">
+          {winner ? <><strong>{winner.name}</strong> wins. It’s on Day 2 at 15:00.</> : voted ? <>Still tied: {tiedNames}. Change a vote to break it.</> : <>{tiedNames} are tied. Your vote breaks it.</>}
+        </p>
         <ul className="tag-vote-list">
           {NEIGHBORHOODS.map((option) => {
             const theirs = total(option.votes)
@@ -86,9 +95,6 @@ export function VoteStop({ mine, setMine, winner }: { mine: Partial<Record<Code,
             )
           })}
         </ul>
-        <p className="tag-vote-result" role="status">
-          {level ? null : <><strong>{winner.name}</strong> · Day 2</>}
-        </p>
       </div>
     </Stop>
   )
@@ -128,6 +134,10 @@ export function PlanStop({ winner }: { winner: Winner }) {
           </li>
         ))}
       </ol>
+      {/* The plan is the payoff of the story so far; the next step is one tap away, not nine screens down. */}
+      <div className="tag-row tag-plan-next">
+        <Link to="/new" className="tag-tear is-primary is-compact"><span className="tag-tear-label">Create a trip</span></Link>
+      </div>
     </Stop>
   )
 }

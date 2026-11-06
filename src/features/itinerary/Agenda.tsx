@@ -63,12 +63,13 @@ export function Agenda({ day, blocks, zone, tripId, placeOf }: {
           // A category rail connects the day; the time stays aligned beside its activity.
           <m.li key={item.id} layout={reduced ? false : 'position'} initial={reduced ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={reduced ? { opacity: 1 } : { opacity: 0 }} transition={reduced ? { duration: 0 } : motionTiming.change} data-landed={landed || undefined} className={`${conflict ? 'bg-danger/40' : ''} ${landed ? 'agenda-landed' : ''}`}>
             {showPeriod && <p className="agenda-period">{period(startMin)}</p>}
-            <Link to={`/t/${tripId}/plan/${item.id}`} aria-label={`${item.title}, ${time}${where ? `, ${where}` : ''}${picked ? ', group pick' : ''}${conflict ? ', overlaps another item' : ''}`} className="agenda-stop">
+            <Link to={`/t/${tripId}/plan/${item.id}`} aria-label={`${item.title}, ${time}${where ? `, ${where}` : ''}${picked ? ', group pick' : ''}${item.status === 'confirmed' ? '' : item.status === 'idea' ? ', idea, not confirmed' : `, ${item.status}`}${item.confirmation_code ? `, confirmation ${item.confirmation_code}` : ''}${conflict ? ', overlaps another item' : ''}`} data-status={item.status} className="agenda-stop">
               <Morph name={part('icon')}><span className={`agenda-category ${style.bg} ${style.text}`}><style.Icon aria-hidden="true" className="size-4" /></span></Morph>
               <div className="agenda-stop-body min-w-0 flex-1">
                 <div className="agenda-stop-heading"><Morph name={part('title')} text><h3 className="min-w-0 break-words font-semibold leading-snug text-ink">{item.title}</h3></Morph><Morph name={morphName('plan', item.id, 'time')}><span className="agenda-time"><span>{formatInZone(item.start_at, zone)}</span>{item.end_at && <span className="agenda-time-end">–{formatInZone(item.end_at, zone)}</span>}</span></Morph></div>
                 {picked && <p className="agenda-pick"><PickStamp placeId={item.place_id} travel={landed} /></p>}
                 {where && !item.title.toLocaleLowerCase().includes(where.toLocaleLowerCase()) && <p className="mt-1 break-words text-sm text-muted">{where}</p>}
+                {item.confirmation_code && <p className="agenda-code"><span className="agenda-code-label">Confirmation</span> <span className="agenda-code-value">{item.confirmation_code}</span></p>}
                 {(continuesBefore || continuesAfter) && <p className="mt-1 text-xs text-muted">{continuesBefore && 'Continues from previous day'}{continuesBefore && continuesAfter && ' · '}{continuesAfter && 'Continues tomorrow'}</p>}
                 {(item.status !== 'confirmed' || conflict) && <p className="agenda-status">
                   {item.status !== 'confirmed' && <span>{item.status === 'idea' ? 'Idea · not confirmed' : 'Tentative'}</span>}

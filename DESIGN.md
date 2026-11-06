@@ -31,6 +31,21 @@ typography:
     fontSize: "2.25rem"
     fontWeight: 700
     lineHeight: 1
+  code-day:
+    fontFamily: "Antonio, 'Barlow Condensed', sans-serif"
+    fontSize: "clamp(2.25rem, 4vw, 3.25rem)"
+    fontWeight: 700
+    lineHeight: 0.9
+  code-stub:
+    fontFamily: "Antonio, 'Barlow Condensed', sans-serif"
+    fontSize: "clamp(2.25rem, 4vw, 3rem)"
+    fontWeight: 700
+    lineHeight: 0.9
+  code-strip:
+    fontFamily: "Antonio, 'Barlow Condensed', sans-serif"
+    fontSize: "1.875rem"
+    fontWeight: 700
+    lineHeight: 1
   headline:
     fontFamily: "Barlow, system-ui, sans-serif"
     fontSize: "clamp(2.25rem, 4.6vw, 4rem)"
@@ -43,12 +58,40 @@ typography:
     fontWeight: 700
     lineHeight: 1.1
     letterSpacing: "-0.02em"
+  section-secondary:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "clamp(1.625rem, 3vw, 2.5rem)"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.02em"
+  price:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "2.5rem"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.02em"
   title:
     fontFamily: "Barlow, system-ui, sans-serif"
     fontSize: "clamp(1.75rem, 3.2vw, 2.75rem)"
     fontWeight: 600
     lineHeight: 1.2
     letterSpacing: "-0.02em"
+  question:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "clamp(1.25rem, 2vw, 1.5rem)"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "-0.02em"
+  subtitle:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 600
+    lineHeight: 1.35
+  lede:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "clamp(1.0625rem, 1.4vw, 1.25rem)"
+    fontWeight: 400
+    lineHeight: 1.55
   body:
     fontFamily: "Barlow, system-ui, sans-serif"
     fontSize: "1.0625rem"
@@ -267,6 +310,8 @@ reserved for small uppercase travel metadata. Antonio gives route codes their id
 
 ### Hierarchy
 - **Route display:** Antonio 700, container-sized up to 10.25rem. Keep readable place names nearby.
+- **Printed codes:** Antonio 700 at fixed steps below the display: day-card routes 2.25–3.25rem, the offline stub 2.25–3rem, saved-place and vote codes 2.25rem, the desktop strip 1.875rem.
+- **Lede and question:** Barlow 400 at 1.0625–1.25rem for intros; Barlow 600 at 1.25–1.5rem for the vote question. Prices print at 2.5rem Barlow 600.
 - **Headline:** Barlow 700, 2.25–4rem, line-height 1.08. Subpage titles use 2–3.5rem at 1.1.
 - **Section title:** Barlow 600, 1.75–2.75rem, line-height 1.2 and -0.02em tracking. Sentence case.
 - **Card title:** Barlow 600, 1.0625–1.5rem, line-height 1.3. App section titles use 1.125rem.
@@ -337,7 +382,7 @@ Tactile print: sentence-case Barlow controls, small condensed travel labels, 2px
   contrast in both themes. Fields drop the ring and put the coral outline straight on their ink edge.
 
 ### Chips (choice buttons)
-- **Style:** vote scores (No way, Maybe, Keen, Must-do) and the Join name picker: 44px (52px for names), 2px ink stroke, 8px corners, Barlow 600 in sentence case.
+- **Style:** vote scores (No way, Fine, Want, Must-do) and the Join name picker: 44px (52px for names), 2px ink stroke, 8px corners, Barlow 600 in sentence case.
 - **State:** hover takes an 8% ink tint; pressed (aria-pressed) fills ink with stock text. Pressed is never coral.
 
 ### Cards / Containers
@@ -353,7 +398,7 @@ Tactile print: sentence-case Barlow controls, small condensed travel labels, 2px
 
 ### Navigation
 - **Header:** the drawn wordmark at left, sentence-case Barlow links (0.9375rem, normal tracking) at right from 1100px. Hover underlines 2px; the current page underlines 3px in ink. Open app is boxed with a 2px ink stroke. Below 1100px a 44px boxed menu button opens a full-width list of 52px rows on dashed rules; Escape closes it and returns focus.
-- **Routing strip:** on desktop, route codes with small labels (CDG Trip, PAR Save, ··· Vote, VRS Plan, OFF Offline, TIX Tickets, YOU Join). The neighborhood code is a ghost (outline only) until the vote; then it prints solid on coral with the stamp animation. Below 1100px, show only the readable labels so visitors can scan the sections. The stop being read is lit in ink. There are no stop numerals.
+- **Routing strip:** on desktop, route codes with small labels (CDG Trip, PAR Save, ··· Vote, VRS Plan, OFF Offline, TIX Tickets, YOU Join). The vote stop is a ghost (an empty dashed slot) until the vote; then the winning neighborhood code (MON, MAR, LAT) prints solid on coral with the stamp animation. Below 1100px, show only the readable labels so visitors can scan the sections, with one exception: once the group picks, the winner's code prints beside "Vote" on phones too. The stop being read is lit in ink. There are no stop numerals.
 - **Footer:** the tag's bottom edge: wordmark and signature line, a two- to four-column link grid, the appearance picker printed flat, and a barcode for joinstowaway.app.
 
 ### PRIORITY Stamp
@@ -369,7 +414,7 @@ Drawn from its own text so each tag has a stable, different code. Ink bars, 34px
 The opening of every secondary page: h1 and intro, an optional action row, and a printed field list stating facts about the page (Groups / Free, Status / Not found, Updated / October 30, 2026). Then a perforation.
 
 ### Motion
-The hero prints itself on the first load of the page: a 3px ink print head runs down the tag face (1500ms, cubic-bezier(.42, .06, .3, 1)), and the print just behind it develops from a 4px half-tone to solid ink over about 8rem, the Print Density Rule played in time. The travelers then print one name at a time, and coral lands last, stamped onto Create a trip (520ms, a 1.045 press). Later visits to home in the same session show the tag already printed. Elsewhere, print-in is a left-to-right clip reveal (300ms to 620ms on cubic-bezier(.16, 1, .3, 1)), triggered once per stop as it scrolls into view. The stamp is the only other motion. Nothing loops. Reduced motion removes all animation and transition and shows the printed state.
+The hero prints itself on the first load of the page: a 3px ink print head runs down the tag face (1000ms with no delay, cubic-bezier(.42, .06, .3, 1), so the headline and both stubs are printed within the first half-second on a phone), and the print just behind it develops from a 4px half-tone to solid ink over about 8rem, the Print Density Rule played in time. The travelers then print one name at a time, and coral lands last, stamped onto Create a trip (520ms, a 1.045 press). Later visits to home in the same session show the tag already printed. Elsewhere, print-in is a left-to-right clip reveal (300ms to 620ms on cubic-bezier(.16, 1, .3, 1)), triggered once per stop as it scrolls into view. The stamp is the only other motion. Nothing loops. Reduced motion removes all animation and transition and shows the printed state.
 
 ## Do's and Don'ts
 
@@ -401,6 +446,10 @@ The hero prints itself on the first load of the page: a 3px ink print head runs 
 ## App theme
 
 The app now shares the luggage-tag direction at a practical working scale. `src/styles/fonts.css` supplies the local fonts to both surfaces. `themes.css` defines the matching light/dark paper, ink, coral and semantic roles; `app-theme.css` translates them into app components under `.app-world`.
+
+**Shared header.** A screen's header prints its title first and the trip's name under it in muted Barlow (never a condensed label above the title). On phones the header carries at most two shell tools (QuickAdd where no floating add button exists, and Stowie); search lives on wider screens and the keyboard. Offline and sync trouble print in words across the header on phones ("Offline · Saved trip data still works", "Not synced · Tap to review"), and stay silent while everything is up to date.
+
+**Print density in the app.** Tentative and idea plan rows print on the half-tone dot with lighter titles; confirmed rows print solid. Real confirmation codes print on plan rows as field print (CONFIRMATION, then the code in Barlow). Vote options show the group's votes as ticks under the score buttons: ink for others, coral for yours, an outline for anyone who hasn't voted, as on the website's sample vote.
 
 **Group pick (the app's one authored moment).** The PRIORITY stamp appears in the app as "Group pick" (`src/features/polls/PickStamp.tsx`, `src/styles/group-pick.css`). When a vote closes in front of someone, the Decided card prints in, the winner's name takes the coral highlighter, and the stamp lands. "Add to the plan" carries the place and its stamp into the form (view transition), and saving flies them onto the new plan row (a FLIP, because the plan loads after it mounts). The row gives under the stamp and develops from half-tone to solid. Plan rows for places that won a vote keep the stamp. Reduced motion shows every state already printed. Nothing else in the app stamps.
 

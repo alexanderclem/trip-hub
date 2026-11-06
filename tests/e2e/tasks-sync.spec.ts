@@ -36,7 +36,7 @@ test('shared tasks sync between two phones, survive offline edits, and stay priv
   await pageA.getByRole('link', { name: 'Create a trip' }).first().click()
   await pageA.getByLabel('Trip name').fill(`E2E TEST planning features ${new Date().toISOString()}`)
   await pageA.getByLabel('Your name').fill('Alex')
-  await pageA.getByRole('button', { name: 'Create trip' }).click()
+  await pageA.getByRole('button', { name: 'Create a trip' }).click()
   await pageA.waitForURL(/\/more\/settings$/)
   const link = (await pageA.locator('p.font-mono').textContent())!.trim()
   const tripPath = new URL(pageA.url()).pathname.replace(/\/more\/settings$/, '')

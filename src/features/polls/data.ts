@@ -54,10 +54,17 @@ export function usePollsForPlace(tripId: string, placeId: string) {
   return useLiveQuery(async () => {
     const [polls, options] = await Promise.all([
       db.polls.where('trip_id').equals(tripId).filter(alive).toArray(),
-      db.poll_options.where('place_id').equals(placeId).filter(alive).toArray(),
+      db.poll_options.where('trip_id').equals(tripId).filter(alive).toArray(),
     ])
-    const inPolls = new Set(options.map((o) => o.poll_id))
-    return polls.map((poll) => ({ poll, includesPlace: inPolls.has(poll.id) }))
+    const inPolls = new Set(options.filter((o) => o.place_id === placeId).map((o) => o.poll_id))
+    // What each vote is about, judged by the kinds of place already in it (a place for a stay vote, food for dinner).
+    const placeIds = [...new Set(options.flatMap((o) => o.place_id ? [o.place_id] : []))]
+    const places = new Map((await db.places.bulkGet(placeIds)).flatMap((p) => p ? [[p.id, p.category] as const] : []))
+    return polls.map((poll) => {
+      const mine = options.filter((o) => o.poll_id === poll.id)
+      const categories = new Set(mine.flatMap((o) => o.place_id && places.has(o.place_id) ? [places.get(o.place_id)!] : []))
+      return { poll, includesPlace: inPolls.has(poll.id), optionCount: mine.length, categories }
+    })
   }, [tripId, placeId])
 }
 

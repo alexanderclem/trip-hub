@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-05T12:00:00Z",
+  "generatedAt": "2026-11-06T12:00:00Z",
   "title": "Design System: Stowaway public website (Luggage Tag)",
   "extensions": {
-    "scope": "Public website only (src/features/website, src/features/legal). The signed-in app keeps its own calm-workspace system in src/styles/tokens.css, src/styles/themes.css and docs/UI_COMPONENTS.md.",
-    "source": "src/features/website/tag.css (tokens on .tag-world; dark under :root[data-theme='stowaway-dark'] .tag-world)",
+    "scope": "Public website composition (src/features/website, src/features/legal) plus the app theme that shares its palette, fonts and printed details (src/styles/app-theme.css, journal.css, travel-notebook.css, tokens.css, themes.css). The app keeps its task-focused layouts; it does not use the display scale or decorative route codes.",
+    "source": "src/features/website/tag.css (tokens on .tag-world; dark under :root[data-theme='stowaway-dark'] .tag-world); app roles in src/styles/tokens.css and src/styles/themes.css (--stowaway-*)",
     "colorMeta": {
       "ground": {
         "role": "neutral",
@@ -68,7 +68,8 @@
           "#6c8b94",
           "#a3bcc2",
           "#dce7ea"
-        ]
+        ],
+        "appCssVar": "--stowaway-ink"
       },
       "print": {
         "role": "neutral",
@@ -84,7 +85,8 @@
           "#8ea0a6",
           "#b8c5c9",
           "#e1e8ea"
-        ]
+        ],
+        "appCssVar": "--stowaway-muted"
       },
       "rule": {
         "role": "neutral",
@@ -100,7 +102,8 @@
           "#bccacd",
           "#d8e1e3",
           "#eef2f3"
-        ]
+        ],
+        "appCssVar": "--stowaway-border"
       },
       "coral": {
         "role": "primary",
@@ -116,7 +119,8 @@
           "#f5a189",
           "#f9c4b4",
           "#fde6de"
-        ]
+        ],
+        "appCssVar": "--stowaway-coral"
       },
       "on-coral": {
         "role": "neutral",
@@ -281,50 +285,98 @@
     "typographyMeta": {
       "display": {
         "displayName": "Route Display",
-        "purpose": "The hero route GUA → ANT → PAN, sized to its container, on one line."
-      },
-      "display-close": {
-        "displayName": "Closing Display",
-        "purpose": "The landing page's closing line, uppercase."
+        "purpose": "The hero route codes, container-sized up to 10.25rem, on one line. Public site only; readable place names sit nearby."
       },
       "code": {
         "displayName": "Route Code",
-        "purpose": "Three-letter codes on vote options, mini tags, day routes, the offline stub and the routing strip. Always aria-hidden beside readable text."
+        "purpose": "Saved-place mini tags and vote option codes (2.25rem). Always aria-hidden beside readable text."
+      },
+      "code-day": {
+        "displayName": "Day Route Code",
+        "purpose": "The route codes on a sample day card (CDG → PAR), 2.25-3.25rem at line-height .9."
+      },
+      "code-stub": {
+        "displayName": "Stub Code",
+        "purpose": "The offline keep stub's route, 2.25-3rem; prints in reverse with the stub."
+      },
+      "code-strip": {
+        "displayName": "Strip Code",
+        "purpose": "Route codes on the desktop routing rail (1.875rem). Below 1100px only the picked vote code shows, at 1.0625rem."
       },
       "headline": {
         "displayName": "Landing Headline",
-        "purpose": "The landing h1 only."
+        "purpose": "The landing h1 only, Barlow 700, sentence case."
       },
       "headline-page": {
         "displayName": "Page Headline",
-        "purpose": "Secondary page h1s in the Tag Head, max 20ch."
+        "purpose": "Secondary page h1s in the Tag Head."
+      },
+      "section-secondary": {
+        "displayName": "Secondary Section",
+        "purpose": "Section h2s on secondary pages (How it works, Pricing, For organizers), one step under the landing's stop titles."
+      },
+      "price": {
+        "displayName": "Price",
+        "purpose": "Plan prices on Pricing, Barlow 600 with tabular figures; money is never set in route lettering."
       },
       "title": {
         "displayName": "Stop Title",
-        "purpose": "Stop and section h2s, condensed uppercase."
+        "purpose": "Landing stop and section h2s, Barlow 600 sentence case, max 24ch."
+      },
+      "question": {
+        "displayName": "Question",
+        "purpose": "The vote question and FAQ questions."
+      },
+      "subtitle": {
+        "displayName": "Subtitle",
+        "purpose": "Card and block titles inside a stop or secondary section."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Intros under a headline; 40-46ch."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Sentences; intros 40ch, ledes 46ch, FAQ answers 62ch."
+        "purpose": "Sentences; prose to 65ch. The app uses 1rem."
       },
       "fine": {
         "displayName": "Fine Print",
-        "purpose": "Example disclosures and small print under demonstrations."
+        "purpose": "Example disclosures and secondary detail under demonstrations."
       },
       "control": {
         "displayName": "Control",
-        "purpose": "Buttons, nav links, switches and chips, condensed uppercase."
+        "purpose": "Buttons, tear-stub labels, nav links, switches and chips: Barlow 600 sentence case, normal tracking."
       },
       "label": {
-        "displayName": "Field Print",
-        "purpose": "Labels paired with values: dt, strip labels, the hero print row. Never a lone section label."
+        "displayName": "Travel Label",
+        "purpose": "Barlow Condensed uppercase field print paired with a value: dt, strip labels, the hero print row, the app's CONFIRMATION field. Never a lone section label."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "The 13px floor: secondary information, the app's trip name under a page title, sync strip text, vote tick counts."
+      },
+      "row-title": {
+        "displayName": "Row Title",
+        "purpose": "Titles of tappable rows in the app."
+      },
+      "app-section": {
+        "displayName": "App Section",
+        "purpose": "Section titles inside app screens."
+      },
+      "app-entry-title": {
+        "displayName": "Entry Title",
+        "purpose": "The title of a single record screen (a plan item)."
+      },
+      "card-title": {
+        "displayName": "Card Title",
+        "purpose": "Card headings in the app and on the site."
       }
     },
     "textures": [
       {
         "name": "halftone",
         "value": "radial-gradient(circle, color-mix(in srgb, var(--tag-ink) 16%, transparent) 1px, transparent 1.4px) 0 0 / 5px 5px",
-        "purpose": "Tentative plan items. Dark mode raises the dot to 22% ink."
+        "purpose": "Tentative plan items on the site (.tag-item.is-tentative) and tentative or idea agenda rows in the app (.agenda-stop[data-status]). Dark mode raises the dot to 22% ink."
       },
       {
         "name": "perforation",
@@ -373,17 +425,37 @@
       {
         "name": "ease-tag",
         "value": "cubic-bezier(.16, 1, .3, 1)",
-        "purpose": "The world's single easing for print-in, stamp and state transitions."
+        "purpose": "The world's easing for print-in, stamps and state transitions; also --stowaway-feedback-ease in the app."
+      },
+      {
+        "name": "hero-print-head",
+        "value": "@keyframes tag-head-reveal (clip-path inset top to bottom) + tag-head (3px ink head with a 4px half-tone developing band, masked over 8rem); 1000ms, no delay, cubic-bezier(.42, .06, .3, 1)",
+        "purpose": "First load only (.tag-hero.is-printing): the hero face prints top to bottom so the headline and both stubs are printed within the first half-second on a phone. Later visits in the session show it printed."
+      },
+      {
+        "name": "hero-travelers",
+        "value": "tag-print-in 300ms, delay calc(640ms + var(--i) * 70ms)",
+        "purpose": "Traveler names print one at a time behind the head."
+      },
+      {
+        "name": "hero-coral-stamp",
+        "value": "@keyframes tag-coral-stamp { from { transparent, ink border, scale(1) } 32% { coral fill, scale(1.045) } to { scale(1) } }; 520ms at 1040ms (820ms below 960px)",
+        "purpose": "Coral lands last, stamped onto Create a trip."
       },
       {
         "name": "print-in",
-        "value": "@keyframes tag-print-in { from { clip-path: inset(0 100% 0 0); opacity: .2 } to { clip-path: inset(0 0 0 0); opacity: 1 } }; 300ms to 620ms",
-        "purpose": "Line-by-line reveal like a thermal head. Route codes stagger 170ms, travelers 140ms; stop titles print once on first view."
+        "value": "@keyframes tag-print-in { from { clip-path: inset(0 100% 0 0); opacity: .2 } to { clip-path: inset(0 0 0 0); opacity: 1 } }; 300ms to 560ms",
+        "purpose": "Left-to-right reveal like a thermal head: stop titles once as they scroll in (560ms), mini tags (420ms), the picked plan row (480ms), your vote tick (300ms)."
       },
       {
         "name": "stamp",
         "value": "@keyframes tag-stamp { 0% { rotate(-14deg) scale(1.6); opacity 0 } 60% { rotate(-3deg) scale(.94) } 100% { rotate(-5deg) scale(1) } }; 420ms",
-        "purpose": "The PRIORITY stamp and the picked strip code landing."
+        "purpose": "The PRIORITY stamp on the winning option and the plan slot it fills."
+      },
+      {
+        "name": "strip-stamp",
+        "value": "@keyframes tag-strip-stamp { 0% { scale(1.6) rotate(-8deg); opacity 0 } 60% { scale(.94); opacity 1 } 100% { none } }; 420ms",
+        "purpose": "The winning code landing on the routing strip's vote stop (keyed so it replays only on the change from ghost to picked)."
       },
       {
         "name": "tear-hover",
@@ -391,14 +463,24 @@
         "purpose": "Tear stub lift and tint."
       },
       {
+        "name": "winner-ring",
+        "value": "220ms box-shadow",
+        "purpose": "The winner ring arriving on a vote option."
+      },
+      {
         "name": "reverse-print",
         "value": "260ms background-color and color",
         "purpose": "The offline stub reversing when airplane mode toggles."
       },
       {
+        "name": "app-durations",
+        "value": "feedback 120ms, change 180ms, enter 240ms, exit 140ms, fade 160ms, morph 340ms",
+        "purpose": "App motion roles in src/styles/tokens.css, mirrored in src/ui/motion.ts."
+      },
+      {
         "name": "reduced-motion",
         "value": "animation: none; transition: none",
-        "purpose": "Shows the printed state with no motion."
+        "purpose": "Shows every state already printed, on the site and in the app."
       }
     ],
     "breakpoints": [
@@ -410,7 +492,7 @@
       {
         "name": "phone",
         "value": "639px",
-        "purpose": "max-width: compact tear stubs and traveler list."
+        "purpose": "max-width: compact tear stubs and traveler list; in the app, the sync strip prints across the header and the header keeps two tools."
       },
       {
         "name": "sm",
@@ -420,12 +502,17 @@
       {
         "name": "md",
         "value": "960px",
-        "purpose": "Two-column hero, tag head, stops and FAQ."
+        "purpose": "Two-column hero, tag head, stops and FAQ; the coral stamp waits for the head (1040ms) from here."
+      },
+      {
+        "name": "app-desktop",
+        "value": "1024px",
+        "purpose": "The app's rounded sheet on ocean ink with the dashed workspace rail."
       },
       {
         "name": "lg",
         "value": "1100px",
-        "purpose": "Desktop nav and the left routing rail."
+        "purpose": "Desktop nav and the left routing rail with every route code; below it the strip shows labels plus only the picked code."
       }
     ]
   },
@@ -434,9 +521,9 @@
       "name": "Tear Stub (primary)",
       "kind": "button",
       "refersTo": "tear-primary",
-      "description": "The landing page's Create a trip: a coral tear-off stub with a punched hole on its tear side.",
+      "description": "The landing page's Create a trip: a coral tear-off stub with a punched hole on its tear side; coral stamps onto it last in the hero print.",
       "html": "<a href=\"#\" class=\"ds-tear ds-tear-primary\"><span class=\"ds-tear-label\">Create a trip</span><span class=\"ds-tear-print\">Free for the whole group</span></a>",
-      "css": ".ds-tear { position: relative; display: grid; align-content: center; gap: .25rem; min-height: 88px; max-width: 18rem; padding: .875rem 1rem .875rem 1.75rem; border: 2px solid #17343f; border-radius: 0; color: #17343f; text-decoration: none; -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); transition: transform 160ms cubic-bezier(.16,1,.3,1), background-color 160ms cubic-bezier(.16,1,.3,1); } .ds-tear::before { content: ''; position: absolute; top: 6px; bottom: 6px; left: .75rem; border-left: 2px dashed currentColor; opacity: .45; } .ds-tear-label { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1; text-transform: uppercase; letter-spacing: .01em; } .ds-tear-print { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; } .ds-tear-primary { background: #f0805f; border-color: #f0805f; color: #17343f; } .ds-tear-primary:hover { transform: translateY(-2px); background: color-mix(in srgb, #f0805f 86%, #17343f); border-color: color-mix(in srgb, #f0805f 86%, #17343f); } .ds-tear:active { transform: translateY(1px); } .ds-tear:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; }"
+      "css": ".ds-tear { position: relative; display: grid; align-content: center; gap: .25rem; min-height: 88px; max-width: 18rem; padding: .875rem 1rem .875rem 1.75rem; border: 2px solid #17343f; border-radius: 0; color: #17343f; text-decoration: none; -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); transition: transform 160ms cubic-bezier(.16,1,.3,1), background-color 160ms cubic-bezier(.16,1,.3,1); } .ds-tear::before { content: ''; position: absolute; top: 6px; bottom: 6px; left: .75rem; border-left: 2px dashed currentColor; opacity: .45; } .ds-tear-label { font-family: Barlow, system-ui, sans-serif; font-size: clamp(1.0625rem, 1.8vw, 1.375rem); font-weight: 600; line-height: 1.4; } .ds-tear-print { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; line-height: 1.4; } .ds-tear-primary { background: #f0805f; border-color: #f0805f; color: #17343f; } .ds-tear-primary:hover { transform: translateY(-2px); background: color-mix(in srgb, #f0805f 86%, #17343f); border-color: color-mix(in srgb, #f0805f 86%, #17343f); } .ds-tear:active { transform: translateY(1px); } .ds-tear:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; box-shadow: 0 0 0 3px #17343f; }"
     },
     {
       "name": "Tear Stub (secondary)",
@@ -444,15 +531,15 @@
       "refersTo": "tear-secondary",
       "description": "Join trip: an ink-outlined tear stub with a ringed punched hole.",
       "html": "<a href=\"#\" class=\"ds-tear2\"><span class=\"ds-tear2-label\">Join trip</span><span class=\"ds-tear2-print\">Got an invite link? No account needed</span></a>",
-      "css": ".ds-tear2 { position: relative; display: grid; align-content: center; gap: .25rem; min-height: 88px; max-width: 18rem; padding: .875rem 1rem .875rem 1.75rem; border: 2px solid #17343f; color: #17343f; text-decoration: none; -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); transition: transform 160ms cubic-bezier(.16,1,.3,1), background-color 160ms cubic-bezier(.16,1,.3,1); } .ds-tear2::before { content: ''; position: absolute; top: 6px; bottom: 6px; left: .75rem; border-left: 2px dashed currentColor; opacity: .45; } .ds-tear2::after { content: ''; position: absolute; top: 50%; left: -11px; width: 22px; height: 22px; margin-top: -11px; border: 2px solid #17343f; border-radius: 50%; } .ds-tear2-label { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1; text-transform: uppercase; } .ds-tear2-print { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; } .ds-tear2:hover { transform: translateY(-2px); background: color-mix(in srgb, #17343f 7%, transparent); } .ds-tear2:active { transform: translateY(1px); } .ds-tear2:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; }"
+      "css": ".ds-tear2 { position: relative; display: grid; align-content: center; gap: .25rem; min-height: 88px; max-width: 18rem; padding: .875rem 1rem .875rem 1.75rem; border: 2px solid #17343f; color: #17343f; text-decoration: none; -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); transition: transform 160ms cubic-bezier(.16,1,.3,1), background-color 160ms cubic-bezier(.16,1,.3,1); } .ds-tear2::before { content: ''; position: absolute; top: 6px; bottom: 6px; left: .75rem; border-left: 2px dashed currentColor; opacity: .45; } .ds-tear2::after { content: ''; position: absolute; top: 50%; left: -11px; width: 22px; height: 22px; margin-top: -11px; border: 2px solid #17343f; border-radius: 50%; } .ds-tear2-label { font-family: Barlow, system-ui, sans-serif; font-size: clamp(1.0625rem, 1.8vw, 1.375rem); font-weight: 600; line-height: 1.4; } .ds-tear2-print { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; line-height: 1.4; } .ds-tear2:hover { transform: translateY(-2px); background: color-mix(in srgb, #17343f 7%, transparent); } .ds-tear2:active { transform: translateY(1px); } .ds-tear2:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; box-shadow: 0 0 0 3px #17343f; }"
     },
     {
       "name": "Primary Button (subpages)",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The coral primary action on secondary pages.",
+      "description": "The coral primary action on secondary pages, sentence-case Barlow.",
       "html": "<a href=\"#\" class=\"ds-btn-primary\">Create a trip</a>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; min-height: 52px; padding: .75rem 1.375rem; border: 2px solid #f0805f; border-radius: 8px; background: #f0805f; color: #17343f; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; text-decoration: none; transition: transform 160ms cubic-bezier(.16,1,.3,1), background-color 160ms; } .ds-btn-primary:hover { background: color-mix(in srgb, #f0805f 86%, #17343f); border-color: color-mix(in srgb, #f0805f 86%, #17343f); transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; }"
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; min-height: 52px; padding: .75rem 1.375rem; border: 2px solid #f0805f; border-radius: 8px; background: #f0805f; color: #17343f; font-family: Barlow, system-ui, sans-serif; font-size: 1rem; font-weight: 600; line-height: 1.4; text-decoration: none; transition: transform 160ms cubic-bezier(.16,1,.3,1), background-color 160ms; } .ds-btn-primary:hover { background: color-mix(in srgb, #f0805f 86%, #17343f); border-color: color-mix(in srgb, #f0805f 86%, #17343f); transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; box-shadow: 0 0 0 3px #17343f; }"
     },
     {
       "name": "Quiet Button",
@@ -460,71 +547,99 @@
       "refersTo": "button-quiet",
       "description": "In-demo action: ink outline at rest, filled ink on hover.",
       "html": "<button type=\"button\" class=\"ds-btn-quiet\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M12 5v14\"/></svg>Save another place</button>",
-      "css": ".ds-btn-quiet { display: inline-flex; align-items: center; gap: .5rem; min-height: 48px; padding: .5rem 1.125rem; border: 2px solid #17343f; border-radius: 8px; background: transparent; color: #17343f; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: 1.125rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; } .ds-btn-quiet:hover:not(:disabled) { background: #17343f; color: #f1f4f5; } .ds-btn-quiet:disabled { opacity: .55; cursor: default; } .ds-btn-quiet:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; }"
+      "css": ".ds-btn-quiet { display: inline-flex; align-items: center; gap: .5rem; min-height: 48px; padding: .625rem 1rem; border: 2px solid #17343f; border-radius: 8px; background: transparent; color: #17343f; font-family: Barlow, system-ui, sans-serif; font-size: 1rem; font-weight: 600; line-height: 1.4; cursor: pointer; } .ds-btn-quiet:hover:not(:disabled) { background: #17343f; color: #f1f4f5; } .ds-btn-quiet:disabled { opacity: .55; cursor: default; } .ds-btn-quiet:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; box-shadow: 0 0 0 3px #17343f; }"
     },
     {
       "name": "Choice Chips (vote scores)",
       "kind": "chip",
       "refersTo": "choice-chip",
       "description": "Score buttons and the name picker; pressed fills ink, never coral.",
-      "html": "<div class=\"ds-score\" role=\"group\" aria-label=\"Your vote\"><button type=\"button\" aria-pressed=\"false\">No way</button><button type=\"button\" aria-pressed=\"false\">Maybe</button><button type=\"button\" aria-pressed=\"true\">Keen</button><button type=\"button\" aria-pressed=\"false\">Must-do</button></div>",
-      "css": ".ds-score { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .375rem; max-width: 26rem; } .ds-score button { min-height: 44px; padding: .375rem; border: 2px solid #17343f; border-radius: 8px; background: transparent; color: #17343f; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: 1rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; } .ds-score button:hover { background: color-mix(in srgb, #17343f 8%, transparent); } .ds-score button[aria-pressed='true'] { background: #17343f; color: #f1f4f5; } .ds-score button:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; }"
+      "html": "<div class=\"ds-score\" role=\"group\" aria-label=\"Your vote\"><button type=\"button\" aria-pressed=\"false\">No way</button><button type=\"button\" aria-pressed=\"false\">Fine</button><button type=\"button\" aria-pressed=\"true\">Want</button><button type=\"button\" aria-pressed=\"false\">Must-do</button></div>",
+      "css": ".ds-score { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .375rem; max-width: 26rem; } .ds-score button { min-height: 44px; padding: .375rem .25rem; border: 2px solid #17343f; border-radius: 8px; background: transparent; color: #17343f; font-family: Barlow, system-ui, sans-serif; font-size: .875rem; font-weight: 600; line-height: 1.4; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; } .ds-score button:hover { background: color-mix(in srgb, #17343f 8%, transparent); } .ds-score button[aria-pressed='true'] { background: #17343f; color: #f1f4f5; } .ds-score button:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; box-shadow: 0 0 0 3px #17343f; }"
     },
     {
       "name": "Vote Option with PRIORITY Stamp",
       "kind": "card",
       "refersTo": "tag-card",
-      "description": "A card on the tag: route code, name, points, the tick bar of votes (yours in coral), stamped PRIORITY when it wins.",
-      "html": "<div class=\"ds-option is-winner\"><span class=\"ds-stamp\">Priority</span><div class=\"ds-option-head\"><span class=\"ds-option-code\" aria-hidden=\"true\">SMR</span><div><h3>San Marcos La Laguna</h3><p>Lancha from Panajachel</p></div><p class=\"ds-option-points\">19<span> pts</span></p></div><div class=\"ds-ticks\" aria-hidden=\"true\"><span style=\"--w:3\"></span><span style=\"--w:2\"></span><span style=\"--w:3\"></span><span class=\"is-yours\" style=\"--w:3\"></span></div></div>",
-      "css": ".ds-option { position: relative; display: grid; gap: .75rem; max-width: 24rem; padding: 1rem; border: 2px solid #17343f; border-radius: 10px; background: #ffffff; color: #17343f; font-family: Barlow, system-ui, sans-serif; } .ds-option.is-winner { box-shadow: 0 0 0 4px #f0805f; } .ds-option-head { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: .875rem; } .ds-option-code { font-family: Antonio, 'Barlow Condensed', sans-serif; font-size: 2.25rem; font-weight: 700; line-height: 1; } .ds-option h3 { margin: 0; font-size: 1.125rem; font-weight: 700; line-height: 1.2; } .ds-option-head p { margin: 0; font-size: .875rem; color: #4a5e66; } .ds-option-points { font-family: 'Barlow Condensed', sans-serif; font-size: 1.75rem !important; font-weight: 700; color: #17343f !important; font-variant-numeric: tabular-nums; } .ds-option-points span { font-size: .875rem; color: #4a5e66; } .ds-ticks { display: flex; gap: 4px; height: 12px; } .ds-ticks span { flex: 0 1 calc(var(--w) * 14px + 4px); height: 12px; border-radius: 2px; background: #17343f; } .ds-ticks span.is-yours { background: #f0805f; } .ds-stamp { position: absolute; top: -.875rem; right: 1rem; display: inline-block; padding: .25rem .625rem; border: 2px solid #17343f; border-radius: 4px; background: #f0805f; color: #17343f; font-family: 'Barlow Condensed', sans-serif; font-size: .9375rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; transform: rotate(-5deg); }"
+      "description": "A card on the tag: route code, neighborhood, points, the tick bar of votes (yours in coral), stamped PRIORITY when it wins.",
+      "html": "<div class=\"ds-option is-winner\"><span class=\"ds-stamp\">Priority</span><div class=\"ds-option-head\"><span class=\"ds-option-code\" aria-hidden=\"true\">MON</span><div><h3>Montmartre</h3><p>Sacré-Cœur and the hilltop streets</p></div><p class=\"ds-option-points\">16<span> pts</span></p></div><div class=\"ds-ticks\" aria-hidden=\"true\"><span style=\"--w:3\"></span><span style=\"--w:2\"></span><span style=\"--w:2\"></span><span class=\"is-yours\" style=\"--w:3\"></span></div></div>",
+      "css": ".ds-option { position: relative; display: grid; gap: .75rem; max-width: 24rem; padding: 1rem; border: 2px solid #17343f; border-radius: 10px; background: #ffffff; color: #17343f; font-family: Barlow, system-ui, sans-serif; transition: box-shadow 220ms cubic-bezier(.16,1,.3,1); } .ds-option.is-winner { box-shadow: 0 0 0 4px #f0805f; } .ds-option-head { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: .875rem; } .ds-option-code { font-family: Antonio, 'Barlow Condensed', sans-serif; font-size: 2.25rem; font-weight: 700; line-height: 1; } .ds-option h3 { margin: 0; font-size: 1.125rem; font-weight: 600; line-height: 1.3; } .ds-option-head p { margin: 0; font-size: .875rem; color: #4a5e66; } .ds-option-head .ds-option-points { font-size: 1.5rem; font-weight: 600; line-height: 1.2; letter-spacing: -.02em; color: #17343f; font-variant-numeric: tabular-nums; } .ds-option-points span { font-size: .875rem; color: #4a5e66; } .ds-ticks { display: flex; gap: 4px; height: 12px; } .ds-ticks span { flex: 0 1 calc(var(--w) * 14px + 4px); min-width: 4px; height: 12px; border-radius: 2px; background: #17343f; } .ds-ticks span.is-yours { background: #f0805f; } .ds-stamp { position: absolute; top: -.875rem; right: 1rem; display: inline-block; padding: .25rem .625rem; border: 2px solid #17343f; border-radius: 4px; background: #f0805f; color: #17343f; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .9375rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; transform: rotate(-5deg); }"
     },
     {
       "name": "Day Card (print density)",
       "kind": "card",
       "refersTo": "tag-card",
-      "description": "A plan day: confirmed rows print solid, tentative rows on the half-tone, the open slot in signal yellow.",
-      "html": "<div class=\"ds-day\"><div class=\"ds-day-route\" aria-hidden=\"true\">ANT<span>→</span>PAN</div><h3><span>Day 3</span> Over to Lake Atitlán</h3><ul><li><span class=\"ds-time\">08:00</span><span class=\"ds-what\">Shuttle to Panajachel</span><span class=\"ds-state\">Booked</span></li><li class=\"is-tentative\"><span class=\"ds-time\">10:00</span><span class=\"ds-what\">Museo del Café</span><span class=\"ds-state\">Idea</span></li><li class=\"is-open\"><span class=\"ds-time\">15:00</span><span class=\"ds-what\">Where we stay<small>Still deciding: vote above</small></span><span class=\"ds-state\">Open</span></li></ul></div>",
-      "css": ".ds-day { display: grid; gap: .5rem; max-width: 22rem; padding: 1.125rem 1.125rem 1rem; border: 2px solid #17343f; border-radius: 10px; background: #ffffff; color: #17343f; font-family: Barlow, system-ui, sans-serif; } .ds-day-route { display: flex; align-items: baseline; gap: .25rem; font-family: Antonio, 'Barlow Condensed', sans-serif; font-size: 2.75rem; font-weight: 700; line-height: .9; } .ds-day-route span { font-weight: 300; color: #4a5e66; } .ds-day h3 { margin: 0; font-size: 1.1875rem; font-weight: 700; } .ds-day h3 span { margin-right: .375rem; font-family: 'Barlow Condensed', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #4a5e66; } .ds-day ul { margin: 0; padding: 0; list-style: none; border-top: 2px solid #17343f; } .ds-day li { display: grid; grid-template-columns: 3.25rem minmax(0,1fr) auto; align-items: center; gap: .75rem; min-height: 52px; padding-block: .5rem; border-bottom: 1px dashed #9fb2b7; } .ds-day li:last-child { border-bottom: 0; } .ds-time { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-variant-numeric: tabular-nums; } .ds-what { font-weight: 600; line-height: 1.3; } .ds-what small { display: block; font-size: .8125rem; font-weight: 400; } .ds-state { font-family: 'Barlow Condensed', sans-serif; font-size: .8125rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; } .ds-day li.is-tentative { background: radial-gradient(circle, color-mix(in srgb, #17343f 16%, transparent) 1px, transparent 1.4px) 0 0 / 5px 5px; } .ds-day li.is-tentative .ds-what { font-weight: 500; } .ds-day li.is-tentative .ds-state { color: #4a5e66; } .ds-day li.is-open { margin-top: .375rem; padding-inline: .5rem; border-radius: 6px; background: #f2c230; color: #17343f; }"
+      "description": "A sample plan day: confirmed rows print solid, tentative rows on the half-tone, the open slot in signal yellow.",
+      "html": "<div class=\"ds-day\"><div class=\"ds-day-route\" aria-hidden=\"true\">PAR<span>→</span>VRS</div><h3>Day 3 · Out to Versailles</h3><ul><li><span class=\"ds-time\">08:30</span><span class=\"ds-what\">RER C to Versailles</span><span class=\"ds-state\">Booked</span></li><li class=\"is-tentative\"><span class=\"ds-time\">13:00</span><span class=\"ds-what\">Lunch in the gardens</span><span class=\"ds-state\">Idea</span></li><li class=\"is-open\"><span class=\"ds-time\">18:00</span><span class=\"ds-what\">Where we eat<small>Still deciding: vote above</small></span><span class=\"ds-state\">Open</span></li></ul></div>",
+      "css": ".ds-day { display: grid; gap: .5rem; max-width: 22rem; padding: 1.125rem 1.125rem 1rem; border: 2px solid #17343f; border-radius: 10px; background: #ffffff; color: #17343f; font-family: Barlow, system-ui, sans-serif; } .ds-day-route { display: flex; align-items: baseline; gap: .25rem; font-family: Antonio, 'Barlow Condensed', sans-serif; font-size: clamp(2.25rem, 4vw, 3.25rem); font-weight: 700; line-height: .9; } .ds-day-route span { font-weight: 300; color: #4a5e66; } .ds-day h3 { margin: 0; font-size: 1.125rem; font-weight: 600; line-height: 1.35; } .ds-day ul { margin: 0; padding: 0; list-style: none; border-top: 2px solid #17343f; } .ds-day li { display: grid; grid-template-columns: 3.25rem minmax(0,1fr) auto; align-items: center; gap: .75rem; min-height: 52px; padding-block: .75rem; border-bottom: 1px dashed #9fb2b7; } .ds-day li:last-child { border-bottom: 0; } .ds-time { font-weight: 500; font-variant-numeric: tabular-nums; } .ds-what { font-weight: 500; line-height: 1.45; } .ds-what small { display: block; font-size: .875rem; font-weight: 400; line-height: 1.5; } .ds-state { font-size: .8125rem; font-weight: 500; line-height: 1.4; } .ds-day li.is-tentative { background: radial-gradient(circle, color-mix(in srgb, #17343f 16%, transparent) 1px, transparent 1.4px) 0 0 / 5px 5px; } .ds-day li.is-tentative .ds-state { color: #4a5e66; } .ds-day li.is-open { margin-top: .375rem; padding-inline: .5rem; border-bottom: 0; border-radius: 6px; background: #f2c230; color: #17343f; }"
     },
     {
       "name": "Offline Stub (reverse print)",
       "kind": "custom",
       "refersTo": "stub-card",
       "description": "The keep stub with a dashed tear edge; prints in reverse when airplane mode is on.",
-      "html": "<article class=\"ds-keep is-offline\"><h3 aria-hidden=\"true\">ANT → PAN</h3><p class=\"ds-keep-print\">Day 3 · saved on this phone</p><ul><li><span>08:00</span> Shuttle to Panajachel</li><li><span>12:30</span> Lancha across the lake</li></ul><p class=\"ds-keep-note\">Offline. Everything you prepared is still here.</p></article>",
-      "css": ".ds-keep { display: grid; gap: .5rem; max-width: 30rem; padding: 1.25rem 1.25rem 1rem 1.75rem; border: 2px solid #17343f; border-left-style: dashed; background: #ffffff; color: #17343f; font-family: Barlow, system-ui, sans-serif; transition: background-color 260ms cubic-bezier(.16,1,.3,1), color 260ms cubic-bezier(.16,1,.3,1); } .ds-keep h3 { margin: 0; font-family: Antonio, 'Barlow Condensed', sans-serif; font-size: 2.75rem; font-weight: 700; line-height: .9; } .ds-keep-print { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; } .ds-keep ul { margin: 0; padding: 0; list-style: none; border-top: 2px solid currentColor; } .ds-keep li { display: flex; align-items: center; gap: .625rem; min-height: 48px; border-bottom: 1px dashed #9fb2b7; font-weight: 600; } .ds-keep li span { font-family: 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; } .ds-keep-note { margin: 0; font-weight: 600; } .ds-keep.is-offline { background: #17343f; color: #f1f4f5; } .ds-keep.is-offline li { border-bottom-color: color-mix(in srgb, #f1f4f5 35%, transparent); }"
+      "html": "<article class=\"ds-keep is-offline\"><h3 aria-hidden=\"true\">PAR → VRS</h3><p class=\"ds-keep-print\">Day 3 · saved on this phone</p><ul><li><span>08:30</span> RER C to Versailles</li><li><span>10:00</span> Palace of Versailles</li></ul><p class=\"ds-keep-note\">Offline. Saved trip data still works.</p></article>",
+      "css": ".ds-keep { display: grid; gap: .5rem; max-width: 30rem; padding: 1.25rem 1.25rem 1rem 1.75rem; border: 2px solid #17343f; border-left-style: dashed; border-radius: 4px 10px 10px 4px; background: #ffffff; color: #17343f; font-family: Barlow, system-ui, sans-serif; transition: background-color 260ms cubic-bezier(.16,1,.3,1), color 260ms cubic-bezier(.16,1,.3,1); } .ds-keep h3 { margin: 0; font-family: Antonio, 'Barlow Condensed', sans-serif; font-size: clamp(2.25rem, 4vw, 3rem); font-weight: 700; line-height: .9; } .ds-keep-print { margin: 0; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; } .ds-keep ul { margin: 0; padding: 0; list-style: none; border-top: 2px solid currentColor; } .ds-keep li { display: flex; align-items: center; gap: .625rem; min-height: 48px; padding-block: .5rem; border-bottom: 1px dashed #9fb2b7; font-weight: 500; line-height: 1.5; } .ds-keep li span { font-variant-numeric: tabular-nums; } .ds-keep-note { margin: 0; font-weight: 600; } .ds-keep.is-offline { background: #17343f; color: #f1f4f5; } .ds-keep.is-offline li { border-bottom-color: color-mix(in srgb, #f1f4f5 35%, transparent); }"
     },
     {
       "name": "Routing Strip",
       "kind": "nav",
       "refersTo": "strip-code-picked",
-      "description": "The rail of route codes pinning every stop; ghost code until the vote, picked code on coral, lit stop in ink.",
-      "html": "<nav class=\"ds-strip\" aria-label=\"The trip, stop by stop\"><ol><li><a href=\"#\" aria-current=\"step\"><span class=\"ds-code\" aria-hidden=\"true\">GUA</span><span class=\"ds-lbl\">Trip</span></a></li><li><a href=\"#\"><span class=\"ds-code\" aria-hidden=\"true\">ANT</span><span class=\"ds-lbl\">Save</span></a></li><li><a href=\"#\" class=\"is-ghost\"><span class=\"ds-code\" aria-hidden=\"true\">···</span><span class=\"ds-lbl\">Vote</span></a></li><li><a href=\"#\" class=\"is-picked\"><span class=\"ds-code\" aria-hidden=\"true\">SMR</span><span class=\"ds-lbl\">Vote</span></a></li></ol></nav>",
-      "css": ".ds-strip { width: 12rem; background: #f1f4f5; } .ds-strip ol { display: grid; margin: 0; padding: 0; list-style: none; border-left: 1px solid #17343f; } .ds-strip a { display: grid; gap: .125rem; min-height: 60px; padding: .5rem 0 .5rem 1rem; color: #4a5e66; text-decoration: none; } .ds-code { font-family: Antonio, 'Barlow Condensed', sans-serif; font-size: 1.875rem; font-weight: 700; line-height: 1; color: #17343f; justify-self: start; } .ds-lbl { font-family: 'Barlow Condensed', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; } .ds-strip a.is-ghost .ds-code { color: transparent; -webkit-text-stroke: 1px #9fb2b7; } .ds-strip a.is-picked .ds-code { padding: .125rem .25rem; background: #f0805f; color: #17343f; } .ds-strip a[aria-current='step'] { color: #17343f; background: color-mix(in srgb, #17343f 9%, transparent); } .ds-strip a:hover .ds-lbl { text-decoration: underline; } .ds-strip a:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; }"
+      "description": "The rail of route codes pinning every stop. The vote stop is an empty dashed slot until the vote; then the winning code prints on coral with a 420ms strip stamp. Below 1100px only that picked code shows, beside the Vote label. The lit stop is ink.",
+      "html": "<nav class=\"ds-strip\" aria-label=\"The trip, stop by stop\"><ol><li><a href=\"#\" aria-current=\"step\"><span class=\"ds-code\" aria-hidden=\"true\">CDG</span><span class=\"ds-lbl\">Trip</span></a></li><li><a href=\"#\"><span class=\"ds-code\" aria-hidden=\"true\">PAR</span><span class=\"ds-lbl\">Save</span></a></li><li><a href=\"#\" data-ghost><span class=\"ds-code\" aria-hidden=\"true\">···</span><span class=\"ds-lbl\">Vote</span></a></li><li><a href=\"#\" data-picked><span class=\"ds-code\" aria-hidden=\"true\">MON</span><span class=\"ds-lbl\">Vote</span></a></li><li><a href=\"#\"><span class=\"ds-code\" aria-hidden=\"true\">VRS</span><span class=\"ds-lbl\">Plan</span></a></li></ol></nav>",
+      "css": ".ds-strip { width: 12rem; background: #f1f4f5; } .ds-strip ol { display: grid; margin: 0; padding: 0; list-style: none; border-left: 1px solid #17343f; } .ds-strip a { display: grid; gap: .125rem; min-height: 60px; padding: .5rem 0 .5rem 1rem; color: #4a5e66; text-decoration: none; } .ds-code { font-family: Antonio, 'Barlow Condensed', sans-serif; font-size: 1.875rem; font-weight: 700; line-height: 1; color: #17343f; justify-self: start; } .ds-lbl { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; } .ds-strip a[data-ghost] .ds-code { display: inline-block; width: 2.1em; height: .86em; overflow: hidden; border: 2px dashed #9fb2b7; border-radius: 2px; color: transparent; } .ds-strip a[data-picked] .ds-code { display: inline-block; width: fit-content; padding: .125rem .25rem; background: #f0805f; color: #17343f; animation: ds-strip-stamp 420ms cubic-bezier(.16,1,.3,1) both; } @keyframes ds-strip-stamp { 0% { transform: scale(1.6) rotate(-8deg); opacity: 0; } 60% { transform: scale(.94); opacity: 1; } 100% { transform: none; } } @media (prefers-reduced-motion: reduce) { .ds-strip a[data-picked] .ds-code { animation: none; } } .ds-strip a[aria-current='step'] { color: #17343f; background: color-mix(in srgb, #17343f 9%, transparent); } .ds-strip a:hover .ds-lbl { text-decoration: underline; } .ds-strip a:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; box-shadow: 0 0 0 3px #17343f; }"
     },
     {
       "name": "Tag Head Fields",
       "kind": "custom",
-      "description": "The printed field list that opens every secondary page: labels paired with values on dashed rules.",
+      "description": "The printed field list that opens every secondary page: condensed labels paired with Barlow values on dashed rules.",
       "html": "<dl class=\"ds-fields\"><div><dt>Groups</dt><dd>Free</dd></div><div><dt>Organizers</dt><dd>1% + Stripe’s fee</dd></div><div><dt>Pro tools</dt><dd>Free during beta</dd></div></dl>",
-      "css": ".ds-fields { display: grid; max-width: 28rem; margin: 0; border-top: 3px solid #17343f; color: #17343f; } .ds-fields > div { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: 1rem; align-items: baseline; padding-block: .625rem; border-bottom: 1px dashed #9fb2b7; } .ds-fields dt { font-family: 'Barlow Condensed', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #4a5e66; } .ds-fields dd { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 1.3125rem; font-weight: 700; line-height: 1.2; }"
+      "css": ".ds-fields { display: grid; max-width: 28rem; margin: 0; border-top: 3px solid #17343f; color: #17343f; } .ds-fields > div { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: 1rem; align-items: baseline; padding-block: .625rem; border-bottom: 1px dashed #9fb2b7; } .ds-fields dt { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #4a5e66; } .ds-fields dd { margin: 0; font-family: Barlow, system-ui, sans-serif; font-size: 1.125rem; font-weight: 500; line-height: 1.4; }"
+    },
+    {
+      "name": "App Header with Trip Context",
+      "kind": "nav",
+      "description": "The app's screen header: the title prints first and the trip's name prints under it in muted Barlow at the caption floor (.ui-header-context), never as a condensed label above.",
+      "html": "<header class=\"ds-app-header\"><h1>Plan</h1><p class=\"ds-app-context\">Paris long weekend</p></header>",
+      "css": ".ds-app-header { padding: .75rem 1rem; border-bottom: 1px dashed #9fb2b7; background: #f1f4f5; color: #17343f; font-family: Barlow, system-ui, sans-serif; max-width: 24rem; } .ds-app-header h1 { margin: 0; font-size: clamp(1.25rem, 1.05rem + .75vw, 1.5rem); font-weight: 600; letter-spacing: -.03em; line-height: 1.2; } .ds-app-context { margin: .125rem 0 0; font-size: .8125rem; font-weight: 500; line-height: 1.4; color: #4a5e66; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }"
+    },
+    {
+      "name": "App Sync Strip (phones)",
+      "kind": "custom",
+      "description": "Below 640px, offline and sync trouble print in words across the header (.sync-strip): mist for offline, the danger tone for anything not synced. Silent while everything is up to date.",
+      "html": "<div class=\"ds-sync-wrap\"><button type=\"button\" class=\"ds-sync\" data-tone=\"offline\"><strong>Offline</strong> · Saved trip data still works</button><button type=\"button\" class=\"ds-sync\" data-tone=\"danger\"><strong>Not synced</strong> · Tap to review</button></div>",
+      "css": ".ds-sync-wrap { display: grid; max-width: 24rem; } .ds-sync { display: flex; width: 100%; min-height: 44px; align-items: center; gap: .5rem; border: 0; border-top: 1px dashed #9fb2b7; padding: .5rem 1rem; text-align: start; font-family: Barlow, system-ui, sans-serif; font-size: .8125rem; line-height: 1.4; color: #17343f; background: #e8f0f1; cursor: pointer; } .ds-sync strong { font-weight: 700; } .ds-sync[data-tone='danger'] { background: #f9e6df; color: #9a2f22; } .ds-sync:hover { text-decoration: underline; text-underline-offset: 3px; } .ds-sync:focus-visible { outline: 3px solid #f0805f; outline-offset: 3px; box-shadow: 0 0 0 3px #17343f; }"
+    },
+    {
+      "name": "App Agenda Rows (print density + confirmation field)",
+      "kind": "card",
+      "description": "Plan rows in the app: confirmed prints solid and carries its real confirmation code as field print (CONFIRMATION, then the code in Barlow); tentative and idea rows print on the half-tone with lighter titles.",
+      "html": "<ol class=\"ds-agenda\"><li data-status=\"booked\"><span class=\"ds-agenda-time\">08:30</span><div><h3>Palace of Versailles</h3><p class=\"ds-agenda-code\"><span class=\"ds-agenda-code-label\">Confirmation</span> <span class=\"ds-agenda-code-value\">VX7-4QM2</span></p></div></li><li data-status=\"tentative\"><span class=\"ds-agenda-time\">13:00</span><div><h3>Lunch in the gardens</h3></div></li></ol>",
+      "css": ".ds-agenda { display: grid; max-width: 26rem; margin: 0; padding: 0; list-style: none; border: 2px solid #17343f; border-radius: 10px; background: #ffffff; color: #17343f; font-family: Barlow, system-ui, sans-serif; } .ds-agenda li { display: grid; grid-template-columns: 3.25rem minmax(0,1fr); gap: .75rem; padding: .75rem 1rem; } .ds-agenda li + li { border-top: 1px dashed #9fb2b7; } .ds-agenda h3 { margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -.025em; line-height: 1.4; } .ds-agenda-time { padding-top: .125rem; font-size: .8125rem; line-height: 1.5; font-variant-numeric: tabular-nums; color: #4a5e66; } .ds-agenda li[data-status='tentative'], .ds-agenda li[data-status='idea'] { background: radial-gradient(circle, color-mix(in srgb, #17343f 16%, transparent) 1px, transparent 1.4px) 0 0 / 5px 5px; } .ds-agenda li[data-status='tentative'] h3, .ds-agenda li[data-status='idea'] h3 { font-weight: 500; } .ds-agenda-code { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; margin: .375rem 0 0; } .ds-agenda-code-label { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: .8125rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #4a5e66; } .ds-agenda-code-value { font-size: .9375rem; font-weight: 600; letter-spacing: .06em; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "App Vote Tick Bar",
+      "kind": "custom",
+      "description": "Under an option's score buttons (.poll-ticks): one tick per member, ink for others' votes, coral for yours, an outline for anyone who hasn't voted, then the count in words.",
+      "html": "<p class=\"ds-poll-ticks\"><span class=\"ds-poll-bar\" aria-hidden=\"true\"><span></span><span></span><span data-tick=\"mine\"></span><span></span><span data-tick=\"open\"></span><span data-tick=\"open\"></span></span><span>4 of 6 voted</span></p>",
+      "css": ".ds-poll-ticks { display: flex; align-items: center; gap: .5rem; margin: 0; font-family: Barlow, system-ui, sans-serif; font-size: .8125rem; color: #4a5e66; font-variant-numeric: tabular-nums; } .ds-poll-bar { display: flex; gap: 3px; } .ds-poll-bar > span { width: 5px; height: 14px; border-radius: 1px; background: #17343f; } .ds-poll-bar > [data-tick='mine'] { background: #f0805f; box-shadow: inset 0 0 0 1px #17343f; } .ds-poll-bar > [data-tick='open'] { background: none; box-shadow: inset 0 0 0 1px #4a5e66; }"
     }
   ],
   "narrative": {
     "northStar": "The Group's Bag Tag",
-    "overview": "Every public page is one long luggage tag hung on an ocean-ink ground. The header carries the eyelet the tag hangs from, the footer closes the sheet, and everything between is printed on cool thermal stock in ink: route codes at display scale, travelers in condensed print, the plan as a routing, tickets as tear-off stubs, barcodes as the closing mark. Sections are separated by perforated tear lines with notches cut from both edges. The page reads like a trip printing itself, line by line.\n\nThe density is a printed document's: hard 2px ink strokes, dashed rules, uppercase condensed field print, and generous blocks of air between stops. Colour is almost entirely ink on stock. Coral is the one loud colour and belongs to the group's choice and the primary action; signal yellow marks what is still open. State is shown as print density (solid, half-toned, ghost), never as a new colour. Dark mode is the same tag printed in reverse.\n\nScope. This world governs the public website only: the landing page, How it works, Pricing, For organizers, Help, Not found and the legal pages, all inside the shared website frame and its world stylesheet (src/features/website/tag.css). The signed-in app keeps its own calm-workspace system, defined in src/styles/tokens.css and src/styles/themes.css and described in docs/UI_COMPONENTS.md and the visual identity section of docs/BRAND.md. Nothing here applies to the app, and the app's tokens are not part of this file.",
+    "overview": "Every public page is one long luggage tag hung on an ocean-ink ground. The header carries the eyelet the tag hangs from, the footer closes the sheet, and everything between is printed on cool thermal stock in ink: route codes at display scale, travelers in condensed print, the plan as a routing, tickets as tear-off stubs, barcodes as the closing mark. Sections are separated by perforated tear lines with notches cut from both edges. The page reads like a trip printing itself, line by line.\n\nThe density is a printed document's: hard 2px ink strokes, dashed rules, small condensed travel labels, and generous blocks of air between stops. Colour is almost entirely ink on stock. Coral is the one loud colour and belongs to the group's choice and the primary action; signal yellow marks what is still open. State is shown as print density (solid, half-toned, ghost), never as a new colour. Dark mode is the same tag printed in reverse.\n\nScope. The public website uses the luggage-tag composition. The working app shares its palette, fonts and printed details through src/styles/app-theme.css, while retaining its task-focused layouts: the trip name prints under each page title, phones print offline and sync trouble across the header in words, tentative plan rows print on the half-tone, real confirmation codes print as field print, and votes show as a tick bar. Shared typography roles live in src/styles/tokens.css and the component guidance in docs/UI_COMPONENTS.md.",
     "keyCharacteristics": [
       "One sheet of tag stock on an ink ground, with an eyelet at the top and 22px sheet corners top and bottom.",
       "Perforated tear lines are the section dividers; dashed rules divide inside a section.",
-      "Antonio route codes (GUA, ANT, PAN, SMR) are the display voice; Barlow carries headlines and body; Barlow Condensed prints every label and control.",
+      "Antonio route codes (CDG, PAR, VRS, MON) are the display voice; Barlow carries headings, body and controls; Barlow Condensed is reserved for small travel labels.",
       "Coral appears only on the group's choice and the primary action.",
-      "Print density shows state: confirmed solid, tentative half-toned, empty as a dashed ghost tag.",
+      "Print density shows state: confirmed solid, tentative half-toned, empty as a dashed ghost tag or slot.",
       "Motion prints in once and stamps; nothing loops."
     ],
     "rules": [
       {
         "name": "The Coral Ledger Rule",
-        "body": "Coral is spent only on the primary action, the PRIORITY stamp, the vote winner, your vote tick, the picked strip code, selection and focus. Links, hovers, the current nav item and the current strip stop are ink. If a new element wants coral, it has to be the group's choice or the one action that starts a trip.",
+        "body": "Coral is spent only on the primary action, the PRIORITY stamp, the vote winner, your vote tick (on the site and in the app), the picked strip code, selection and focus. Links, hovers, the current nav item and the current strip stop are ink. If a new element wants coral, it has to be the group's choice or the one action that starts a trip.",
         "section": "colors"
       },
       {
@@ -534,17 +649,22 @@
       },
       {
         "name": "The Code Is Print Rule",
-        "body": "Route codes are decoration of a fact already stated in words. Every code is hidden from assistive tech and the readable name sits beside it (or in screen-reader text). Barcodes are the same: decorative, always next to the text they encode.",
+        "body": "Route codes decorate a fact stated in words. Hide decorative codes and barcodes from assistive technology and supply the readable meaning nearby. Real booking references and money are not route lettering; they print in Barlow.",
         "section": "typography"
       },
       {
         "name": "The Field, Not Kicker Rule",
-        "body": "Small uppercase print is a field on the tag: a label with its value (Travelers · 8, Paid by / Maya, Updated / October 30, 2026). It never sits alone above a heading as a section label.",
+        "body": "Small uppercase print identifies a travel field or metadata, paired with its value (Travelers · 8, Confirmation · VX7-4QM2, Updated / October 30, 2026). Never use condensed capitals as the default for section headings, buttons or long text, and never alone above a heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hierarchy Rule",
+        "body": "Reserve the largest type for the page's subject. Body, captions, controls and statuses have distinct roles; stronger weight is not the default everywhere. Use actual supplied weights, preserve user text scaling and let containers grow.",
         "section": "typography"
       },
       {
         "name": "The Print Density Rule",
-        "body": "State is shown by how heavily something is printed. Confirmed prints solid. Tentative prints on a 5px half-tone dot with lighter weight and faded state text. Empty is a ghost: dashed rule outline, no fill, faded print (\"Your idea\"), or an outline-only code on the strip. Don't add a colour to show state.",
+        "body": "State is shown by how heavily something is printed. Confirmed prints solid. Tentative prints on a 5px half-tone dot with lighter weight and faded state text, on the site and on the app's tentative and idea agenda rows. Empty is a ghost: dashed rule outline, no fill, faded print (\"Your idea\"), or the strip's empty dashed vote slot. Don't add a colour to show state.",
         "section": "elevation"
       },
       {
@@ -558,10 +678,12 @@
       "Do separate stops and sections with the Perforation, and divide within a section with 1px or 2px dashed rule lines.",
       "Do print state as density: solid for confirmed, the half-tone dot for tentative, a dashed ghost for empty.",
       "Do put a readable name beside every route code and barcode, and hide the code itself from assistive tech.",
-      "Do label every demonstration honestly in fine print (example names, example votes, example amounts, real places).",
+      "Do introduce the homepage's demonstrations together as an example trip; keep individual example labels on standalone previews only.",
+      "Do use short feature names and action labels, and write factual status messages instead of encouragement or reassurance.",
       "Do use the Tag Head with printed fields to open a secondary page.",
-      "Do keep targets at 44px or more (segmented options, chips, checkboxes through their row label) and the coral-over-ink focus ring on everything interactive.",
+      "Do keep targets at 44px or more and the coral-over-ink focus ring on everything interactive.",
       "Do keep anything people read at 13px (0.8125rem) or larger; text-xs is remapped to it, and form fields stay at 16px.",
+      "Do carry the luggage-tag palette, local fonts, flat ink borders and dashed rules into the app, with coral primary actions and ink selected controls; keep semantic warning, danger, success and category colours.",
       "Do pass place-category colours through categoryTone() when they colour an icon or text; dark mode lifts them toward ink.",
       "Do keep overlays flat: no blurred shadows on dialogs, sheets, toasts or the add button; backdrops are the ground at 45%."
     ],
@@ -572,7 +694,7 @@
       "Don't put small uppercase print alone above a heading as a section label; field print always pairs a label with its value.",
       "Don't number the stops; the routing strip identifies them by route code.",
       "Don't retype, recolour or rotate the Stowaway wordmark or mark; use the drawn lockup from src/ui/Brand.tsx.",
-      "Don't apply this world to the signed-in app, or the app's tokens to the public site."
+      "Don't use the public page's oversized display scale or decorative route codes for the app's everyday navigation; trip names, dates, real confirmation codes and saved states provide the character there."
     ]
   }
 }

@@ -67,7 +67,7 @@
 .marketing-walkthrough { max-width: 56rem; list-style: none; }
 .marketing-walkthrough li { display: flex; gap: 1.25rem; align-items: flex-start; padding-block: 1.5rem; border-top: 1px solid var(--stowaway-border); }
 .marketing-walkthrough h3 { font-size: 1.125rem; font-weight: 600; }
-.marketing-walkthrough p { margin-top: .625rem; color: var(--stowaway-muted); line-height: 1.75; }
+.marketing-walkthrough p { max-width: 65ch; margin-top: .625rem; color: var(--stowaway-muted); line-height: 1.75; }
 .marketing-step-index { display: grid; flex-shrink: 0; width: 2rem; height: 2rem; place-items: center; border: 1px solid var(--stowaway-border); border-radius: 50%; color: var(--stowaway-action); font-size: .875rem; font-variant-numeric: tabular-nums; }
 .marketing-plain-list { display: grid; gap: 1rem; margin-block: 1rem; padding-left: 1.25rem; color: var(--stowaway-muted); line-height: 1.75; }
 ol.marketing-plain-list { list-style: decimal; }

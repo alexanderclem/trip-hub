@@ -47,7 +47,7 @@ test('itinerary: cross-zone flight, stays, overlaps, local/destination time togg
   await page.getByText('Add dates and destination (optional)', { exact: true }).click()
   await page.getByLabel('Starts').fill('2027-03-13')
   await page.getByLabel('Ends').fill('2027-03-21')
-  await page.getByRole('button', { name: 'Create trip' }).click()
+  await page.getByRole('button', { name: 'Create a trip' }).click()
   await page.getByRole('button', { name: /Load Guatemala/ }).click()
   await expect(page.getByText(/Added 1301 places/)).toBeVisible()
   const tripPath = new URL(page.url()).pathname.replace(/\/more\/settings$/, '')

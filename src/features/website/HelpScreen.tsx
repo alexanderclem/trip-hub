@@ -4,7 +4,7 @@ import { TagHead } from './tag/parts'
 import { MAINTAINER } from './metadata'
 
 const topics = [
-  { title: 'Join your group', text: 'Open the invite link your organizer shared and choose who you are. If the link isn’t working, ask them for a fresh one. Hosted trips may require organizer approval.', to: '/app#join', action: 'Join a trip' },
+  { title: 'Join your group', text: 'Open the invite link your organizer shared and choose who you are. If the link isn’t working, ask them for a fresh one. Hosted trips may require organizer approval.', to: '/app#join', action: 'Join trip' },
   { title: 'Bring trips to another phone', text: 'Rejoin with the trip’s invite link, or sign in with the same optional account. Email sign-in uses a one-time code by default. Downloaded files stay on the device where you saved them.', to: '/signin', action: 'Sign in' },
   { title: 'Get ready for offline', text: 'While online, open your trip → Settings & sharing → Ready for offline. Prepare each phone separately. Download tickets and a map pack or saved area before leaving. Creating and joining trips still needs signal.', to: '/app', action: 'Open your trips' },
   { title: 'Understand shared expenses', text: 'Record costs, who paid, and how the group shares them. Balances show who owes whom, and settle-up suggests the fewest payments. Stowaway does not transfer reimbursement money between friends.', to: '/group-expenses', action: 'How group expenses work' },

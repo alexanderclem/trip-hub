@@ -25,7 +25,7 @@ export function QuickAdd({ tripId }: { tripId: string }) {
   const { pathname, search } = useLocation()
   const screen = pathname.slice(`/t/${tripId}/`.length)
   const contextualAdd = allowed.some(({ path }) => screen === path.replace('/new', ''))
-    || (can(access, 'plan') && ['more/tasks', 'more/packing'].includes(screen))
+    || (can(access, 'plan') && ['more/tasks', 'more/packing', 'more/vote'].includes(screen))
   const editing = /(?:^|\/)(?:new|edit)$/.test(screen) || /^money\/[^/]+$/.test(screen) || /^more\/(?:tasks|packing)\/[^/]+$/.test(screen)
   const selectedDay = new URLSearchParams(search).get('day')
   const today = DateTime.now().setZone(trip?.timezone ?? 'UTC').toISODate()!

@@ -86,9 +86,9 @@ export function MoneyScreen() {
               </div>
               {/* The exact balance is immediate; later changes receive brief visual feedback. */}
               <p className="ui-display mt-1 text-[2.5rem]">
-                {mine === 0 ? members.length < 2 ? 'No shared balance yet' : 'All settled' : <>{mine > 0 ? "You're owed" : 'You owe'} <em className={mine > 0 ? 'text-success-ink' : 'text-danger-ink'}><NumberTicker value={Math.abs(mine)} format={(v) => fmt(v)} /></em></>}
+                {mine === 0 ? members.length < 2 ? 'No shared balance yet' : 'All settled' : <>{mine > 0 ? "You're owed" : 'You owe'} <em className={mine > 0 ? 'text-success-ink' : 'text-ink'}><NumberTicker value={Math.abs(mine)} format={(v) => fmt(v)} /></em></>}
               </p>
-              <p className="mt-2 text-sm text-muted">Group spending so far: <span className="tabular-nums">{fmt(total)}</span></p>
+              <p className="mt-2 text-sm text-muted">The whole group has spent <span className="tabular-nums">{fmt(total)}</span></p>
             </section>
 
             <Card>

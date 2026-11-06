@@ -296,7 +296,7 @@ test('home essentials and tabs reach the real trip screens and preserve context'
     await entry.click()
     await expect(page).toHaveURL(new RegExp(`${root}/${path}(\\?|$)`))
     await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible()
-    await expect(page.locator('.app-page-header .ui-eyebrow')).toHaveText('A long weekend in Lisbon')
+    await expect(page.locator('.app-page-header .ui-header-context')).toHaveText('A long weekend in Lisbon')
     if (path === 'more/places') {
       await expect(page.getByRole('link', { name: 'Add place', exact: true })).toBeVisible()
       await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeHidden()

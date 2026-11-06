@@ -35,7 +35,7 @@ export function WebsiteFrame({ children }: { children: ReactNode }) {
         </header>
         <nav id="website-mobile-nav" aria-label="Website pages" className="tag-shell tag-mobile-nav" hidden={!open} onKeyDown={(event) => { if (event.key === 'Escape') { setOpen(false); menu.current?.focus() } }}>
           {links.map(({ to, label }) => <Link key={to} to={to} aria-current={pathname === to ? 'page' : undefined} onClick={() => setOpen(false)}>{label}</Link>)}
-          <Link to="/app#join" onClick={() => setOpen(false)}>Join a trip</Link>
+          <Link to="/app#join" onClick={() => setOpen(false)}>Join trip</Link>
           <Link to="/app" onClick={() => setOpen(false)}>Open app</Link>
         </nav>
       </div>

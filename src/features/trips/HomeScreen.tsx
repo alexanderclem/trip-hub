@@ -72,7 +72,7 @@ export function HomeScreen() {
     <main className="app-home mx-auto max-w-7xl px-5 pb-10 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-8 sm:pb-16">
       <header className="home-header flex flex-wrap items-center justify-between gap-3 border-b border-ink/15 pb-5">
         <Link to="/" aria-label="Stowaway home"><Brand /></Link>
-        <Link to="/app#join" className="ui-link">Join a trip<ArrowRight aria-hidden="true" className="size-4" /></Link>
+        <Link to="/app#join" className="ui-link">Join trip<ArrowRight aria-hidden="true" className="size-4" /></Link>
       </header>
       <div className="mb-8 mt-8 flex flex-wrap items-end justify-between gap-5 sm:mt-12">
         <div>

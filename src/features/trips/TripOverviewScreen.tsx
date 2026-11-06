@@ -89,11 +89,11 @@ export function TripOverviewScreen() {
 
   return <div data-phase={phase} data-introduction={!!arrival} className="trip-page trip-overview overview-simple px-4 pb-10 pt-safe sm:px-8">
     <header className={`overview-journal ${cover === 'none' ? 'overview-journal-plain' : ''}`}>
-      <div className="overview-journal-top"><Link to="/app" className="ui-link"><Compass aria-hidden="true" className="size-4" />Your trips</Link><div className="overview-tools">{tools}</div></div>
+      <div className="overview-journal-top"><Link to="/app" className="ui-link lg:invisible"><Compass aria-hidden="true" className="size-4" />Your trips</Link><div className="overview-tools">{tools}</div></div>
       <div className="overview-journal-content">
         <div className="min-w-0">
           <h1 className="travel-heading wrap-anywhere">{trip.name}</h1>
-          <div className="overview-meta"><Link to={`/t/${tripId}/more/dates`} aria-label={`${dateRange(trip.start_date, trip.end_date) || 'No dates yet'}. Change trip dates`} className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-4 hover:text-action"><CalendarDays aria-hidden="true" className="size-4" />{dateRange(trip.start_date, trip.end_date) || 'Add dates'}</Link><span className={`trip-phase trip-phase-${phase}`}>{phaseLabel}</span></div>
+          <div className="overview-meta"><Link to={`/t/${tripId}/more/dates`} aria-label={`${dateRange(trip.start_date, trip.end_date) || 'No dates yet'}. Change trip dates`} className="inline-flex min-h-11 items-center gap-1 underline decoration-dotted underline-offset-4 hover:text-action"><CalendarDays aria-hidden="true" className="size-4" />{dateRange(trip.start_date, trip.end_date) || 'Add dates'}</Link><span className={`trip-phase trip-phase-${phase}`}>{phaseLabel}</span></div>
         </div>
         {cover !== 'none' && <figure key={cover} className="overview-postcard"><div className="overview-art"><TripArtwork cover={cover} photo={coverPhoto(trip)} destination={autoPhoto(trip)} /></div></figure>}
       </div>

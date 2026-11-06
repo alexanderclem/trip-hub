@@ -39,7 +39,7 @@ test('tickets: attach a PDF to a flight, it syncs to a second phone, opens with 
   await pageA.getByText('Add dates and destination (optional)', { exact: true }).click()
   await pageA.getByLabel('Starts').fill('2027-03-13')
   await pageA.getByLabel('Ends').fill('2027-03-21')
-  await pageA.getByRole('button', { name: 'Create trip' }).click()
+  await pageA.getByRole('button', { name: 'Create a trip' }).click()
   await expect(pageA.getByRole('heading', { name: 'Invite the group' })).toBeVisible()
   const link = (await pageA.locator('p.font-mono').textContent())!.trim()
   const tripPath = new URL(pageA.url()).pathname.replace(/\/more\/settings$/, '')

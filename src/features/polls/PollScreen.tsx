@@ -5,7 +5,7 @@ import { useMotionPreference } from '@/ui/MotionProvider'
 import { PickStamp } from './PickStamp'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { CalendarCheck, Check, Clock, Lock, LockOpen, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
+import { CalendarCheck, Check, Clock, Lock, LockOpen, Pencil, Plus, Search, Share2, Trash2, Trophy } from 'lucide-react'
 import { Stowie } from '@/features/stowie/Stowie'
 import { useMyMemberId } from '@/data/device'
 import { useMembers, usePlaces, useTrip } from '@/data/hooks'
@@ -27,7 +27,7 @@ import { PlaceIdentity } from '@/features/places/PlaceIdentity'
 import { useItems } from '@/features/itinerary/data'
 import { useTripAccess } from '@/data/device'
 import { DecisionHandoff } from './DecisionHandoff'
-import { can } from '@/data/access'
+import { can, isStaff } from '@/data/access'
 import { cue } from '@/ui/feedback'
 
 /** The current time, refreshed often enough for a deadline to pass while the page is open. */
@@ -56,7 +56,8 @@ export function PollScreen() {
   const data = usePoll(pollId)
   const trip = useTrip(tripId)
   const items = useItems(tripId)
-  const mayPlan = can(useTripAccess(tripId), 'plan')
+  const access = useTripAccess(tripId)
+  const mayPlan = can(access, 'plan')
   const loadedMembers = useMembers(tripId)
   const members = loadedMembers ?? []
   const places = usePlaces(tripId) ?? []
@@ -64,6 +65,7 @@ export function PollScreen() {
   const online = useOnline()
   const now = useNow()
   const [tab, setTab] = useState<'vote' | 'results'>('vote')
+  const [editing, setEditing] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [votedHere, setVotedHere] = useState(false)
   const [statusError, setStatusError] = useState<string | null>(null)
@@ -125,6 +127,9 @@ export function PollScreen() {
   const winnerId = poll.status === 'closed' ? poll.winner_option_id : closed ? (leader(ranked)?.option.id ?? null) : null
   const winner = winnerId ? options.find((o) => o.id === winnerId) : undefined
   const winnerPlace = winner && placeOf(winner)
+  // Whoever started the vote, the trip's creator or an organizer closes it; a deadline closes it for anyone.
+  const mayClose = mayPlan && (poll.created_by === me || trip?.created_by === me || isStaff(access))
+  const votersOf = (o: PollOption) => new Set(votes.filter((v) => v.option_id === o.id && v.score != null).map((v) => v.member_id))
 
   async function setStatus(status: Poll['status']) {
     if (statusLock.current || !mayPlan) return
@@ -199,7 +204,7 @@ export function PollScreen() {
         {tab === 'vote' ? (
           <ul className="ui-row-group">
             {options.map((o) => (
-              <OptionVoteCard key={o.id} option={o} place={placeOf(o)} rating={o.place_id ? ratings?.get(o.place_id) : undefined} score={myScore(o)} closed={closed} me={me} labels={labels} onSaved={() => setVotedHere(true)} />
+              <OptionVoteCard key={o.id} option={o} place={placeOf(o)} rating={o.place_id ? ratings?.get(o.place_id) : undefined} score={myScore(o)} closed={closed} me={me} labels={labels} onSaved={() => setVotedHere(true)} editing={editing && !closed && mayPlan} voters={votersOf(o)} members={members} />
             ))}
             {options.length === 0 && <li className="p-4 text-sm text-muted">No options yet. Add the first one below.</li>}
           </ul>
@@ -207,12 +212,14 @@ export function PollScreen() {
           <Results ranked={ranked} votes={votes} members={members} groupSize={members.length} winnerId={winnerId} placeOf={placeOf} labels={labels} dates={poll.kind === 'dates'} />
         )}
 
+        {tab === 'vote' && !closed && mayPlan && options.length > 0 && <p className="-mt-2 text-end"><button type="button" aria-pressed={editing} onClick={() => setEditing((v) => !v)} className="ui-link inline-flex min-h-11 items-center gap-1.5">{editing ? <><Check aria-hidden="true" className="size-4" />Done editing</> : <><Pencil aria-hidden="true" className="size-4" />Edit options</>}</button></p>}
+
         {!closed && (poll.kind === 'dates' ? <AddDatesCard poll={poll} trip={trip} me={me} /> : <AddOptionCard poll={poll} options={options} places={places} me={me} />)}
 
         <CommentThread tripId={tripId} type="poll" subjectId={poll.id} me={me} prompt="Say why, or suggest something else" />
 
         <ErrorNote error={statusError} />
-        {mayPlan && <Button variant="secondary" className="w-full" disabled={statusBusy} onClick={() => setStatus(closed && poll.status === 'closed' ? 'open' : 'closed')}>
+        {mayClose && <Button variant="secondary" className="w-full" disabled={statusBusy} onClick={() => setStatus(closed && poll.status === 'closed' ? 'open' : 'closed')}>
           {poll.status === 'closed' ? <><LockOpen aria-hidden="true" className="size-4" />Reopen voting</> : <><Lock aria-hidden="true" className="size-4" />Close voting and pick the winner</>}
         </Button>}
       </div>
@@ -236,9 +243,9 @@ function TripDatesAction({ trip, option, me }: { trip: Trip; option: PollOption;
   return <Button className="w-full" onClick={() => void apply()}><CalendarCheck aria-hidden="true" className="size-4" />Set as the trip’s dates</Button>
 }
 
-function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSaved }: {
+function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSaved, editing, voters, members }: {
   option: PollOption; place?: Place; rating?: Parameters<typeof StarsSummary>[0]['summary']; score: VoteScore | null; closed: boolean; me: string; labels: Record<VoteScore, string>
-  onSaved: () => void
+  onSaved: () => void; editing: boolean; voters: Set<string>; members: Member[]
 }) {
   const confirm = useConfirm()
   const inFlight = useRef(false)
@@ -291,7 +298,7 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSa
           </div>
           {option.description && <p className="mt-1 text-sm text-muted">{option.description}</p>}
         </div>
-        {!closed && (
+        {editing && (
           <button onClick={async () => { if (await confirm(`Remove “${option.label}” from this vote?`)) await softDelete('poll_options', option.id, me) }} className="flex size-11 shrink-0 items-center justify-center rounded-control text-muted hover:bg-brand-50" aria-label={`Remove ${option.label}`}>
             <Trash2 aria-hidden="true" className="size-4" />
           </button>
@@ -312,11 +319,23 @@ function OptionVoteCard({ option, place, rating, score, closed, me, labels, onSa
         ))}
       </div>
       <div className="poll-save-feedback">
+        <GroupTicks voters={voters} members={members} me={me} mine={visibleScore != null} />
         <p role="status" className="flex items-start gap-1.5 text-xs leading-5 text-muted">{message && !saving && <Check aria-hidden="true" className="poll-feedback-check mt-0.5 size-3.5 shrink-0 text-success-ink" />}<span>{message}</span></p>
         <ErrorNote error={error} />
       </div>
     </li>
   )
+}
+
+/** The group's votes on one option as printed ticks: others in ink, yours in coral, the rest still open. */
+function GroupTicks({ voters, members, me, mine }: { voters: Set<string>; members: Member[]; me: string; mine: boolean }) {
+  const size = members.length
+  if (size < 2) return null
+  const others = members.filter((m) => m.id !== me && voters.has(m.id)).length
+  const voted = others + (mine ? 1 : 0)
+  const shown = Math.min(size, 24)
+  const ticks = Array.from({ length: shown }, (_, i) => i < others ? 'voted' : i === others && mine ? 'mine' : 'open')
+  return <p className="poll-ticks"><span className="poll-ticks-bar" aria-hidden="true">{ticks.map((t, i) => <span key={i} data-tick={t} />)}</span><span>{voted} of {size} voted</span></p>
 }
 
 function Results({ ranked, votes, members, groupSize, winnerId, placeOf, labels, dates }: {

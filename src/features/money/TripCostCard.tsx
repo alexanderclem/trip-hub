@@ -29,9 +29,9 @@ export function TripCostCard({ trip, me, memberIds, expenses, snapshot, fmt }: {
     <Card>
       <SectionTitle>What this trip costs you</SectionTitle>
       <dl className="mt-3 space-y-1 text-sm">
-        <div className="flex items-baseline justify-between gap-3 px-1"><dt className="text-muted">Spent so far</dt><dd className="font-semibold tabular-nums">{fmt(f.spentMinor)}</dd></div>
-        <div className="flex items-baseline justify-between gap-3 px-1"><dt className="text-muted">Still planned</dt><dd className="font-semibold tabular-nums">{approx(f.plannedMinor)}</dd></div>
-        <div className="flex items-baseline justify-between gap-3 rounded-surface bg-brand-50 px-3 py-2 text-ink"><dt className="font-medium">Trip total</dt><dd className="text-lg font-semibold tabular-nums">{approx(f.spentMinor + f.plannedMinor)}</dd></div>
+        <div className="flex items-baseline justify-between gap-3 px-1"><dt className="text-muted">Your share spent</dt><dd className="font-semibold tabular-nums">{fmt(f.spentMinor)}</dd></div>
+        <div className="flex items-baseline justify-between gap-3 px-1"><dt className="text-muted">Your share of plans</dt><dd className="font-semibold tabular-nums">{approx(f.plannedMinor)}</dd></div>
+        <div className="flex items-baseline justify-between gap-3 rounded-surface bg-brand-50 px-3 py-2 text-ink"><dt className="font-medium">Your trip total</dt><dd className="text-lg font-semibold tabular-nums">{approx(f.spentMinor + f.plannedMinor)}</dd></div>
       </dl>
       <BudgetSummary tripId={trip.id} me={me} currency={trip.base_currency} totalMinor={f.spentMinor + f.plannedMinor} incomplete={f.missingEstimates > 0} />
       {f.planned.length > 0 && (

@@ -194,13 +194,17 @@ export function Status({ tone, className, ...props }: ComponentProps<'span'> & {
 /** What the trip shell adds to the end of every screen header (sync status, Stowie). Empty outside a trip. */
 export const HeaderTools = createContext<ReactNode>(null)
 export const HeaderTripName = createContext<string | undefined>(undefined)
+/** A status the whole trip shares, printed across the header on phones (offline, sync trouble). */
+export const HeaderStatus = createContext<ReactNode>(null)
 
 /**
  * The one header a screen has: back, title, the screen's own action, then the shell's tools.
+ * The trip's name prints under the title, so the title is read first.
  * `below` holds a control that belongs to the whole screen (a day strip, a search field).
  */
 export function PageHeader({ title, eyebrow, back, action, below, titleMorph }: { title: string; eyebrow?: string; back?: string; action?: ReactNode; below?: ReactNode; titleMorph?: string }) {
   const tools = useContext(HeaderTools)
+  const status = useContext(HeaderStatus)
   const tripName = useContext(HeaderTripName)
   const context = eyebrow ?? tripName
   return (
@@ -214,12 +218,13 @@ export function PageHeader({ title, eyebrow, back, action, below, titleMorph }: 
           <span className="w-2" />
         )}
         <div className="min-w-0 flex-1">
-          {context && <p className="ui-eyebrow truncate" title={context}>{context}</p>}
           {titleMorph ? <Morph name={titleMorph} text><h1 className="ui-page-title break-words">{title}</h1></Morph> : <h1 className="ui-page-title break-words">{title}</h1>}
+          {context && <p className="ui-header-context truncate" title={context}>{context}</p>}
         </div>
         {action && <div className="page-header-action">{action}</div>}
         {tools}
       </div>
+      {status}
       {below}
     </header>
   )

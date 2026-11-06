@@ -13,7 +13,9 @@ export function AddToPollCard({ place, memberId }: { place: Place; memberId: str
   const polls = usePollsForPlace(place.trip_id, place.id)
   const now = useNow()
   const navigate = useNavigate()
-  const open = polls?.filter((p) => !votingEnded(p.poll, now) && p.poll.kind !== 'dates' && !p.includesPlace) ?? []
+  // Only votes this place could belong in: one already comparing the same kind of place, or one with no options yet.
+  const open = polls?.filter((p) => !votingEnded(p.poll, now) && p.poll.kind !== 'dates' && !p.includesPlace
+    && (p.categories.has(place.category) || p.optionCount === 0)) ?? []
   const included = polls?.filter((p) => p.includesPlace && !votingEnded(p.poll, now)) ?? []
   const [choice, setChoice] = useState('')
   const [creating, setCreating] = useState(false)

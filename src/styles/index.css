@@ -201,6 +201,7 @@ body {
   .ui-section-title { font-family: var(--stowaway-font-body); font-size: 1.0625rem; font-weight: 600; letter-spacing: -.015em; line-height: 1.4; color: var(--stowaway-ink); }
   .ui-label { font-size: var(--stowaway-text-caption); font-weight: 600; letter-spacing: .025em; line-height: 1.6; color: var(--stowaway-muted); }
   .ui-eyebrow { display: flex; align-items: center; gap: .5rem; font-size: var(--stowaway-text-caption); font-weight: 600; letter-spacing: .025em; line-height: 1.6; color: var(--stowaway-muted); }
+  .ui-header-context { margin-top: .125rem; font-size: var(--stowaway-text-caption); font-weight: 500; line-height: 1.4; color: var(--stowaway-muted); }
   .ui-eyebrow-dot::before { content: ''; width: .4375rem; height: .4375rem; flex-shrink: 0; border-radius: 50%; background: var(--stowaway-coral); }
 }
 

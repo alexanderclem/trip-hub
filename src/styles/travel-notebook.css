@@ -67,6 +67,13 @@
 .agenda-stop h3 { flex: 1 1 9rem; font-size: 1rem; letter-spacing: -.025em; }
 .agenda-time { display: flex; flex-shrink: 0; align-items: baseline; padding-top: .125rem; font-size: var(--stowaway-text-caption); font-variant-numeric: tabular-nums; line-height: 1.5; color: var(--stowaway-muted); }
 .agenda-time-end { font-size: inherit; }
+/* Print density: a tentative or idea stop prints on the half-tone with lighter type; confirmed prints solid. */
+.agenda-stop:is([data-status='tentative'], [data-status='idea']) { background: radial-gradient(circle, color-mix(in srgb, var(--stowaway-ink) 16%, transparent) 1px, transparent 1.4px) 0 0 / 5px 5px; }
+.agenda-stop:is([data-status='tentative'], [data-status='idea']) h3 { font-weight: 500; }
+[data-theme='stowaway-dark'] .agenda-stop:is([data-status='tentative'], [data-status='idea']) { background-image: radial-gradient(circle, color-mix(in srgb, var(--stowaway-ink) 22%, transparent) 1px, transparent 1.4px); }
+.agenda-code { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; margin-top: .375rem; }
+.agenda-code-label { font-family: var(--stowaway-font-label); font-size: var(--stowaway-text-caption); font-weight: 600; letter-spacing: var(--stowaway-tracking-label); text-transform: uppercase; color: var(--stowaway-muted); }
+.agenda-code-value { font-size: .9375rem; font-weight: 600; letter-spacing: .06em; font-variant-numeric: tabular-nums; color: var(--stowaway-ink); }
 .agenda-status { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem .75rem; margin-top: .5rem; font-size: var(--stowaway-text-caption); color: var(--stowaway-muted); }
 .agenda-status > span + span::before { content: '·'; margin-inline-end: .5rem; }
 .agenda-ticket { padding-inline: 3.375rem .25rem; padding-bottom: .5rem; }
@@ -122,7 +129,6 @@
   .trip-overview:is([data-phase='traveling'], [data-phase='preparing']) .overview-postcard { display: none; }
   .overview-planning-nav a { flex: 1 1 auto; justify-content: space-between; }
   .trip-overview .overview-planning-nav { column-gap: .875rem; }
-  .plan-notebook .app-page-header .ui-eyebrow { font-size: var(--stowaway-text-caption); }
   .plan-notebook .plan-day-content { padding-top: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {

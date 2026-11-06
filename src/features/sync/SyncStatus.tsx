@@ -104,7 +104,35 @@ export function SyncStatusButton({ tripId, full = false, className = '' }: { tri
   const Icon = offline ? CloudOff : trouble ? TriangleAlert : sync.phase === 'syncing' || details?.pending.length ? CloudUpload : CheckCircle2
   const worded = full || offline || trouble
   return <>
-    <button type="button" aria-haspopup="dialog" onClick={() => setOpen(true)} className={`${worded ? `inline-flex min-h-11 items-center gap-2 rounded-control px-3 text-sm font-medium hover:bg-brand-50 ${trouble ? 'bg-danger text-danger-ink' : offline ? 'bg-brand-50 text-ink' : 'text-ink'}` : 'ui-icon-button text-muted'} shrink-0 ${className}`}><Icon aria-hidden="true" className={worded ? 'size-4 shrink-0' : 'size-5'} /><span aria-live="polite" className={worded ? '' : 'sr-only'}>{label}</span><span className="sr-only">. View sync details</span></button>
+    <button type="button" aria-haspopup="dialog" onClick={() => setOpen(true)} className={`${worded ? `inline-flex min-h-11 items-center gap-2 rounded-control px-3 text-sm font-medium hover:bg-brand-50 ${trouble ? 'bg-danger text-danger-ink' : offline ? 'bg-brand-50 text-ink' : 'text-ink'}` : 'ui-icon-button text-muted'} shrink-0 ${className}`}><Icon aria-hidden="true" className={worded ? 'size-4 shrink-0' : 'size-5'} /><span className="sr-only">Sync: </span><span aria-live="polite" className={worded ? '' : 'sr-only'}>{label}</span></button>
+    <Dialog open={open} onClose={() => setOpen(false)} title="Sync & saved changes"><SyncDetails tripId={tripId} /></Dialog>
+  </>
+}
+
+/**
+ * Phones print the state across the header instead of squeezing words beside the title. It is
+ * silent while everything is up to date; offline and sync trouble are always worded.
+ */
+export function SyncStrip({ tripId }: { tripId: string }) {
+  const [open, setOpen] = useState(false)
+  const online = useOnline()
+  const sync = useSyncStatus()
+  const details = useSyncDetails(tripId)
+  const waiting = details?.pending.length ?? 0
+  const offline = !online || sync.phase === 'offline'
+  const trouble = !offline && (sync.phase === 'error' || !!details?.rejected.length)
+  const state = offline ? 'Offline' : trouble ? 'Not synced' : null
+  const detail = offline
+    ? waiting ? `${waiting} ${waiting === 1 ? 'change' : 'changes'} will send when you’re back online` : 'Saved trip data still works'
+    : 'Tap to review'
+  const Icon = offline ? CloudOff : TriangleAlert
+  return <>
+    <div className="sync-strip-region" aria-live="polite">
+      {state && <button type="button" aria-haspopup="dialog" onClick={() => setOpen(true)} className="sync-strip" data-tone={trouble ? 'danger' : 'offline'}>
+        <Icon aria-hidden="true" className="size-4 shrink-0" />
+        <span className="min-w-0"><strong>{state}</strong><span aria-hidden="true"> · </span><span className="sr-only">. </span>{detail}</span>
+      </button>}
+    </div>
     <Dialog open={open} onClose={() => setOpen(false)} title="Sync & saved changes"><SyncDetails tripId={tripId} /></Dialog>
   </>
 }

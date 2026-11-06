@@ -25,7 +25,7 @@ test('create a trip, load starter places, see them on the map, and sync a shortl
   await pageA.getByRole('link', { name: 'Create a trip' }).first().click()
   await pageA.getByLabel('Trip name').fill(`E2E TEST ${new Date().toISOString()}`)
   await pageA.getByLabel('Your name').fill('Alex')
-  await pageA.getByRole('button', { name: 'Create trip' }).click()
+  await pageA.getByRole('button', { name: 'Create a trip' }).click()
   await expect(pageA.getByRole('heading', { name: 'Invite the group' })).toBeVisible()
   await shot(pageA, '02-settings')
 

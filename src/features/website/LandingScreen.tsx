@@ -35,7 +35,7 @@ export function LandingScreen() {
   return (
     <WebsiteFrame>
       <div className="tag-journey">
-        <RouteStrip />
+        <RouteStrip winner={winner} />
         <div className="tag-journey-stops">
           <section id="trip" data-stop="trip" className={printing ? 'tag-hero is-printing' : 'tag-hero'} aria-labelledby="hero-title">
             <div className="tag-shell">

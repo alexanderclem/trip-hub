@@ -129,7 +129,7 @@ export function CreateTripScreen() {
           <Input required maxLength={40} value={form.yourName} onChange={set('yourName')} />
         </Field>
         <details className="ui-disclosure rounded-surface border border-line bg-surface px-4 py-1" open={draft ? true : undefined}>
-          <summary><span className="min-w-0 flex-1">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
+          <summary><span className="min-w-0 flex-1"><span className="block">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</span><span className="block text-xs font-normal text-muted">{form.timezone.split('/').at(-1)?.replaceAll('_', ' ')} · {form.baseCurrency.toUpperCase()}{form.localCurrency !== form.baseCurrency ? ` / ${form.localCurrency.toUpperCase()}` : ''}</span></span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
           <div className="mt-1 space-y-5 pb-4">
         <DateRangePicker start={form.startDate} end={form.endDate} fixedLength={draft ? draft.result.ideas[ideaIndex]!.days.length : undefined}
           onChange={(startDate, endDate) => setForm((f) => ({ ...f, startDate, endDate }))} />
@@ -149,11 +149,9 @@ export function CreateTripScreen() {
           )}
           {areas.length < MAX_AREAS && <div className="mt-2"><DestinationSearch onPick={addDestination} placeholder={areas.length ? 'Add another town' : 'Search for a town or city'} /></div>}
         </div>
-          </div>
-        </details>
-        <details className="ui-disclosure rounded-surface border border-line bg-surface px-4 py-1">
-          <summary><span className="min-w-0 flex-1">Time zone & currencies<span className="block text-xs font-normal text-muted">{form.timezone.split('/').at(-1)?.replaceAll('_', ' ')} · {form.baseCurrency.toUpperCase()}{form.localCurrency !== form.baseCurrency ? ` / ${form.localCurrency.toUpperCase()}` : ''}</span></span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
-          <div className="space-y-4 pb-4 pt-2">
+        {/* Set from the destination; changed only for a trip that crosses zones or currencies. */}
+        <fieldset className="space-y-4 border-t border-dashed border-line pt-4">
+          <legend className="float-left mb-1 w-full text-sm font-medium text-ink">Time zone & currencies</legend>
         <Field label="Destination time zone">
           <Select value={form.timezone} onChange={set('timezone')}>
             {zones.map((z) => (
@@ -171,12 +169,13 @@ export function CreateTripScreen() {
             <Input maxLength={3} value={form.localCurrency} onChange={set('localCurrency')} />
           </Field>
         </div>
+        </fieldset>
           </div>
         </details>
         <ErrorNote error={error} />
         {createdTripId && error && <Link className="inline-flex min-h-11 items-center text-action" to={`/t/${createdTripId}/overview`}>Open the created trip →</Link>}
         <Button type="submit" className="w-full" disabled={busy || loadingDraft || (!!draftId && !draft)}>
-          {busy ? 'Creating…' : 'Create trip'}
+          {busy ? 'Creating…' : 'Create a trip'}
         </Button>
         {!draftId && <Link to="/inspire" className="ui-link">Need a starting point? Help me plan →</Link>}
       </form>

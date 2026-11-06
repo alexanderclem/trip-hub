@@ -533,7 +533,7 @@ export default function MapScreen() {
             )}
             {wantOffline && <span className="ui-chip shadow-sm">Offline map</span>}
           </div>
-          <div className="pointer-events-auto flex shrink-0 rounded-full border border-line bg-surface shadow-sm">{tools}</div>
+          <div className="map-tools pointer-events-auto flex shrink-0 rounded-full border border-line bg-surface shadow-sm">{tools}</div>
         </div>
         {filtering && (
           <div id="map-filters" role="group" aria-label="Show these kinds of place" className="pointer-events-auto mx-3 mt-1 flex flex-wrap gap-2 rounded-surface border border-line bg-surface p-3 shadow-md">

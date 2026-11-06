@@ -29,7 +29,7 @@ test('money: what the trip costs me, from logged expenses and plan estimates', a
 
   await page.goto(`/t/${trip}/money`)
   const card = page.locator('section, div').filter({ has: page.getByRole('heading', { name: 'What this trip costs you' }) }).last()
-  await expect(card.getByText('Spent so far')).toBeVisible()
+  await expect(card.getByText('Your share spent')).toBeVisible()
   await expect(card).toContainText('$30.00') // half the shuttle
   await expect(card).toContainText('≈ $100.00') // half the hike estimate
   await expect(card).toContainText('≈ $130.00')

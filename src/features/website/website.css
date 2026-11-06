@@ -138,8 +138,8 @@
 .website-footer nav { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
 .website-footer nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--stowaway-text-caption); font-weight: 500; }
 .website-footer a:hover, .website-nav-detail:hover { text-decoration: underline; text-underline-offset: 4px; }
-.website-skip { position: absolute; inset-inline-start: 1rem; top: -100px; z-index: 50; background: var(--stowaway-surface); padding: 1rem; border: 2px solid var(--stowaway-ink); }
-.website-skip:focus { top: 1rem; }
+.website-skip { position: absolute; inset-inline-start: 1rem; top: 0; transform: translateY(-120%); z-index: 50; background: var(--stowaway-surface); padding: 1rem; border: 2px solid var(--stowaway-ink); }
+.website-skip:focus { transform: translateY(1rem); }
 .website-notfound-main { padding-block: var(--stowaway-section-space); }
 .website-notfound-main h1 { margin-top: 2rem; max-width: 15ch; font: 400 var(--stowaway-text-hero)/1.1 var(--stowaway-font-display); letter-spacing: -.03em; }
 .website-notfound-main > p { max-width: 48ch; margin-top: 1.5rem; line-height: 1.8; color: var(--stowaway-muted); }

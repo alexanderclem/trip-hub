@@ -43,7 +43,7 @@
 .tag-world ::selection { background: var(--tag-coral); color: var(--tag-on-coral); }
 .tag-world :where(a, button, summary, input, select):focus-visible { outline: 3px solid var(--tag-coral); outline-offset: 3px; border-radius: 4px; box-shadow: 0 0 0 3px var(--tag-ink); }
 .tag-world :where(h1, h2, h3) { text-wrap: balance; overflow-wrap: anywhere; }
-.tag-world p { text-wrap: pretty; }
+.tag-world :is(p, li) { text-wrap: pretty; }
 .tag-world a { color: inherit; }
 
 /* The tag body: header, main and footer are one sheet of stock on the ink ground. */
@@ -82,7 +82,6 @@
     radial-gradient(circle at calc(100% - var(--tag-edge) - 1px) 50%, var(--tag-ground) 11px, transparent 11.5px);
 }
 .tag-world main .tag-perf { margin-inline: 0; }
-.tag-journey-stops .tag-perf::after { background: none; }
 .tag-world main .tag-perf::before { left: 22px; right: 22px; }
 .tag-world main .tag-perf::after { background: radial-gradient(circle at 0 50%, var(--tag-ground) 11px, var(--tag-rule) 11.5px, var(--tag-rule) 12.5px, transparent 13px), radial-gradient(circle at 100% 50%, var(--tag-ground) 11px, var(--tag-rule) 11.5px, var(--tag-rule) 12.5px, transparent 13px); }
 
@@ -90,7 +89,7 @@
 .tag-print { font-family: var(--tag-cond); font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--tag-print); line-height: 1.4; }
 .tag-fine { font-size: .875rem; line-height: 1.55; color: var(--tag-print); }
 .tag-fine a, .tag-link { font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
-.tag-link { display: inline-flex; min-height: 44px; align-items: center; font-family: var(--tag-text); font-size: 1rem; letter-spacing: 0; text-transform: none; text-decoration-color: var(--tag-ink); font-weight: 600; line-height: 1.4; text-decoration-thickness: 1px; }
+.tag-link { display: inline-flex; min-height: 44px; align-items: center; font-family: var(--tag-text); font-size: 1rem; letter-spacing: 0; text-transform: none; text-decoration-color: var(--tag-ink); font-weight: 600; line-height: 1.4; text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .tag-link:hover { text-decoration-thickness: 3px; }
 .tag-intro { max-width: 40ch; margin-top: 1.25rem; font-size: clamp(1.0625rem, 1.4vw, 1.25rem); line-height: 1.55; }
 .tag-lede { max-width: 46ch; margin-top: 1rem; color: var(--tag-print); font-size: 1.0625rem; line-height: 1.6; }
@@ -132,10 +131,10 @@
    (`is-printing` is only rendered on the first mount); nothing loops. */
 @media (prefers-reduced-motion: no-preference) {
   .tag-hero.is-printing {
-    --tag-head-time: 1500ms;
+    --tag-head-time: 1000ms;
     --tag-head-ease: cubic-bezier(.42, .06, .3, 1);
     position: relative;
-    animation: tag-head-reveal var(--tag-head-time) var(--tag-head-ease) 120ms backwards;
+    animation: tag-head-reveal var(--tag-head-time) var(--tag-head-ease) backwards;
   }
   .tag-hero.is-printing::after { /* the head, with the still-developing band of print just behind it */
     content: ''; position: absolute; inset-inline: 0; top: -100%; height: 100%; z-index: 2; pointer-events: none; opacity: 0;
@@ -145,14 +144,14 @@
       radial-gradient(circle, transparent 1.1px, var(--tag-stock) 1.55px) 0 0 / 4px 4px;
     -webkit-mask: linear-gradient(to top, #000 0 13px, rgb(0 0 0 / .9) 13px, transparent 8rem);
     mask: linear-gradient(to top, #000 0 13px, rgb(0 0 0 / .9) 13px, transparent 8rem);
-    animation: tag-head var(--tag-head-time) var(--tag-head-ease) 120ms backwards;
+    animation: tag-head var(--tag-head-time) var(--tag-head-ease) backwards;
   }
-  .tag-hero.is-printing .tag-pax li { animation: tag-print-in 300ms var(--tag-ease) backwards; animation-delay: calc(950ms + var(--i) * 105ms); }
-  .tag-hero.is-printing .tag-tear.is-primary { animation: tag-coral-stamp 520ms var(--tag-ease) 1560ms backwards; }
+  .tag-hero.is-printing .tag-pax li { animation: tag-print-in 300ms var(--tag-ease) backwards; animation-delay: calc(640ms + var(--i) * 70ms); }
+  .tag-hero.is-printing .tag-tear.is-primary { animation: tag-coral-stamp 520ms var(--tag-ease) 1040ms backwards; }
 }
 @media (prefers-reduced-motion: no-preference) and (max-width: 959px) {
   /* Stacked, the stubs print well before the head reaches the barcode. */
-  .tag-hero.is-printing .tag-tear.is-primary { animation-delay: 1250ms; }
+  .tag-hero.is-printing .tag-tear.is-primary { animation-delay: 820ms; }
 }
 @keyframes tag-head-reveal { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes tag-head { from { opacity: 1; transform: translateY(0); } 97% { opacity: 1; } to { opacity: 0; transform: translateY(100%); } }
@@ -174,12 +173,20 @@
 .tag-strip-code { font-family: var(--tag-display); font-size: 1.375rem; font-weight: 700; line-height: 1; color: var(--tag-ink); }
 .tag-strip-label { font-family: var(--tag-cond); font-size: .8125rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
 .tag-strip a[aria-current='step'] { color: var(--tag-ink); box-shadow: inset 0 -4px 0 var(--tag-ink); }
+/* The vote's code: a ghost (outline only) until the group picks, then the winner prints solid on coral. */
+.tag-strip [data-ghost] .tag-strip-code { display: inline-block; width: 2.1em; height: .86em; overflow: hidden; border: 2px dashed var(--tag-rule); border-radius: 2px; color: transparent; }
+.tag-strip [data-picked] .tag-strip-code { display: inline-block; width: fit-content; padding: .125rem .25rem; background: var(--tag-coral); color: var(--tag-on-coral); }
+@media (prefers-reduced-motion: no-preference) {
+  .tag-strip [data-picked] .tag-strip-code { animation: tag-strip-stamp 420ms var(--tag-ease) both; }
+}
+@keyframes tag-strip-stamp { 0% { transform: scale(1.6) rotate(-8deg); opacity: 0; } 60% { transform: scale(.94); opacity: 1; } 100% { transform: none; } }
 .tag-stop { scroll-margin-top: 64px; }
-.tag-stop-grid { display: grid; gap: 1.75rem; padding-block: clamp(2.5rem, 6vw, 5rem); }
+.tag-stop-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.75rem; padding-block: clamp(2.5rem, 6vw, 5rem); }
 .tag-stop h2, .tag-faq-wrap h2, .tag-band h2, .tag-close h2 { font-family: var(--tag-text); font-size: clamp(1.75rem, 3.2vw, 2.75rem); font-weight: 600; line-height: 1.2; letter-spacing: -.02em; text-transform: none; max-width: 24ch; }
 .tag-stop-head { display: grid; align-content: start; }
 .tag-stop.is-printed .tag-stop-head h2 { animation: tag-print-in 560ms var(--tag-ease) both; }
 .tag-row { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-top: 1.25rem; }
+.tag-plan-next { margin-top: 2rem; }
 .tag-button { display: inline-flex; align-items: center; gap: .5rem; min-height: 48px; padding: .625rem 1rem; border: 2px solid var(--tag-ink); border-radius: 8px; background: var(--tag-ink); color: var(--tag-stock); font-family: var(--tag-text); font-size: 1rem; font-weight: 600; letter-spacing: 0; text-transform: none; cursor: pointer; line-height: 1.4; }
 .tag-button.is-quiet { background: transparent; color: var(--tag-ink); }
 .tag-button:hover:not(:disabled) { background: var(--tag-ink); color: var(--tag-stock); }
@@ -218,7 +225,7 @@
 .tag-score button, .tag-names button { min-height: 44px; padding: .375rem .25rem; border: 2px solid var(--tag-ink); border-radius: 8px; background: transparent; color: var(--tag-ink); font-family: var(--tag-text); font-size: .875rem; font-weight: 600; letter-spacing: 0; text-transform: none; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; line-height: 1.4; }
 .tag-score button:hover, .tag-names button:hover { background: color-mix(in srgb, var(--tag-ink) 8%, transparent); }
 .tag-score button[aria-pressed='true'], .tag-names button[aria-pressed='true'] { background: var(--tag-ink); color: var(--tag-stock); }
-.tag-vote-result { min-height: 3.2em; margin-top: 1rem; font-size: 1rem; font-weight: 500; line-height: 1.5; }
+.tag-vote-result { min-height: 3em; margin-block: .5rem 1.25rem; font-size: 1.0625rem; font-weight: 500; line-height: 1.5; color: var(--tag-ink); max-width: 46ch; }
 .tag-vote-result strong { font-weight: 700; box-shadow: inset 0 -.4em 0 color-mix(in srgb, var(--tag-coral) 55%, transparent); }
 .tag-stamp { display: inline-block; padding: .25rem .625rem; border: 2px solid var(--tag-ink); border-radius: 4px; background: var(--tag-coral); color: var(--tag-on-coral); font-family: var(--tag-cond); font-size: .9375rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; transform: rotate(-5deg); }
 .tag-stamp[data-stamped] { animation: tag-stamp 420ms var(--tag-ease) both; }
@@ -294,7 +301,12 @@
 .tag-close-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: 1.5rem; }
 
 /* Footer */
-.tag-foot-inner { display: grid; gap: 1.5rem; padding-block: 2rem 0; border-top: 3px solid var(--tag-ink); }
+.tag-foot-inner { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; padding-block: 2rem 0; border-top: 3px solid var(--tag-ink); }
+/* At large text sizes the drawn wordmark scales down to the column instead of pushing the page sideways. */
+.tag-home { min-width: 0; max-width: 100%; }
+.tag-world .tag-brand { max-width: 100%; }
+.tag-world .brand-wordmark svg { max-width: 100%; }
+.tag-foot-nav a { overflow-wrap: anywhere; }
 .tag-foot-brand p { margin-top: .25rem; font-family: var(--tag-text); font-size: .875rem; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--tag-print); line-height: 1.5; }
 .tag-foot-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1rem; }
 .tag-foot-nav a { display: flex; align-items: center; min-height: 44px; font-weight: 500; text-decoration: none; line-height: 1.5; }
@@ -362,7 +374,9 @@
   .tag-pax li { font-size: 1rem; }
   .tag-pax-seq { display: none; }
   .tag-tear { min-height: 64px; padding-inline: 1.5rem .5rem; }
-  .tag-tear-label { font-size: 1rem; white-space: nowrap; }
+  .tag-tear-label { font-size: 1rem; }
+  /* One empty tag says "add yours"; more would only fill the phone screen. */
+  .tag-mini.is-ghost ~ .tag-mini.is-ghost { display: none; }
 }
 @media (min-width: 640px) {
   .tag-ring { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -373,6 +387,8 @@
   .tag-strip ol { justify-content: space-between; }
   .tag-strip-code { display: none; }
   .tag-strip-label { font-size: .9375rem; letter-spacing: .04em; }
+  /* Phones keep one code: the group's pick, so the vote's payoff lands on the main device too. */
+  .tag-strip [data-picked] .tag-strip-code { display: inline-block; font-size: 1.0625rem; line-height: 1.15; }
 }
 @media (min-width: 960px) {
   .tag-hero-grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); grid-template-areas: 'copy pax' 'stubs pax'; column-gap: 4rem; }
@@ -397,6 +413,11 @@
   .tag-strip-code { font-size: 1.875rem; }
   .tag-strip a[aria-current='step'] { box-shadow: none; background: color-mix(in srgb, var(--tag-ink) 9%, transparent); }
   .tag-journey-stops .tag-shell { padding-left: 2.5rem; }
+  /* Beside the rail a stop's tear line starts at the stop column; only the sheet's own edge is notched. */
+  .tag-world main .tag-journey-stops .tag-perf::before { left: 2.5rem; }
+  .tag-world main .tag-journey-stops .tag-perf::after { background: radial-gradient(circle at 100% 50%, var(--tag-ground) 11px, var(--tag-rule) 11.5px, var(--tag-rule) 12.5px, transparent 13px); }
+  /* The post-journey sections share the stops' reading edge. */
+  .tag-world main > :is(.tag-faq-wrap, .tag-band, .tag-close) .tag-shell { padding-left: calc(12rem + 2.5rem); }
 }
 @media (max-width: 359px) {
   .tag-nav-link.is-app { display: none; }

@@ -24,7 +24,7 @@ test('self-serve setup: pick a destination, load its places, save its map, use i
   await expect(page.getByLabel('Local currency')).toHaveValue('MXN')
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/70-new-trip-destination.png`, fullPage: true })
 
-  await page.getByRole('button', { name: 'Create trip' }).click()
+  await page.getByRole('button', { name: 'Create a trip' }).click()
   await page.waitForURL(/\/more\/settings$/)
   const tripPath = new URL(page.url()).pathname.replace(/\/more\/settings$/, '')
   console.log(`CLEANUP trip=${tripPath.split('/').pop()}`)

@@ -18,6 +18,8 @@
 .trip-phase-traveling { background: var(--stowaway-success-bg); color: var(--stowaway-success-ink); }
 .trip-phase-preparing { background: var(--stowaway-warning-bg); color: var(--stowaway-warning-ink); }
 .trip-phase-complete { color: var(--stowaway-muted); }
+/* Unfilled phases print as plain text, so they share the date's left edge. */
+.trip-phase:not(.trip-phase-traveling, .trip-phase-preparing) { padding-inline: 0; background: none; }
 .trip-phase-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .past-trips .saved-trip-art { height: 6rem; }
 
@@ -115,10 +117,17 @@
   .save-feedback > p { animation: none; }
 }
 .trip-header-tools { display: flex; align-items: center; gap: .25rem; flex-shrink: 0; }
+/* Phones: the status prints across the header in words (SyncStrip) instead of an icon in the tools. */
+.sync-strip-region { display: none; }
+.sync-strip { display: flex; width: 100%; min-height: 44px; align-items: center; gap: .5rem; border-top: 1px dashed var(--stowaway-border); padding: .5rem 1rem; text-align: start; font-size: var(--stowaway-text-caption); line-height: 1.4; color: var(--stowaway-ink); background: var(--stowaway-mist); }
+.sync-strip strong { font-weight: 700; }
+.sync-strip[data-tone='danger'] { background: var(--stowaway-danger-bg); color: var(--stowaway-danger-ink); }
+@media (hover: hover) { .sync-strip:hover { text-decoration: underline; text-underline-offset: 3px; } }
 @media (max-width: 639px) {
+  .sync-strip-region { display: block; }
+  .trip-header-sync, .command-trigger { display: none; }
   .quick-add-trigger { width: 44px; padding: .5rem; }
-  .quick-add-trigger > span, .trip-header-sync [aria-live] { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .trip-header-sync > button { width: 44px; justify-content: center; padding-inline: 0; }
+  .quick-add-trigger > span { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .app-page-header > div:first-child { flex-wrap: wrap; }
   .app-page-header > div:first-child > .min-w-0 { min-width: min(7rem, 100%); }
   .app-page-header .trip-header-tools { margin-inline-start: auto; }
@@ -195,7 +204,14 @@
 }
 
 /* Vote feedback stays beside the choice and does not displace the next option. */
-.poll-save-feedback { min-height: 2.5rem; margin-top: .375rem; padding-bottom: .375rem; }
+.poll-save-feedback { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem .75rem; min-height: 2.5rem; margin-top: .375rem; padding-bottom: .375rem; }
+.poll-save-feedback > :not(.poll-ticks, [role='status']) { flex-basis: 100%; }
+/* The group's votes print as ticks, like the website's sample vote: ink for others, coral for yours. */
+.poll-ticks { display: flex; align-items: center; gap: .5rem; font-size: var(--stowaway-text-caption); color: var(--stowaway-muted); font-variant-numeric: tabular-nums; }
+.poll-ticks-bar { display: flex; gap: 3px; }
+.poll-ticks-bar > span { width: 5px; height: 14px; border-radius: 1px; background: var(--stowaway-ink); }
+.poll-ticks-bar > [data-tick='mine'] { background: var(--stowaway-coral); box-shadow: inset 0 0 0 1px var(--stowaway-ink); }
+.poll-ticks-bar > [data-tick='open'] { background: none; box-shadow: inset 0 0 0 1px var(--stowaway-control-border); }
 .poll-feedback-check { animation: journal-check var(--stowaway-motion-change) var(--stowaway-feedback-ease); }
 .poll-progress { height: 3px; overflow: hidden; border-radius: 2px; background: var(--stowaway-border); }
 .poll-progress > span { display: block; width: 100%; height: 100%; background: var(--stowaway-action); }
@@ -208,3 +224,6 @@
   .poll-progress > span, .poll-result-bar, .ui-dialog::backdrop { transition: none; }
   .poll-feedback-check, .poll-complete-character { animation: none; }
 }
+/* On the map the tools share one pill, so the add button prints flat inside it. */
+.map-tools .quick-add-trigger { border-color: transparent; background: transparent; box-shadow: none; }
+.map-tools .quick-add-trigger:hover { background: var(--stowaway-hover); }
