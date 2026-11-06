@@ -30,12 +30,27 @@ const PAGE_SOURCES: Record<string, string[]> = {
  * shallow clone dates every file to its one commit) it returns null and the sitemap omits <lastmod>:
  * Google ignores lastmod on sites where it proves inaccurate, so no date beats a wrong one.
  */
+const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 60_000 }).trim()
+
+let fullHistory: boolean | undefined
+function hasFullHistory(): boolean {
+  if (fullHistory !== undefined) return fullHistory
+  const complete = () => { try { return git('rev-parse', '--is-shallow-repository') === 'false' } catch { return false } }
+  fullHistory = complete()
+  if (!fullHistory) {
+    // Cloudflare's build clones shallow. Fetching the commits (no file contents) takes a moment, once.
+    try { git('fetch', '--quiet', '--unshallow', '--filter=blob:none') } catch { /* offline or no remote */ }
+    fullHistory = complete()
+  }
+  if (!fullHistory) console.warn('sitemap.xml: no full git history, so <lastmod> is left out.')
+  return fullHistory
+}
+
 function lastModified(path: string): string | null {
   const sources = PAGE_SOURCES[path]
   if (!sources) throw new Error(`Add ${path} to PAGE_SOURCES in scripts/prerender.ts (its sitemap date comes from those files).`)
+  if (!hasFullHistory()) return null
   try {
-    const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
-    if (git('rev-parse', '--is-shallow-repository') !== 'false') return null
     const date = git('log', '-1', '--format=%cs', '--', ...sources)
     return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null
   } catch { return null }
