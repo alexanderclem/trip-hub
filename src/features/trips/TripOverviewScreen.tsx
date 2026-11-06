@@ -126,7 +126,7 @@ export function TripOverviewScreen() {
       <div className="overview-journal-content">
         <div className="min-w-0">
           <h1 className="travel-heading wrap-anywhere">{trip.name}</h1>
-          <div className="overview-meta"><span><CalendarDays aria-hidden="true" className="size-4" />{dateRange(trip.start_date, trip.end_date) || 'Dates to be decided'}</span><span className={`trip-phase trip-phase-${phase}`}>{phaseLabel}</span></div>
+          <div className="overview-meta"><Link to={`/t/${tripId}/more/dates`} aria-label={`${dateRange(trip.start_date, trip.end_date) || 'No dates yet'}. Change trip dates`} className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-4 hover:text-action"><CalendarDays aria-hidden="true" className="size-4" />{dateRange(trip.start_date, trip.end_date) || 'Add dates'}</Link><span className={`trip-phase trip-phase-${phase}`}>{phaseLabel}</span></div>
           {destinations && <p className="mt-2 flex items-start gap-2 text-sm text-muted"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="wrap-anywhere">{destinations}</span></p>}
         {loadedMembers && members.length > 0 && <div className="overview-travelers"><Link to={`${root}/travelers`} className="overview-traveler-link"><span className="traveler-stack" aria-hidden="true">{members.slice(0, 5).map((member) => <Avatar key={member.id} name={member.display_name} color={member.color} photo={member.avatar_url} size="sm" />)}</span><span>{members.length === 1 ? '1 traveler' : members.length <= 3 ? members.map((member) => member.id === me ? 'You' : member.display_name).join(' + ') : `${members.length} travelers`}</span><ArrowRight aria-hidden="true" className="size-3.5" /></Link></div>}
         </div>

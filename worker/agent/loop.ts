@@ -30,9 +30,10 @@ interface Completion { choices: { message: { content: string | null; tool_calls?
 
 export interface FinalPlan {
   summary: string; assumptions: string[]; currency: string; totalMinor: number
-  days: { date: string; stay: { name: string; rateId: string; refundable: boolean } | null; items: { node: number; kind: string; title: string; start: string; end: string; ref: string | null; routed: boolean }[] }[]
+  days: { date: string; stay: { name: string; rateId: string; refundable: boolean; photo?: string | null; address?: string | null; checkin?: string; checkout?: string } | null
+    items: { node: number; kind: string; title: string; start: string; end: string; ref: string | null; routed: boolean; photo?: string | null; url?: string | null; placeId?: string | null }[] }[]
   /** What a "Book" step must act on, in order. Offers expire, so the client shows expiresAt. */
-  bookable: { kind: 'flight' | 'hotel' | 'activity'; ref: string; totalMinor: number; expiresAt: string | null }[]
+  bookable: { kind: 'flight' | 'hotel' | 'activity'; ref: string; totalMinor: number; expiresAt: string | null; label?: string }[]
   unrouted: number[]
   usage: { modelTurns: number; promptTokens: number; cachedPromptTokens: number; completionTokens: number }
 }
@@ -147,22 +148,24 @@ function finalPlan(a: { summary: string; assumptions: string[] }, r: Resolved, r
     const local = b.start.setZone(c.zone)
     const day = local.toISODate()!
     const t = retimed.get(b.node)
-    const node = { node: b.node, kind: b.kind, title: b.title, start: t?.start ?? local.toFormat('HH:mm'), end: t?.end ?? b.end.setZone(c.zone).toFormat('HH:mm'), ref: b.ref, routed: !notRouted.has(b.node) && b.kind !== 'flight' }
+    const slot = b.kind === 'activity' && b.ref ? ledger.get(b.ref) : undefined
+    const extra = slot?.kind === 'slot' ? { photo: slot.photo ?? null, url: slot.url ?? null, placeId: null } : { photo: null, url: null, placeId: b.kind === 'free' ? b.ref : null }
+    const node = { node: b.node, kind: b.kind, title: b.title, start: t?.start ?? local.toFormat('HH:mm'), end: t?.end ?? b.end.setZone(c.zone).toFormat('HH:mm'), ref: b.ref, routed: !notRouted.has(b.node) && b.kind !== 'flight', ...extra }
     days.set(day, [...(days.get(day) ?? []), node])
   }
   const bookable: FinalPlan['bookable'] = []
   const refs = new Set([...r.blocks.filter((b) => b.kind !== 'free').map((b) => b.ref!), ...r.stays.map((s) => s.rate.id)])
   for (const ref of refs) {
     const entry = ledger.get(ref)
-    if (entry?.kind === 'flight') bookable.push({ kind: 'flight', ref, totalMinor: entry.totalMinor, expiresAt: entry.expiresAt })
-    if (entry?.kind === 'hotel') bookable.push({ kind: 'hotel', ref, totalMinor: entry.totalMinor, expiresAt: null })
-    if (entry?.kind === 'slot') bookable.push({ kind: 'activity', ref, totalMinor: entry.totalMinor, expiresAt: null })
+    if (entry?.kind === 'flight') bookable.push({ kind: 'flight', ref, totalMinor: entry.totalMinor, expiresAt: entry.expiresAt, label: `${entry.segments[0]!.from === entry.segments.at(-1)!.to ? `Round trip from ${entry.segments[0]!.from}` : `${entry.segments[0]!.from} → ${entry.segments.at(-1)!.to}`} · ${entry.segments.map((s) => s.flight).join(', ')}` })
+    if (entry?.kind === 'hotel') { const nights = Math.round((Date.parse(entry.checkout) - Date.parse(entry.checkin)) / 86400000); bookable.push({ kind: 'hotel', ref, totalMinor: entry.totalMinor, expiresAt: null, label: `${entry.name} · ${nights} ${nights === 1 ? 'night' : 'nights'}` }) }
+    if (entry?.kind === 'slot') bookable.push({ kind: 'activity', ref, totalMinor: entry.totalMinor, expiresAt: null, label: entry.title })
   }
   return {
     summary: a.summary, assumptions: a.assumptions, currency: c.currency, totalMinor: r.totalMinor,
     days: [...days.entries()].sort(([x], [y]) => x.localeCompare(y)).map(([date, items]) => {
       const stay = stayFor(date, r.stays)
-      return { date, stay: stay ? { name: stay.name, rateId: stay.id, refundable: stay.refundable } : null, items: items.sort((x, y) => x.start.localeCompare(y.start)) }
+      return { date, stay: stay ? { name: stay.name, rateId: stay.id, refundable: stay.refundable, photo: stay.photo ?? null, address: stay.address ?? null, checkin: stay.checkin, checkout: stay.checkout } : null, items: items.sort((x, y) => x.start.localeCompare(y.start)) }
     }),
     bookable, unrouted: [...notRouted], usage,
   }

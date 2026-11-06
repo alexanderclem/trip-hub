@@ -34,6 +34,7 @@
     "vars": {
       "DEEPSEEK_MODEL": "deepseek-flash",
       "IDEAS_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      "CHAT_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
       "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       "SUPABASE_URL": "https://knufofvmqopuvijvtzow.supabase.co",
       "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_RMYHjsWiavcHOLDMGKdJDA_R-NBD4Ge"
@@ -43,6 +44,8 @@
     "MCP_RESOURCE_URL": "https://trip-hub.alexanderclem12.workers.dev/mcp",
     // Official API alias for DeepSeek-V4.1-Flash-1017; confirm account access with GET /models.
     "DEEPSEEK_MODEL": "deepseek-flash",
+    // Stowie's intent step: 3x faster than 70B and as accurate on our checks (6 Nov 2026).
+    "CHAT_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
     "IDEAS_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "SUPABASE_URL": "https://croqjdvzbpcscdcshnet.supabase.co",

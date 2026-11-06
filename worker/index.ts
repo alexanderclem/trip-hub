@@ -14,6 +14,8 @@ export interface Env extends ConnectorEnv, TravelEnv, AgentHandlerEnv {
   SUPABASE_PUBLISHABLE_KEY: string
   AI_MODEL?: string
   IDEAS_MODEL?: string
+  /** Stowie's quick "what do they mean" step: a small model, since it only classifies a line. */
+  CHAT_MODEL?: string
 }
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } })
 const SYSTEM = `You are Stowaway's travel planner. Return only JSON matching the supplied schema.
@@ -87,13 +89,9 @@ export default {
     let stage = 'session'
     try {
       const headers = { apikey: env.SUPABASE_PUBLISHABLE_KEY, Authorization: authorization }
-      const auth = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers, signal: AbortSignal.timeout(10000) })
-      if (!auth.ok) return json({ error: 'Your session has expired. Refresh and try again.' }, 401)
-      const user = z.object({ id: z.string().uuid() }).parse(await auth.json())
-      stage = 'rate-limit'
-      const rate = await env.AI_RATE_LIMITER.limit({ key: `user:${user.id}` })
-      const ipRate = await env.AI_RATE_LIMITER.limit({ key: `ip:${request.headers.get('cf-connecting-ip') ?? user.id}` })
-      if (!rate.success || !ipRate.success) return json({ error: 'Give the planner a minute before requesting more ideas.' }, 429)
+      // The session check runs while the body streams in; nothing below is used until it passes.
+      const authCheck = fetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers, signal: AbortSignal.timeout(10000) })
+      authCheck.catch(() => {})
       stage = 'request'
       // Limit the streamed body too; Content-Length is not trustworthy.
       const reader = request.body?.getReader()
@@ -113,8 +111,23 @@ export default {
       const parsed = requestSchema.safeParse(JSON.parse(new TextDecoder().decode(bodyBytes)))
       if (!parsed.success) return json({ error: 'Check the trip details and preferences, then try again.' }, 400)
       const input = parsed.data
-      if ((input.action === 'ideas' || input.action === 'assist') && input.tripId) {
-        const access = await fetch(`${env.SUPABASE_URL}/rest/v1/trips?id=eq.${input.tripId}&deleted_at=is.null&select=id`, { headers, signal: AbortSignal.timeout(10000) })
+      const accessCheck = (input.action === 'ideas' || input.action === 'assist') && input.tripId
+        ? fetch(`${env.SUPABASE_URL}/rest/v1/trips?id=eq.${input.tripId}&deleted_at=is.null&select=id`, { headers, signal: AbortSignal.timeout(10000) })
+        : null
+      accessCheck?.catch(() => {})
+      stage = 'session'
+      const auth = await authCheck
+      if (!auth.ok) return json({ error: 'Your session has expired. Refresh and try again.' }, 401)
+      const user = z.object({ id: z.string().uuid() }).parse(await auth.json())
+      stage = 'rate-limit'
+      const [rate, ipRate] = await Promise.all([
+        env.AI_RATE_LIMITER.limit({ key: `user:${user.id}` }),
+        env.AI_RATE_LIMITER.limit({ key: `ip:${request.headers.get('cf-connecting-ip') ?? user.id}` }),
+      ])
+      if (!rate.success || !ipRate.success) return json({ error: 'Give the planner a minute before requesting more ideas.' }, 429)
+      if (accessCheck) {
+        stage = 'access'
+        const access = await accessCheck
         if (!access.ok) return json({ error: 'Could not check trip access. Try again.' }, 503)
         if (!(await access.json() as unknown[]).length) return json({ error: 'Join this trip before planning for its group.' }, 403)
       }
@@ -123,7 +136,9 @@ export default {
         ? 'Infer only explicitly supported interests from this description. Use 50 for unknown preferences. Explain the inference and uncertainties in one short paragraph. Do not infer demographics or sensitive traits.'
         : `Generate exactly one realistic trip idea, with exactly ${input.brief.days} days and two concise activities per day. Within a day, list activities in time order and never let them overlap: each starts at or after the time the one before it ends. An activity title names the thing to do ("Walk the High Line"), never "Day 1". A day title is a short theme for that day, never "Day 1". A note adds one practical tip and never repeats the title; use an empty string when there is nothing to add. Keep summaries and activity notes short. Score each idea's travel experience on the same axes. Explain why it fits and the group compromises. ${input.mode === 'everyone' ? 'Prioritize the weakest individual fit as well as the group average.' : 'Prioritize the group average.'} Required axes must score at least 65. Use the requested currency for all integer minor-unit costs (JPY has no decimal places; USD has two). Stay within the per-person trip budget when supplied; state what is excluded. If a destination is given, stay there. If refining a previous idea, preserve its destination unless explicitly asked to change it. Preserve all existing plan items; suggest additions only in free time. For known places, reuse supplied existingPlaceId; otherwise use null. Use local 24-hour times and a real destination IANA timezone. Tasks are unassigned planning reminders, not completed reservations.`
       stage = 'inference'
-      const model = input.action === 'ideas' ? env.IDEAS_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast' : env.AI_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+      const model = input.action === 'ideas' ? env.IDEAS_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+        : input.action === 'chat' ? env.CHAT_MODEL ?? '@cf/meta/llama-3.1-8b-instruct-fast'
+        : env.AI_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
       const result = await env.AI.run(model, {
         messages: [{ role: 'system', content: input.action === 'chat' ? STOWIE : input.action === 'assist' ? ASSIST : `${SYSTEM}\n${instruction}` }, { role: 'user', content: JSON.stringify({ request: input, group: input.action === 'ideas' ? combine(input.profiles) : null }) }],
         response_format: { type: 'json_schema', json_schema: z.toJSONSchema(schema) },

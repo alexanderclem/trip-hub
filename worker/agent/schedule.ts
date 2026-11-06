@@ -7,9 +7,9 @@ import type { SubmittedNode } from './tools'
 
 export interface Segment { from: string; to: string; departLocal: string; departZone: string; arriveLocal: string; arriveZone: string; flight: string }
 export interface FlightOffer { kind: 'flight'; id: string; totalMinor: number; currency: string; expiresAt: string; segments: Segment[] }
-export interface HotelRate { kind: 'hotel'; id: string; hotelId: string; name: string; lat: number | null; lng: number | null; checkin: string; checkout: string; totalMinor: number; currency: string; refundable: boolean }
-export interface ActivityProduct { kind: 'product'; id: string; title: string; durationMin: number; fromMinor: number; currency: string }
-export interface ActivitySlot { kind: 'slot'; id: string; productCode: string; title: string; date: string; start: string; durationMin: number; totalMinor: number; currency: string; lat: number | null; lng: number | null }
+export interface HotelRate { kind: 'hotel'; id: string; hotelId: string; name: string; lat: number | null; lng: number | null; checkin: string; checkout: string; totalMinor: number; currency: string; refundable: boolean; photo?: string | null; address?: string | null }
+export interface ActivityProduct { kind: 'product'; id: string; title: string; durationMin: number; fromMinor: number; currency: string; photo?: string | null; url?: string | null }
+export interface ActivitySlot { kind: 'slot'; id: string; productCode: string; title: string; date: string; start: string; durationMin: number; totalMinor: number; currency: string; lat: number | null; lng: number | null; photo?: string | null; url?: string | null }
 export type Entry = FlightOffer | HotelRate | ActivityProduct | ActivitySlot
 
 export interface TripPlace { id: string; name: string; lat: number; lng: number }

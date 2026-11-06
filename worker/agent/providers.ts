@@ -100,7 +100,8 @@ const liteRates = z.object({
     offerId: z.string(), offerRetailRate: z.object({ amount: z.number(), currency: z.string() }),
     rates: z.array(z.object({ name: z.string(), cancellationPolicies: z.object({ refundableTag: z.string() }).partial().optional() })).min(1),
   })).min(1) })).default([]),
-  hotels: z.array(z.object({ id: z.string(), name: z.string(), latitude: z.number().nullish(), longitude: z.number().nullish(), rating: z.number().nullish() })).optional(),
+  hotels: z.array(z.object({ id: z.string(), name: z.string(), latitude: z.number().nullish(), longitude: z.number().nullish(), rating: z.number().nullish(),
+    main_photo: z.string().url().refine((u) => u.startsWith('https://')).nullish().catch(null), address: z.string().max(300).nullish().catch(null) })).optional(),
 })
 
 export async function searchHotels(a: Args<'search_hotels'>, env: ProviderEnv, ledger: Ledger, doFetch: Fetch = fetch) {
@@ -120,7 +121,7 @@ export async function searchHotels(a: Args<'search_hotels'>, env: ProviderEnv, l
     const hotel = info.get(h.hotelId)
     const rate: HotelRate = { kind: 'hotel', id: room.offerId, hotelId: h.hotelId, name: hotel?.name ?? h.hotelId, lat: hotel?.latitude ?? null, lng: hotel?.longitude ?? null,
       checkin: a.checkin, checkout: a.checkout, totalMinor: toMinor(room.offerRetailRate.amount, room.offerRetailRate.currency), currency: room.offerRetailRate.currency,
-      refundable: room.rates[0]!.cancellationPolicies?.refundableTag === 'RFN' }
+      refundable: room.rates[0]!.cancellationPolicies?.refundableTag === 'RFN', photo: hotel?.main_photo ?? null, address: hotel?.address ?? null }
     return a.max_nightly_minor !== null && rate.totalMinor / nights / a.rooms > a.max_nightly_minor ? [] : [rate]
   }).sort((x, y) => x.totalMinor - y.totalMinor).slice(0, 8)
   rates.forEach((r) => ledger.put(r))
@@ -133,6 +134,7 @@ const liteTours = z.object({ data: z.object({ tours: z.array(z.object({
   id: z.number().int().positive(), title: z.string(),
   price: z.object({ amount: z.number().nonnegative(), currency: z.string() }),
   durations: z.array(z.object({ value: z.number().positive(), unit: z.string() })).optional(),
+  pictures: z.array(z.object({ url: z.string() })).nullish().catch(null), sourceUrl: z.string().url().refine((u) => u.startsWith('https://')).nullish().catch(null),
 })) }) })
 
 function durationMinutes(value: number | undefined, unit: string | undefined): number | null {
@@ -152,7 +154,8 @@ export async function searchActivities(a: Args<'search_activities'>, env: Provid
   const products = parsed.data.tours.filter((p) => p.price.currency === a.currency).map((p) => {
     const durations = (p.durations ?? []).flatMap((d) => { const m = durationMinutes(d.value, d.unit); return m ? [m] : [] })
     return { kind: 'product' as const, id: String(p.id), title: p.title, durationMin: durations.length ? Math.max(...durations) : 0,
-      fromMinor: toMinor(p.price.amount, p.price.currency), currency: p.price.currency }
+      fromMinor: toMinor(p.price.amount, p.price.currency), currency: p.price.currency,
+      photo: p.pictures?.find((pic) => pic.url.startsWith('https://'))?.url ?? null, url: p.sourceUrl ?? null }
   }).slice(0, 12)
   products.forEach((p) => ledger.put(p))
   return products.map((p) => ({ product_code: p.id, title: p.title, duration_minutes: p.durationMin || null, from_price_minor: p.fromMinor, currency: p.currency }))
@@ -195,7 +198,7 @@ export async function checkActivityTimes(a: Args<'check_activity_times'>, env: P
         (b.vacancies !== undefined && b.vacancies < a.adults) || (b.minParticipants !== undefined && a.adults < b.minParticipants) || (b.maxParticipants !== undefined && a.adults > b.maxParticipants)) return []
       return [{ kind: 'slot', id: `liteapi~${a.product_code}~${option.optionId}~${b.dateTime}~${a.adults}`, productCode: a.product_code, title: product.title,
         date: a.travel_date, start: start.toFormat('HH:mm'), durationMin, totalMinor: toMinor(price.net, price.currency), currency: price.currency,
-        lat: option.coordinates?.lat ?? null, lng: option.coordinates?.long ?? null }]
+        lat: option.coordinates?.lat ?? null, lng: option.coordinates?.long ?? null, photo: product.photo ?? null, url: product.url ?? null }]
     })
   }).slice(0, 24)
   slots.forEach((s) => ledger.put(s))

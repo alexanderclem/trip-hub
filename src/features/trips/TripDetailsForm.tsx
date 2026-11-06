@@ -4,7 +4,8 @@ import { save } from '@/data/repo'
 import { db } from '@/data/db'
 import { CheckCircle2 } from 'lucide-react'
 import { isValidZone } from '@/lib/time'
-import { Button, DateInput, ErrorNote, Field, Input } from '@/ui'
+import { Button, ErrorNote, Field, Input } from '@/ui'
+import { DateRangePicker } from '@/ui/DateRangePicker'
 
 /** Mounted only after the trip loads. Live sync must never replace the draft someone is editing. */
 export function TripDetailsForm({ trip, memberId }: { trip: Trip; memberId: string | null }) {
@@ -43,10 +44,7 @@ export function TripDetailsForm({ trip, memberId }: { trip: Trip; memberId: stri
 
   return <form onSubmit={submit} onChange={() => setSaved(false)} className="mt-3 space-y-4">
     <Field label="Trip name"><Input required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} /></Field>
-    <div className="grid grid-cols-2 gap-3">
-      <Field label="Starts"><DateInput value={start} onValue={(value) => { setStart(value); setSaved(false) }} /></Field>
-      <Field label="Ends"><DateInput min={start || undefined} value={end} onValue={(value) => { setEnd(value); setSaved(false) }} /></Field>
-    </div>
+    <DateRangePicker start={start} end={end} onChange={(s, e) => { setStart(s); setEnd(e); setSaved(false) }} />
     <Field label="Destination time zone" hint="Use an IANA time zone, such as America/New_York. Existing itinerary items keep their own time zones.">
       <Input required value={zone} onChange={(e) => setZone(e.target.value)} />
     </Field>

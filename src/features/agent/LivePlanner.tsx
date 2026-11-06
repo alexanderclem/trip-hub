@@ -1,17 +1,20 @@
 // The live-price planner (docs/AGENT_PLANNER.md). Stowie opens it inside the chat; it is also a page
 // at /t/:tripId/more/planner. It asks the Worker for a checked plan with real offers, shows it, and
 // keeps the latest plan on this phone because each run spends paid provider calls.
-// Nothing is booked here: offers are listed with their expiry, and Finalize only queues the email.
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+// Nothing is booked here. "Add to plan" writes tentative items; "Email me a copy" queues the email.
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { DateTime } from 'luxon'
 import { Link, useParams } from 'react-router'
-import { useMembers, useTrip } from '@/data/hooks'
+import { BedDouble, ExternalLink, MapPin, Plane, Sun, Ticket } from 'lucide-react'
+import { useMembers, usePlaces, useTrip } from '@/data/hooks'
+import { useMyMemberId } from '@/data/device'
 import { tripAreas, tripDestination } from '@/features/destinations/destinations'
 import { formatMoney } from '@/lib/money'
 import { Button, ErrorNote, Field, Input, PageHeader, Segmented, Textarea } from '@/ui'
 import { finalizeAgentPlan, requestAgentPlan, type AgentRequest, type FinalPlan } from './client'
+import { addPlanToTrip, removePlanFromTrip } from './addToPlan'
 
-interface Saved { id: string; plan: FinalPlan; at: string; finalized?: string }
+interface Saved { id: string; plan: FinalPlan; at: string; finalized?: string; added?: { ids: string[]; skipped: number } }
 const storeKey = (tripId: string) => `live-plan:${tripId}`
 function load(tripId: string): Saved | null {
   try { const raw = localStorage.getItem(storeKey(tripId)); return raw ? JSON.parse(raw) as Saved : null } catch { return null }
@@ -20,8 +23,9 @@ function store(tripId: string, saved: Saved | null) {
   try { if (saved) localStorage.setItem(storeKey(tripId), JSON.stringify(saved)); else localStorage.removeItem(storeKey(tripId)) } catch { /* private mode: the plan stays on screen only */ }
 }
 
-const KIND: Record<FinalPlan['bookable'][number]['kind'], string> = { flight: 'Flight', hotel: 'Hotel', activity: 'Tour' }
-const time = (iso: string) => DateTime.fromISO(iso, { setZone: true }).toFormat('HH:mm')
+const hhmm = (t: string) => (t.includes('T') ? t.split('T')[1]! : t).slice(0, 5)
+const mapsLink = (...parts: (string | null | undefined)[]) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parts.filter(Boolean).join(', '))}`
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
 export function LivePlanner({ tripId, onDone }: { tripId: string; onDone?(): void }) {
   const trip = useTrip(tripId)
@@ -30,7 +34,6 @@ export function LivePlanner({ tripId, onDone }: { tripId: string; onDone?(): voi
   const [editing, setEditing] = useState(!saved)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [note, setNote] = useState<string | null>(null)
   const request = useRef<AbortController | null>(null)
   useEffect(() => () => request.current?.abort(), [])
 
@@ -47,21 +50,22 @@ export function LivePlanner({ tripId, onDone }: { tripId: string; onDone?(): voi
     }))
   }, [trip, members, city, country])
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }))
+  const keep = (next: Saved | null) => { store(tripId, next); setSaved(next) }
 
   const currency = trip?.base_currency ?? 'USD'
   const missingDates = !!trip && (!trip.start_date || !trip.end_date)
 
   async function run(e: FormEvent) {
     e.preventDefault()
-    setError(null); setNote(null)
+    setError(null)
     const origin = form.origin.trim().toUpperCase()
     const countryCode = form.countryCode.trim().toUpperCase()
     const adults = Number(form.adults)
-    const budget = form.budget.trim() ? Number(form.budget) : null
-    if (origin && !/^[A-Z]{3}$/.test(origin)) return setError('Use a three-letter airport code, such as JFK, or leave it blank to skip flights.')
-    if (!form.destination.trim()) return setError('Add a destination.')
-    if (!/^[A-Z]{2}$/.test(countryCode)) return setError('Use a two-letter country code, such as IT.')
-    if (!Number.isInteger(adults) || adults < 1 || adults > 9) return setError('Choose between 1 and 9 travelers.')
+    const budget = form.budget.trim() ? Number(form.budget.replace(/[, ]/g, '')) : null
+    if (origin && !/^[A-Z]{3}$/.test(origin)) return setError('Use a three-letter airport code like JFK, or leave it blank if you don’t need flights.')
+    if (!form.destination.trim()) return setError('Where are you going?')
+    if (!/^[A-Z]{2}$/.test(countryCode)) return setError('Add the two-letter country code, like IT for Italy.')
+    if (!Number.isInteger(adults) || adults < 1 || adults > 9) return setError('Plans can be for 1 to 9 travelers.')
     if (budget !== null && !(budget > 0)) return setError('Enter a budget above zero, or leave it blank.')
     const input: AgentRequest = {
       tripId, origin: origin || null, destination: form.destination.trim().slice(0, 80), countryCode, adults,
@@ -73,136 +77,219 @@ export function LivePlanner({ tripId, onDone }: { tripId: string; onDone?(): voi
     setBusy(true)
     try {
       const plan = await requestAgentPlan(input, controller.signal)
-      const next: Saved = { id: crypto.randomUUID(), plan, at: new Date().toISOString() }
-      store(tripId, next); setSaved(next); setEditing(false)
+      keep({ id: crypto.randomUUID(), plan, at: new Date().toISOString() })
+      setEditing(false)
     } catch (err) {
-      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : 'The trip agent could not finish this plan.')
+      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : 'Stowie couldn’t put a plan together. Try again.')
     } finally { setBusy(false) }
-  }
-
-  async function finalize() {
-    if (!saved) return
-    setError(null); setBusy(true)
-    try {
-      const result = await finalizeAgentPlan(tripId, saved.id, saved.plan)
-      if (result === 'limited') { setNote('Too many itinerary emails today. Try again tomorrow.'); return }
-      const next = { ...saved, finalized: new Date().toISOString() }
-      store(tripId, next); setSaved(next)
-      setNote(result === 'no_email' ? 'Plan finalized. Sign in to get your itinerary by email.' : 'Plan finalized. Your itinerary email is on its way.')
-    } catch (err) { setError(err instanceof Error ? err.message : 'Could not finalize this plan.') } finally { setBusy(false) }
   }
 
   if (!trip) return <p role="status" className="p-4 text-sm text-muted">Loading the trip…</p>
 
   return (
-    <section aria-label="Live-price plan" className="flex flex-col gap-4 rounded-surface border border-line bg-surface p-4">
+    <section aria-label="Trip plan with real prices" className="flex flex-col gap-4 rounded-surface border border-line bg-surface p-4">
       <header>
-        <p className="text-sm font-medium text-action">Live prices</p>
-        <h3 className="travel-heading text-2xl text-ink">Plan with real offers</h3>
-        <p className="mt-1 text-sm text-muted">Stowie checks real flights, hotels and tours, then fits them around your saved places. Nothing is booked.</p>
+        <h3 className="travel-heading text-2xl text-ink">{saved && !editing ? 'Your plan' : 'Plan it with real prices'}</h3>
+        {(editing || !saved) && <p className="mt-1 text-sm text-muted">Stowie looks up real flights, hotels and tours and fits them around the places you’ve saved. Nothing gets booked.</p>}
       </header>
 
-      {missingDates ? (
-        <div className="flex flex-col gap-3 rounded-surface bg-brand-50 p-3">
-          <p className="text-sm"><strong>This trip has no dates yet.</strong> Live prices depend on when you travel, so add the dates first.</p>
-          <Link to={`/t/${tripId}/more/settings`} className="inline-flex min-h-11 w-fit items-center rounded-control bg-action px-4 text-sm font-medium text-on-action">Set trip dates</Link>
-        </div>
-      ) : (
-        <p className="text-xs text-muted">Times use the trip’s time zone, {trip.timezone.replace(/_/g, ' ')}. <Link to={`/t/${tripId}/more/settings`} className="text-action underline">Change</Link></p>
-      )}
-
       {editing || !saved ? (
-        <form onSubmit={run} className="flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Destination"><Input value={form.destination} onChange={(e) => set('destination')(e.target.value)} maxLength={80} required /></Field>
-            <Field label="Country code" hint="Two letters, such as IT"><Input value={form.countryCode} onChange={(e) => set('countryCode')(e.target.value)} maxLength={2} autoCapitalize="characters" required /></Field>
-            <Field label="Flying from" hint="Airport code, optional"><Input value={form.origin} onChange={(e) => set('origin')(e.target.value)} maxLength={3} autoCapitalize="characters" placeholder="JFK" /></Field>
-            <Field label="Travelers"><Input value={form.adults} onChange={(e) => set('adults')(e.target.value)} inputMode="numeric" required /></Field>
+        missingDates ? (
+          <div className="flex flex-col gap-3 rounded-surface bg-brand-50 p-3">
+            <p className="text-sm"><strong>First, when are you going?</strong> Prices depend on your dates.</p>
+            <Link to={`/t/${tripId}/more/dates`} className="inline-flex min-h-11 w-fit items-center rounded-control bg-action px-4 text-sm font-medium text-on-action">Set trip dates</Link>
           </div>
-          <Field label={`Total budget (${currency})`} hint="Optional"><Input value={form.budget} onChange={(e) => set('budget')(e.target.value)} inputMode="decimal" placeholder="2000" /></Field>
-          <Field label="What kind of trip?"><Input value={form.vibe} onChange={(e) => set('vibe')(e.target.value)} maxLength={200} placeholder="Food, slow mornings, one big hike" /></Field>
-          <Field label="Anything else?" hint="Optional"><Textarea value={form.notes} onChange={(e) => set('notes')(e.target.value)} maxLength={1000} rows={2} /></Field>
-          <Segmented label="Getting around" value={form.travelMode} onChange={(v) => setForm((f) => ({ ...f, travelMode: v }))} options={[{ value: 'DRIVE', label: 'Driving' }, { value: 'WALK', label: 'Walking' }]} />
-          <ErrorNote error={error} />
-          <div className="flex flex-wrap gap-2">
-            {!missingDates && <Button type="submit" disabled={busy}>{busy ? 'Checking live prices…' : 'Find a plan'}</Button>}
-            {busy && <Button type="button" variant="secondary" onClick={() => request.current?.abort()}>Stop</Button>}
-            {!busy && saved && <Button type="button" variant="ghost" onClick={() => setEditing(false)}>Back to the plan</Button>}
-            {!busy && onDone && <Button type="button" variant="ghost" onClick={onDone}>Close</Button>}
-          </div>
-          {busy && <p role="status" className="text-sm text-muted">This can take up to a minute.</p>}
-        </form>
+        ) : (
+          <form onSubmit={run} className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Going to"><Input value={form.destination} onChange={(e) => set('destination')(e.target.value)} maxLength={80} required /></Field>
+              <Field label="Country code" hint="Like IT"><Input value={form.countryCode} onChange={(e) => set('countryCode')(e.target.value)} maxLength={2} autoCapitalize="characters" required /></Field>
+              <Field label="Flying from" hint="Airport code, optional"><Input value={form.origin} onChange={(e) => set('origin')(e.target.value)} maxLength={3} autoCapitalize="characters" placeholder="JFK" /></Field>
+              <Field label="Travelers"><Input value={form.adults} onChange={(e) => set('adults')(e.target.value)} inputMode="numeric" required /></Field>
+            </div>
+            <Field label={`Budget for everyone (${currency})`} hint="Optional"><Input value={form.budget} onChange={(e) => set('budget')(e.target.value)} inputMode="decimal" placeholder="2000" /></Field>
+            <Field label="What are you in the mood for?"><Input value={form.vibe} onChange={(e) => set('vibe')(e.target.value)} maxLength={200} placeholder="Good food, slow mornings, one big hike" /></Field>
+            <Field label="Anything else Stowie should know?" hint="Optional"><Textarea value={form.notes} onChange={(e) => set('notes')(e.target.value)} maxLength={1000} rows={2} /></Field>
+            <Segmented label="Getting around" value={form.travelMode} onChange={(v) => setForm((f) => ({ ...f, travelMode: v }))} options={[{ value: 'DRIVE', label: 'Driving' }, { value: 'WALK', label: 'Walking' }]} />
+            <p className="text-xs text-muted">Times are in {trip.timezone.replace(/_/g, ' ')}. <Link to={`/t/${tripId}/more/settings`} className="text-action underline">Change</Link></p>
+            <ErrorNote error={error} />
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" disabled={busy}>{busy ? 'Looking up prices…' : 'Make my plan'}</Button>
+              {busy && <Button type="button" variant="secondary" onClick={() => request.current?.abort()}>Stop</Button>}
+              {!busy && saved && <Button type="button" variant="ghost" onClick={() => setEditing(false)}>Back to my plan</Button>}
+              {!busy && onDone && <Button type="button" variant="ghost" onClick={onDone}>Close</Button>}
+            </div>
+            {busy && <p role="status" className="text-sm text-muted">This usually takes under a minute.</p>}
+          </form>
+        )
       ) : (
-        <PlanView saved={saved} busy={busy} error={error} note={note}
-          onFinalize={() => void finalize()} onRedo={() => { setNote(null); setEditing(true) }}
-          onClear={() => { store(tripId, null); setSaved(null); setEditing(true) }} onDone={onDone} />
+        <PlanView tripId={tripId} saved={saved} onChange={keep} onEdit={() => { setError(null); setEditing(true) }}
+          onClear={() => { keep(null); setEditing(true) }} onDone={onDone} />
       )}
     </section>
   )
 }
 
-function PlanView({ saved, busy, error, note, onFinalize, onRedo, onClear, onDone }: {
-  saved: Saved; busy: boolean; error: string | null; note: string | null
-  onFinalize(): void; onRedo(): void; onClear(): void; onDone?(): void
+function Thumb({ src, icon }: { src?: string | null; icon: ReactNode }) {
+  const [failed, setFailed] = useState(false)
+  if (src && !failed) return <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} className="size-14 shrink-0 rounded-control object-cover" />
+  return <span aria-hidden="true" className="flex size-14 shrink-0 items-center justify-center rounded-control bg-brand-50 text-action">{icon}</span>
+}
+
+function Named({ href, to, children }: { href?: string | null; to?: string | null; children: ReactNode }) {
+  if (to) return <Link to={to} className="font-medium text-ink underline decoration-line underline-offset-2 hover:text-action">{children}</Link>
+  if (href) return <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-baseline gap-1 font-medium text-ink underline decoration-line underline-offset-2 hover:text-action">{children}<ExternalLink aria-label="(opens in a new tab)" className="size-3.5 shrink-0 self-center text-muted" /></a>
+  return <span className="font-medium text-ink">{children}</span>
+}
+
+const ICON = { flight: <Plane className="size-5" />, activity: <Ticket className="size-5" />, free: <Sun className="size-5" />, place: <MapPin className="size-5" />, hotel: <BedDouble className="size-5" /> }
+const WHAT: Record<FinalPlan['bookable'][number]['kind'], string> = { flight: 'Flights', hotel: 'Hotel', activity: 'Tour' }
+
+function PlanView({ tripId, saved, onChange, onEdit, onClear, onDone }: {
+  tripId: string; saved: Saved; onChange(next: Saved): void; onEdit(): void; onClear(): void; onDone?(): void
 }) {
   const { plan } = saved
+  const trip = useTrip(tripId)
+  const places = usePlaces(tripId)
+  const memberId = useMyMemberId(tripId)
+  const [busy, setBusy] = useState<null | 'add' | 'undo' | 'email'>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [note, setNote] = useState<string | null>(null)
+  const destination = tripDestination(trip).city
+  const placeName = (id: string | null | undefined) => (id ? places?.find((p) => p.id === id)?.name : undefined)
+
   const soonest = plan.bookable.map((b) => b.expiresAt).filter((x): x is string => !!x).sort()[0]
   const expired = !!soonest && DateTime.fromISO(soonest) < DateTime.now()
+  const kinds = [...new Set(plan.bookable.map((b) => b.kind))]
+  const covers = kinds.map((k) => (k === 'flight' ? 'flights' : k === 'hotel' ? 'hotel' : 'tours')).join(kinds.length > 2 ? ', ' : ' and ')
+  const unchecked = plan.days.some((d) => d.items.some((i) => i.kind !== 'flight' && !i.routed))
+
+  async function add() {
+    if (!trip || !memberId) return setError('Choose who you are on this trip first, then try again.')
+    setError(null); setNote(null); setBusy('add')
+    try {
+      const result = await addPlanToTrip(plan, trip, saved.id, memberId)
+      onChange({ ...saved, added: { ids: result.ids, skipped: result.skipped } })
+      if (!result.added) setNote('Everything in this plan clashes with things already in your trip, so nothing was added.')
+    } catch (err) { setError(err instanceof Error ? err.message : 'Couldn’t add this to your plan. Try again.') } finally { setBusy(null) }
+  }
+  async function undo() {
+    if (!saved.added || !memberId) return
+    setError(null); setBusy('undo')
+    try { await removePlanFromTrip(saved.added.ids, memberId); onChange({ ...saved, added: undefined }); setNote('Removed from your plan.') }
+    catch { setError('Couldn’t undo that. Try again.') } finally { setBusy(null) }
+  }
+  async function email() {
+    setError(null); setNote(null); setBusy('email')
+    try {
+      const result = await finalizeAgentPlan(tripId, saved.id, plan)
+      if (result === 'limited') return setNote('You’ve hit today’s email limit. Try again tomorrow.')
+      if (result === 'no_email') return setNote('Sign in with your email to get a copy.')
+      onChange({ ...saved, finalized: new Date().toISOString() })
+    } catch (err) { setError(err instanceof Error ? err.message : 'Couldn’t send the email. Try again.') } finally { setBusy(null) }
+  }
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div>
-        <p className="text-sm leading-relaxed text-ink">{plan.summary}</p>
-        <p className="mt-2 text-sm font-medium">{plan.days.length} {plan.days.length === 1 ? 'day' : 'days'} · {formatMoney(plan.totalMinor, plan.currency)} in live offers</p>
-        <p className="text-xs text-muted">Checked {DateTime.fromISO(saved.at).toRelative()}{soonest ? ` · ${expired ? 'Some offers have expired, so run it again before booking' : `Prices held until ${DateTime.fromISO(soonest).toLocaleString(DateTime.DATETIME_SHORT)}`}` : ''}</p>
+        <p className="leading-relaxed text-ink">{plan.summary}</p>
+        {plan.totalMinor > 0 && <p className="mt-3 text-lg font-semibold">{formatMoney(plan.totalMinor, plan.currency)} <span className="text-sm font-normal text-muted">for {covers}</span></p>}
+        {soonest && <p className={`text-sm ${expired ? 'text-danger' : 'text-muted'}`}>{expired ? 'Some of these prices have expired. Refresh the plan before you book.' : `Prices are held until ${DateTime.fromISO(soonest).toFormat('ccc d LLL, h:mm a')}.`}</p>}
       </div>
 
-      <ol className="flex flex-col gap-4">
-        {plan.days.map((day) => (
-          <li key={day.date}>
-            <h4 className="font-semibold">{DateTime.fromISO(day.date).toFormat('ccc d LLL')}</h4>
-            {day.stay && <p className="text-sm text-muted">Stay: {day.stay.name}{day.stay.refundable ? ' · Refundable' : ' · Non-refundable'}</p>}
-            <ul className="mt-2 flex flex-col gap-1.5">
-              {day.items.map((item) => (
-                <li key={`${item.node}-${item.start}`} className="flex gap-3 text-sm">
-                  <span className="w-11 shrink-0 tabular-nums text-muted">{time(item.start)}</span>
-                  <span>{item.title}{!item.routed && <span className="text-muted"> · travel time not checked</span>}</span>
-                </li>
-              ))}
-            </ul>
-          </li>
-        ))}
+      <ol className="flex flex-col gap-5">
+        {plan.days.map((day, index) => {
+          const newStay = day.stay && day.stay.rateId !== plan.days[index - 1]?.stay?.rateId
+          return (
+            <li key={day.date} className="flex flex-col gap-3">
+              <h4 className="font-semibold text-ink">{DateTime.fromISO(day.date).toFormat('cccc d LLLL')}</h4>
+              {day.stay && newStay && (
+                <div className="flex items-center gap-3 rounded-surface bg-brand-50 p-2.5">
+                  <Thumb src={day.stay.photo} icon={ICON.hotel} />
+                  <div className="min-w-0 text-sm">
+                    <p className="text-muted">Staying at</p>
+                    <Named href={mapsLink(day.stay.name, day.stay.address ?? destination)}>{day.stay.name}</Named>
+                    <p className="text-xs text-muted">{day.stay.refundable ? 'Free cancellation' : 'Non-refundable'}</p>
+                  </div>
+                </div>
+              )}
+              {day.stay && !newStay && <p className="text-sm text-muted">Another night at {day.stay.name}</p>}
+              <ul className="flex flex-col gap-3">
+                {day.items.map((item) => {
+                  const saved = placeName(item.placeId)
+                  return (
+                    <li key={`${item.node}-${item.start}`} className="flex items-center gap-3">
+                      <Thumb src={item.photo} icon={item.kind === 'flight' ? ICON.flight : item.kind === 'activity' ? ICON.activity : saved ? ICON.place : ICON.free} />
+                      <div className="min-w-0 text-sm">
+                        <p className="tabular-nums text-muted">{hhmm(item.start)}–{hhmm(item.end)}</p>
+                        {item.kind === 'flight' ? <span className="font-medium text-ink">Flight {item.title}</span>
+                          : saved ? <Named to={`/t/${tripId}/more/places/${item.placeId}`}>{item.title}</Named>
+                          : item.kind === 'activity' ? <Named href={item.url ?? mapsLink(item.title, destination)}>{item.title}</Named>
+                          : <span className="font-medium text-ink">{item.title}</span>}
+                      </div>
+                    </li>
+                  )
+                })}
+                {!day.items.length && <li className="text-sm text-muted">A free day.</li>}
+              </ul>
+            </li>
+          )
+        })}
       </ol>
+      {unchecked && <p className="text-xs text-muted">Travel times between a few stops couldn’t be checked, so leave some slack.</p>}
 
       {!!plan.bookable.length && (
         <div>
-          <h4 className="font-semibold">Offers to book</h4>
+          <h4 className="font-semibold">What it costs</h4>
           <ul className="mt-1 text-sm">
-            {plan.bookable.map((b) => <li key={`${b.kind}-${b.ref}`} className="flex justify-between gap-3 border-b border-line py-1.5 last:border-0"><span>{KIND[b.kind]}</span><span className="tabular-nums">{formatMoney(b.totalMinor, plan.currency)}</span></li>)}
+            {plan.bookable.map((b) => (
+              <li key={`${b.kind}-${b.ref}`} className="flex justify-between gap-3 border-b border-line py-2">
+                <span className="min-w-0"><span className="text-muted">{WHAT[b.kind]}</span>{b.label && <span className="block text-ink">{b.label}</span>}</span>
+                <span className="shrink-0 tabular-nums">{formatMoney(b.totalMinor, plan.currency)}</span>
+              </li>
+            ))}
+            <li className="flex justify-between gap-3 py-2 font-semibold"><span>Total</span><span className="tabular-nums">{formatMoney(plan.totalMinor, plan.currency)}</span></li>
           </ul>
-          <p className="mt-1 text-xs text-muted">Booking each offer is a separate step and isn’t available yet.</p>
+          <p className="text-xs text-muted">You’ll book these yourself for now. Booking through Stowaway is coming soon.</p>
         </div>
       )}
-      {!!plan.assumptions.length && <p className="text-xs text-muted"><strong>Assumptions:</strong> {plan.assumptions.join(' · ')}</p>}
+
+      {!!plan.assumptions.length && (
+        <div>
+          <h4 className="font-semibold">Good to know</h4>
+          <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted">{plan.assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
+        </div>
+      )}
 
       <ErrorNote error={error} />
+      {saved.added && (
+        <div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-surface bg-brand-50 p-3 text-sm">
+          <span>Added {plural(saved.added.ids.length, 'item')} to your plan{saved.added.skipped ? `. ${plural(saved.added.skipped, 'item')} clashed with plans you already had, so we left them out` : ''}.</span>
+          <Link to={`/t/${tripId}/plan`} className="font-medium text-action underline">See the plan</Link>
+          <button type="button" onClick={() => void undo()} disabled={!!busy} className="font-medium text-action underline">{busy === 'undo' ? 'Undoing…' : 'Undo'}</button>
+        </div>
+      )}
+      {saved.finalized && <p role="status" className="rounded-surface bg-brand-50 p-3 text-sm">We’ll email you a copy of this plan.</p>}
       {note && <p role="status" className="rounded-surface bg-brand-50 p-3 text-sm">{note}</p>}
+
       <div className="flex flex-wrap gap-2">
-        {!saved.finalized && <Button onClick={onFinalize} disabled={busy || expired}>{busy ? 'Finalizing…' : 'Finalize plan'}</Button>}
-        <Button variant="secondary" onClick={onRedo} disabled={busy}>Change and re-run</Button>
-        <Button variant="ghost" onClick={onClear} disabled={busy}>Clear</Button>
+        {!saved.added && <Button onClick={() => void add()} disabled={!!busy}>{busy === 'add' ? 'Adding…' : 'Add to plan'}</Button>}
+        {!saved.finalized && <Button variant="secondary" onClick={() => void email()} disabled={!!busy || expired}>{busy === 'email' ? 'Sending…' : 'Email me a copy'}</Button>}
+        <Button variant="secondary" onClick={onEdit} disabled={!!busy}>Change details</Button>
+        <Button variant="ghost" onClick={onClear} disabled={!!busy}>Start over</Button>
         {onDone && <Button variant="ghost" onClick={onDone}>Close</Button>}
       </div>
     </div>
   )
 }
 
-/** The planner as its own page: a trip's More → Live-price plan. */
+/** The planner as its own page: a trip's More → Plan with real prices. */
 export function LivePlannerScreen() {
   const { tripId } = useParams()
   if (!tripId) return null
   return (
     <div>
-      <PageHeader title="Live-price plan" back={`/t/${tripId}/more/ideas`} />
+      <PageHeader title="Plan with real prices" back={`/t/${tripId}/more/ideas`} />
       <div className="mx-auto max-w-2xl px-4 py-4"><LivePlanner tripId={tripId} /></div>
     </div>
   )

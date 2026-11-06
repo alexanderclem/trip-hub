@@ -9,7 +9,8 @@ import { ChevronDown, X } from 'lucide-react'
 import { DestinationSearch } from '@/features/destinations/DestinationSearch'
 import { currencyFor, lookupZone, MAX_AREAS, type Destination } from '@/features/destinations/destinations'
 import { isValidZone } from '@/lib/time'
-import { Button, DateInput, ErrorNote, Field, Input, PageHeader, Select } from '@/ui'
+import { Button, ErrorNote, Field, Input, PageHeader, Select } from '@/ui'
+import { DateRangePicker } from '@/ui/DateRangePicker'
 import { createTrip } from './actions'
 import { afterEntry } from '@/features/onboarding/profile'
 import { LoadingState } from '@/ui/LoadingState'
@@ -80,6 +81,7 @@ export function CreateTripScreen() {
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!isValidZone(form.timezone)) return setError('Unknown time zone')
+    if (draft && !form.startDate) return setError('Pick when the trip starts, so the drafted days land on real dates.')
     if (form.startDate && form.endDate && form.endDate < form.startDate) {
       return setError('The trip ends before it starts')
     }
@@ -130,14 +132,8 @@ export function CreateTripScreen() {
         <details className="ui-disclosure rounded-surface border border-line bg-surface px-4 py-1" open={draft ? true : undefined}>
           <summary><span className="min-w-0 flex-1">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
           <div className="mt-1 space-y-5 pb-4">
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Starts">
-            <DateInput required={!!draft} value={form.startDate} onValue={(date) => { setForm((f) => ({ ...f, startDate: date, ...(draft && date ? { endDate: DateTime.fromISO(date).plus({ days: draft.result.ideas[ideaIndex]!.days.length - 1 }).toISODate()! } : {}) })) }} />
-          </Field>
-          <Field label="Ends">
-            <DateInput value={form.endDate} onValue={(date) => setForm((f) => ({ ...f, endDate: date }))} />
-          </Field>
-        </div>
+        <DateRangePicker start={form.startDate} end={form.endDate} fixedLength={draft ? draft.result.ideas[ideaIndex]!.days.length : undefined}
+          onChange={(startDate, endDate) => setForm((f) => ({ ...f, startDate, endDate }))} />
         <div>
           <p className="text-sm font-medium text-ink">Where are you going?</p>
           <p className="mt-1 text-xs text-muted">Optional. Sets the time zone and local currency. Settle-up currency is chosen separately.</p>

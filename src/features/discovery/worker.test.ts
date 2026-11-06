@@ -28,7 +28,7 @@ describe('AI request boundary', () => {
     const body: AIRequest = { action: 'chat', text: 'Five days of markets in Oaxaca', context: { hasProfile: true, draftTitle: null, destination: '', inTrip: false, recent: [{ from: 'stowie', text: 'What are you imagining?' }] } }
     const response = await worker.fetch(request(body), env)
     expect(await response.json()).toEqual(reply)
-    expect(env.AI.run).toHaveBeenCalledWith('@cf/meta/llama-3.3-70b-instruct-fp8-fast', expect.objectContaining({ max_tokens: 300, messages: [expect.objectContaining({ content: expect.stringContaining('You are Stowie') }), expect.anything()] }))
+    expect(env.AI.run).toHaveBeenCalledWith('@cf/meta/llama-3.1-8b-instruct-fast', expect.objectContaining({ max_tokens: 300, messages: [expect.objectContaining({ content: expect.stringContaining('You are Stowie') }), expect.anything()] }))
     env.AI.run = vi.fn(async () => ({ response: { intent: 'book', reply: '' } }))
     expect((await worker.fetch(request(body), env)).status).toBe(502)
     expect((await worker.fetch(request({ ...body, text: 'x'.repeat(1001) }), env)).status).toBe(400)

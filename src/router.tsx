@@ -61,6 +61,7 @@ export const routes: RouteObject[] = [
           { path: 'more', lazy: () => import('./features/trips/MoreScreen').then((m) => ({ Component: m.MoreScreen })) },
           { path: 'more/explore', lazy: () => import('./features/travel/TravelScreen').then((m) => ({ Component: m.TravelScreen })) },
           { path: 'more/ideas', lazy: () => import('./features/stowie/StowieScreen').then((m) => ({ Component: m.StowieScreen })) },
+          { path: 'more/dates', lazy: () => import('./features/trips/TripDatesScreen').then((m) => ({ Component: m.TripDatesScreen })) },
           { path: 'more/planner', lazy: () => import('./features/agent/LivePlanner').then((m) => ({ Component: m.LivePlannerScreen })) },
           { path: 'more/ideas/manual', lazy: () => import('./features/discovery/DiscoveryScreen').then((m) => ({ Component: m.DiscoveryScreen })) },
           { path: 'more/tasks', lazy: () => import('./features/tasks/TasksScreen').then((m) => ({ Component: m.TasksScreen })) },

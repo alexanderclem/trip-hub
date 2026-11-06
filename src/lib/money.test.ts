@@ -304,7 +304,8 @@ describe('settle-up finds the fewest payments', () => {
 
   it('property: matches brute force on small groups and always clears every balance', () => {
     const arbNet = fc.array(fc.integer({ min: -2000, max: 2000 }), { minLength: 1, maxLength: 7 }).map((vs) => {
-      const all = [...vs, -vs.reduce((a, b) => a + b, 0)]
+      // 0 - sum, not -sum: negating a zero total gives -0, which toBe(0) rejects.
+      const all = [...vs, 0 - vs.reduce((a, b) => a + b, 0)]
       return new Map(all.map((v, i) => [`m${i}`, v]))
     })
     fc.assert(fc.property(arbNet, (net) => {
