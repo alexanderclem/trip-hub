@@ -271,7 +271,7 @@ describe('runAgent', () => {
 
   it('searches the right nights itself when the hotel does not cover the stay, instead of another turn', async () => {
     let n = 0
-    const turns = [submit('s1', [flightAndHotel[0], { ...flightAndHotel[1], ref: 'rate_short', day: '2027-03-20' }])]
+    const turns = [submit('s1', [flightAndHotel[0]!, { ...flightAndHotel[1]!, ref: 'rate_short', day: '2027-03-20' }])]
     const fake = (async (url: string | URL | Request, init?: RequestInit) => {
       const u = String(url)
       if (u.includes('deepseek')) return Response.json({ choices: [{ message: { content: null, ...turns[n++] }, finish_reason: 'tool_calls' }] })
@@ -285,7 +285,7 @@ describe('runAgent', () => {
     }) as typeof fetch
     const l = new Ledger(); l.put(flight); l.put({ ...hotel, id: 'rate_short', checkout: '2027-03-25' })
     const plan = await runAgent({ ...trip, origin: null, destination: 'Antigua Guatemala', countryCode: 'GT', vibe: '', notes: '', travelMode: 'DRIVE' },
-      { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm' }, fake, NOW, l)
+      { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm', LITEAPI_KEY: 'l' }, fake, NOW, l)
     expect(n).toBe(1)
     expect(plan.bookable.find((b) => b.kind === 'hotel')).toMatchObject({ ref: 'rate_full', totalMinor: 150000 })
   })
