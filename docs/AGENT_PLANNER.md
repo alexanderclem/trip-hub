@@ -64,6 +64,27 @@ A node is `{kind: flight|hotel|activity|free, ref, day, start_time, duration_min
 
 ## Orchestration
 
+**Speed: search before the model, repair on the server.** Every model turn costs 1.5–4.5 s, and a
+route LiteAPI hasn't cached costs 15–20 s of flight search (about 1 s once cached). So:
+- **Warm-up** (`/api/agent-warm`, `handleAgentWarm`): the planner form calls it once the airport and
+  destination look complete. It runs the opening searches below in the background (`waitUntil`),
+  discards them, and makes no model call. LiteAPI's cache then makes the real plan's searches fast.
+  Rate-limited per person under its own key.
+- **Prefetch** (`prefetch` in `loop.ts`), in parallel before the first turn: the destination airport
+  (LiteAPI airport search, matched to the trip's country; it returns ISO codes) and the round trip on
+  the trip's first and last days; hotels for the trip's dates and from the next day (overnight
+  flights); tours for the whole trip. They reach the model as `ready` in the trip message, so it
+  usually submits in its first turn.
+- **Repairs instead of resubmits:** a round-trip offer listed twice is booked once; a single stay
+  on the wrong nights is swapped for the same hotel's rate on the right nights (searched by the
+  server if needed); free time is trimmed around booked items. Tours that the account can't book
+  (401/403) are reported once and further tour calls are refused locally.
+- Every response carries `usage.timings` (prefetch, each model turn, each tool, routing), and the
+  Worker logs `[agent-timings]`.
+
+Measured 6 Nov 2026 in production: 15–40 s and 6–7 model turns before; one or two turns now,
+about 6 s without flights, 7–11 s on a cached route, and 16–20 s on a cold route without the warm-up.
+
 **State lives in the Ledger, not the conversation.** Every provider result is normalized and
 stored in a per-request `Ledger` under its id: exact local times with IANA zones, prices in minor
 units, expiry, coordinates. The model sees short summaries. When it submits, `resolve()` rebuilds
@@ -229,7 +250,7 @@ https://docs.liteapi.travel/docs/getting-access-to-experiences.
   and migration permissions. TypeScript checks passed.
 - Deployed the planner API to production from an isolated checkout, preserving unrelated working
   edits. Initial version: `b98389ae-d651-4831-b452-f3eeb25aeb89`. Unauthenticated requests now return
-  401 instead of 404. The API is deployed; a planner screen is not yet wired into the frontend.
+  401 instead of 404. The API is deployed. (The planner screen followed the same day; see "Frontend".)
 - Applied `trip_finalized_email` to production and deployed `email-dispatch`. Verified execute
   permissions and unsigned-request rejection (403). Existing active trip count remained 11.
 - Live provider verification: authenticated hotel planning returned HTTP 200 with a three-day itinerary and a real LiteAPI rate. Experiences searches returned HTTP 403; account enablement is required. Flight verification is in progress; Gmail sender authorization is still owner work.
@@ -260,3 +281,12 @@ time zones before spending provider calls. Current production version: `e4ae6281
 - Stowie: trip chats show a **Plan with live prices** button that opens the planner inside the
   conversation. Also reachable at `/t/:tripId/more/planner`.
 - Verified in a mocked browser run at phone width. Deployed with the rest of the working tree as version `d547a5ab-d6a7-49c1-b8ab-4a509f7435f3` (699 unit tests passed first).
+
+### Live check and speed work — 6 Nov 2026
+
+- End-to-end production runs (disposable `E2E TEST agent …` trips) return real LiteAPI flights and
+  hotels: Lisbon, Porto, Barcelona, Seville, Madrid, Athens, Dublin, Rome and Mexico City.
+- Tours are still missing because LiteAPI Experiences returns 403 until the account is enabled.
+- See "Speed" under Orchestration for what changed. Flights in a plan now sit on the day they leave,
+  at each airport's local time, and "Add to plan" keeps each end in its own zone.
+- The planner screen links each priced item to a keyless search for that exact flight, hotel or tour.
