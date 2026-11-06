@@ -35,6 +35,16 @@ describe('email templates', () => {
       'Stop these emails (one tap): https://joinstowaway.app/unsubscribe#t=abc'].join('\n'))
   })
 
+  it('summarises a finalized agent plan day by day, in the trip currency', () => {
+    const m = renderEmail('trip_finalized', { traveler_name: 'Alex', trip_name: 'Guatemala 2027', summary: 'A week in Antigua.', currency: 'USD', total_minor: 230000,
+      trip_url: 'https://joinstowaway.app/t/x/plan', days: [{ date: '2027-03-22', stay: 'Casa Antigua', items: [{ start: '10:00', title: 'Mercado' }] }] })
+    expect(m.subject).toBe('Guatemala 2027: your itinerary is ready')
+    expect(m.text).toContain('March 22, 2027 · Casa Antigua\n  10:00  Mercado')
+    expect(m.text).toContain('Total for what you chose to book: $2,300.00.')
+    expect(m.text).toContain('Nothing is booked until you confirm')
+    expect(m.text).toContain('Open the plan: https://joinstowaway.app/t/x/plan')
+  })
+
   it('refuses unknown templates', () => {
     expect(() => renderEmail('nope', {})).toThrow(/Unknown/)
   })

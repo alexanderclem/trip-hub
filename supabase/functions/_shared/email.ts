@@ -91,6 +91,31 @@ export function renderEmail(template: string, d: Record<string, unknown>): Rende
           'Stripe has taken the amount and its dispute fee from your balance until it’s decided.', '',
           `Respond in your Stripe Dashboard${d.due_by ? ` by ${day(d.due_by)}` : ''}; after that you can’t: https://dashboard.stripe.com/disputes`].join('\n'),
       }
+    case 'trip_finalized': {
+      // Queued by public.queue_trip_finalized_email when someone finalizes an agent plan
+      // (docs/AGENT_PLANNER.md). Sent only to that person's own account address.
+      const cur = /^[A-Z]{3}$/.test(s(d.currency)) ? s(d.currency) : 'USD'
+      const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: cur })
+      const total = fmt.format(Number(d.total_minor ?? 0) / 10 ** (fmt.resolvedOptions().maximumFractionDigits ?? 2))
+      const days = Array.isArray(d.days) ? (d.days as { date?: unknown; stay?: unknown; items?: unknown }[]).slice(0, 21) : []
+      const lines = days.flatMap((dd) => {
+        const items = Array.isArray(dd.items) ? (dd.items as { start?: unknown; title?: unknown }[]).slice(0, 12) : []
+        return [`${day(dd.date)}${s(dd.stay) ? ` · ${s(dd.stay)}` : ''}`, ...items.map((i) => `  ${s(i.start)}  ${s(i.title)}`), '']
+      })
+      return {
+        fromName: 'Stowaway',
+        subject: `${s(d.trip_name)}: your itinerary is ready`,
+        text: [
+          `Hi ${s(d.traveler_name) || 'there'},`, '',
+          s(d.summary), '',
+          ...lines,
+          `Total for what you chose to book: ${total}.`,
+          'Nothing is booked until you confirm each booking in the app. Flight prices are held only for a short time.', '',
+          `Open the plan: ${s(d.trip_url)}`, '',
+          footer,
+        ].join('\n'),
+      }
+    }
     default:
       throw new Error(`Unknown email template ${template}`)
   }

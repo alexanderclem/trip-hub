@@ -3,9 +3,10 @@ import { handleTravel, type TravelEnv } from './travel'
 import { handleConnector, type ConnectorEnv } from './connector'
 import { handleScan } from './scan'
 import { handleInvite, isInvitePath } from './invite'
+import { handleAgent, type AgentHandlerEnv } from './agent/handler'
 import { AXES, assistReplySchema, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema, tidyIdea } from '../src/features/discovery/model'
 
-export interface Env extends ConnectorEnv, TravelEnv {
+export interface Env extends ConnectorEnv, TravelEnv, AgentHandlerEnv {
   ASSETS: { fetch(request: Request): Promise<Response> }
   AI: { run(model: string, input: Record<string, unknown>): Promise<{ response?: unknown }> }
   AI_RATE_LIMITER: { limit(input: { key: string }): Promise<{ success: boolean }> }
@@ -73,6 +74,7 @@ export default {
     if (path === '/api/travel-info') return handleTravel(request, env)
     if (path === '/mcp' || path === '/.well-known/oauth-protected-resource' || path === '/.well-known/oauth-protected-resource/mcp') return handleConnector(request, env)
     if (path === '/api/scan') return handleScan(request, env)
+    if (path === '/api/agent-plan') return handleAgent(request, env)
     if (isInvitePath(path) && (request.method === 'GET' || request.method === 'HEAD')) return handleInvite(request, env)
     if (path.startsWith('/api/') && path !== '/api/travel-ai') return json({ error: 'Not found' }, 404)
     if (path !== '/api/travel-ai') return assetOrNotFound(request, env)

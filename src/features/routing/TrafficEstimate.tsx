@@ -10,17 +10,10 @@ import { friendlyError } from '@/ui/errors'
 type Estimate = { duration_s: number; distance_m: number; departure_at: string; checked_at: string }
 const FRESH_MS = 5 * 60_000
 
-/** On-demand only: no paid background matrix requests and no offline caching. */
-export function TrafficEstimate({ from, to }: { from: Place; to: Place }) {
-  const [estimate, setEstimate] = useState<Estimate | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+function useOnline() {
   const [online, setOnline] = useState(navigator.onLine)
   useEffect(() => {
-    const update = () => {
-      setOnline(navigator.onLine)
-      if (!navigator.onLine) setEstimate(null)
-    }
+    const update = () => setOnline(navigator.onLine)
     window.addEventListener('online', update)
     window.addEventListener('offline', update)
     return () => {
@@ -28,6 +21,23 @@ export function TrafficEstimate({ from, to }: { from: Place; to: Place }) {
       window.removeEventListener('offline', update)
     }
   }, [])
+  return online
+}
+
+/** The Google notice and offline state, printed once under a list of estimates (`notes={false}` rows). */
+export function TrafficNotice() {
+  const online = useOnline()
+  return <p className="mt-3 border-t border-dashed border-line pt-3 text-xs text-muted">{online ? <>Checking traffic sends the two places’ coordinates to Google. <Link className="underline" to="/privacy">Privacy</Link> · <Link className="underline" to="/terms">Terms</Link></> : 'Connect to check current traffic.'}</p>
+}
+
+/** On-demand only: no paid background matrix requests and no offline caching.
+ *  In a list, pass `notes={false}` and render one `TrafficNotice` instead of repeating it per row. */
+export function TrafficEstimate({ from, to, notes = true }: { from: Place; to: Place; notes?: boolean }) {
+  const [estimate, setEstimate] = useState<Estimate | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const online = useOnline()
+  useEffect(() => { if (!online) setEstimate(null) }, [online])
   useEffect(() => {
     if (!estimate) return
     const remaining = FRESH_MS - (Date.now() - Date.parse(estimate.checked_at))
@@ -58,12 +68,13 @@ export function TrafficEstimate({ from, to }: { from: Place; to: Place }) {
     }
   }
   const pinned = from.lat != null && from.lng != null && to.lat != null && to.lng != null
+  if (!notes && !online) return null
   return (
     <div className="mt-2">
       <Button variant="secondary" type="button" onClick={() => void check()} disabled={busy || !online || !pinned} aria-label={`Check driving traffic from ${from.name} to ${to.name}`} className="min-h-11 text-xs">
         {busy ? 'Checking traffic…' : estimate ? 'Refresh traffic' : 'Check driving traffic'}
       </Button>
-      <p className="mt-1 text-xs text-muted">Sends these two place coordinates to Google. <Link className="underline" to="/privacy">Privacy</Link> · <Link className="underline" to="/terms">Terms</Link></p>
+      {notes && <p className="mt-1 text-xs text-muted">Sends these two place coordinates to Google. <Link className="underline" to="/privacy">Privacy</Link> · <Link className="underline" to="/terms">Terms</Link></p>}
       <div aria-live="polite" aria-atomic="true">
         {estimate && (
           <div className="mt-2 border-l-2 border-control pl-3 text-sm text-ink">
@@ -73,7 +84,7 @@ export function TrafficEstimate({ from, to }: { from: Place; to: Place }) {
           </div>
         )}
         {error && <p className="mt-1 text-xs text-danger-ink">{friendlyError(error)}</p>}
-        {!online && <p className="mt-1 text-xs text-muted">Connect to check current traffic.</p>}
+        {notes && !online && <p className="mt-1 text-xs text-muted">Connect to check current traffic.</p>}
         {!pinned && <p className="mt-1 text-xs text-muted">Add map pins to check traffic.</p>}
       </div>
     </div>

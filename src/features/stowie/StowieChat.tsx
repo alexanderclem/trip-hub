@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { DateTime } from 'luxon'
-import { SendHorizontal } from 'lucide-react'
+import { SendHorizontal, Sparkles } from 'lucide-react'
 import { db } from '@/data/db'
 import { useDevice, useMyMemberId } from '@/data/device'
 import { useMembers, usePlaces, useTrip } from '@/data/hooks'
@@ -17,6 +17,7 @@ import { carryOut, toProposal, type Link } from './proposal'
 import { newThread, step, type Chip, type Ctx, type Effect, type Event, type Mood, type Screen, type Step, type Thread } from './script'
 import { buildSnapshot, moneySummary, todayIn } from './snapshot'
 import { Stowie } from './Stowie'
+import { LivePlanner } from '@/features/agent/LivePlanner'
 
 const PLACEHOLDER: Partial<Record<Step, string>> = {
   describe: 'I love street food and quiet beaches…',
@@ -83,6 +84,8 @@ export function StowieChat({ tripId, screen = null, subject = null, sheet = fals
   const [flash, setFlash] = useState<Mood | null>(null)
   const [focused, setFocused] = useState(false)
   const [text, setText] = useState('')
+  /** The live-price planner, opened inside the conversation. Trip chats only. */
+  const [live, setLive] = useState(false)
   const request = useRef<AbortController | null>(null)
   const alive = useRef(true)
   const log = useRef<HTMLDivElement>(null)
@@ -255,6 +258,12 @@ export function StowieChat({ tripId, screen = null, subject = null, sheet = fals
               {m.card?.kind === 'draft' && <DraftCard draftId={m.card.draftId} profiles={included} onLoad={m.id === newest?.id ? follow : undefined} />}
             </div>
           ))}
+          {tripId && live && (
+            <div data-newest="" className="flex flex-col gap-2">
+              <Bubble from="stowie">I’ll check real flights, hotels and tours and fit them around your saved places. Tell me a bit about the trip.</Bubble>
+              <LivePlanner tripId={tripId} onDone={() => setLive(false)} />
+            </div>
+          )}
         </div>
       </div>
       <div className={`shrink-0 border-t border-line bg-surface px-4 pt-3 ${tripId && !sheet ? 'pb-3' : 'pb-[max(0.75rem,env(safe-area-inset-bottom))]'}`}>
@@ -268,7 +277,15 @@ export function StowieChat({ tripId, screen = null, subject = null, sheet = fals
                   {thread.pending?.type === 'generate' && <Button variant="secondary" onClick={() => request.current?.abort()}>Stop</Button>}
                 </div>
               ) : (
-                <ChipRow chips={thread.chips} onPick={(chip: Chip) => void dispatch({ type: 'chip', chip })} />
+                <div className="flex flex-col gap-2">
+                  {tripId && !live && (
+                    <button type="button" onClick={() => { setLive(true); requestAnimationFrame(() => log.current?.querySelector('[data-newest]:last-child')?.scrollIntoView({ block: 'start' })) }}
+                      className="inline-flex min-h-11 w-fit items-center gap-2 rounded-full border border-action px-4 text-sm font-medium text-action hover:bg-brand-50">
+                      <Sparkles aria-hidden="true" className="size-4" />Plan with live prices
+                    </button>
+                  )}
+                  <ChipRow chips={thread.chips} onPick={(chip: Chip) => void dispatch({ type: 'chip', chip })} />
+                </div>
               )}
             </div>
           </div>

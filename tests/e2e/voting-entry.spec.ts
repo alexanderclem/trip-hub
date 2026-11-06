@@ -81,6 +81,7 @@ test('overview loads when Safari member-index cursors stall', async ({ page }) =
   })
   await page.goto(`${base}/overview`)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.getByText('Alex (you)', { exact: true })).toBeVisible()
+  // Members still load: the header's traveler link only renders once they have.
+  await expect(page.locator('.overview-traveler-link')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Opening your trip…' })).toHaveCount(0)
 })

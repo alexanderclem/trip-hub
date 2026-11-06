@@ -17,7 +17,9 @@
   "ratelimits": [
     { "name": "TRAVEL_RATE_LIMITER", "namespace_id": "1003", "simple": { "limit": 30, "period": 60 } },
     { "name": "AI_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 6, "period": 60 } },
-    { "name": "MCP_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } }
+    { "name": "MCP_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } },
+    // The booking agent spends paid DeepSeek, LiteAPI and Google Routes calls.
+    { "name": "AGENT_RATE_LIMITER", "namespace_id": "1004", "simple": { "limit": 2, "period": 60 } }
   ],
   // Branch Previews have their own bindings and use the isolated staging database.
   "previews": {
@@ -25,9 +27,12 @@
     "ratelimits": [
       { "name": "TRAVEL_RATE_LIMITER", "namespace_id": "2003", "simple": { "limit": 30, "period": 60 } },
       { "name": "AI_RATE_LIMITER", "namespace_id": "2001", "simple": { "limit": 6, "period": 60 } },
-      { "name": "MCP_RATE_LIMITER", "namespace_id": "2002", "simple": { "limit": 60, "period": 60 } }
+      { "name": "MCP_RATE_LIMITER", "namespace_id": "2002", "simple": { "limit": 60, "period": 60 } },
+      { "name": "AGENT_RATE_LIMITER", "namespace_id": "2004", "simple": { "limit": 2, "period": 60 } }
     ],
+    // Use a LiteAPI sandbox key (sand_...) for Previews; production access is separate.
     "vars": {
+      "DEEPSEEK_MODEL": "deepseek-flash",
       "IDEAS_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       "SUPABASE_URL": "https://knufofvmqopuvijvtzow.supabase.co",
@@ -36,6 +41,8 @@
   },
   "vars": {
     "MCP_RESOURCE_URL": "https://trip-hub.alexanderclem12.workers.dev/mcp",
+    // Official API alias for DeepSeek-V4.1-Flash-1017; confirm account access with GET /models.
+    "DEEPSEEK_MODEL": "deepseek-flash",
     "IDEAS_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "SUPABASE_URL": "https://croqjdvzbpcscdcshnet.supabase.co",

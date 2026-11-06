@@ -133,7 +133,7 @@ If Stripe asks what you sell, the honest answer is: software for organizers of g
 
 Booking confirmations, payment receipts, balance reminders and waitlist offers go out from a **dedicated** Gmail account. That way a problem with it can never touch your personal email.
 
-1. Create a new Gmail account for Stowaway (for example `stowaway.trips@gmail.com`). Turn on **2-Step Verification**. Put the recovery details in your password manager.
+1. The Stowaway Gmail account is `joinstowaway@gmail.com` (created 5 Nov 2026). Turn on **2-Step Verification**. Put the recovery details in your password manager.
 2. In **Google Cloud Console**, using the project you already use for the Routes traffic button:
    1. APIs & Services → Library → enable the **Gmail API**.
    2. OAuth consent screen:
@@ -146,6 +146,8 @@ Booking confirmations, payment receipts, balance reminders and waitlist offers g
    1. Gear icon → tick **Use your own OAuth credentials** → paste the client ID and secret.
    2. In "Input your own scopes", enter `https://www.googleapis.com/auth/gmail.send` → **Authorize APIs**. Sign in as the **Stowaway** Gmail account, not your own.
    3. **Exchange authorization code for tokens** → copy the **refresh token**.
+   4. If Google says **Access blocked / app is currently being tested**, open Google Auth Platform → Audience → Test users and add `joinstowaway@gmail.com`, then restart authorization. A test token is temporary: switch Audience to **In production** and authorize again before using the final token for ongoing email.
+   5. In Playground Settings, keep **Access type: Offline**, and use your own OAuth client credentials. Store only the refresh token as `GMAIL_REFRESH_TOKEN`; the short-lived access token is not a substitute. Never paste either token or the client secret into chat.
 4. Optional, but it fixes sign-in emails that only arrive a few times an hour:
    - Generate an **app password** for the Stowaway account (Google Account → Security → App passwords).
    - Then in Supabase → Authentication → **SMTP Settings**: host `smtp.gmail.com`, port `465`, user is the Stowaway address, password is the app password, sender name "Stowaway".
@@ -167,7 +169,7 @@ Supabase dashboard → **Edge Functions → Secrets** (Manage secrets). Add:
 | `GMAIL_CLIENT_ID` | from step 4.2 |
 | `GMAIL_CLIENT_SECRET` | from step 4.2 |
 | `GMAIL_REFRESH_TOKEN` | from step 4.3 |
-| `GMAIL_SENDER` | the Stowaway Gmail address |
+| `GMAIL_SENDER` | `joinstowaway@gmail.com` |
 
 Never put any of these in a `VITE_` variable, in `.env.production`, or in Git.
 

@@ -35,3 +35,7 @@ supabase/.temp/
 .github/skills/impeccable/
 .github/agents/impeccable-*.md
 .github/hooks/impeccable.json
+
+# Local browser-test logs and screenshots
+.playwright-cli/
+output/

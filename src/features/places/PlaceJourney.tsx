@@ -19,9 +19,9 @@ export function PlaceJourney({ place, members, items, polls, membersReady, mayPl
   const stage = visits?.length ? 2 : chosen || decisions?.length ? 1 : 0
   const ready = items !== undefined && polls !== undefined && membersReady
   return <section className="place-journey" aria-labelledby="place-journey-title">
-    <h2 id="place-journey-title" className="notebook-label">From a good idea to a shared plan</h2>
+    <h2 id="place-journey-title" className="sr-only">Planning progress</h2>
     <ol className="place-journey-stages" aria-label="Place planning progress">
-      {['Saved idea', chosen ? 'Group choice' : 'Group vote', 'In the plan'].map((label, index) => <li key={index} aria-current={ready && stage === index ? 'step' : undefined} data-reached={ready && (index === 0 || index === 1 && chosen || index === 2 && !!visits?.length)}><span aria-hidden="true">{ready && (index === 0 || index === 1 && chosen || index === 2 && !!visits?.length) ? <Check className="size-3.5" /> : String(index + 1).padStart(2, '0')}</span>{label}</li>)}
+      {['Saved idea', chosen ? 'Group choice' : 'Group vote', 'In the plan'].map((label, index) => <li key={index} aria-current={ready && stage === index ? 'step' : undefined} data-reached={ready && (index === 0 || index === 1 && chosen || index === 2 && !!visits?.length)}><span aria-hidden="true">{ready && (index === 0 || index === 1 && chosen || index === 2 && !!visits?.length) ? <Check className="size-3.5" /> : index + 1}</span>{label}</li>)}
     </ol>
     {!ready ? <p className="text-sm text-muted" role="status">Checking the group’s votes and plan…</p> : <>
       {!!decisions?.length && <ul className="place-journey-decisions">{decisions.map(({ poll, options, votes }) => {

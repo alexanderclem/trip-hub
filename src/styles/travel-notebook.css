@@ -34,8 +34,7 @@
 .shared-places-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: .5rem; margin-bottom: .75rem; }
 .shared-places-heading h2 { font-family: var(--stowaway-font-display); font-size: 1.375rem; font-weight: 600; letter-spacing: -.035em; line-height: 1.3; margin-top: .25rem; }
 .shared-places-heading > .ui-link { font-size: .75rem; }
-.shared-place { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) 1rem; gap: .75rem; align-items: start; padding: 1.125rem 0; border-top: 1px solid var(--stowaway-border); }
-.shared-place-index { color: var(--stowaway-muted); font-family: var(--stowaway-font-display); font-size: .875rem; line-height: 1.7; }
+.shared-place { display: grid; grid-template-columns: minmax(0, 1fr) 1rem; gap: .75rem; align-items: start; padding: 1.125rem 0; border-top: 1px solid var(--stowaway-border); }
 .shared-place > svg { margin-top: .375rem; color: var(--stowaway-muted); }
 .shared-place h3 { margin-top: .25rem; overflow-wrap: anywhere; font-size: 1.0625rem; font-weight: 600; letter-spacing: -.025em; line-height: 1.45; }
 .shared-place:hover h3 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }

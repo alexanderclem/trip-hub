@@ -14,13 +14,13 @@ import { SyncStatusButton } from '@/features/sync/SyncStatus'
 import { useUnseenActivity } from '@/features/activity/data'
 import { StowieCompanion } from '@/features/stowie/StowieCompanion'
 import { Brand } from '@/ui/Brand'
-import { dateRange } from '@/lib/time'
 import { LoadingState } from '@/ui/LoadingState'
 import { PageTransition } from '@/ui/PageTransition'
 import { HeaderTools, HeaderTripName } from '@/ui'
 import { QuickAdd } from '@/features/trips/QuickAdd'
 import { useSlidingHighlight } from '@/ui/effects'
 import { CommandMenu } from '@/ui/CommandMenu'
+import { TripSwitcher } from './TripSwitcher'
 
 // Keep the phone navigation compact; desktop exposes the full trip workspace.
 const tabs = [
@@ -179,12 +179,9 @@ function TripShell({ tripId }: { tripId: string }) {
       <a href="#trip-content" className="trip-skip">Skip to trip content</a>
       <aside className="hidden min-h-0 w-64 shrink-0 flex-col overflow-y-auto overscroll-contain border-r border-line bg-surface p-5 lg:flex" aria-label="Trip workspace">
         <Link to="/app" aria-label="Stowaway — your trips" className="mb-5 shrink-0"><Brand /></Link>
-        <label className="text-xs font-semibold text-muted" htmlFor="trip-switcher">Your trips</label>
-        <select id="trip-switcher" className="ui-field mt-2 min-h-11 w-full min-w-0 rounded-control border border-control bg-surface px-3 font-semibold text-ink" value={tripId} onChange={(event) => navigate(`/t/${event.target.value}/overview`)}>
-          {!trips?.some((t) => t?.id === tripId) && <option value={tripId}>{trip?.name ?? 'Loading trip…'}</option>}
-          {trips?.filter((t) => t && !t.deleted_at).map((t) => <option key={t!.id} value={t!.id}>{t!.name}</option>)}
-        </select>
-        <p className="mt-2 text-sm text-muted">{dateRange(trip?.start_date, trip?.end_date)}</p>
+        <TripSwitcher current={tripId} currentName={trip?.name ?? 'Loading trip…'}
+          trips={(trips ?? []).filter((t): t is NonNullable<typeof t> => !!t && !t.deleted_at)}
+          onPick={(id) => navigate(`/t/${id}/overview`)} />
         <nav aria-label="Trip navigation" className="mt-5 shrink-0 space-y-4 pb-2">
           {desktopGroups.slice(0, 2).map(({ label: groupLabel, items }) => <div key={groupLabel}>
             <p className="mb-1 px-3 text-xs font-semibold text-muted">{groupLabel}</p>

@@ -56,7 +56,7 @@ Supabase → Edge Functions → Secrets:
 | `STRIPE_API_VERSION` | Optional; otherwise the account's default version applies |
 | `SITE_URL` | `https://joinstowaway.app` |
 | `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` | From step 3 |
-| `GMAIL_SENDER` | The Stowaway Gmail address |
+| `GMAIL_SENDER` | `joinstowaway@gmail.com` |
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are provided by Supabase.
 

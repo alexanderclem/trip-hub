@@ -57,11 +57,10 @@ export function SettingsScreen() {
   return (
     <div className="pb-10">
       <PageHeader title="Trip settings" back={`/t/${tripId}/more`} />
-      <div className="mx-auto max-w-md space-y-4 p-4">
-        <Card><SectionTitle>Appearance</SectionTitle><p className="mt-1 mb-4 text-sm text-muted">Choose a theme for this device. System follows your display settings.</p><AppearancePicker showLabel={false} /></Card>
-        <Card><SectionTitle>Trip cover</SectionTitle><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} photo={coverPhoto(trip)} /></div><TripCoverPicker trip={trip} memberId={me} /></Card>
-        <Card><Disclosure summary="Trip details"><TripDetailsForm trip={trip} memberId={me} /></Disclosure></Card>
-        <Card><Link className="ui-link inline-flex min-h-11 items-center" to={`/t/${tripId}/more/import`}>Import a plan from a spreadsheet</Link><p className="text-sm text-muted">Moving from another tool? Bring the itinerary in as a CSV.</p></Card>
+      {/* Grouped by who a setting affects: the group, the whole trip, then only this phone. */}
+      <div className="mx-auto max-w-md p-4">
+        <section className="settings-group" aria-labelledby="settings-group-title">
+        <h2 id="settings-group-title" className="ui-label px-0.5">The group</h2>
         <Card>
           <SectionTitle>Invite the group</SectionTitle>
           <div className="mt-2"><InviteTripCard trip={trip} bare /></div>
@@ -88,25 +87,32 @@ export function SettingsScreen() {
         </Card>
 
         <PeopleCard trip={trip} members={members} me={me} />
+        </section>
 
+        <section className="settings-group" aria-labelledby="settings-trip-title">
+        <h2 id="settings-trip-title" className="ui-label px-0.5">The trip</h2>
+        <Card><SectionTitle>Trip cover</SectionTitle><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} photo={coverPhoto(trip)} /></div><TripCoverPicker trip={trip} memberId={me} /></Card>
+        <Card><Disclosure summary="Trip details"><TripDetailsForm trip={trip} memberId={me} /></Disclosure><Link className="ui-link inline-flex min-h-11 items-center border-t border-line pt-1 w-full" to={`/t/${tripId}/more/import`}>Import a plan from a spreadsheet (CSV)</Link></Card>
         <DestinationsCard trip={trip} me={me} />
-
-        <OfflineReadyCard trip={trip} />
-
         <OfflineMapCard trip={trip} />
+        </section>
 
+        <section className="settings-group" aria-labelledby="settings-phone-title">
+        <h2 id="settings-phone-title" className="ui-label px-0.5">This phone</h2>
+        <OfflineReadyCard trip={trip} />
         <NotificationsCard tripId={tripId} />
-
         <Card>
-          <SectionTitle>On this phone</SectionTitle>
-          <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+          <SectionTitle>Display</SectionTitle>
+          <div className="mt-3"><AppearancePicker showLabel={false} /></div>
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-dashed border-line pt-3 text-sm">
             <span>Temperatures</span>
             <Segmented label="Temperatures" value={tempUnit} onChange={setTempUnit} options={[{ value: 'F', label: '°F' }, { value: 'C', label: '°C' }]} className="w-28" />
           </div>
         </Card>
+        </section>
 
         {/* Rarely touched: how travel times are padded, and what is waiting to sync. */}
-        <Disclosure summary="Advanced" className="px-1">
+        <Disclosure summary="Advanced" className="mt-6 px-1">
           <div className="space-y-4">
         <Card>
               <h2 className="ui-section-title">Travel times</h2>
@@ -148,7 +154,7 @@ export function SettingsScreen() {
 
         <Button
           variant="danger"
-          className="w-full"
+          className="mt-6 w-full"
           onClick={async () => {
             if (await confirm('Remove this trip from this device? You can re-join with the link.')) {
               forgetTrip(tripId)

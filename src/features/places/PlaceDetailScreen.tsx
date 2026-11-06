@@ -64,7 +64,7 @@ export function PlaceDetailScreen() {
         }
       />
       <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
-        <div className="place-notebook-intro"><p className="notebook-label mb-3">One for our trip · {STATUS_LABEL[place.status]}</p><PlaceIdentity place={place} members={members} morph /></div>
+        <div className="place-notebook-intro"><p className="notebook-label mb-3">{STATUS_LABEL[place.status]}</p><PlaceIdentity place={place} members={members} morph /></div>
         <PlaceJourney place={place} members={members} items={items} polls={polls} membersReady={loadedMembers !== undefined} mayPlan={mayPlan} now={now} />
         {mayPlan && me && <AddToPollCard place={place} memberId={me} />}
 

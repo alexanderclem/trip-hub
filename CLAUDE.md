@@ -15,8 +15,14 @@ It is becoming an operating system for people who run group trips; the plan is `
   **Approved 29 Oct 2026 for organizer payments:** a Stripe platform account (Connect, facilitator
   model: operators' own Stripe accounts, Stowaway never holds money; sole proprietor; US and USD
   only at launch) and a dedicated Stowaway Gmail account for transactional email (Gmail API from
-  Edge Functions, which can't use SMTP ports 25/587; about 500 recipients a day). Supabase Pro only
-  once revenue covers it.
+  Edge Functions, which can't use SMTP ports 25/587; about 500 recipients a day). The sender is
+  `joinstowaway@gmail.com`. Supabase Pro only once revenue covers it.
+  **Approved 5 Nov 2026 for the trip agent only** (`docs/AGENT_PLANNER.md`, `/api/agent-plan`):
+  paid DeepSeek (V4.1 Flash), LiteAPI (hotels and flights; replaces Duffel because signup is closed),
+  LiteAPI Experiences (replaces Viator), and Google Routes waypoint optimisation when
+  someone asks for a plan (capped per plan, never in the background). This feature does live search and
+  returns bookable offers; booking still needs each item confirmed by the person. Stowie, trip ideas and
+  everything else stay on Workers AI and stay free.
 - **The free planner stays free.** Never paywall creating trips, inviting, voting, planning,
   expenses, tickets or offline. Only organizer tools (collecting payments, templates, reminders,
   CRM) are paid, and they are offered only at the moment someone needs them, never as banners.
@@ -32,7 +38,8 @@ It is becoming an operating system for people who run group trips; the plan is `
   `tripadvisorUrl` in `src/lib/geo.ts`).
 - **Auto-suggest** is on the phone only: `src/features/suggest` ranks the trip's own idea pool for the
   free parts of a day (no network, no model). Suggesting flights, hotels or places from outside the
-  pool is still cut. Keep the seam: `places.source = 'suggestion'`.
+  pool is still cut there; bookable flights, hotels and tours come only from the trip agent
+  (`docs/AGENT_PLANNER.md`). Keep the seam: `places.source = 'suggestion'`.
 
 ## Stack
 

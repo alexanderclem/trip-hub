@@ -4,7 +4,7 @@ import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DateTime } from 'luxon'
-import { CalendarPlus, Check, Copy, FileText, MapPin, Pencil, Plus, Receipt, Trash2, Users } from 'lucide-react'
+import { CalendarClock, CalendarPlus, Check, Copy, FileText, MapPin, Pencil, Plus, Receipt, Trash2, Users } from 'lucide-react'
 import { useAttachments } from '@/features/tickets/files'
 import { useMyMemberId, useTripAccess } from '@/data/device'
 import { can } from '@/data/access'
@@ -12,7 +12,7 @@ import { useLegContext, useMembers, usePlaces, useTrip } from '@/data/hooks'
 import type { Place } from '@/data/types'
 import { formatMoney } from '@/lib/money'
 import { formatInZone } from '@/lib/time'
-import { Button, Card, LinkButton, PageHeader, SectionTitle, Status } from '@/ui'
+import { Button, Card, PageHeader, SectionTitle, Status } from '@/ui'
 import { PlaceCategoryIcon } from '@/features/places/PlaceSummary'
 import { travelOptions } from '@/features/routing/legs'
 import { TravelOptionsList } from '@/features/routing/TravelOptionsList'
@@ -183,17 +183,12 @@ export function ItemDetailScreen() {
           </Link>
         </Card>
 
-        {mayPlan && <div className="grid gap-2 sm:grid-cols-2">
-          <Button variant="secondary" onClick={() => setRescheduling(true)}>Reschedule</Button>
-          <LinkButton variant="secondary" to={`/t/${tripId}/plan/new?copy=${item.id}`}>Duplicate</LinkButton>
-        </div>}
-        <div className="grid gap-2 sm:grid-cols-2">
-          <LinkButton variant="secondary" to={`/t/${tripId}/money/new?item=${item.id}`}>
-            <Receipt aria-hidden="true" className="size-4" /> Log what it cost
-          </LinkButton>
-          <Button variant="secondary" onClick={() => void shareCalendar(item.title, planIcs([item], places, members, item.title, location.origin))}>
-            <CalendarPlus aria-hidden="true" className="size-4" /> Add to calendar
-          </Button>
+        {/* Everyday actions on this item, printed as one quiet row instead of four outlined buttons. */}
+        <div className="item-actions flex flex-wrap gap-x-5 px-1" aria-label="Item actions" role="group">
+          {mayPlan && <button type="button" className="ui-link min-h-11" onClick={() => setRescheduling(true)}><CalendarClock aria-hidden="true" className="size-4" />Reschedule</button>}
+          {mayPlan && <Link className="ui-link min-h-11" to={`/t/${tripId}/plan/new?copy=${item.id}`}><Copy aria-hidden="true" className="size-4" />Duplicate</Link>}
+          <Link className="ui-link min-h-11" to={`/t/${tripId}/money/new?item=${item.id}`}><Receipt aria-hidden="true" className="size-4" />Log what it cost</Link>
+          <button type="button" className="ui-link min-h-11" onClick={() => void shareCalendar(item.title, planIcs([item], places, members, item.title, location.origin))}><CalendarPlus aria-hidden="true" className="size-4" />Add to calendar</button>
         </div>
 
         <CommentThread tripId={tripId} type="item" subjectId={item.id} me={me} />

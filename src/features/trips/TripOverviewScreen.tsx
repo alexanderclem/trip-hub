@@ -27,18 +27,19 @@ import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { InstallAppButton } from '@/features/install/InstallAppDialog'
 import { tripAreas } from '@/features/destinations/destinations'
 import { InviteTripCard } from './InviteTripCard'
-import { TravelerLink } from './TravelerLink'
 import { TripArtwork } from './TripArtwork'
 import { TripCoverPicker } from './TripCoverPicker'
 import { tripCover, tripStatus } from './presentation'
 import { GroupDecisions } from './GroupDecisions'
+import { voteStatus } from './decisions'
 import { SharedPlaces } from './SharedPlaces'
 import { TripDayPreview } from './TripDayPreview'
 import { itemsFor } from '@/features/itinerary/calendar'
 import { isNew } from '@/features/activity/feed'
 import { Avatar } from '@/ui'
 
-/** One useful priority, then the shared plan. All summaries stay live from local trip data. */
+/** Reads top to bottom as: what needs you (one block), the plan, the group's ideas. Each fact appears once;
+ * the sidebar holds the group and the places to go next. All summaries stay live from local trip data. */
 export function TripOverviewScreen() {
   const { tripId } = useParams() as { tripId: string }
   const trip = useTrip(tripId)
@@ -100,7 +101,7 @@ export function TripOverviewScreen() {
   ]
   const completed = steps.filter((step) => step.done).length
   const waiting = (polls ?? []).filter(({ poll }) => !votingEnded(poll, now)).map(({ poll, options, votes }) => ({
-    poll, left: options.filter((option) => !votes.some((vote) => vote.option_id === option.id && vote.member_id === me && vote.score != null)).length,
+    poll, status: voteStatus(options, votes, members, me), left: options.filter((option) => !votes.some((vote) => vote.option_id === option.id && vote.member_id === me && vote.score != null)).length,
   })).filter((poll) => poll.left > 0).sort((a, b) => (a.poll.closes_at ?? '9999').localeCompare(b.poll.closes_at ?? '9999'))
   const myTasks = (tasks ?? []).filter((task) => !task.completed && task.assignee_id === me)
   const overdue = myTasks.find((task) => task.due_date && task.due_date < today)
@@ -108,7 +109,7 @@ export function TripOverviewScreen() {
   const missing = tickets?.filter((ticket) => !ticket.onPhone).length ?? 0
   const ready = polls !== undefined && tasks !== undefined && money !== undefined && tickets !== undefined
   const focus = overdue ? { title: overdue.title, detail: `Assigned to you · overdue since ${formatDate(overdue.due_date!)}`, action: 'Review task', to: `${root}/more/tasks/${overdue.id}`, Icon: ClipboardCheck }
-    : waiting[0] ? { title: waiting[0].poll.title, detail: '', action: 'Cast your vote', to: `${root}/more/vote/${waiting[0].poll.id}`, Icon: Vote }
+    : waiting[0] ? { title: waiting[0].poll.title, detail: waiting[0].status, action: 'Cast your vote', to: `${root}/more/vote/${waiting[0].poll.id}`, Icon: Vote }
     : mine < 0 ? { title: `You owe ${fmt(Math.abs(mine))}`, detail: '', action: 'See shared expenses', to: `${root}/money`, Icon: Wallet }
     : myTasks[0] ? { title: myTasks[0].title, detail: '', action: 'Review task', to: `${root}/more/tasks/${myTasks[0].id}`, Icon: ClipboardCheck }
     : null
@@ -124,14 +125,13 @@ export function TripOverviewScreen() {
       <div className="overview-journal-top"><Link to="/app" className="ui-link"><Compass aria-hidden="true" className="size-4" />Your trips</Link><div className="overview-tools">{tools}</div></div>
       <div className="overview-journal-content">
         <div className="min-w-0">
-          <p className="app-kicker notebook-label">{phase === 'traveling' ? 'On your trip' : phase === 'preparing' ? 'Before you go' : phase === 'complete' ? 'Past trip' : 'Your shared trip'}</p>
-          <h1 className="travel-heading mt-2 wrap-anywhere">{trip.name}</h1>
+          <h1 className="travel-heading wrap-anywhere">{trip.name}</h1>
           <div className="overview-meta"><span><CalendarDays aria-hidden="true" className="size-4" />{dateRange(trip.start_date, trip.end_date) || 'Dates to be decided'}</span><span className={`trip-phase trip-phase-${phase}`}>{phaseLabel}</span></div>
-          {destinations && <p className="mt-2 flex items-start gap-2 text-sm text-stone-600"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="wrap-anywhere">{destinations}</span></p>}
+          {destinations && <p className="mt-2 flex items-start gap-2 text-sm text-muted"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="wrap-anywhere">{destinations}</span></p>}
+        {loadedMembers && members.length > 0 && <div className="overview-travelers"><Link to={`${root}/travelers`} className="overview-traveler-link"><span className="traveler-stack" aria-hidden="true">{members.slice(0, 5).map((member) => <Avatar key={member.id} name={member.display_name} color={member.color} photo={member.avatar_url} size="sm" />)}</span><span>{members.length === 1 ? '1 traveler' : members.length <= 3 ? members.map((member) => member.id === me ? 'You' : member.display_name).join(' + ') : `${members.length} travelers`}</span><ArrowRight aria-hidden="true" className="size-3.5" /></Link></div>}
         </div>
         {cover !== 'none' && <figure key={cover} className="overview-postcard"><div className="overview-art"><TripArtwork cover={cover} photo={coverPhoto(trip)} /></div>{destinations && <figcaption>{destinations}</figcaption>}</figure>}
       </div>
-      {loadedMembers && members.length > 0 && <div className="overview-travelers"><Link to={`${root}/travelers`} className="overview-traveler-link"><span className="traveler-stack" aria-hidden="true">{members.slice(0, 5).map((member) => <Avatar key={member.id} name={member.display_name} color={member.color} photo={member.avatar_url} size="sm" />)}</span><span>{members.length === 1 ? '1 traveler' : members.length <= 3 ? members.map((member) => member.id === me ? 'You' : member.display_name).join(' + ') : `${members.length} travelers`}</span><ArrowRight aria-hidden="true" className="size-3.5" /></Link></div>}
     </header>
 
     {arrival && !welcomeDismissed && <section role="status" aria-label="Welcome from Stowie" className="overview-welcome">
@@ -140,24 +140,14 @@ export function TripOverviewScreen() {
     </section>}
 
     <div className="overview-columns">
-      <div className="min-w-0 space-y-7">
+      <div className="overview-main min-w-0 space-y-7 xl:space-y-10">
         {recentChanges.length > 0 && <section aria-labelledby="recent-changes-title"><div className="flex items-center justify-between gap-3"><SectionTitle id="recent-changes-title">Since your last visit</SectionTitle><Link className="ui-link" to={`${root}/activity`}>All changes</Link></div><ActivityList tripId={tripId} events={recentChanges} members={members} me={me} since={newsSince} /></section>}
         {phase === 'traveling' && upNext}
-        {phase === 'preparing' && <section aria-labelledby="prepare-title" className="overview-preparation"><div className="mb-4"><p className="app-kicker mb-1">Your next step</p><SectionTitle id="prepare-title">Get ready for offline</SectionTitle><p className="mt-2 text-sm leading-relaxed text-stone-600">Save the essentials on this phone while you have a connection.</p></div><OfflineReadyCard trip={trip} compact /></section>}
-        {ready && focus && phase !== 'traveling' && phase !== 'preparing' && <section className="overview-focus" aria-labelledby="trip-focus-title"><span className="overview-focus-icon"><focus.Icon aria-hidden="true" className="size-5" /></span><div className="min-w-0 flex-1"><p className="app-kicker">{overdue ? 'Needs your attention' : 'Your next step'}</p><h2 id="trip-focus-title" className="travel-heading mt-2 wrap-anywhere">{focus.title}</h2>{focus.detail && <p className="mt-2 text-sm leading-relaxed text-stone-600">{focus.detail}</p>}<LinkButton to={focus.to} className="mt-4">{focus.action}<ArrowRight aria-hidden="true" className="size-4" /></LinkButton></div></section>}
-        {ready && !focus && phase === 'planning' && <section className="overview-focus" aria-labelledby="trip-focus-title"><span className="overview-focus-icon"><MapPin aria-hidden="true" className="size-5" /></span><div className="min-w-0"><h2 id="trip-focus-title" className="travel-heading mt-2">{savedPlaces.length ? 'Schedule a saved place' : 'Add a place'}</h2><LinkButton to={`${root}/more/places${savedPlaces.length ? '' : '/new'}`} className="mt-4">{savedPlaces.length ? 'Explore saved places' : 'Save your first place'}<ArrowRight aria-hidden="true" className="size-4" /></LinkButton></div></section>}
-        {phase === 'complete' && <section className="overview-recap"><Stowie mood="delighted" size={44} /><div className="min-w-0"><SectionTitle>Trip recap</SectionTitle><Link to={`${root}/wrapped`} className="ui-link">Open trip recap<Sparkles aria-hidden="true" className="size-4" /></Link></div></section>}
-
-        {phase === 'planning' && <nav aria-label="Trip planning" className="overview-planning-nav">
-          <Link to={`${root}/more/places`}><span>Saved places</span><ArrowRight aria-hidden="true" /></Link>
-          <Link to={`${root}/more/vote`}><span>Votes</span><ArrowRight aria-hidden="true" /></Link>
-          <Link to={`${root}/plan`}><span>Itinerary</span><ArrowRight aria-hidden="true" /></Link>
-        </nav>}
-        {phase !== 'complete' && <TripDayPreview tripId={tripId} day={phase === 'traveling' ? today : trip.start_date ?? items[0]?.start_local.slice(0, 10) ?? today} items={itemsFor(items, me)} places={places} zone={zone} today={today} />}
-        {phase === 'planning' && <SharedPlaces tripId={tripId} places={savedPlaces} members={members} />}
-
+        {phase === 'preparing' && <section aria-labelledby="prepare-title" className="overview-preparation"><div className="mb-4"><p className="app-kicker mb-1">Your next step</p><SectionTitle id="prepare-title">Get ready for offline</SectionTitle><p className="mt-2 text-sm leading-relaxed text-muted">Save the essentials on this phone while you have a connection.</p></div><OfflineReadyCard trip={trip} compact /></section>}
+        {ready && focus && phase !== 'traveling' && phase !== 'preparing' && <section className="overview-focus" aria-labelledby="trip-focus-title"><span className="overview-focus-icon"><focus.Icon aria-hidden="true" className="size-5" /></span><div className="min-w-0 flex-1"><p className="app-kicker">{overdue ? 'Needs your attention' : 'Your next step'}</p><h2 id="trip-focus-title" className="travel-heading mt-2 wrap-anywhere">{focus.title}</h2>{focus.detail && <p className="mt-2 text-sm leading-relaxed text-muted">{focus.detail}</p>}<LinkButton to={focus.to} className="mt-4">{focus.action}<ArrowRight aria-hidden="true" className="size-4" /></LinkButton></div></section>}
+{/* Needs you: the one priority above, then anything else for this person, in one place. */}
         {!ready ? <ListSkeleton label="Loading what needs you…" rows={2} /> : needs > 0 ? <RowGroup label="For you">
-          {otherVotes.slice(0, 3).map(({ poll, left }) => <Row key={poll.id} to={`${root}/more/vote/${poll.id}`} icon={<Vote aria-hidden="true" className="size-5" />} title={poll.title} detail={`${left} ${left === 1 ? 'option' : 'options'} awaiting your vote`} />)}
+          {otherVotes.slice(0, 3).map(({ poll, left, status }) => <Row key={poll.id} to={`${root}/more/vote/${poll.id}`} icon={<Vote aria-hidden="true" className="size-5" />} title={poll.title} detail={`${left} ${left === 1 ? 'option' : 'options'} to score · ${status}`} />)}
           {otherVotes.length > 3 && <Row to={`${root}/more/vote`} title={`${otherVotes.length - 3} more votes need you`} />}
           {showBalance && <Row to={`${root}/money`} icon={<Wallet aria-hidden="true" className="size-5" />} title={`You owe ${fmt(Math.abs(mine))}`} detail="See your share and settle up" />}
           {otherTasks.slice(0, 2).map((task) => <Row key={task.id} to={`${root}/more/tasks/${task.id}`} icon={<ClipboardCheck aria-hidden="true" className="size-5" />} title={task.title} detail={task.due_date ? `${task.due_date < today ? 'Overdue' : 'Due'} · ${formatDate(task.due_date)}` : 'Assigned to you'} />)}
@@ -165,24 +155,38 @@ export function TripOverviewScreen() {
           {missing > 0 && !nearDeparture && <Row to={`${root}/tickets`} icon={<Ticket aria-hidden="true" className="size-5" />} title={`${missing} ${missing === 1 ? 'ticket isn’t' : 'tickets aren’t'} on this phone yet`} detail="Download before you lose signal" />}
           {needsProfile && <Row to={`/quiz?next=${encodeURIComponent(`${root}/overview`)}`} icon={<Compass aria-hidden="true" className="size-5" />} title="Set your travel preferences" detail="Ten quick this-or-that questions" />}
         </RowGroup> : !focus && <p className="overview-caught-up"><CheckCircle2 aria-hidden="true" className="size-5" />You’re all caught up.</p>}
+        {phase === 'complete' && <section className="overview-recap"><Stowie mood="delighted" size={44} /><div className="min-w-0"><SectionTitle>Trip recap</SectionTitle><Link to={`${root}/wrapped`} className="ui-link">Open trip recap<Sparkles aria-hidden="true" className="size-4" /></Link></div></section>}
 
-        {phase !== 'traveling' && upNext}
-        {polls && tasks && loadedMembers && <GroupDecisions tripId={tripId} polls={polls} members={members} unassigned={unassigned} now={now} />}
-        {!!news?.length && !recentChanges.length && <section aria-labelledby="news-title"><SectionTitle id="news-title" className="px-1">Recent activity</SectionTitle><div className="mt-2 px-1"><ActivityList tripId={tripId} events={news.slice(0, 3)} members={members} me={me} since={newsSince} /></div>{news.length > 3 && <Link to={`${root}/activity`} className="ui-link px-1">All changes<ArrowRight aria-hidden="true" className="size-4" /></Link>}</section>}
-        {loadedMembers && (!dismissed ? <section className="overview-setup" aria-labelledby="setup-title"><Disclosure summary={<span><span id="setup-title">Trip setup</span> <span className="ml-2 font-normal text-stone-600">{completed} of 3 first steps complete</span></span>} defaultOpen={!!arrival && completed < 3}>
-          <ol className="divide-y divide-stone-200">{steps.map(({ title, done, to, Icon }) => { const content = <><span>{done ? <CheckCircle2 aria-label="Complete" className="size-5 text-brand-700" /> : <Circle aria-label="To do" className="size-5 text-stone-600" />}</span><span className="min-w-0 flex-1"><span role="heading" aria-level={3} className="block font-medium">{title}</span></span><Icon aria-hidden="true" className="size-4 shrink-0 text-stone-600" /></>; return <li key={title}>{to ? <Link to={to} className="overview-setup-step">{content}</Link> : <button type="button" onClick={invite} className="overview-setup-step">{content}</button>}</li> })}</ol>
+        {phase !== 'complete' && <TripDayPreview tripId={tripId} day={phase === 'traveling' ? today : trip.start_date ?? items[0]?.start_local.slice(0, 10) ?? today} items={itemsFor(items, me)} places={places} zone={zone} today={today} />}
+
+
+        {phase === 'preparing' && upNext}
+        {/* Itinerary isn't repeated here: the preview has "Full plan" and Plan is a tab. */}
+        {phase === 'planning' && <section aria-label="Ideas and votes" className="overview-secondary">
+          <nav aria-label="Trip planning" className="overview-planning-nav">
+            <Link to={`${root}/more/places${savedPlaces.length ? '' : '/new'}`}><span>{savedPlaces.length ? 'Saved places to schedule' : 'Save your first place'}</span>{savedPlaces.length > 0 && <span className="planning-count">{savedPlaces.length}</span>}<ArrowRight aria-hidden="true" /></Link>
+            <Link to={`${root}/more/vote`}><span>Votes</span>{!!polls?.length && <span className="planning-count">{polls.length}</span>}<ArrowRight aria-hidden="true" /></Link>
+          </nav>
+          <SharedPlaces tripId={tripId} places={savedPlaces} members={members} />
+        </section>}
+        {loadedMembers && completed < 3 && (!dismissed ? <section className="overview-setup" aria-labelledby="setup-title"><Disclosure summary={<span><span id="setup-title">Trip setup</span> <span className="ml-2 font-normal text-muted">{completed} of 3 first steps complete</span></span>} defaultOpen={!!arrival && completed < 3}>
+          <ol className="divide-y divide-line">{steps.map(({ title, done, to, Icon }) => { const content = <><span>{done ? <CheckCircle2 aria-label="Complete" className="size-5 text-action" /> : <Circle aria-label="To do" className="size-5 text-muted" />}</span><span className="min-w-0 flex-1"><span role="heading" aria-level={3} className="block font-medium">{title}</span></span><Icon aria-hidden="true" className="size-4 shrink-0 text-muted" /></>; return <li key={title}>{to ? <Link to={to} className="overview-setup-step">{content}</Link> : <button type="button" onClick={invite} className="overview-setup-step">{content}</button>}</li> })}</ol>
           <button type="button" className="ui-link mt-2" onClick={() => setDismissed(tripId, true)}>Hide guidance</button>
-        </Disclosure><div className="setup-progress" aria-hidden="true">{steps.map((step) => <span key={step.title} data-complete={step.done} />)}</div></section> : completed < 3 && <button type="button" className="ui-link px-1" onClick={() => setDismissed(tripId, false)}>Show first steps · {completed}/3 complete</button>)}
+        </Disclosure><div className="setup-progress" aria-hidden="true">{steps.map((step) => <span key={step.title} data-complete={step.done} />)}</div></section> : <button type="button" className="ui-link px-1" onClick={() => setDismissed(tripId, false)}>Show first steps · {completed}/3 complete</button>)}
       </div>
 
       <aside className="overview-sidebar" aria-label="Your group and essentials">
-        <Card><section id="invite-group" aria-labelledby="travelers-title" className="scroll-mt-6"><div className="flex flex-wrap items-center justify-between gap-2"><SectionTitle id="travelers-title">Your group</SectionTitle>{loadedMembers && <span className="text-xs text-stone-600">{members.length} {members.length === 1 ? 'traveler' : 'travelers'}</span>}</div>
+        <Card><section id="invite-group" aria-labelledby="travelers-title" className="scroll-mt-6"><div className="flex flex-wrap items-center justify-between gap-2"><SectionTitle id="travelers-title">Your group</SectionTitle>{loadedMembers && <span className="text-xs text-muted">{members.length} {members.length === 1 ? 'traveler' : 'travelers'}</span>}</div>
           {!loadedMembers && <ListSkeleton label="Loading travelers…" className="mt-3" />}
-          <ul className="my-3 flex flex-wrap gap-x-3 gap-y-1">{members.map((member) => <li key={member.id}><TravelerLink member={member} you={member.id === me} /></li>)}</ul>
-          <Disclosure summary="Invite the group" open={inviting} onToggle={setInviting} className="border-t border-stone-200 pt-1"><InviteTripCard trip={trip} bare /></Disclosure>
+          {/* Names are in the trip header; this card is for bringing more people in. */}
+          <Disclosure summary="Invite the group" open={inviting} onToggle={setInviting} className="mt-2 border-t border-line pt-1"><InviteTripCard trip={trip} bare /></Disclosure>
         </section></Card>
         {phase === 'traveling' && <section aria-labelledby="travel-essentials-title"><SectionTitle id="travel-essentials-title" className="mb-3">Your travel essentials</SectionTitle><OfflineReadyCard trip={trip} compact /></section>}
-        <section aria-labelledby="essentials-title"><h2 id="essentials-title" className="ui-label mb-2">Trip essentials</h2><ul className="ui-row-group"><Row to={`${root}/more/arrivals`} icon={<Users aria-hidden="true" className="size-5" />} title="Arrivals & departures" detail="Travel times, stays and shared rides" /><Row to={`${root}/tickets`} icon={<Ticket aria-hidden="true" className="size-5" />} title="Tickets & bookings" detail={tickets ? missing ? `${missing} still to download` : tickets.length ? 'Saved on this phone' : 'No tickets' : 'Checking this phone…'} /><Row to={`${root}/money`} icon={<Wallet aria-hidden="true" className="size-5" />} title="Shared expenses" detail={money ? mine < 0 ? `You owe ${fmt(Math.abs(mine))}` : mine > 0 ? `You’re owed ${fmt(mine)}` : 'You’re settled up' : 'Loading your balance…'} /></ul></section>
+        <section aria-labelledby="essentials-title"><h2 id="essentials-title" className="ui-label mb-2">Trip essentials</h2><ul className="ui-row-group"><Row to={`${root}/more/arrivals`} icon={<Users aria-hidden="true" className="size-5" />} title="Arrivals & departures" detail="Travel times, stays and shared rides" /><Row to={`${root}/tickets`} icon={<Ticket aria-hidden="true" className="size-5" />} title="Tickets & bookings" detail={tickets ? missing ? (nearDeparture ? `${missing} still to download` : `${tickets.length} ${tickets.length === 1 ? 'ticket' : 'tickets'}`) : tickets.length ? 'Saved on this phone' : 'No tickets' : 'Checking this phone…'} /><Row to={`${root}/money`} icon={<Wallet aria-hidden="true" className="size-5" />} title="Shared expenses" detail={money ? mine < 0 ? 'Your share and the group’s balances' : mine > 0 ? `You’re owed ${fmt(mine)}` : 'You’re settled up' : 'Loading your balance…'} /></ul></section>
+        {/* Secondary modules live here, below the group, so the main column reads as: what needs
+            you → the plan → ideas. On phones the sidebar stacks after the main column. */}
+        {polls && tasks && loadedMembers && <GroupDecisions tripId={tripId} polls={polls} members={members} unassigned={unassigned} now={now} shown={new Set(waiting.map(({ poll }) => poll.id))} />}
+        {!!news?.length && !recentChanges.length && <section aria-labelledby="news-title"><SectionTitle id="news-title">Recent activity</SectionTitle><div className="mt-2"><ActivityList tripId={tripId} events={news.slice(0, 3)} members={members} me={me} since={newsSince} /></div>{news.length > 3 && <Link to={`${root}/activity`} className="ui-link">All changes<ArrowRight aria-hidden="true" className="size-4" /></Link>}</section>}
         <div className="overview-personalize"><TripCoverPicker trip={trip} memberId={me} /><InstallAppButton /></div>
       </aside>
     </div>

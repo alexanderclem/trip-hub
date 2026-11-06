@@ -88,7 +88,8 @@ test('overview shows live decision counts and opens exactly the unassigned task 
   await expect(page.getByRole('heading', { name: 'A day by the water?' })).toBeVisible()
   await expect(page.getByText('3 travelers still need to vote', { exact: true })).toBeVisible()
   await expect(page.getByText('2 tasks need an owner', { exact: true })).toBeVisible()
-  await expect(page.locator('.overview-setup > details')).not.toHaveAttribute('open')
+  // All three first steps are done in this seed, so the checklist is gone rather than collapsed.
+  await expect(page.locator('.overview-setup')).toHaveCount(0)
   const taskLink = page.getByRole('link', { name: /2 tasks need an owner/ })
   await taskLink.scrollIntoViewIfNeeded()
   const scroll = await page.locator('#trip-content').evaluate(el => el.scrollTop)

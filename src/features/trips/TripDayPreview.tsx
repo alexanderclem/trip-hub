@@ -14,7 +14,7 @@ export function TripDayPreview({ tripId, day, items, places, zone, today }: {
   const rows = [...layout.allDay, ...layout.blocks.map((block) => block.item)]
   if (!rows.length) return null
   return <section className="trip-day-preview" aria-labelledby="preview-day-title">
-    <div className="shared-places-heading"><div><p className="notebook-label">{day === today ? 'Today, together' : 'A look at the itinerary'}</p><h2 id="preview-day-title">{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</h2></div><Link to={`/t/${tripId}/plan?day=${day}`} className="ui-link">Full plan<ArrowRight aria-hidden="true" className="size-4" /></Link></div>
+    <div className="shared-places-heading"><h2 id="preview-day-title">{day === today ? 'Today · ' : ''}{DateTime.fromISO(day).toFormat('cccc, d LLLL')}</h2><Link to={`/t/${tripId}/plan?day=${day}`} className="ui-link">Full plan<ArrowRight aria-hidden="true" className="size-4" /></Link></div>
     <ol className="preview-stops">{rows.slice(0, 3).map((item) => {
       const style = KIND_STYLE[item.kind]
       const place = places.find((place) => place.id === item.place_id)

@@ -5,7 +5,7 @@ import { Card } from '@/ui'
 import { CATEGORY_STYLE } from '@/features/places/categories'
 import { bestTime, travelOptions, type LegContext } from './legs'
 import { isPick } from './requestLegs'
-import { TrafficEstimate } from './TrafficEstimate'
+import { TrafficEstimate, TrafficNotice } from './TrafficEstimate'
 import { ReportTimeForm, TravelOptionsList } from './TravelOptionsList'
 
 const SHOW = 8
@@ -28,7 +28,7 @@ export function TravelTimesCard({ place, places, ctx }: { place: Place; places: 
   return (
     <Card>
       <h2 className="ui-section-title">Travel times</h2>
-      <p className="mb-3 text-xs text-muted">To the group's other places. Planning times include a buffer; check traffic for a fresh driving estimate.</p>
+      <p className="mb-3 text-xs text-muted">To the group’s other places. Planning times include a buffer.</p>
       <ul className="space-y-3">
         {shown.map(({ p, options }) => {
           const { Icon, color } = CATEGORY_STYLE[p.category]
@@ -45,7 +45,7 @@ export function TravelTimesCard({ place, places, ctx }: { place: Place; places: 
               </div>
               <div className="pl-6">
                 <TravelOptionsList options={options} compact />
-                <TrafficEstimate key={`${place.id}:${place.lat}:${place.lng}:${p.id}:${p.lat}:${p.lng}`} from={place} to={p} />
+                <TrafficEstimate key={`${place.id}:${place.lat}:${place.lng}:${p.id}:${p.lat}:${p.lng}`} from={place} to={p} notes={false} />
               </div>
               {reportFor === p.id && (
                 <div className="mt-2">
@@ -61,6 +61,7 @@ export function TravelTimesCard({ place, places, ctx }: { place: Place; places: 
           {all ? 'Show fewer' : `Show all ${rows.length}`}
         </button>
       )}
+      <TrafficNotice />
     </Card>
   )
 }

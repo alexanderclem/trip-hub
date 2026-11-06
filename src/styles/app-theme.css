@@ -16,7 +16,13 @@
 .app-world :is([data-slot='card-description'], [data-slot='empty-description'], .place-identity-note, .itinerary-notes) { max-width: var(--stowaway-measure); line-height: 1.65; }
 
 /* Flat stock, an ink stroke, and dashed internal rules. */
-.app-world :is(.ui-card, .ui-row-group, [data-slot='empty']) { border: 2px solid var(--stowaway-ink); border-radius: var(--stowaway-radius-surface); box-shadow: none; }
+/* Weight follows use: lists of things to tap keep the 2px ink stroke; containers that only hold a
+   section print on a 1px rule so a stack of them reads as one page, not a pile of boxes. */
+.app-world .ui-row-group { border: 2px solid var(--stowaway-ink); border-radius: var(--stowaway-radius-surface); box-shadow: none; }
+.app-world :is(.ui-card, [data-slot='empty']) { border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); box-shadow: none; }
+/* A group label then its cards: the label sits close to what it names, far from the group above. */
+.app-world .settings-group { display: grid; gap: .75rem; }
+.app-world .settings-group + .settings-group { margin-top: 1.75rem; }
 .app-world .ui-card-foot { border-top-style: dashed; }
 .app-world .ui-row-group > li + li { border-top: 1px dashed var(--stowaway-border); }
 .app-world .ui-frame { padding: 0; border-radius: var(--stowaway-radius-surface); background: transparent; }
@@ -59,7 +65,7 @@
 .app-world .overview-postcard figcaption { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); letter-spacing: 0; line-height: 1.5; }
 .app-world .overview-postcard figcaption > span:last-child { font-style: normal; }
 .app-world .trip-phase { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); font-weight: 500; letter-spacing: 0; }
-.app-world .trip-overview .overview-focus { border: 2px solid var(--stowaway-ink); border-inline-start: 6px solid var(--stowaway-coral); border-radius: 0 10px 10px 0; }
+.app-world .trip-overview .overview-focus { border: 2px solid var(--stowaway-ink); border-radius: 10px; }
 .app-world .trip-overview .overview-focus h2 { font-size: clamp(1.625rem, 2.5vw, 2.125rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
 .app-world .overview-focus .ui-button { border-color: var(--stowaway-coral); background: var(--stowaway-coral); color: var(--stowaway-on-primary); font-size: 1.0625rem; }
 .app-world .overview-sidebar > .ui-card { border: 0; border-top: 2px dashed var(--stowaway-border); border-radius: 0; }
@@ -130,4 +136,19 @@
   .app-world .trip-overview:is([data-phase='traveling'], [data-phase='preparing']) .overview-journal-content { grid-template-columns: minmax(0, 1fr); }
   .app-world .overview-postcard { padding: .25rem; }
   .app-world .agenda-time { flex-wrap: wrap; }
+}
+
+/* Home, decluttered (Nov 2026): the trip title and today's plan lead; the group photo is a small
+   postcard, not a hero; group, essentials, decisions and activity share one quiet sticky column. */
+.trip-overview .overview-secondary { display: grid; gap: 1.25rem; padding-top: 1.5rem; border-top: 2px dashed var(--stowaway-border); }
+.trip-overview .overview-secondary .overview-planning-nav { margin-top: 0; border-bottom: 0; }
+@media (min-width: 1024px) {
+  .trip-overview .overview-journal-content { grid-template-columns: minmax(0, 1fr) 14rem; gap: 2rem; }
+  .trip-overview .overview-postcard .overview-art { height: 8.5rem; }
+  .trip-overview .overview-postcard figcaption { display: none; } /* the destination is already in the meta line */
+}
+@media (min-width: 1200px) {
+  .trip-overview { max-width: 76rem; }
+  .trip-overview .overview-columns { grid-template-columns: minmax(0, 1fr) 19rem; gap: 4rem; }
+  .trip-overview .overview-sidebar { position: sticky; top: 1.5rem; gap: 2rem; }
 }
