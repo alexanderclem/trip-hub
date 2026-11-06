@@ -86,6 +86,23 @@ describe('pages', () => {
     const local = await servePage(new Request('http://localhost:8787/pricing'), assets())
     expect(local.status).toBe(200)
   })
+  it('moves the www host to the bare domain in one hop', async () => {
+    for (const from of ['https://www.joinstowaway.app/pricing?x=1', 'http://www.joinstowaway.app/pricing?x=1']) {
+      const res = await servePage(new Request(from), assets())
+      expect(res.status, from).toBe(301)
+      expect(res.headers.get('location'), from).toBe('https://joinstowaway.app/pricing?x=1')
+    }
+  })
+  it('redirects a website page with a trailing slash permanently, keeping the query', async () => {
+    for (const [from, to] of [['/pricing/', '/pricing'], ['/compare/best-group-trip-planner-apps//', '/compare/best-group-trip-planner-apps'], ['/help/?q=1', '/help?q=1']] as const) {
+      const env = assets()
+      const res = await servePage(new Request(`https://joinstowaway.app${from}`), env)
+      expect(res.status, from).toBe(301)
+      expect(res.headers.get('location'), from).toBe(to)
+      expect(env.seen, from).toEqual([])
+    }
+    expect((await servePage(new Request('https://joinstowaway.app/'), assets())).status).toBe(200)
+  })
   it('routes navigations through servePage from the Worker entry', async () => {
     const res = await worker.fetch(new Request('https://joinstowaway.app/nope'), assets() as unknown as Env)
     expect(res.status).toBe(404)

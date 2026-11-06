@@ -95,13 +95,20 @@ function withHeaders(response: Response, extra: Record<string, string> = {}, sta
  */
 export async function servePage(request: Request, env: Pick<Env, 'ASSETS'>): Promise<Response> {
   const url = new URL(request.url)
-  if (url.protocol === 'http:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+  // One hop to the canonical origin: plain http and the www. host both move to https://joinstowaway.app.
+  const www = url.hostname.startsWith('www.')
+  if (www || (url.protocol === 'http:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1')) {
     url.protocol = 'https:'
+    if (www) url.hostname = url.hostname.slice(4)
     return Response.redirect(url.toString(), 301)
   }
   const route = classifyPath(url.pathname)
   if (route.kind === 'asset') return assetOrNotFound(request, env)
   if (route.kind === 'redirect') return new Response(null, { status: 301, headers: { Location: `${route.to}${url.search}`, ...SECURITY_HEADERS } })
+  // Static assets answer "/pricing/" with a temporary 307; a page's other spelling should move permanently.
+  if (route.kind === 'page' && url.pathname.length > 1 && url.pathname.endsWith('/')) {
+    return new Response(null, { status: 301, headers: { Location: `${url.pathname.replace(/\/+$/, '') || '/'}${url.search}`, ...SECURITY_HEADERS } })
+  }
   if (route.kind === 'page') return withHeaders(await env.ASSETS.fetch(request))
   // /app is served from app.html: the shell without any prerendered page, which the router fills in.
   const shell = await env.ASSETS.fetch(new Request(new URL('/app', url), {

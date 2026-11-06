@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { createServer } from 'vite'
@@ -6,6 +7,47 @@ import { jsonLdScript } from '../src/features/website/structuredData.ts'
 
 const attribute = (text: string) => text.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;')
 const canonicalUrl = (path: string) => `https://joinstowaway.app${path === '/' ? '' : path}`
+
+/** The files whose text each public page shows; their last commit is the page's sitemap <lastmod>. */
+const PAGE_SOURCES: Record<string, string[]> = {
+  '/': ['src/features/website/LandingScreen.tsx'],
+  '/how-it-works': ['src/features/website/HowItWorksScreen.tsx'],
+  '/organizers': ['src/features/website/OrganizersScreen.tsx', 'src/features/website/OrganizerPreview.tsx', 'src/features/website/OrganizerBookingPreview.tsx'],
+  '/pricing': ['src/features/website/PricingScreen.tsx', 'src/features/website/FeeCalculator.tsx'],
+  '/help': ['src/features/website/HelpScreen.tsx'],
+  '/group-expenses': ['src/features/website/GroupExpensesScreen.tsx'],
+  '/tools/trip-cost-splitter': ['src/features/website/CostSplitterScreen.tsx', 'src/features/website/splitter.ts'],
+  '/compare/best-group-trip-planner-apps': ['src/features/website/CompareScreens.tsx'],
+  '/compare/splitwise-alternative-for-group-trips': ['src/features/website/CompareScreens.tsx'],
+  '/spring-break-trip-planner': ['src/features/website/OccasionScreens.tsx'],
+  '/bachelor-party-trip-planner': ['src/features/website/OccasionScreens.tsx'],
+  '/privacy': ['src/features/legal'],
+  '/terms': ['src/features/legal'],
+}
+
+/**
+ * The date (YYYY-MM-DD) of the last commit touching a page's sources. Without full git history (a
+ * shallow clone dates every file to its one commit) it returns null and the sitemap omits <lastmod>:
+ * Google ignores lastmod on sites where it proves inaccurate, so no date beats a wrong one.
+ */
+function lastModified(path: string): string | null {
+  const sources = PAGE_SOURCES[path]
+  if (!sources) throw new Error(`Add ${path} to PAGE_SOURCES in scripts/prerender.ts (its sitemap date comes from those files).`)
+  try {
+    const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+    if (git('rev-parse', '--is-shallow-repository') !== 'false') return null
+    const date = git('log', '-1', '--format=%cs', '--', ...sources)
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null
+  } catch { return null }
+}
+
+export function sitemapXml(paths: string[], dateOf: (path: string) => string | null = lastModified): string {
+  const urls = paths.map((path) => {
+    const date = dateOf(path)
+    return `<url><loc>${canonicalUrl(path)}</loc>${date ? `<lastmod>${date}</lastmod>` : ''}</url>`
+  })
+  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`
+}
 
 /** Runs before Workbox hashes HTML so offline navigation receives the matching build. */
 export async function prerender(outDir: string) {
@@ -38,6 +80,6 @@ export async function prerender(outDir: string) {
       await mkdir(dirname(file), { recursive: true })
       await writeFile(file, html)
     }
-    await writeFile(resolve(directory, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${Object.keys(publicPages).map((path) => `<url><loc>${canonicalUrl(path)}</loc></url>`).join('')}</urlset>`)
+    await writeFile(resolve(directory, 'sitemap.xml'), sitemapXml(Object.keys(publicPages)))
   } finally { await server.close() }
 }
