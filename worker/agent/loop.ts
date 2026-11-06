@@ -35,8 +35,10 @@ export interface FinalPlan {
   /** What a "Book" step must act on, in order. Offers expire, so the client shows expiresAt. */
   bookable: { kind: 'flight' | 'hotel' | 'activity'; ref: string; totalMinor: number; expiresAt: string | null; label?: string }[]
   unrouted: number[]
-  usage: { modelTurns: number; promptTokens: number; cachedPromptTokens: number; completionTokens: number }
+  usage: { modelTurns: number; promptTokens: number; cachedPromptTokens: number; completionTokens: number; timings?: Timings }
 }
+/** Where a plan's time went, in milliseconds: each model turn, each tool call, and routing. */
+export interface Timings { totalMs: number; modelMs: number[]; tools: { name: string; ms: number }[]; routeMs: number }
 
 export class AgentError extends Error {}
 
@@ -48,11 +50,15 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
     return doFetch(url, init)
   }
   const messages: Message[] = [{ role: 'system', content: AGENT_SYSTEM }, { role: 'user', content: tripMessage(input) }]
-  const usage = { modelTurns: 0, promptTokens: 0, cachedPromptTokens: 0, completionTokens: 0 }
+  const started = Date.now()
+  const timings: Timings = { totalMs: 0, modelMs: [], tools: [], routeMs: 0 }
+  const usage: FinalPlan['usage'] = { modelTurns: 0, promptTokens: 0, cachedPromptTokens: 0, completionTokens: 0, timings }
   let toolCalls = 0, submits = 0
 
   for (let turn = 0; turn < LIMITS.modelTurns; turn++) {
+    const turnStart = Date.now()
     const completion = await chat(messages, env, counted)
+    timings.modelMs.push(Date.now() - turnStart)
     usage.modelTurns++
     usage.promptTokens += completion.usage?.prompt_tokens ?? 0
     usage.cachedPromptTokens += completion.usage?.prompt_cache_hit_tokens ?? 0
@@ -68,7 +74,8 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
     let final: FinalPlan | null = null
     const results = await Promise.all(message.tool_calls.map(async (callItem) => {
       const name = callItem.function.name
-      const reply = (body: unknown) => ({ role: 'tool' as const, tool_call_id: callItem.id, content: JSON.stringify(body) })
+      const toolStart = Date.now()
+      const reply = (body: unknown) => { timings.tools.push({ name, ms: Date.now() - toolStart }); return { role: 'tool' as const, tool_call_id: callItem.id, content: JSON.stringify(body) } }
       if (!Object.hasOwn(argSchemas, name)) return reply({ error: `Unknown tool ${callItem.function.name}.` })
       let args: unknown
       try { args = JSON.parse(callItem.function.arguments) } catch { return reply({ error: 'Arguments were not valid JSON.' }) }
@@ -86,7 +93,9 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
             if (submits >= LIMITS.submitAttempts) throw new AgentError(giveUpMessage(resolved.errors))
             return reply({ ok: false, errors: resolved.errors })
           }
+          const routeStart = Date.now()
           const routed = await optimise(resolved, input, env, counted, now)
+          timings.routeMs = Date.now() - routeStart
           final = finalPlan(a, resolved, routed.optimised, routed.unrouted, input, ledger, usage)
           return reply({ ok: true })
         }
@@ -104,7 +113,11 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
       }
     }))
     messages.push(...results)
-    if (final) return final
+    if (final) {
+      timings.totalMs = Date.now() - started
+      console.log('[agent-timings]', JSON.stringify(timings))
+      return final
+    }
   }
   throw new AgentError('The planner ran out of steps before finishing. Try a shorter trip or fewer requirements.')
 }
