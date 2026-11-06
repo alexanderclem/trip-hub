@@ -5,7 +5,7 @@
 import { DateTime } from 'luxon'
 import { AGENT_SYSTEM, tripMessage } from './prompt'
 import { DEEPSEEK_TOOLS, argSchemas, type ToolName } from './tools'
-import { Ledger, repairStay, resolve, stayFor, type Constraints, type Resolved } from './schedule'
+import { Ledger, destinationWindow, repairStay, resolve, stayFor, type Constraints, type Resolved } from './schedule'
 import { MAX_ROUTE_REQUESTS, applyRoute, computeRoute, planRoutes, type Optimised } from './routes'
 import { SetupError, ToolInputError, checkActivityTimes, findAirport, searchActivities, searchFlights, searchHotels, type ProviderEnv } from './providers'
 
@@ -143,7 +143,19 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
           let resolved = resolve(a.nodes, ledger, input, now)
           // A hotel booked from the wrong night is swapped for the same hotel's rate on the right
           // nights when we already have one, instead of costing a resubmit.
-          const swapped = resolved.errors.length ? repairStay(a.nodes, resolved, ledger, input) : null
+          let swapped = resolved.errors.length ? repairStay(a.nodes, resolved, ledger, input) : null
+          // No rate for the right nights yet (the flights land or leave a day off from the hotel):
+          // search the same city for exactly those nights once, here, rather than in another model turn.
+          if (!swapped && resolved.stays.length === 1 && resolved.errors.length && resolved.errors.every((e) => e.startsWith('No hotel for the night'))) {
+            const { first, last } = destinationWindow(resolved.blocks, input)
+            if (first < last) {
+              const rooms = Math.ceil(input.adults / 2)
+              try {
+                await searchHotels({ city_name: input.destination, country_code: input.countryCode, checkin: first, checkout: last, adults_per_room: Math.ceil(input.adults / rooms), rooms, currency: input.currency, max_nightly_minor: null, min_stars: null }, env, ledger, counted)
+                swapped = repairStay(a.nodes, resolved, ledger, input) ?? cheapestStay(a.nodes, resolved, ledger, input, first, last)
+              } catch (error) { if (error instanceof SetupError || error instanceof AgentError) throw error }
+            }
+          }
           if (swapped) {
             const again = resolve(swapped, ledger, input, now)
             if (again.errors.length < resolved.errors.length) { a = { ...a, nodes: swapped }; resolved = again }
@@ -215,6 +227,14 @@ async function optimise(r: Resolved, c: AgentInput, env: AgentEnv, doFetch: type
   }
   unrouted.push(...segments.slice(MAX_ROUTE_REQUESTS).flatMap((s) => s.stops))
   return { optimised, unrouted }
+}
+
+/** The model's hotel isn't available for the right nights: take the cheapest rate that is. */
+function cheapestStay(nodes: Parameters<typeof repairStay>[0], r: Resolved, ledger: Ledger, c: AgentInput, first: string, last: string) {
+  const stay = r.stays[0]
+  const rate = ledger.all().filter((e) => e.kind === 'hotel' && e.checkin === first && e.checkout === last && e.currency === c.currency)
+    .sort((x, y) => (x.kind === 'hotel' && y.kind === 'hotel' ? x.totalMinor - y.totalMinor : 0))[0]
+  return stay && rate ? nodes.map((n, i) => (i === stay.node ? { ...n, ref: rate.id, day: first } : n)) : null
 }
 
 /** What to tell the traveller when every attempt failed, based on what the last one got wrong. */

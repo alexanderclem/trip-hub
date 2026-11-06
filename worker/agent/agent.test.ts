@@ -257,16 +257,37 @@ describe('runAgent', () => {
     const fake = (async (url: string | URL | Request, init?: RequestInit) => {
       const u = String(url)
       if (u.includes('deepseek')) { sent.push(JSON.parse(String(init!.body))); return Response.json({ choices: [{ message: { content: null, ...submit('s1', flightAndHotel) }, finish_reason: 'tool_calls' }] }) }
-      if (u.includes('/data/flights/airports?')) return Response.json({ data: [{ airports: [{ iata: 'ANU', country: 'Antigua and Barbuda', tz: 'America/Antigua' }, { iata: 'GUA', country: 'Guatemala', tz: zone }] }] })
+      if (u.includes('/data/flights/airports?')) return Response.json({ data: [{ airports: [{ iata: 'ANU', country: 'Antigua and Barbuda', tz: 'America/Antigua' }, { iata: 'GUA', country: 'GT', tz: zone }] }] })
       if (u.endsWith('/flights/rates')) { flightBody = JSON.parse(String(init!.body)); return Response.json({ data: [] }) }
       if (u.endsWith('/hotels/rates') || u.includes('/experiences/')) return Response.json({ data: [] })
       throw new Error(`unexpected ${u}`)
     }) as typeof fetch
     await runAgent({ ...trip, origin: 'SFO', destination: 'Antigua', countryCode: 'GT', vibe: '', notes: '', travelMode: 'DRIVE' },
       { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm', LITEAPI_KEY: 'l' }, fake, NOW, ledger())
-    // The airport in the trip's country wins over a better text match elsewhere.
+    // The airport in the trip's country (LiteAPI sends its ISO code) wins over a better text match elsewhere.
     expect(flightBody!.legs.map((l) => [l.origin, l.destination, l.date])).toEqual([['SFO', 'GUA', '2027-03-20'], ['GUA', 'SFO', '2027-03-27']])
     expect(sent).toHaveLength(1)
+  })
+
+  it('searches the right nights itself when the hotel does not cover the stay, instead of another turn', async () => {
+    let n = 0
+    const turns = [submit('s1', [flightAndHotel[0], { ...flightAndHotel[1], ref: 'rate_short', day: '2027-03-20' }])]
+    const fake = (async (url: string | URL | Request, init?: RequestInit) => {
+      const u = String(url)
+      if (u.includes('deepseek')) return Response.json({ choices: [{ message: { content: null, ...turns[n++] }, finish_reason: 'tool_calls' }] })
+      if (u.endsWith('/hotels/rates')) {
+        const body = JSON.parse(String(init!.body))
+        expect([body.checkin, body.checkout]).toEqual(['2027-03-20', '2027-03-27'])
+        return Response.json({ data: [{ hotelId: 'lp1', roomTypes: [{ offerId: 'rate_full', offerRetailRate: { amount: 1500, currency: 'USD' }, rates: [{ name: 'Double' }] }] }], hotels: [{ id: 'lp1', name: 'Casa Antigua' }] })
+      }
+      if (u.includes('routes.googleapis')) return Response.json({ routes: [] })
+      throw new Error(`unexpected ${u}`)
+    }) as typeof fetch
+    const l = new Ledger(); l.put(flight); l.put({ ...hotel, id: 'rate_short', checkout: '2027-03-25' })
+    const plan = await runAgent({ ...trip, origin: null, destination: 'Antigua Guatemala', countryCode: 'GT', vibe: '', notes: '', travelMode: 'DRIVE' },
+      { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm' }, fake, NOW, l)
+    expect(n).toBe(1)
+    expect(plan.bookable.find((b) => b.kind === 'hotel')).toMatchObject({ ref: 'rate_full', totalMinor: 150000 })
   })
 
   it('keeps a plan whose free stops do not fit Google’s drive times, flagged as unrouted', async () => {
