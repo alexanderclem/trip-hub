@@ -4,7 +4,8 @@
 // (so RLS applies), never taken from the request body.
 import { z } from 'zod'
 import { IANAZone } from 'luxon'
-import { AgentError, runAgent, type AgentEnv } from './loop'
+import { AgentError, prefetch, runAgent, type AgentEnv } from './loop'
+import { Ledger } from './schedule'
 import { SetupError } from './providers'
 
 export interface AgentHandlerEnv extends AgentEnv {
@@ -28,6 +29,44 @@ export const agentRequestSchema = z.object({
 
 const tripRow = z.object({ start_date: z.string().nullable(), end_date: z.string().nullable(), timezone: z.string(), base_currency: z.string() })
 const placeRow = z.object({ id: z.string(), name: z.string(), lat: z.number().nullable(), lng: z.number().nullable() })
+
+export const warmRequestSchema = agentRequestSchema.pick({ tripId: true, origin: true, destination: true, countryCode: true, adults: true }).strict()
+
+/**
+ * POST /api/agent-warm: the planner form calls this once the airport and destination are filled in,
+ * while the person is still typing the rest. It runs the same flight, hotel and tour searches a plan
+ * starts with and throws the results away: LiteAPI caches a searched route, so the real plan's
+ * searches (15 to 20 s on a cold route) then come back in about a second. No model call is made.
+ */
+export async function handleAgentWarm(request: Request, env: AgentHandlerEnv, waitUntil: (work: Promise<unknown>) => void, doFetch: typeof fetch = fetch): Promise<Response> {
+  if (request.method !== 'POST') return json({ error: 'Use POST.' }, 405)
+  const origin = request.headers.get('origin')
+  if (origin && origin !== new URL(request.url).origin) return json({ error: 'This request must come from Stowaway.' }, 403)
+  const authorization = request.headers.get('authorization') ?? ''
+  if (!authorization.startsWith('Bearer ')) return json({ error: 'Sign in first.' }, 401)
+  if (!env.AGENT_RATE_LIMITER || !env.LITEAPI_KEY) return json({ ok: false }, 202)
+  const text = await request.text()
+  if (text.length > 2000) return json({ error: 'This request is too large.' }, 413)
+  let body: unknown
+  try { body = JSON.parse(text) } catch { return json({ error: 'Send JSON.' }, 400) }
+  const parsed = warmRequestSchema.safeParse(body)
+  if (!parsed.success) return json({ error: 'Check the airport code and destination.' }, 400)
+  const input = parsed.data
+  const headers = { apikey: env.SUPABASE_PUBLISHABLE_KEY, Authorization: authorization }
+  const tripRead = doFetch(`${env.SUPABASE_URL}/rest/v1/trips?id=eq.${input.tripId}&deleted_at=is.null&select=start_date,end_date,timezone,base_currency`, { headers, signal: AbortSignal.timeout(10000) })
+  tripRead.catch(() => {})
+  const auth = await doFetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers, signal: AbortSignal.timeout(10000) })
+  if (!auth.ok) return json({ error: 'Your session has expired.' }, 401)
+  const user = z.object({ id: z.string().uuid() }).parse(await auth.json())
+  if (!(await env.AGENT_RATE_LIMITER.limit({ key: `warm:${user.id}` })).success) return json({ ok: false }, 202)
+  const tripRes = await tripRead
+  const trip = tripRes.ok ? z.array(tripRow).safeParse(await tripRes.json()) : null
+  const t = trip?.success ? trip.data[0] : undefined
+  if (!t?.start_date || !t.end_date || !IANAZone.isValidZone(t.timezone)) return json({ ok: false }, 202)
+  const work = prefetch({ ...input, start: t.start_date, end: t.end_date, zone: t.timezone, currency: t.base_currency, budgetMinor: null, places: [], vibe: '', notes: '', travelMode: 'DRIVE' }, env, new Ledger(), doFetch)
+  waitUntil(work.catch(() => {}))
+  return json({ ok: true }, 202)
+}
 
 export async function handleAgent(request: Request, env: AgentHandlerEnv, doFetch: typeof fetch = fetch): Promise<Response> {
   if (request.method !== 'POST') return json({ error: 'Use POST.' }, 405)

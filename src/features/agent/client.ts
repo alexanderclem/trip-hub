@@ -25,6 +25,23 @@ export async function requestAgentPlan(input: AgentRequest, signal?: AbortSignal
   return body.plan
 }
 
+/**
+ * Start the slow provider searches while the person is still filling in the form (see
+ * handleAgentWarm). Best effort: any failure just means the plan itself searches from cold.
+ */
+export async function warmAgentPlan(input: Pick<AgentRequest, 'tripId' | 'origin' | 'destination' | 'countryCode' | 'adults'>): Promise<void> {
+  try {
+    if (!navigator.onLine) return
+    await ensureSession()
+    const { data } = await supabase.auth.getSession()
+    await fetch('/api/agent-warm', {
+      method: 'POST', keepalive: true,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session?.access_token ?? ''}` },
+      body: JSON.stringify(input),
+    })
+  } catch { /* a warm-up is only a head start */ }
+}
+
 /** What the email needs, trimmed to stay well under the server's 20 kB limit. */
 export function emailPayload(plan: FinalPlan) {
   return {

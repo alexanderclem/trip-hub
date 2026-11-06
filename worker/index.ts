@@ -3,7 +3,7 @@ import { handleTravel, type TravelEnv } from './travel'
 import { handleConnector, type ConnectorEnv } from './connector'
 import { handleScan } from './scan'
 import { handleInvite, isInvitePath } from './invite'
-import { handleAgent, type AgentHandlerEnv } from './agent/handler'
+import { handleAgent, handleAgentWarm, type AgentHandlerEnv } from './agent/handler'
 import { classifyPath } from '../src/features/website/routes'
 import { AXES, assistReplySchema, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema, tidyIdea } from '../src/features/discovery/model'
 
@@ -113,12 +113,13 @@ export async function servePage(request: Request, env: Pick<Env, 'ASSETS'>): Pro
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx?: { waitUntil(work: Promise<unknown>): void }): Promise<Response> {
     const path = new URL(request.url).pathname
     if (path === '/api/travel-info') return handleTravel(request, env)
     if (path === '/mcp' || path === '/.well-known/oauth-protected-resource' || path === '/.well-known/oauth-protected-resource/mcp') return handleConnector(request, env)
     if (path === '/api/scan') return handleScan(request, env)
     if (path === '/api/agent-plan') return handleAgent(request, env)
+    if (path === '/api/agent-warm') return handleAgentWarm(request, env, (work) => ctx?.waitUntil(work))
     if (isInvitePath(path) && (request.method === 'GET' || request.method === 'HEAD')) return handleInvite(request, env)
     if (path.startsWith('/api/') && path !== '/api/travel-ai') return json({ error: 'Not found' }, 404)
     if (path !== '/api/travel-ai') return servePage(request, env)

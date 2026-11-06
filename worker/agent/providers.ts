@@ -21,8 +21,8 @@ export function toMinor(amount: string | number, currency: string): number {
   return Math.round(Number(amount) * 10 ** digits)
 }
 
-async function call(doFetch: Fetch, url: string, init: RequestInit): Promise<unknown> {
-  const res = await doFetch(url, { ...init, signal: AbortSignal.timeout(20000) })
+async function call(doFetch: Fetch, url: string, init: RequestInit, timeoutMs = 20000): Promise<unknown> {
+  const res = await doFetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) })
   if (!res.ok) {
     console.warn('[agent-provider]', { host: new URL(url).host, path: new URL(url).pathname, status: res.status })
     throw new Error(`${new URL(url).host} ${res.status}`)
@@ -59,9 +59,10 @@ export async function searchFlights(a: Args<'search_flights'>, env: ProviderEnv,
     })),
     adults: a.adults, currency, cabinClass: a.cabin_class.toUpperCase(), sort: { sortBy: 'price', sortOrder: 'asc' },
   }
+  // A route LiteAPI hasn't cached often takes 15 to 20 s, so flights get longer than other calls.
   const batches = liteFlights.parse(await call(doFetch, 'https://api.liteapi.travel/v3.0/flights/rates', {
     method: 'POST', headers: liteHeaders(key), body: JSON.stringify(body),
-  })).data
+  }, 30000)).data
   const candidates = batches.flatMap((b) => b.journeys.flatMap((j) => j.offers
     .filter((o) => o.pricing.display.currency === currency && DateTime.fromISO(o.expiration, { setZone: true }).isValid)
     .map((o) => ({ ...o, segments: j.segments }))))

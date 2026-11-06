@@ -11,7 +11,7 @@ import { useMyMemberId } from '@/data/device'
 import { tripAreas, tripDestination } from '@/features/destinations/destinations'
 import { formatMoney } from '@/lib/money'
 import { Button, ErrorNote, Field, Input, PageHeader, Segmented, Textarea } from '@/ui'
-import { finalizeAgentPlan, requestAgentPlan, type AgentRequest, type FinalPlan } from './client'
+import { finalizeAgentPlan, requestAgentPlan, warmAgentPlan, type AgentRequest, type FinalPlan } from './client'
 import { addPlanToTrip, removePlanFromTrip } from './addToPlan'
 
 interface Saved { id: string; plan: FinalPlan; at: string; finalized?: string; added?: { ids: string[]; skipped: number } }
@@ -50,6 +50,20 @@ export function LivePlanner({ tripId, onDone }: { tripId: string; onDone?(): voi
     }))
   }, [trip, members, city, country])
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }))
+
+  // Once the airport and destination look complete, start the slow searches while they finish the
+  // form. Each combination is warmed once per visit.
+  const warmed = useRef(new Set<string>())
+  const showingForm = (editing || !saved) && !!trip?.start_date && !!trip?.end_date
+  useEffect(() => {
+    if (!showingForm) return
+    const origin = form.origin.trim().toUpperCase(), countryCode = form.countryCode.trim().toUpperCase(), destination = form.destination.trim(), adults = Number(form.adults)
+    if ((origin && !/^[A-Z]{3}$/.test(origin)) || !/^[A-Z]{2}$/.test(countryCode) || !destination || !Number.isInteger(adults) || adults < 1 || adults > 9) return
+    const key = [origin, destination.toLowerCase(), countryCode, adults].join('|')
+    if (warmed.current.has(key)) return
+    const timer = setTimeout(() => { warmed.current.add(key); void warmAgentPlan({ tripId, origin: origin || null, destination: destination.slice(0, 80), countryCode, adults }) }, 900)
+    return () => clearTimeout(timer)
+  }, [showingForm, form.origin, form.destination, form.countryCode, form.adults, tripId])
   const keep = (next: Saved | null) => { store(tripId, next); setSaved(next) }
 
   const currency = trip?.base_currency ?? 'USD'
