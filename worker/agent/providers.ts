@@ -44,6 +44,10 @@ const liteFlights = z.object({ data: z.array(z.object({ journeys: z.array(z.obje
   })),
 })) })) })
 const liteAirport = z.object({ data: z.array(z.object({ airport: z.object({ iata: z.string(), tz: z.string() }) })) })
+/** An airport's zone never changes, so each Worker isolate looks one up once (saves a round of calls per search). */
+const AIRPORT_ZONES = new Map<string, string>()
+/** Tests only: forget the zones earlier tests looked up. */
+export const forgetAirportZones = () => AIRPORT_ZONES.clear()
 const liteHeaders = (key: string) => ({ 'X-API-Key': key, 'Content-Type': 'application/json', Accept: 'application/json' })
 
 export async function searchFlights(a: Args<'search_flights'>, env: ProviderEnv, ledger: Ledger, currency: string, doFetch: Fetch = fetch) {
@@ -66,11 +70,12 @@ export async function searchFlights(a: Args<'search_flights'>, env: ProviderEnv,
   // excluded rather than assigning guessed zones or interpreting local times as UTC.
   const codes = [...new Set(candidates.flatMap((o) => o.segments.flatMap((s) => [s.originCode, s.destinationCode])))].slice(0, 12)
   const zones = new Map<string, string>()
-  await Promise.all(codes.map(async (code) => {
+  for (const code of codes) { const known = AIRPORT_ZONES.get(code); if (known) zones.set(code, known) }
+  await Promise.all(codes.filter((code) => !zones.has(code)).map(async (code) => {
     try {
       const result = liteAirport.parse(await call(doFetch, `https://api.liteapi.travel/v3.0/data/flights/airports/iatas/${code}`, { method: 'GET', headers: liteHeaders(key) }))
       const airport = result.data.find((d) => d.airport.iata === code)?.airport
-      if (airport && IANAZone.isValidZone(airport.tz)) zones.set(code, airport.tz)
+      if (airport && IANAZone.isValidZone(airport.tz)) { zones.set(code, airport.tz); AIRPORT_ZONES.set(code, airport.tz) }
     } catch { /* this airport's journeys cannot safely be scheduled */ }
   }))
   const offers: FlightOffer[] = []

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { checkActivityTimes, searchActivities, searchFlights } from './providers'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { checkActivityTimes, forgetAirportZones, searchActivities, searchFlights } from './providers'
 import { Ledger } from './schedule'
 
 const args = { slices: [{ origin: 'SFO', destination: 'GUA', departure_date: '2027-03-20' }], adults: 2, cabin_class: 'economy' as const, max_connections: 0 }
@@ -9,6 +9,7 @@ const journey = {
 }
 
 describe('LiteAPI flights', () => {
+  beforeEach(forgetAirportZones)
   it('labels the return leg inbound and omits an unrestricted stop filter', async () => {
     const fake = (async (_url, init) => {
       expect(JSON.parse(String(init!.body)).legs).toEqual([

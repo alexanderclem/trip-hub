@@ -28,6 +28,11 @@ describe('planItems', () => {
     expect(items[2]!.place_id).toBe('place-1')
     expect(items.map((i) => i.est_cost_minor)).toEqual([99875, 94282, null, null])
   })
+  it('keeps each end of a flight in its own airport zone when the plan says so', () => {
+    const withEnds: FinalPlan = { ...plan, days: [{ date: '2027-02-23', stay: null, items: [{ node: 0, kind: 'flight', title: 'UA1 SEA→FCO', start: '13:00', end: '09:30', ref: 'F1', routed: false,
+      depart: { local: '2027-02-23T13:00', zone: 'America/Los_Angeles', airport: 'SEA' }, arrive: { local: '2027-02-24T09:30', zone: 'Europe/Rome', airport: 'FCO' } }] }] }
+    expect(planItems(withEnds, trip, 'plan-2')[0]).toMatchObject({ start_local: '2027-02-23T13:00', start_tz: 'America/Los_Angeles', end_local: '2027-02-24T09:30', end_tz: 'Europe/Rome', est_cost_minor: 94282 })
+  })
   it('uses stable ids so adding twice cannot duplicate', () => {
     expect(planItems(plan, trip, 'plan-1').map((i) => i.id)).toEqual(items.map((i) => i.id))
     expect(new Set(items.map((i) => i.id)).size).toBe(items.length)

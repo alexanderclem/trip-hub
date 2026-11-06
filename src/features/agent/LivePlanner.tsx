@@ -119,7 +119,7 @@ export function LivePlanner({ tripId, onDone }: { tripId: string; onDone?(): voi
               {!busy && saved && <Button type="button" variant="ghost" onClick={() => setEditing(false)}>Back to my plan</Button>}
               {!busy && onDone && <Button type="button" variant="ghost" onClick={onDone}>Close</Button>}
             </div>
-            {busy && <p role="status" className="text-sm text-muted">This usually takes under a minute.</p>}
+            {busy && <p role="status" className="text-sm text-muted">Checking live flights, hotels and tours. Usually 10 to 20 seconds.</p>}
           </form>
         )
       ) : (
@@ -142,6 +142,32 @@ function Named({ href, to, children }: { href?: string | null; to?: string | nul
   return <span className="font-medium text-ink">{children}</span>
 }
 
+type PlanItem = FinalPlan['days'][number]['items'][number]
+/** A keyless search for the exact offer, so the group can book it themselves. */
+function bookingLink(b: FinalPlan['bookable'][number], plan: FinalPlan, flights: PlanItem[], destination: string | undefined): string | null {
+  if (b.kind === 'flight') {
+    const legs = flights.filter((f) => f.ref === b.ref)
+    const first = legs[0], last = legs.at(-1)
+    if (!first?.depart || !first.arrive || !last?.depart) return null
+    // The destination is where the longest gap between legs is (the stay), not a connection.
+    const at = (end: { local: string; zone: string }) => DateTime.fromISO(end.local, { zone: end.zone }).toMillis()
+    let stay = legs.length - 1
+    for (let i = 0, longest = -1; i < legs.length - 1; i++) {
+      const gap = at(legs[i + 1]!.depart!) - at(legs[i]!.arrive!)
+      if (gap > longest) { longest = gap; stay = i }
+    }
+    const roundTrip = legs.length > 1 && last.arrive?.airport === first.depart.airport
+    const back = roundTrip ? legs[stay + 1] : undefined
+    const q = `Flights from ${first.depart.airport} to ${legs[stay]!.arrive!.airport} on ${first.depart.local.slice(0, 10)}${back?.depart ? ` returning ${back.depart.local.slice(0, 10)}` : ''}`
+    return `https://www.google.com/travel/flights?q=${encodeURIComponent(q)}`
+  }
+  if (b.kind === 'hotel') {
+    const stay = plan.days.map((d) => d.stay).find((s) => s?.rateId === b.ref)
+    return stay ? mapsLink(stay.name, stay.address ?? destination) : null
+  }
+  return plan.days.flatMap((d) => d.items).find((i) => i.ref === b.ref)?.url ?? null
+}
+
 const ICON = { flight: <Plane className="size-5" />, activity: <Ticket className="size-5" />, free: <Sun className="size-5" />, place: <MapPin className="size-5" />, hotel: <BedDouble className="size-5" /> }
 const WHAT: Record<FinalPlan['bookable'][number]['kind'], string> = { flight: 'Flights', hotel: 'Hotel', activity: 'Tour' }
 
@@ -162,7 +188,9 @@ function PlanView({ tripId, saved, onChange, onEdit, onClear, onDone }: {
   const expired = !!soonest && DateTime.fromISO(soonest) < DateTime.now()
   const kinds = [...new Set(plan.bookable.map((b) => b.kind))]
   const covers = kinds.map((k) => (k === 'flight' ? 'flights' : k === 'hotel' ? 'hotel' : 'tours')).join(kinds.length > 2 ? ', ' : ' and ')
-  const unchecked = plan.days.some((d) => d.items.some((i) => i.kind !== 'flight' && !i.routed))
+  // Only stops with a place can be routed; open free time has nothing to check.
+  const unchecked = plan.days.some((d) => d.items.some((i) => !i.routed && (i.kind === 'activity' || !!i.placeId)))
+  const flights = plan.days.flatMap((d) => d.items).filter((i) => i.kind === 'flight' && i.depart && i.arrive)
 
   async function add() {
     if (!trip || !memberId) return setError('Choose who you are on this trip first, then try again.')
@@ -213,15 +241,17 @@ function PlanView({ tripId, saved, onChange, onEdit, onClear, onDone }: {
                   </div>
                 </div>
               )}
-              {day.stay && !newStay && <p className="text-sm text-muted">Another night at {day.stay.name}</p>}
+              {day.stay && !newStay && <p className="text-sm text-muted">{day.date === day.stay.checkout ? `Check out of ${day.stay.name}` : `Another night at ${day.stay.name}`}</p>}
               <ul className="flex flex-col gap-3">
                 {day.items.map((item) => {
                   const saved = placeName(item.placeId)
                   return (
-                    <li key={`${item.node}-${item.start}`} className="flex items-center gap-3">
+                    <li key={`${item.node}-${item.depart?.local ?? item.start}`} className="flex items-center gap-3">
                       <Thumb src={item.photo} icon={item.kind === 'flight' ? ICON.flight : item.kind === 'activity' ? ICON.activity : saved ? ICON.place : ICON.free} />
                       <div className="min-w-0 text-sm">
-                        <p className="tabular-nums text-muted">{hhmm(item.start)}–{hhmm(item.end)}</p>
+                        {item.depart && item.arrive
+                          ? <p className="tabular-nums text-muted">{item.depart.airport} {hhmm(item.depart.local)} → {item.arrive.airport} {hhmm(item.arrive.local)}{item.arrive.local.slice(0, 10) > item.depart.local.slice(0, 10) ? <> <span aria-hidden="true">+1</span><span className="sr-only">, next day</span></> : null} <span className="text-xs">local times</span></p>
+                          : <p className="tabular-nums text-muted">{hhmm(item.start)}–{hhmm(item.end)}</p>}
                         {item.kind === 'flight' ? <span className="font-medium text-ink">Flight {item.title}</span>
                           : saved ? <Named to={`/t/${tripId}/more/places/${item.placeId}`}>{item.title}</Named>
                           : item.kind === 'activity' ? <Named href={item.url ?? mapsLink(item.title, destination)}>{item.title}</Named>
@@ -244,13 +274,13 @@ function PlanView({ tripId, saved, onChange, onEdit, onClear, onDone }: {
           <ul className="mt-1 text-sm">
             {plan.bookable.map((b) => (
               <li key={`${b.kind}-${b.ref}`} className="flex justify-between gap-3 border-b border-line py-2">
-                <span className="min-w-0"><span className="text-muted">{WHAT[b.kind]}</span>{b.label && <span className="block text-ink">{b.label}</span>}</span>
+                <span className="min-w-0"><span className="text-muted">{WHAT[b.kind]}</span>{b.label && <span className="block"><Named href={bookingLink(b, plan, flights, destination)}>{b.label}</Named></span>}</span>
                 <span className="shrink-0 tabular-nums">{formatMoney(b.totalMinor, plan.currency)}</span>
               </li>
             ))}
             <li className="flex justify-between gap-3 py-2 font-semibold"><span>Total</span><span className="tabular-nums">{formatMoney(plan.totalMinor, plan.currency)}</span></li>
           </ul>
-          <p className="text-xs text-muted">You’ll book these yourself for now. Booking through Stowaway is coming soon.</p>
+          <p className="text-xs text-muted">You’ll book these yourself for now: each link opens a search for that exact flight, hotel or tour. Booking through Stowaway is coming soon.</p>
         </div>
       )}
 

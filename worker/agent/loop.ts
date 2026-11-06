@@ -31,14 +31,48 @@ interface Completion { choices: { message: { content: string | null; tool_calls?
 export interface FinalPlan {
   summary: string; assumptions: string[]; currency: string; totalMinor: number
   days: { date: string; stay: { name: string; rateId: string; refundable: boolean; photo?: string | null; address?: string | null; checkin?: string; checkout?: string } | null
-    items: { node: number; kind: string; title: string; start: string; end: string; ref: string | null; routed: boolean; photo?: string | null; url?: string | null; placeId?: string | null }[] }[]
+    items: { node: number; kind: string; title: string; start: string; end: string; ref: string | null; routed: boolean; photo?: string | null; url?: string | null; placeId?: string | null
+      /** Flights only: each end's local wall-clock time ('yyyy-MM-ddTHH:mm') and zone, as on the ticket. start/end are these times too. */
+      depart?: { local: string; zone: string; airport: string }; arrive?: { local: string; zone: string; airport: string } }[] }[]
   /** What a "Book" step must act on, in order. Offers expire, so the client shows expiresAt. */
   bookable: { kind: 'flight' | 'hotel' | 'activity'; ref: string; totalMinor: number; expiresAt: string | null; label?: string }[]
   unrouted: number[]
   usage: { modelTurns: number; promptTokens: number; cachedPromptTokens: number; completionTokens: number; timings?: Timings }
 }
 /** Where a plan's time went, in milliseconds: each model turn, each tool call, and routing. */
-export interface Timings { totalMs: number; modelMs: number[]; tools: { name: string; ms: number }[]; routeMs: number }
+export interface Timings { totalMs: number; prefetchMs: number; modelMs: number[]; tools: { name: string; ms: number }[]; routeMs: number }
+
+const TOURS_OFF = 'Tours cannot be booked for this trip. Do not search for tours again; leave that time free.'
+
+/** What the server already looked up for the trip's own dates (see tripMessage). */
+export interface Ready {
+  hotels: { checkin: string; checkout: string; rooms: number; adults_per_room: number; results: unknown[] }[]
+  tours: unknown[] | 'unavailable'
+}
+
+/**
+ * Hotels for the trip's dates (and from the next day, when an overnight flight lands a day late) and
+ * tours for the whole trip, all in parallel. Failures just leave the model to search itself.
+ */
+export async function prefetch(c: AgentInput, env: AgentEnv, ledger: Ledger, doFetch: typeof fetch): Promise<Ready> {
+  if (!env.LITEAPI_KEY) return { hotels: [], tours: [] } // the tools report the missing key themselves
+  const rooms = Math.ceil(c.adults / 2)
+  const perRoom = Math.ceil(c.adults / rooms)
+  const nextDay = DateTime.fromISO(c.start).plus({ days: 1 }).toISODate()!
+  const stays = [{ checkin: c.start, checkout: c.end }, ...(c.origin && nextDay < c.end ? [{ checkin: nextDay, checkout: c.end }] : [])]
+  const [hotels, tours] = await Promise.all([
+    Promise.all(stays.filter((s) => s.checkout > s.checkin).map(async (s) => {
+      try {
+        const results = await searchHotels({ city_name: c.destination, country_code: c.countryCode, checkin: s.checkin, checkout: s.checkout, adults_per_room: perRoom, rooms, currency: c.currency, max_nightly_minor: null, min_stars: null }, env, ledger, doFetch)
+        return results.length ? [{ ...s, rooms, adults_per_room: perRoom, results }] : []
+      } catch (error) { if (error instanceof SetupError) throw error; return [] }
+    })),
+    searchActivities({ destination_name: c.destination, start_date: c.start, end_date: c.end, tags: [], currency: c.currency, max_price_minor: null }, env, ledger, doFetch)
+      .then((r): unknown[] | 'unavailable' => r)
+      .catch((error: unknown): unknown[] | 'unavailable' => { if (error instanceof SetupError) throw error; return error instanceof Error && / 40[13]$/.test(error.message) ? 'unavailable' : [] }),
+  ])
+  return { hotels: hotels.flat(), tours }
+}
 
 export class AgentError extends Error {}
 
@@ -49,9 +83,14 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
     if (++subrequests > LIMITS.subrequests) throw new AgentError('This plan needed more lookups than one request allows. Narrow the dates or the brief.')
     return doFetch(url, init)
   }
-  const messages: Message[] = [{ role: 'system', content: AGENT_SYSTEM }, { role: 'user', content: tripMessage(input) }]
   const started = Date.now()
-  const timings: Timings = { totalMs: 0, modelMs: [], tools: [], routeMs: 0 }
+  const timings: Timings = { totalMs: 0, prefetchMs: 0, modelMs: [], tools: [], routeMs: 0 }
+  // Hotels and tours for the trip's own dates don't depend on anything the model decides, so the
+  // server looks them up before the first turn. That saves the model one or two round trips.
+  const ready = await prefetch(input, env, ledger, counted)
+  let toursOff = ready.tours === 'unavailable'
+  timings.prefetchMs = Date.now() - started
+  const messages: Message[] = [{ role: 'system', content: AGENT_SYSTEM }, { role: 'user', content: tripMessage(input, ready) }]
   const usage: FinalPlan['usage'] = { modelTurns: 0, promptTokens: 0, cachedPromptTokens: 0, completionTokens: 0, timings }
   let toolCalls = 0, submits = 0
 
@@ -81,6 +120,7 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
       try { args = JSON.parse(callItem.function.arguments) } catch { return reply({ error: 'Arguments were not valid JSON.' }) }
       const parsed = argSchemas[name as ToolName].safeParse(args)
       if (!parsed.success) return reply({ error: 'Invalid arguments', issues: parsed.error.issues.map((i: { path: PropertyKey[]; message: string }) => `${i.path.join('.')}: ${i.message}`) })
+      if (toursOff && (name === 'search_activities' || name === 'check_activity_times')) return reply({ error: TOURS_OFF })
       try {
         if (name === 'submit_itinerary') {
           // Parallel submits in one turn are checked one at a time; once a plan passes, the rest are moot.
@@ -107,6 +147,8 @@ export async function runAgent(input: AgentInput, env: AgentEnv, doFetch: typeof
       } catch (error) {
         if (error instanceof SetupError || error instanceof AgentError) throw error
         if (error instanceof ToolInputError) return reply({ error: error.message })
+        // Tours not enabled on the provider account: say so once instead of letting the model retry.
+        if ((name === 'search_activities' || name === 'check_activity_times') && error instanceof Error && / 40[13]$/.test(error.message)) { toursOff = true; return reply({ error: TOURS_OFF }) }
         console.warn('[agent-tool]', { tool: name, error: error instanceof Error ? error.message.slice(0, 1000) : 'unknown' })
         // A provider failing is reported to the model, which can retry once or plan around it.
         return reply({ error: 'The provider did not answer. Try once more, or plan this part as free time.' })
@@ -169,12 +211,16 @@ function finalPlan(a: { summary: string; assumptions: string[] }, r: Resolved, r
   const notRouted = new Set(unrouted.map((b) => b.node))
   const days = new Map<string, FinalPlan['days'][number]['items']>()
   for (const b of r.blocks) {
-    const local = b.start.setZone(c.zone)
+    // A flight is listed on the day it leaves, at the times printed on the ticket (each airport's own clock).
+    const local = b.kind === 'flight' ? b.start : b.start.setZone(c.zone)
     const day = local.toISODate()!
     const t = retimed.get(b.node)
     const slot = b.kind === 'activity' && b.ref ? ledger.get(b.ref) : undefined
     const extra = slot?.kind === 'slot' ? { photo: slot.photo ?? null, url: slot.url ?? null, placeId: null } : { photo: null, url: null, placeId: b.kind === 'free' ? b.ref : null }
-    const node = { node: b.node, kind: b.kind, title: b.title, start: t?.start ?? local.toFormat('HH:mm'), end: t?.end ?? b.end.setZone(c.zone).toFormat('HH:mm'), ref: b.ref, routed: !notRouted.has(b.node) && b.kind !== 'flight', ...extra }
+    const end = b.kind === 'flight' ? b.end : b.end.setZone(c.zone)
+    const [from, to] = b.kind === 'flight' ? (b.title.split(' ')[1] ?? '').split('→') : []
+    const ends = b.kind === 'flight' ? { depart: { local: b.start.toFormat("yyyy-MM-dd'T'HH:mm"), zone: b.start.zoneName!, airport: from ?? '' }, arrive: { local: b.end.toFormat("yyyy-MM-dd'T'HH:mm"), zone: b.end.zoneName!, airport: to ?? '' } } : {}
+    const node = { node: b.node, kind: b.kind, title: b.title, start: t?.start ?? local.toFormat('HH:mm'), end: t?.end ?? end.toFormat('HH:mm'), ref: b.ref, routed: !notRouted.has(b.node) && b.kind !== 'flight', ...extra, ...ends }
     days.set(day, [...(days.get(day) ?? []), node])
   }
   const bookable: FinalPlan['bookable'] = []

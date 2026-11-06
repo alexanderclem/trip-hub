@@ -57,6 +57,12 @@ describe('resolve', () => {
     expect(r.blocks[0]?.ref).toBe(flight.id)
     expect(r.totalMinor).toBe(flight.totalMinor + hotel.totalMinor)
   })
+  it('books a round trip once when the model lists it for both directions', () => {
+    const r = resolve([base[0]!, node({ kind: 'flight', ref: 'off_1', day: '2027-03-27' }), base[1]!], ledger(), trip, NOW)
+    expect(r.errors).toEqual([])
+    expect(r.totalMinor).toBe(flight.totalMinor + hotel.totalMinor)
+    expect(r.blocks.filter((b) => b.kind === 'flight')).toHaveLength(2)
+  })
   it('accepts a plan built from ledger ids and totals it', () => {
     const r = resolve([...base, node({ kind: 'activity', ref: 'T1~A~2027-03-22~09:00', day: '2027-03-22', start_time: '09:00' })], ledger(slot('T1~A~2027-03-22~09:00', '2027-03-22', '09:00')), trip, NOW)
     expect(r.errors).toEqual([])
@@ -208,6 +214,32 @@ describe('runAgent', () => {
   // The ledger is seeded directly, standing in for the searches a real first turn would make.
   const run = (doFetch: typeof fetch, l: Ledger) => runAgent({ ...trip, origin: 'SFO', destination: 'Antigua Guatemala', countryCode: 'GT', vibe: 'relaxed', notes: '', travelMode: 'DRIVE' },
     { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm', GOOGLE_ROUTES_API_KEY: 'g' }, doFetch, NOW, l)
+
+  it('looks up hotels and tours before the first turn, and stops tour searches the account cannot make', async () => {
+    const sent: { messages: { role: string; content: string | null }[] }[] = []
+    let tourCalls = 0
+    const turns = [
+      { tool_calls: [{ id: 't1', type: 'function', function: { name: 'search_activities', arguments: JSON.stringify({ destination_name: 'Antigua', start_date: '2027-03-20', end_date: '2027-03-27', tags: ['food'], currency: 'USD', max_price_minor: null }) } }] },
+      submit('s1', flightAndHotel),
+    ]
+    const fake = (async (url: string | URL | Request, init?: RequestInit) => {
+      const u = String(url)
+      if (u.includes('deepseek')) { sent.push(JSON.parse(String(init!.body))); return Response.json({ choices: [{ message: { content: null, ...turns[sent.length - 1] }, finish_reason: 'tool_calls' }] }) }
+      if (u.includes('/experiences/tours')) { tourCalls++; return new Response('{}', { status: 403 }) }
+      if (u.endsWith('/hotels/rates')) return Response.json({ data: [{ hotelId: 'lp2', roomTypes: [{ offerId: `pre_${JSON.parse(String(init!.body)).checkin}`, offerRetailRate: { amount: 700, currency: 'USD' }, rates: [{ name: 'Double' }] }] }], hotels: [{ id: 'lp2', name: 'Posada' }] })
+      if (u.includes('routes.googleapis')) return Response.json({ routes: [] })
+      throw new Error(`unexpected ${u}`)
+    }) as typeof fetch
+    const plan = await runAgent({ ...trip, origin: 'SFO', destination: 'Antigua Guatemala', countryCode: 'GT', vibe: 'relaxed', notes: '', travelMode: 'DRIVE' },
+      { DEEPSEEK_API_KEY: 'k', DEEPSEEK_MODEL: 'm', LITEAPI_KEY: 'l' }, fake, NOW, ledger())
+    const ready = JSON.parse(sent[0]!.messages[1]!.content!).ready
+    expect(ready.tours).toBe('unavailable')
+    // The trip's own dates, plus the day after for a flight that lands a day late.
+    expect(ready.hotels.map((h: { checkin: string }) => h.checkin)).toEqual(['2027-03-20', '2027-03-21'])
+    expect(tourCalls).toBe(1)
+    expect(sent[1]!.messages.at(-1)!.content).toMatch(/Tours cannot be booked/)
+    expect(plan.usage.timings?.modelMs).toHaveLength(2)
+  })
 
   it('keeps a plan whose free stops do not fit Google’s drive times, flagged as unrouted', async () => {
     const plan = await run(scripted([submit('s1', [...flightAndHotel,

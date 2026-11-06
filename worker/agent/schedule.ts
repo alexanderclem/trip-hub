@@ -64,6 +64,7 @@ export function resolve(nodes: SubmittedNode[], ledger: Ledger, c: Constraints, 
   const stays: Stay[] = []
   const errors: string[] = []
   const charged = new Set<string>()
+  const used = new Set<string>()
   let totalMinor = 0
   const charge = (id: string, minor: number, currency: string, where: string) => {
     if (currency !== c.currency) { errors.push(`${where}: priced in ${currency}, but the trip currency is ${c.currency}. Search again with currency ${c.currency}.`); return }
@@ -85,6 +86,10 @@ export function resolve(nodes: SubmittedNode[], ledger: Ledger, c: Constraints, 
     if (n.day < c.start || n.day > c.end) errors.push(`${where}: ${n.day} is outside the trip (${c.start} to ${c.end}).`)
     const entry = n.ref ? ledger.get(n.ref) : undefined
     if (!entry) { errors.push(`${where}: unknown reference. Use only ids returned by a tool in this conversation.`); return }
+    // The model often lists a round trip twice (out and back) or repeats a stay. One offer is one
+    // booking, so a repeat is dropped here rather than costing a whole resubmit as a "clash".
+    if (used.has(entry.id)) return
+    used.add(entry.id)
     if (n.kind === 'flight') {
       if (entry.kind !== 'flight') { errors.push(`${where}: ${n.ref} is not a flight offer.`); return }
       if (DateTime.fromISO(entry.expiresAt) <= now) { errors.push(`${where}: this offer expired at ${entry.expiresAt}. Call search_flights again.`); return }
