@@ -28,6 +28,8 @@ async function seed(page: Page, baseURL: string, phase: 'planning' | 'preparing'
   await page.goto('/app')
   await page.getByText('No upcoming trips', { exact: true }).waitFor()
   await page.evaluate(async ({ tripId, me, maya, noah, pollId, placeId, itemId, taskId, pastId, phase }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
     const stores = ['trips', 'members', 'places', 'polls', 'poll_options', 'poll_votes', 'itinerary_items', 'trip_tasks', 'attachments']
@@ -149,6 +151,8 @@ test('cover selection survives reload, preserves other settings, and permits a p
   await dialog.getByRole('button', { name: 'Save cover' }).click()
   await expect(page.locator('.overview-art')).toHaveCount(0)
   const settings = await page.evaluate(async tripId => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const get = db.transaction('trips').objectStore('trips').get(tripId)
@@ -182,6 +186,8 @@ test('cover save failure keeps selection and allows retry without duplicate writ
 test('travel day keeps departure, map and ticket handy while explaining estimates on demand', async ({ page, baseURL }) => {
   await seed(page, baseURL!, 'traveling')
   await page.evaluate(async ({ tripId, placeId, itemId }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const tx = db.transaction(['places', 'itinerary_items'], 'readwrite')
@@ -276,9 +282,16 @@ test('planning shortcuts lead to the real trip screens and preserve trip context
   await seed(page, baseURL!)
   await page.goto(`${root}/overview`)
   const planning = page.getByRole('navigation', { name: 'Trip planning', exact: true })
-  await expect(planning.getByRole('link')).toHaveCount(3)
-  for (const [label, path, title] of [['Saved places', 'more/places', 'Places'], ['Votes', 'more/vote', 'Votes'], ['Itinerary', 'plan', 'Plan']]) {
-    await planning.getByRole('link', { name: new RegExp(`^${label}`) }).click()
+  // Places and Votes are the planning links; the plan itself is reached from the day preview's
+  // "Full plan" (and the Plan tab), so Home doesn't repeat an Itinerary link.
+  await expect(planning.getByRole('link')).toHaveCount(2)
+  const preview = page.getByRole('region', { name: /, \d+ \w+$/ })
+  for (const [link, path, title] of [
+    [planning.getByRole('link', { name: /^Saved places/ }), 'more/places', 'Places'],
+    [planning.getByRole('link', { name: /^Votes/ }), 'more/vote', 'Votes'],
+    [preview.getByRole('link', { name: 'Full plan' }), 'plan', 'Plan'],
+  ] as const) {
+    await link.click()
     await expect(page).toHaveURL(new RegExp(`${root}/${path}(\\?|$)`))
     await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible()
     await expect(page.locator('.app-page-header .ui-eyebrow')).toHaveText('A long weekend in Lisbon')

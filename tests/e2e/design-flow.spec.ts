@@ -23,6 +23,8 @@ async function localTrip(page: Page, date: string) {
   await expect(page.getByRole('heading', { name: 'Trip ideas' })).toBeVisible()
   await expect.poll(() => page.evaluate(async () => (await indexedDB.databases()).some((d) => d.name === 'trip-hub'))).toBe(true)
   await page.evaluate(async ({ tripId, memberId, flightId, ticketId }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open('trip-hub')
       request.onsuccess = () => resolve(request.result)
@@ -111,6 +113,8 @@ test('trip dates can be added later offline without resetting a draft during syn
   await name.fill('E2E TEST Edited trip')
   // A background local-data refresh must not replace what the person has typed.
   await page.evaluate(async (tripId) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const db = await new Promise<IDBDatabase>((resolve) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result) })
     const tx = db.transaction('trips', 'readwrite')
     const store = tx.objectStore('trips')

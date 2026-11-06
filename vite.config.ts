@@ -49,12 +49,21 @@ export default defineConfig({
       workbox: {
         // Includes the offline map's fonts and sprites, so labels render with no network.
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,jpg,woff2,ttf}', 'map-assets/**/*.{pbf,json}'], // mjs: pdf.js worker
-        globIgnores: ['**/tesseract-core-lstm*'], // the OCR core is cached when first used, not precached
+        // The OCR core is cached when first used, not precached. Destination photos (about 20 MB for
+        // 100 places) are too heavy to install on every phone: only their tiny placeholders precache,
+        // and each trip's own photo is cached the first time it is shown (runtimeCaching below).
+        globIgnores: ['**/tesseract-core-lstm*', 'images/destinations/!(*-placeholder).jpg'],
         navigateFallback: '/app.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/mcp$/, /^\/\.well-known\//, /^\/oauth\//, /^\/auth\//],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         importScripts: ['push-sw.js'], // push + notification taps (public/push-sw.js)
         runtimeCaching: [
+          {
+            // A trip's destination photo, once seen, stays on the phone for offline covers.
+            urlPattern: ({ url }) => url.origin === self.location.origin && url.pathname.startsWith('/images/destinations/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'destination-photos', expiration: { maxEntries: 60 }, cacheableResponse: { statuses: [200] } },
+          },
           {
             // The OCR core and language data: cached the first time someone reads text, then work offline.
             urlPattern: ({ url }) => (url.origin === self.location.origin && url.pathname.includes('/assets/tesseract-core-lstm')) || /^https:\/\/cdn\.jsdelivr\.net\/npm\/@tesseract\.js-data\//.test(url.href),

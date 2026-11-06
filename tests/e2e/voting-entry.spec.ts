@@ -8,6 +8,8 @@ test.beforeEach(async ({ page, baseURL }) => {
   await page.evaluate(async () => {
     const tripId = '00000000-0000-4000-8000-000000000901'
     const memberId = '00000000-0000-4000-8000-000000000902'
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
       request.onsuccess = () => resolve(request.result)
@@ -21,7 +23,8 @@ test.beforeEach(async ({ page, baseURL }) => {
       transaction.onerror = () => reject(transaction.error)
     })
     database.close()
-    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { trips: { [tripId]: { tripId, memberId, joinedAt: '2026-10-08T12:00:00Z' } }, quizSeen: true }, version: 1 }))
+    // Joined after RESET_AT (src/data/reset.ts); earlier trips are wiped on startup.
+    localStorage.setItem('trip-hub-device', JSON.stringify({ state: { trips: { [tripId]: { tripId, memberId, joinedAt: '2026-10-10T12:00:00Z' } }, quizSeen: true }, version: 1 }))
   })
 })
 
@@ -39,6 +42,8 @@ test('voting leads navigation, persists offline and appears in the overview', as
   const choice = page.getByRole('group', { name: 'Your vote for Garden café' }).getByRole('button', { name: 'Must-do' })
   await choice.click()
   await expect(choice).toHaveAttribute('aria-pressed', 'true')
+  // The press shows at once; wait for the local write before reloading, or the reload can abort it.
+  await expect(page.getByRole('status').filter({ hasText: 'Vote saved.' })).toBeVisible()
   await page.reload()
   await expect(choice).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('tab', { name: 'Results', exact: true }).click()
@@ -47,6 +52,9 @@ test('voting leads navigation, persists offline and appears in the overview', as
   await expect(page.getByText('You’re all caught up')).toBeVisible()
   // A vote you've finished no longer asks for you on Home; it is one tap away on the Vote tab.
   await nav.getByRole('link', { name: 'Vote', exact: true }).click()
+  // Wait for Home to leave: it also links this vote (group decisions, activity) while it fades out.
+  await expect(page.getByRole('heading', { level: 1, name: 'Votes', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Where should we eat/ })).toHaveCount(1)
   await page.getByRole('link', { name: /Where should we eat/ }).click()
   await page.getByRole('button', { name: 'Close voting and pick the winner' }).click()
   await expect(page.getByText('Decided', { exact: true })).toBeVisible()

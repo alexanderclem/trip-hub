@@ -20,6 +20,8 @@ async function seed(page: Page) {
   await page.goto('/app')
   await expect.poll(() => page.evaluate(async () => (await indexedDB.databases()).some((entry) => entry.name === 'trip-hub'))).toBe(true)
   await page.evaluate(async ({ tripId, memberId, taskId }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const database = await new Promise<IDBDatabase>((resolve, reject) => { const request = indexedDB.open('trip-hub'); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
     const tx = database.transaction(['trips', 'members', 'trip_tasks'], 'readwrite')
     const base = { trip_id: tripId, created_at: '2026-11-03T12:00:00Z', updated_at: '2026-11-03T12:00:00Z', created_by: null, updated_by: null, deleted_at: null }
@@ -35,6 +37,8 @@ async function seed(page: Page) {
 
 async function storedTask(page: Page) {
   return page.evaluate(async (taskId) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const database = await new Promise<IDBDatabase>((resolve) => { const request = indexedDB.open('trip-hub'); request.onsuccess = () => resolve(request.result) })
     const request = database.transaction('trip_tasks').objectStore('trip_tasks').get(taskId)
     const result = await new Promise<{ completed: boolean; notes: string }>((resolve) => { request.onsuccess = () => resolve(request.result) })
@@ -178,6 +182,8 @@ test('saved destination facts stay visible while reconnecting and revalidating',
   await page.evaluate(async ({ tripId, user, token, expires }) => {
     localStorage.setItem('sb-croqjdvzbpcscdcshnet-auth-token', JSON.stringify({ access_token: token, refresh_token: 'fixture-refresh', expires_in: 3600, expires_at: expires, token_type: 'bearer', user }))
     localStorage.setItem(`stowaway-travel-v1:${JSON.stringify({ action: 'country', tripId, country: 'US' })}`, JSON.stringify({ data: { name: 'Saved destination facts', currencies: ['USD'], languages: ['English'], callingCodes: ['+1'] }, fetchedAt: new Date(Date.now() - 31 * 86400000).toISOString() }))
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const database = await new Promise<IDBDatabase>((resolve) => { const request = indexedDB.open('trip-hub'); request.onsuccess = () => resolve(request.result) })
     const tx = database.transaction('trips', 'readwrite')
     const store = tx.objectStore('trips')

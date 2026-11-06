@@ -21,6 +21,8 @@ async function seed(page: Page, baseURL: string, opts: { offline: boolean; rows?
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'Trip ideas', level: 1 })).toBeVisible()
   await page.evaluate(async ({ tripId, alex, sam, token, rows }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
       request.onsuccess = () => resolve(request.result)
@@ -122,6 +124,8 @@ test('a date vote with a deadline: add dates, vote, decide, set the trip dates',
   await page.goto(`${base}/more/vote`)
   await expect(page.getByText(/2 options · you voted on all · closes tomorrow/)).toBeVisible()
   const queued = await page.evaluate(async () => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })
     const rows = await new Promise<{ table: string; payload: Record<string, unknown> }[]>((resolve) => {
@@ -166,6 +170,8 @@ test('a passed deadline ends voting, records the winner, and the winner goes ont
 
   // This phone has signal, so it records the result for everyone.
   await expect.poll(async () => page.evaluate(async (id) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })
     const row = await new Promise<Record<string, unknown>>((resolve) => {

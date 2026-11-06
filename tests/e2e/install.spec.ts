@@ -96,6 +96,8 @@ test('trip settings keep destination and offline tools without the import sectio
   await page.evaluate(async () => {
     const tripId = '00000000-0000-4000-8000-000000000901'
     const memberId = '00000000-0000-4000-8000-000000000902'
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
       request.onsuccess = () => resolve(request.result)

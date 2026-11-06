@@ -65,6 +65,8 @@ test('the organizer plans payments, opens a refund with the policy’s suggestio
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'Trip ideas', level: 1 })).toBeVisible()
   await page.evaluate(async ({ trip, ana, ola, offerId, bookingId, schedule, tiers }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
     const tx = db.transaction(['trips', 'members', 'trip_offers', 'bookings', 'booking_payments', 'itinerary_items'], 'readwrite')

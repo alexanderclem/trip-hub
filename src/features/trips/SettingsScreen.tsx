@@ -1,5 +1,6 @@
 import { AppearancePicker } from '@/ui/AppearancePicker'
-import { coverPhoto } from './covers'
+import { autoPhoto, coverPhoto } from './covers'
+import { photoCredit } from './destinationPhotos'
 import { useConfirm } from '@/ui/ConfirmProvider'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -91,7 +92,7 @@ export function SettingsScreen() {
 
         <section className="settings-group" aria-labelledby="settings-trip-title">
         <h2 id="settings-trip-title" className="ui-label px-0.5">The trip</h2>
-        <Card><SectionTitle>Trip cover</SectionTitle><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} photo={coverPhoto(trip)} /></div><TripCoverPicker trip={trip} memberId={me} /></Card>
+        <Card><SectionTitle>Trip cover</SectionTitle><div className="settings-trip-art mt-4"><TripArtwork cover={tripCover(trip)} photo={coverPhoto(trip)} destination={autoPhoto(trip)} /></div>{(() => { const p = autoPhoto(trip); return p && <p className="mt-2 text-xs text-muted">{p.name}. {photoCredit(p)}, via <a className="underline" href={p.source} target="_blank" rel="noreferrer">Wikimedia Commons<span className="sr-only"> (opens in a new tab)</span></a>.</p> })()}<TripCoverPicker trip={trip} memberId={me} /></Card>
         <Card><Disclosure summary="Trip details"><TripDetailsForm trip={trip} memberId={me} /></Disclosure><Link className="ui-link inline-flex min-h-11 items-center border-t border-line pt-1 w-full" to={`/t/${tripId}/more/import`}>Import a plan from a spreadsheet (CSV)</Link></Card>
         <DestinationsCard trip={trip} me={me} />
         <OfflineMapCard trip={trip} />

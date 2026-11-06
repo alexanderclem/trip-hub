@@ -83,6 +83,8 @@ async function seedTrip(page: Page, ideas: IdeaResult) {
   })).toEqual(expect.arrayContaining(['trips', 'members', 'member_preferences', 'ai_drafts']))
   await page.evaluate(async ({ tripId, alex, sam, profile: p, ideas }) => {
     localStorage.setItem('trip-hub-device', JSON.stringify({ version: 1, state: { trips: { [tripId]: { tripId, memberId: alex, joinedAt: new Date().toISOString() } }, travelProfile: p } }))
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const database = await new Promise<IDBDatabase>((resolve, reject) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
     const tables = ['trips', 'members', 'member_preferences', 'ai_drafts']
     const tx = database.transaction(tables, 'readwrite')
@@ -363,6 +365,8 @@ test('Stowie rides along on trip tabs, answers from the trip, and adds a task on
   await expect(sheet.getByText('For Sam', { exact: true })).toBeVisible()
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-8-proposal.png` })
   expect(await page.evaluate(async () => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const database = await new Promise<IDBDatabase>((resolve, reject) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
     const count = await new Promise<number>((resolve) => { const req = database.transaction('trip_tasks').objectStore('trip_tasks').count(); req.onsuccess = () => resolve(req.result) })
     database.close()

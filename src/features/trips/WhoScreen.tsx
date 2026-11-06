@@ -61,7 +61,10 @@ export function WhoScreen() {
       await enter()
     } catch (e) {
       if (mine !== attempt.current) return
-      setError(e instanceof Error ? e.message : String(e))
+      // A request timeout can beat the screen's own deadline; either way nothing changed on this phone,
+      // so people see the same plain message rather than "signal timed out" or "AbortError".
+      const stalled = e instanceof Error && (e.name === 'AbortError' || e.name === 'TimeoutError' || /timed out|abort/i.test(e.message))
+      setError(stalled ? STOPPED_WAITING : e instanceof Error ? e.message : String(e))
       setBusy(false)
     } finally {
       clearTimeout(timer)

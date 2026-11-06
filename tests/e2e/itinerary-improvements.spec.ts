@@ -14,6 +14,8 @@ async function seed(page: Page, baseURL: string) {
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'Trip ideas' })).toBeVisible()
   await page.evaluate(async ids => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const tx = db.transaction(['trips', 'members', 'itinerary_items', 'attachments', 'files'], 'readwrite')
@@ -34,6 +36,8 @@ async function seed(page: Page, baseURL: string) {
 
 async function read(page: Page, store: string) {
   return page.evaluate(async store => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const get = db.transaction(store).objectStore(store).getAll()
@@ -128,6 +132,8 @@ test('the landing page uses labels without demo instructions', async ({ page }) 
 test('another traveler’s specific changes appear on the overview and in the new changes section', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await page.evaluate(async ({ tripId, museumId }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const tx = db.transaction(['itinerary_items', 'members'], 'readwrite')

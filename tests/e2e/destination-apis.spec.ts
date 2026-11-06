@@ -8,6 +8,8 @@ async function seed(page: Page) {
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'Trip ideas', exact: true })).toBeVisible()
   await page.evaluate(async ({ trip, member, user }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const database = await new Promise<IDBDatabase>((resolve) => { const r = indexedDB.open('trip-hub'); r.onsuccess = () => resolve(r.result) })
     const tx = database.transaction(['trips', 'members', 'itinerary_items'], 'readwrite')
     tx.objectStore('trips').put({ id: trip, name: 'E2E TEST destination APIs', timezone: 'Europe/Paris', start_date: '2026-11-01', end_date: '2026-11-03', base_currency: 'USD', local_currency: 'EUR', route_factor_low: 1.4, route_factor_high: 2, bbox: null, offline_pack: null, share_token: 'local-only', settings: { destination_country: 'FR', destination_city: 'Paris' } })

@@ -20,6 +20,8 @@ async function seed(page: Page, online = false) {
   await page.goto('/app')
   await expect(page.getByText('No upcoming trips', { exact: true })).toBeVisible()
   await page.evaluate(async ({ tripId, me, placeId }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })
     const tx = db.transaction(['trips', 'members', 'places'], 'readwrite')
@@ -91,6 +93,8 @@ test('map loading offers saved places instead of an unexplained blank canvas', a
 test('solo spending and the current traveler’s missing vote use personal wording', async ({ page }) => {
   await seed(page)
   await page.evaluate(async ({ tripId, me }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })
     const tx = db.transaction(['expenses', 'polls', 'poll_options'], 'readwrite')

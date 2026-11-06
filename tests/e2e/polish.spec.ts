@@ -12,6 +12,8 @@ async function seed(page: Page, baseURL: string, offline = true) {
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'Trip ideas' })).toBeVisible()
   await page.evaluate(async ({ tripId, memberId, pollId }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
     const tx = db.transaction(['trips', 'members', 'polls', 'poll_options'], 'readwrite')
@@ -28,6 +30,8 @@ async function seed(page: Page, baseURL: string, offline = true) {
 
 async function rows(page: Page, store: string) {
   return page.evaluate(async store => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { req.onsuccess = () => resolve(req.result) })
     const all = db.transaction(store).objectStore(store).getAll()
@@ -52,6 +56,8 @@ async function failNextWrite(page: Page, store: string) {
 
 async function putLocalRows(page: Page, rows: Record<string, Record<string, unknown>[]>) {
   await page.evaluate(async (rows) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
     const transaction = database.transaction(Object.keys(rows), 'readwrite')
@@ -127,6 +133,8 @@ test('rapid day changes preserve the final selection, keyboard focus, and each d
 test('trip tasks reflow with a long title, enlarged text, and right-to-left day navigation', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await page.evaluate(async (tripId) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const transaction = database.transaction('trips', 'readwrite')
@@ -205,6 +213,8 @@ test('a ticket that could not open can retry and confirms the file is saved on t
   await expect(page.getByText('MUSEUM27', { exact: true })).toBeVisible()
   // The file becomes available locally while the viewer stays open.
   await page.evaluate(async (ticketId) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const database = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })
     const transaction = database.transaction('files', 'readwrite')
@@ -356,6 +366,8 @@ test('offline preparation retains real map packs, labels, and a saved ticket aft
   await page.route('**/rest/v1/**', route => route.fulfill({ contentType: 'application/json', body: '[]' }))
   await page.route('https://open.er-api.com/**', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ result: 'success', rates: { USD: 1, GTQ: 7.6 } }) }))
   await page.evaluate(async ({ tripId, memberId }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { req.onsuccess = () => resolve(req.result) })
     const get = db.transaction('trips').objectStore('trips').get(tripId)

@@ -1,0 +1,1532 @@
+[
+  {
+    "id": "paris",
+    "name": "Paris",
+    "aliases": [],
+    "radius": 30,
+    "lat": 48.8567,
+    "lng": 2.3522,
+    "width": 1280,
+    "height": 800,
+    "author": "Yann Caradec from Paris, France",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques,_Paris_ao%C3%BBt_2014_(2).jpg"
+  },
+  {
+    "id": "london",
+    "name": "London",
+    "aliases": [],
+    "radius": 35,
+    "lat": 51.5072,
+    "lng": -0.1275,
+    "width": 1280,
+    "height": 720,
+    "author": "Ilya Grigorik",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:London_Skyline_(125508655).jpeg"
+  },
+  {
+    "id": "rome",
+    "name": "Rome",
+    "aliases": [
+      "roma"
+    ],
+    "radius": 30,
+    "lat": 41.8931,
+    "lng": 12.4828,
+    "width": 1280,
+    "height": 853,
+    "author": "Bert Kaufmann from Roermond, Netherlands",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Rome_Skyline_(8012016319).jpg"
+  },
+  {
+    "id": "barcelona",
+    "name": "Barcelona",
+    "aliases": [],
+    "radius": 25,
+    "lat": 41.3825,
+    "lng": 2.1769,
+    "width": 1280,
+    "height": 853,
+    "author": "dronepicr",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Aerial_view_of_La_Sagrada_Familia,_Barcelona,_Spain_(51227006134).jpg"
+  },
+  {
+    "id": "amsterdam",
+    "name": "Amsterdam",
+    "aliases": [],
+    "radius": 25,
+    "lat": 52.3667,
+    "lng": 4.8833,
+    "width": 1280,
+    "height": 1039,
+    "author": "ESA (European Space Agency)",
+    "license": "Attribution",
+    "licenseUrl": null,
+    "source": "https://commons.wikimedia.org/wiki/File:Amsterdam_Photo_2020_Copernicus_Sentinel-2.jpg"
+  },
+  {
+    "id": "lisbon",
+    "name": "Lisbon",
+    "aliases": [
+      "lisboa"
+    ],
+    "radius": 25,
+    "lat": 38.708,
+    "lng": -9.139,
+    "width": 1280,
+    "height": 786,
+    "author": "Lacobrigo",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Lisboa837.png"
+  },
+  {
+    "id": "porto",
+    "name": "Porto",
+    "aliases": [
+      "oporto"
+    ],
+    "radius": 20,
+    "lat": 41.15,
+    "lng": -8.6108,
+    "width": 1280,
+    "height": 857,
+    "author": "Rititaneves",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:O_Porto_(visto_da_Ponte_Dom_Luis_I).jpg"
+  },
+  {
+    "id": "madrid",
+    "name": "Madrid",
+    "aliases": [],
+    "radius": 30,
+    "lat": 40.4169,
+    "lng": -3.7033,
+    "width": 1280,
+    "height": 960,
+    "author": "Dmitry Dzhus from London",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Madrid_(38624991251).jpg"
+  },
+  {
+    "id": "seville",
+    "name": "Seville",
+    "aliases": [
+      "sevilla"
+    ],
+    "radius": 20,
+    "lat": 37.3886,
+    "lng": -5.995,
+    "width": 1280,
+    "height": 960,
+    "author": "El-mejor",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Sevilla_Luft_120308.JPG"
+  },
+  {
+    "id": "prague",
+    "name": "Prague",
+    "aliases": [
+      "praha"
+    ],
+    "radius": 25,
+    "lat": 50.0875,
+    "lng": 14.4214,
+    "width": 1280,
+    "height": 853,
+    "author": "Deror_avi",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pet%C5%99%C3%ADn_Tower_View_IMG_3020.JPG"
+  },
+  {
+    "id": "vienna",
+    "name": "Vienna",
+    "aliases": [
+      "wien"
+    ],
+    "radius": 25,
+    "lat": 48.2083,
+    "lng": 16.3725,
+    "width": 1280,
+    "height": 853,
+    "author": "Andrzej Otrębski",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Wien_katedra_sw_Szczepana_widok_z_wiezy_6.jpg"
+  },
+  {
+    "id": "berlin",
+    "name": "Berlin",
+    "aliases": [],
+    "radius": 30,
+    "lat": 52.5167,
+    "lng": 13.3833,
+    "width": 1280,
+    "height": 655,
+    "author": "Thomas Wolf, www.foto-tw.de",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cityscape_Berlin.jpg"
+  },
+  {
+    "id": "budapest",
+    "name": "Budapest",
+    "aliases": [],
+    "radius": 25,
+    "lat": 47.4983,
+    "lng": 19.0408,
+    "width": 1280,
+    "height": 853,
+    "author": "Thomas Depenbusch (Depi) from Cologne, Germany",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Budapest,_Hungary_(explored)_(14995308504).jpg"
+  },
+  {
+    "id": "krakow",
+    "name": "Kraków",
+    "aliases": [
+      "krakow",
+      "cracow"
+    ],
+    "radius": 20,
+    "lat": 50.0614,
+    "lng": 19.9372,
+    "width": 1280,
+    "height": 720,
+    "author": "XEvansGambitx",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Zamek_Kr%C3%B3lewski_na_Wawelu_(1).jpg"
+  },
+  {
+    "id": "florence",
+    "name": "Florence",
+    "aliases": [
+      "firenze"
+    ],
+    "radius": 20,
+    "lat": 43.7714,
+    "lng": 11.2542,
+    "width": 1280,
+    "height": 386,
+    "author": "Wikibusters",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Panoramica_Firenze.jpg"
+  },
+  {
+    "id": "venice",
+    "name": "Venice",
+    "aliases": [
+      "venezia"
+    ],
+    "radius": 15,
+    "lat": 45.4397,
+    "lng": 12.3319,
+    "width": 1280,
+    "height": 246,
+    "author": "Pierbou",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Venizi_-_lanscape_from_San_Giorgio_Maggiore.jpg"
+  },
+  {
+    "id": "amalfi-coast",
+    "name": "Amalfi Coast",
+    "aliases": [
+      "amalfi",
+      "positano"
+    ],
+    "radius": 25,
+    "lat": 40.6333,
+    "lng": 14.6,
+    "width": 1280,
+    "height": 960,
+    "author": "Charlie Dave",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Ravello_September_2007.jpg"
+  },
+  {
+    "id": "cinque-terre",
+    "name": "Cinque Terre",
+    "aliases": [],
+    "radius": 15,
+    "lat": 44.1269,
+    "lng": 9.7094,
+    "width": 1280,
+    "height": 853,
+    "author": "Timothy A. Gonsalves",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Manarola_NW_Cemetery_Corniglia_Monterosso_Cinque_Terre_Sep23_A7C_06872.jpg"
+  },
+  {
+    "id": "lake-como",
+    "name": "Lake Como",
+    "aliases": [
+      "como",
+      "bellagio"
+    ],
+    "radius": 25,
+    "lat": 46,
+    "lng": 9.2667,
+    "width": 1280,
+    "height": 712,
+    "author": "Mænsard vokser",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Panoramic_view_of_Como_Lake_(Lago_di_Como),_seen_from_the_mountain_Monte_Grona_-_Plesio_(Como)_2015-10-25.JPG"
+  },
+  {
+    "id": "tuscany",
+    "name": "Tuscany",
+    "aliases": [
+      "toscana"
+    ],
+    "radius": 90,
+    "lat": 43.45,
+    "lng": 11.2,
+    "width": 1280,
+    "height": 654,
+    "author": "Hervé Simon",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Au_Pays_de_Dante_et_de_P%C3%A9trarque_Tuscany.jpg"
+  },
+  {
+    "id": "provence",
+    "name": "Provence",
+    "aliases": [],
+    "radius": 80,
+    "lat": 44,
+    "lng": 6,
+    "width": 1280,
+    "height": 854,
+    "author": "Robert Brink",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Lavender_field_and_Mont_Ventoux.jpg"
+  },
+  {
+    "id": "nice",
+    "name": "Nice",
+    "aliases": [
+      "french riviera",
+      "cote d azur"
+    ],
+    "radius": 20,
+    "lat": 43.7019,
+    "lng": 7.2683,
+    "width": 1280,
+    "height": 960,
+    "author": "Moody Dreiza (Moody751 at English Wikipedia)",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Port_Of_Nice,_C%C3%B4te_d%27Azur.jpg"
+  },
+  {
+    "id": "dublin",
+    "name": "Dublin",
+    "aliases": [],
+    "radius": 25,
+    "lat": 53.3497,
+    "lng": -6.2603,
+    "width": 1280,
+    "height": 720,
+    "author": "瑞丽江的河水",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dublin_-_aerial_-_2025-07-07_01.jpg"
+  },
+  {
+    "id": "edinburgh",
+    "name": "Edinburgh",
+    "aliases": [],
+    "radius": 20,
+    "lat": 55.9533,
+    "lng": -3.1892,
+    "width": 1280,
+    "height": 720,
+    "author": "瑞丽江的河水",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Edinburgh_cityscapes_-_aerial_-_2025-04-19_20.jpg"
+  },
+  {
+    "id": "copenhagen",
+    "name": "Copenhagen",
+    "aliases": [
+      "kobenhavn"
+    ],
+    "radius": 25,
+    "lat": 55.6761,
+    "lng": 12.5689,
+    "width": 1280,
+    "height": 777,
+    "author": "Pudelek",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Copenhagen_-_view_from_Christiansborg_castle.jpg"
+  },
+  {
+    "id": "stockholm",
+    "name": "Stockholm",
+    "aliases": [],
+    "radius": 25,
+    "lat": 59.3294,
+    "lng": 18.0686,
+    "width": 1280,
+    "height": 900,
+    "author": "JZ",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Stockholm_gamlastan_etc.jpg"
+  },
+  {
+    "id": "reykjavik",
+    "name": "Reykjavík",
+    "aliases": [
+      "reykjavik",
+      "iceland"
+    ],
+    "radius": 40,
+    "lat": 64.1475,
+    "lng": -21.935,
+    "width": 1280,
+    "height": 637,
+    "author": "Hedwig Storch",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Reykjav%C3%ADk_5545_(cropped).JPG"
+  },
+  {
+    "id": "athens",
+    "name": "Athens",
+    "aliases": [],
+    "radius": 25,
+    "lat": 37.9842,
+    "lng": 23.7281,
+    "width": 1280,
+    "height": 741,
+    "author": "Thomas Wolf, www.foto-tw.de",
+    "license": "CC BY-SA 3.0 de",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Akropolis_2015.jpg"
+  },
+  {
+    "id": "santorini",
+    "name": "Santorini",
+    "aliases": [
+      "thira",
+      "oia"
+    ],
+    "radius": 20,
+    "lat": 36.415,
+    "lng": 25.4325,
+    "width": 1280,
+    "height": 794,
+    "author": "kallerna",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Santor%C3%ADni_aerial.jpg"
+  },
+  {
+    "id": "mykonos",
+    "name": "Mykonos",
+    "aliases": [],
+    "radius": 15,
+    "lat": 37.446,
+    "lng": 25.3286,
+    "width": 1280,
+    "height": 853,
+    "author": "dronepicr",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Little_Venice_with_a_view_of_the_ferry_terminal_in_Mykonos,_Greece_-_50661522178.jpg"
+  },
+  {
+    "id": "dubrovnik",
+    "name": "Dubrovnik",
+    "aliases": [],
+    "radius": 20,
+    "lat": 42.6403,
+    "lng": 18.1083,
+    "width": 1280,
+    "height": 794,
+    "author": "Zysko serhii",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg"
+  },
+  {
+    "id": "split",
+    "name": "Split",
+    "aliases": [],
+    "radius": 20,
+    "lat": 43.51,
+    "lng": 16.44,
+    "width": 1280,
+    "height": 853,
+    "author": "dronepicr",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Ferry_Port_of_Split,_Croatia_(48693924822).jpg"
+  },
+  {
+    "id": "istanbul",
+    "name": "Istanbul",
+    "aliases": [],
+    "radius": 35,
+    "lat": 41.01,
+    "lng": 28.9603,
+    "width": 1280,
+    "height": 1792,
+    "author": "AlexTref871, Piotr Matyja, Alexxx1979, Moyan Brenn, Far-gh, İhsan Deniz Kılıç…",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Istanbul_Montage_2016.png"
+  },
+  {
+    "id": "ibiza",
+    "name": "Ibiza",
+    "aliases": [],
+    "radius": 25,
+    "lat": 38.98,
+    "lng": 1.43,
+    "width": 1280,
+    "height": 850,
+    "author": "athinaf",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Ibiza_rock_volcano_(747230830).jpg"
+  },
+  {
+    "id": "mallorca",
+    "name": "Mallorca",
+    "aliases": [
+      "majorca",
+      "palma"
+    ],
+    "radius": 50,
+    "lat": 39.6167,
+    "lng": 2.9833,
+    "width": 1280,
+    "height": 862,
+    "author": "Pierre Markuse from Hamm, Germany",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Imagen_satelital_de_Mallorca_(Islas_Baleares,_Espa%C3%B1a).jpg"
+  },
+  {
+    "id": "algarve",
+    "name": "Algarve",
+    "aliases": [
+      "lagos portugal",
+      "faro"
+    ],
+    "radius": 70,
+    "lat": 37.0144,
+    "lng": -7.9353,
+    "width": 1280,
+    "height": 851,
+    "author": "Steven Fruitsmaak",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Praia_da_Dona_Ana_cliffs.jpg"
+  },
+  {
+    "id": "valletta",
+    "name": "Malta",
+    "aliases": [
+      "malta"
+    ],
+    "radius": 25,
+    "lat": 35.8978,
+    "lng": 14.5125,
+    "width": 1280,
+    "height": 640,
+    "author": "Bengt Nyman",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Malta,_2010_-_panoramio_-_Bengt_Nyman_(23).jpg"
+  },
+  {
+    "id": "zermatt",
+    "name": "Zermatt",
+    "aliases": [
+      "matterhorn"
+    ],
+    "radius": 20,
+    "lat": 46.0193,
+    "lng": 7.7461,
+    "width": 1280,
+    "height": 903,
+    "author": "chensiyuan",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:1_zermatt_night_2012.jpg"
+  },
+  {
+    "id": "new-york",
+    "name": "New York City",
+    "aliases": [
+      "new york",
+      "nyc",
+      "manhattan"
+    ],
+    "radius": 35,
+    "lat": 40.7128,
+    "lng": -74.0061,
+    "width": 1280,
+    "height": 513,
+    "author": "Fred Hsu on en.wikipedia",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:NYC_Downtown_Manhattan_Skyline_seen_from_Paulus_Hook_2019-12-20_IMG_7347_FRD_(cropped).jpg"
+  },
+  {
+    "id": "los-angeles",
+    "name": "Los Angeles",
+    "aliases": [
+      "la"
+    ],
+    "radius": 45,
+    "lat": 34.0522,
+    "lng": -118.2437,
+    "width": 1280,
+    "height": 600,
+    "author": "Alek Leckszas",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Los_Angeles_with_Mount_Baldy.jpg"
+  },
+  {
+    "id": "san-francisco",
+    "name": "San Francisco",
+    "aliases": [],
+    "radius": 25,
+    "lat": 37.775,
+    "lng": -122.4194,
+    "width": 1280,
+    "height": 750,
+    "author": "Lightandtruth",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:San_Francisco_from_the_Marin_Headlands_in_March_2019.jpg"
+  },
+  {
+    "id": "las-vegas",
+    "name": "Las Vegas",
+    "aliases": [
+      "vegas"
+    ],
+    "radius": 30,
+    "lat": 36.1672,
+    "lng": -115.1486,
+    "width": 1280,
+    "height": 960,
+    "author": "Ken Lund from Las Vegas, Nevada, USA",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Downtown_Las_Vegas_from_Stratosphere_3.jpg"
+  },
+  {
+    "id": "miami",
+    "name": "Miami",
+    "aliases": [
+      "miami beach"
+    ],
+    "radius": 30,
+    "lat": 25.7742,
+    "lng": -80.1936,
+    "width": 1280,
+    "height": 960,
+    "author": "Marc Averette",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Downtown_Miami_aerial_2008.jpg"
+  },
+  {
+    "id": "new-orleans",
+    "name": "New Orleans",
+    "aliases": [
+      "nola"
+    ],
+    "radius": 25,
+    "lat": 29.9761,
+    "lng": -90.0783,
+    "width": 1280,
+    "height": 848,
+    "author": "thepipe26",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:New_Orleans_skyline-02.jpg"
+  },
+  {
+    "id": "chicago",
+    "name": "Chicago",
+    "aliases": [],
+    "radius": 35,
+    "lat": 41.8819,
+    "lng": -87.6278,
+    "width": 1280,
+    "height": 853,
+    "author": "J. Crocker",
+    "license": "Attribution",
+    "licenseUrl": null,
+    "source": "https://commons.wikimedia.org/wiki/File:2010-02-19_3000x2000_chicago_skyline.jpg"
+  },
+  {
+    "id": "nashville",
+    "name": "Nashville",
+    "aliases": [],
+    "radius": 25,
+    "lat": 36.1622,
+    "lng": -86.7744,
+    "width": 1280,
+    "height": 769,
+    "author": "Quintin Soloviev",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Nashville,_Tennessee_(cropped).jpg"
+  },
+  {
+    "id": "honolulu",
+    "name": "Honolulu",
+    "aliases": [
+      "oahu",
+      "waikiki"
+    ],
+    "radius": 30,
+    "lat": 21.3047,
+    "lng": -157.8572,
+    "width": 1280,
+    "height": 853,
+    "author": "Farragutful",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:2022_Views_from_Diamond_Head_02.jpg"
+  },
+  {
+    "id": "maui",
+    "name": "Maui",
+    "aliases": [],
+    "radius": 45,
+    "lat": 20.7702,
+    "lng": -156.2682,
+    "width": 1280,
+    "height": 423,
+    "author": "Pahu at German Wikipedia",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Maui_panorama.jpg"
+  },
+  {
+    "id": "grand-canyon",
+    "name": "Grand Canyon",
+    "aliases": [],
+    "radius": 80,
+    "lat": 36.0975,
+    "lng": -112.0953,
+    "width": 1280,
+    "height": 1927,
+    "author": "Chensiyuan",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Grand_Canyon_view_from_Pima_Point_2010.jpg"
+  },
+  {
+    "id": "yosemite",
+    "name": "Yosemite",
+    "aliases": [],
+    "radius": 50,
+    "lat": 37.7425,
+    "lng": -119.5375,
+    "width": 1280,
+    "height": 811,
+    "author": "Thomas Wolf, www.foto-tw.de",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Half_Dome_with_Eastern_Yosemite_Valley_(50MP).jpg"
+  },
+  {
+    "id": "yellowstone",
+    "name": "Yellowstone",
+    "aliases": [],
+    "radius": 90,
+    "lat": 44.6,
+    "lng": -110.5,
+    "width": 1280,
+    "height": 850,
+    "author": "James St. John from Newark, Ohio",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Grand_Prismatic_Spring_2013.jpg"
+  },
+  {
+    "id": "banff",
+    "name": "Banff",
+    "aliases": [
+      "lake louise"
+    ],
+    "radius": 60,
+    "lat": 51.1667,
+    "lng": -115.55,
+    "width": 1280,
+    "height": 960,
+    "author": "Gorgo",
+    "license": "Public domain",
+    "licenseUrl": null,
+    "source": "https://commons.wikimedia.org/wiki/File:Moraine_Lake_17092005.jpg"
+  },
+  {
+    "id": "vancouver",
+    "name": "Vancouver",
+    "aliases": [],
+    "radius": 30,
+    "lat": 49.2608,
+    "lng": -123.1139,
+    "width": 1280,
+    "height": 768,
+    "author": "Quintin Soloviev",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Skyline_of_Vancouver,_Canada.jpg"
+  },
+  {
+    "id": "montreal",
+    "name": "Montréal",
+    "aliases": [
+      "montreal"
+    ],
+    "radius": 30,
+    "lat": 45.5033,
+    "lng": -73.5868,
+    "width": 1280,
+    "height": 675,
+    "author": "https://www.pxfuel.com/",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Montreal-canada-parc-urban.jpg"
+  },
+  {
+    "id": "mexico-city",
+    "name": "Mexico City",
+    "aliases": [
+      "cdmx",
+      "ciudad de mexico"
+    ],
+    "radius": 40,
+    "lat": 19.3538,
+    "lng": -99.1359,
+    "width": 1280,
+    "height": 854,
+    "author": "Gobierno CDMX",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Sobrevuelos_CDMX_HJ2A5091_(40386338731).jpg"
+  },
+  {
+    "id": "cancun",
+    "name": "Cancún",
+    "aliases": [
+      "cancun"
+    ],
+    "radius": 30,
+    "lat": 21.1614,
+    "lng": -86.8248,
+    "width": 1280,
+    "height": 1920,
+    "author": "Microstar",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Canc%C3%BAnCollage.jpg"
+  },
+  {
+    "id": "tulum",
+    "name": "Tulum",
+    "aliases": [],
+    "radius": 20,
+    "lat": 20.2147,
+    "lng": -87.4289,
+    "width": 1280,
+    "height": 960,
+    "author": "Gennaro Conte",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tulum_2006_2.jpg"
+  },
+  {
+    "id": "oaxaca",
+    "name": "Oaxaca",
+    "aliases": [
+      "oaxaca de juarez"
+    ],
+    "radius": 25,
+    "lat": 17.0606,
+    "lng": -96.7253,
+    "width": 1280,
+    "height": 960,
+    "author": "Apsu09",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Oaxaca_centro.jpg"
+  },
+  {
+    "id": "cabo",
+    "name": "Los Cabos",
+    "aliases": [
+      "cabo",
+      "cabo san lucas",
+      "los cabos"
+    ],
+    "radius": 40,
+    "lat": 22.8947,
+    "lng": -109.9153,
+    "width": 1280,
+    "height": 960,
+    "author": "Stan Shebs",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cabo_San_Lucas_bay.jpg"
+  },
+  {
+    "id": "san-juan",
+    "name": "San Juan",
+    "aliases": [
+      "puerto rico"
+    ],
+    "radius": 30,
+    "lat": 18.4653,
+    "lng": -66.1167,
+    "width": 1280,
+    "height": 851,
+    "author": "James Willamor from Raleigh, NC, USA",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:San_Juan,_Puerto_Rico_(2529298606).jpg"
+  },
+  {
+    "id": "havana",
+    "name": "Havana",
+    "aliases": [
+      "la habana"
+    ],
+    "radius": 25,
+    "lat": 23.1367,
+    "lng": -82.3589,
+    "width": 1280,
+    "height": 853,
+    "author": "Christopher Michel",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cuba_libre_(6941395159).jpg"
+  },
+  {
+    "id": "antigua-guatemala",
+    "name": "Antigua Guatemala",
+    "aliases": [
+      "antigua"
+    ],
+    "radius": 15,
+    "lat": 14.5575,
+    "lng": -90.7333,
+    "width": 1280,
+    "height": 854,
+    "author": "Chad Davis",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Santa_Catalina_Arch_-_Antigua_Guatemala_Feb_2020.jpg"
+  },
+  {
+    "id": "lake-atitlan",
+    "name": "Lake Atitlán",
+    "aliases": [
+      "atitlan",
+      "panajachel",
+      "san marcos la laguna",
+      "san pedro la laguna"
+    ],
+    "radius": 25,
+    "lat": 14.7,
+    "lng": -91.2,
+    "width": 1280,
+    "height": 1280,
+    "author": "NASA",
+    "license": "Public domain",
+    "licenseUrl": null,
+    "source": "https://commons.wikimedia.org/wiki/File:Lago_de_Atitlan_seen_from_orbit.jpg"
+  },
+  {
+    "id": "tikal",
+    "name": "Tikal",
+    "aliases": [
+      "flores"
+    ],
+    "radius": 30,
+    "lat": 17.2221,
+    "lng": -89.6236,
+    "width": 1280,
+    "height": 853,
+    "author": "Mundo Maya",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tikal_3.jpg"
+  },
+  {
+    "id": "arenal",
+    "name": "Arenal",
+    "aliases": [
+      "la fortuna"
+    ],
+    "radius": 30,
+    "lat": 10.4625,
+    "lng": -84.7033,
+    "width": 1280,
+    "height": 707,
+    "author": "Rhododendrites",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Arenal_volcano_(70785p)_(cropped).jpg"
+  },
+  {
+    "id": "manuel-antonio",
+    "name": "Manuel Antonio",
+    "aliases": [
+      "quepos"
+    ],
+    "radius": 20,
+    "lat": 9.3756,
+    "lng": -84.1358,
+    "width": 1280,
+    "height": 960,
+    "author": "Hanay",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:%D7%94%D7%A4%D7%90%D7%A8%D7%A7_%D7%94%D7%9C%D7%90%D7%95%D7%9E%D7%99_%D7%9E%D7%A0%D7%95%D7%90%D7%9C_%D7%90%D7%A0%D7%98%D7%95%D7%A0%D7%99%D7%95_%D7%A7%D7%95%D7%A1%D7%98%D7%94_%D7%A8%D7%99%D7%A7%D7%94_%D7%97%D7%95%D7%A3_%D7%94%D7%99%D7%9D_07.jpg"
+  },
+  {
+    "id": "cartagena",
+    "name": "Cartagena",
+    "aliases": [],
+    "radius": 25,
+    "lat": 10.4236,
+    "lng": -75.5253,
+    "width": 1280,
+    "height": 729,
+    "author": "Bernard Gagnon",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:View_of_Cartagena_from_Convento_de_Santa_Cruz_de_la_Popa_01.jpg"
+  },
+  {
+    "id": "medellin",
+    "name": "Medellín",
+    "aliases": [
+      "medellin"
+    ],
+    "radius": 25,
+    "lat": 6.2502,
+    "lng": -75.5676,
+    "width": 1280,
+    "height": 720,
+    "author": "Luis90f",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Panor%C3%A1mica_de_Medell%C3%ADn_desde_el_Cerro_El_Picacho.jpg"
+  },
+  {
+    "id": "cusco",
+    "name": "Cusco",
+    "aliases": [
+      "cuzco"
+    ],
+    "radius": 30,
+    "lat": -13.5169,
+    "lng": -71.9786,
+    "width": 1280,
+    "height": 500,
+    "author": "gertrudis2010",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cusco,_Sacsayhuam%C3%A1n_-_panoramio.jpg"
+  },
+  {
+    "id": "machu-picchu",
+    "name": "Machu Picchu",
+    "aliases": [
+      "aguas calientes"
+    ],
+    "radius": 25,
+    "lat": -13.1633,
+    "lng": -72.5456,
+    "width": 1280,
+    "height": 1249,
+    "author": "Martin St-Amant (S23678)",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:80_-_Machu_Picchu_-_Juin_2009_-_edit.jpg"
+  },
+  {
+    "id": "galapagos",
+    "name": "Galápagos",
+    "aliases": [
+      "galapagos"
+    ],
+    "radius": 150,
+    "lat": -0.6667,
+    "lng": -90.55,
+    "width": 1280,
+    "height": 1283,
+    "author": "European Space Agency",
+    "license": "Attribution",
+    "licenseUrl": null,
+    "source": "https://commons.wikimedia.org/wiki/File:Gal%C3%A1pagos_Islands_ESA23188644.jpeg"
+  },
+  {
+    "id": "rio",
+    "name": "Rio de Janeiro",
+    "aliases": [
+      "rio"
+    ],
+    "radius": 35,
+    "lat": -22.9111,
+    "lng": -43.2056,
+    "width": 1280,
+    "height": 684,
+    "author": "Rafael Rabello de Barros",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cidade_Maravilhosa.jpg"
+  },
+  {
+    "id": "buenos-aires",
+    "name": "Buenos Aires",
+    "aliases": [],
+    "radius": 35,
+    "lat": -34.5997,
+    "lng": -58.3819,
+    "width": 1280,
+    "height": 960,
+    "author": "ProtoplasmaKid",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Vista_a%C3%A9rea_de_la_Plaza_del_Congreso_10.jpg"
+  },
+  {
+    "id": "patagonia",
+    "name": "Torres del Paine",
+    "aliases": [
+      "patagonia"
+    ],
+    "radius": 80,
+    "lat": -50.9831,
+    "lng": -72.9664,
+    "width": 1280,
+    "height": 850,
+    "author": "LBM1948",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Torres_del_Paine,_Laguna_Azul_09.jpg"
+  },
+  {
+    "id": "marrakesh",
+    "name": "Marrakesh",
+    "aliases": [
+      "marrakech"
+    ],
+    "radius": 30,
+    "lat": 31.6295,
+    "lng": -7.9811,
+    "width": 1280,
+    "height": 960,
+    "author": "CS.D.",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:MoroccoMarrakech_townfromhill.jpg"
+  },
+  {
+    "id": "cairo",
+    "name": "Cairo",
+    "aliases": [
+      "giza"
+    ],
+    "radius": 35,
+    "lat": 30.0444,
+    "lng": 31.2358,
+    "width": 1280,
+    "height": 755,
+    "author": "Faris El-Gwely",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cairo_Skyline_(2020).jpg"
+  },
+  {
+    "id": "petra",
+    "name": "Petra",
+    "aliases": [
+      "wadi musa"
+    ],
+    "radius": 30,
+    "lat": 30.3289,
+    "lng": 35.4403,
+    "width": 1280,
+    "height": 2114,
+    "author": "Diego Delso",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:The_Treasury,_Petra,_Jordan5.jpg"
+  },
+  {
+    "id": "dubai",
+    "name": "Dubai",
+    "aliases": [],
+    "radius": 40,
+    "lat": 25.2697,
+    "lng": 55.3094,
+    "width": 1280,
+    "height": 529,
+    "author": "Tim Reckmann from Hamm, Deutschland",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dubai_Skyline_mit_Burj_Khalifa_(cropped).jpg"
+  },
+  {
+    "id": "cape-town",
+    "name": "Cape Town",
+    "aliases": [],
+    "radius": 40,
+    "lat": -33.9253,
+    "lng": 18.4239,
+    "width": 1280,
+    "height": 853,
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Ciudad_del_Cabo_desde_Cabeza_de_Le%C3%B3n,_Sud%C3%A1frica,_2018-07-22,_DD_34.jpg"
+  },
+  {
+    "id": "zanzibar",
+    "name": "Zanzibar",
+    "aliases": [
+      "stone town"
+    ],
+    "radius": 60,
+    "lat": -5.9,
+    "lng": 39.3,
+    "width": 1280,
+    "height": 853,
+    "author": "Anton Zelenov",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dhow_boat_Zanzibar.jpg"
+  },
+  {
+    "id": "serengeti",
+    "name": "Serengeti",
+    "aliases": [
+      "serengeti"
+    ],
+    "radius": 120,
+    "lat": -2.4,
+    "lng": 34.6,
+    "width": 1280,
+    "height": 737,
+    "author": "Bjørn Christian Tørrissen",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Serengeti-Landscape-2012.JPG"
+  },
+  {
+    "id": "tokyo",
+    "name": "Tokyo",
+    "aliases": [],
+    "radius": 40,
+    "lat": 35.6894,
+    "lng": 139.6917,
+    "width": 1280,
+    "height": 699,
+    "author": "Morio",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Skyscrapers_of_Shinjuku_2009_January_(revised).jpg"
+  },
+  {
+    "id": "kyoto",
+    "name": "Kyoto",
+    "aliases": [],
+    "radius": 25,
+    "lat": 35.0116,
+    "lng": 135.7681,
+    "width": 1280,
+    "height": 853,
+    "author": "Basile Morin",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pedestrian_road_with_pavements,_paper_umbrellas_and_people_in_yukata,_Higashiyama-ku,_Kyoto,_Japan.jpg"
+  },
+  {
+    "id": "seoul",
+    "name": "Seoul",
+    "aliases": [],
+    "radius": 35,
+    "lat": 37.56,
+    "lng": 126.99,
+    "width": 1280,
+    "height": 854,
+    "author": "라성민",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:%EB%8D%95%EC%88%98%EA%B6%81%EC%9D%98_%EA%B0%80%EC%9D%84.jpg"
+  },
+  {
+    "id": "bangkok",
+    "name": "Bangkok",
+    "aliases": [],
+    "radius": 35,
+    "lat": 13.75,
+    "lng": 100.5167,
+    "width": 1280,
+    "height": 853,
+    "author": "Preecha.MJ",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Temple_of_the_Emerald_of_buddha_or_Wat_Phra_Kaew_(cropped).jpg"
+  },
+  {
+    "id": "chiang-mai",
+    "name": "Chiang Mai",
+    "aliases": [],
+    "radius": 30,
+    "lat": 18.7889,
+    "lng": 98.9833,
+    "width": 1280,
+    "height": 429,
+    "author": "Supanut Arunoprayote",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Panoramic_view_of_Chiang_Mai_City.jpg"
+  },
+  {
+    "id": "phuket",
+    "name": "Phuket",
+    "aliases": [],
+    "radius": 40,
+    "lat": 7.89,
+    "lng": 98.3983,
+    "width": 1280,
+    "height": 835,
+    "author": "Pete Stewart from Perth, Australia",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Flickr_-_Shinrya_-_Paradise_in_Phuket.jpg"
+  },
+  {
+    "id": "bali",
+    "name": "Bali",
+    "aliases": [
+      "ubud",
+      "seminyak",
+      "canggu"
+    ],
+    "radius": 80,
+    "lat": -8.5,
+    "lng": 115,
+    "width": 1280,
+    "height": 864,
+    "author": "Unknown author",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Bali_panorama.jpg"
+  },
+  {
+    "id": "singapore",
+    "name": "Singapore",
+    "aliases": [],
+    "radius": 30,
+    "lat": 1.3,
+    "lng": 103.8,
+    "width": 1280,
+    "height": 853,
+    "author": "Ramir Borja.",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Raffles_Place.jpg"
+  },
+  {
+    "id": "hong-kong",
+    "name": "Hong Kong",
+    "aliases": [],
+    "radius": 35,
+    "lat": 22.2783,
+    "lng": 114.1586,
+    "width": 1280,
+    "height": 613,
+    "author": "Mustang Joe",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Hong_Kong_from_Victoria_Peak1.jpg"
+  },
+  {
+    "id": "hanoi",
+    "name": "Hanoi",
+    "aliases": [],
+    "radius": 30,
+    "lat": 21.0245,
+    "lng": 105.8412,
+    "width": 1280,
+    "height": 720,
+    "author": "NKSTTSSHNVN",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Hanoi_Skyline_-_NKS.jpg"
+  },
+  {
+    "id": "ha-long-bay",
+    "name": "Ha Long Bay",
+    "aliases": [
+      "halong bay",
+      "ha long"
+    ],
+    "radius": 40,
+    "lat": 20.9,
+    "lng": 107.2,
+    "width": 1280,
+    "height": 960,
+    "author": "Thomas Hirsch / User:Ravn",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Halong_Bay_in_Vietnam.jpg"
+  },
+  {
+    "id": "siem-reap",
+    "name": "Angkor",
+    "aliases": [
+      "siem reap",
+      "angkor wat"
+    ],
+    "radius": 30,
+    "lat": 13.4125,
+    "lng": 103.8667,
+    "width": 1280,
+    "height": 870,
+    "author": "Bjørn Christian Tørrissen",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Angkor_Wat.jpg"
+  },
+  {
+    "id": "kathmandu",
+    "name": "Kathmandu",
+    "aliases": [],
+    "radius": 35,
+    "lat": 27.71,
+    "lng": 85.32,
+    "width": 1280,
+    "height": 960,
+    "author": "Royonx",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Kathmandu_Avion_01.JPG"
+  },
+  {
+    "id": "agra",
+    "name": "Agra",
+    "aliases": [
+      "taj mahal",
+      "agra"
+    ],
+    "radius": 30,
+    "lat": 27.175,
+    "lng": 78.0419,
+    "width": 1280,
+    "height": 842,
+    "author": "Yann; edited by Jim Carter",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Taj_Mahal_(Edited).jpeg"
+  },
+  {
+    "id": "maldives",
+    "name": "Maldives",
+    "aliases": [],
+    "radius": 400,
+    "lat": 4.18,
+    "lng": 73.51,
+    "width": 1280,
+    "height": 740,
+    "author": "Martin Falbisoner",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Diamonds_Thudufushi_Beach_and_Water_Villas,_May_2017_-07.jpg"
+  },
+  {
+    "id": "sydney",
+    "name": "Sydney",
+    "aliases": [],
+    "radius": 40,
+    "lat": -33.8678,
+    "lng": 151.21,
+    "width": 1280,
+    "height": 783,
+    "author": "W. Bulach",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:00_3178_Sydney,_Australia.jpg"
+  },
+  {
+    "id": "melbourne",
+    "name": "Melbourne",
+    "aliases": [],
+    "radius": 40,
+    "lat": -37.8142,
+    "lng": 144.9631,
+    "width": 1280,
+    "height": 721,
+    "author": "Shkuru Afshar",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Melbourne_CBD_and_Ceremonial_Avenue_(in_2024)_as_seen_from_the_rooftop_of_Shrine_of_Remembrance.jpg"
+  },
+  {
+    "id": "queenstown",
+    "name": "Queenstown",
+    "aliases": [],
+    "radius": 40,
+    "lat": -45.0311,
+    "lng": 168.6625,
+    "width": 1280,
+    "height": 853,
+    "author": "Lawrence Murray from Perth, Australia",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Queenstown_from_Bob%27s_Peak.jpg"
+  },
+  {
+    "id": "bora-bora",
+    "name": "Bora Bora",
+    "aliases": [],
+    "radius": 25,
+    "lat": -16.498,
+    "lng": -151.736,
+    "width": 1280,
+    "height": 854,
+    "author": "LecomteB",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:A%C3%A9roport_de_Bora_Bora.jpg"
+  }
+]

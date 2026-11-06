@@ -11,6 +11,8 @@ async function seed(page: Page, baseURL: string) {
   await page.goto('/inspire/manual')
   await page.getByRole('heading', { level: 1, name: 'Trip ideas', exact: true }).waitFor()
   await page.evaluate(async ({ tripId, me }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const tx = db.transaction(['trips', 'members'], 'readwrite')
@@ -23,6 +25,8 @@ async function seed(page: Page, baseURL: string) {
 }
 async function row(page: Page, store = 'trips', id = tripId) {
   return page.evaluate(async ({ store, id }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const requestRow = db.transaction(store).objectStore(store).get(id)
@@ -78,6 +82,8 @@ test('automatic destination artwork, all twelve scenes, keyboard selection and r
   expect((await row(page)).settings.journal_cover).toBe('auto')
   // A destination change retains automatic mode and changes the resolved artwork.
   await page.evaluate(async tripId => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub'); const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const tx = db.transaction('trips', 'readwrite'); const store = tx.objectStore('trips'); const get = store.get(tripId)
     get.onsuccess = () => store.put({ ...get.result, settings: { ...get.result.settings, areas: [{ name: 'Panajachel', lat: 14.74, lng: -91.16, bbox: [14.6, -91.3, 14.9, -91] }] } })
@@ -139,6 +145,8 @@ test('custom banner crops, failures, persistence, shared surfaces and removal', 
   await expect(page.locator('.settings-trip-art img[src^="data:"]')).toHaveCount(0)
   // Both the change and photo removal use the existing sync queue, coalesced as a single row.
   const queue = await page.evaluate(async tripId => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub'); const db = await new Promise<IDBDatabase>(resolve => { request.onsuccess = () => resolve(request.result) })
     const get = db.transaction('_outbox').objectStore('_outbox').getAll()
     const entries = await new Promise<any[]>(resolve => { get.onsuccess = () => resolve(get.result) }); db.close()

@@ -152,3 +152,5 @@
   .trip-overview .overview-columns { grid-template-columns: minmax(0, 1fr) 19rem; gap: 4rem; }
   .trip-overview .overview-sidebar { position: sticky; top: 1.5rem; gap: 2rem; }
 }
+/* Plan item: one record, parts divided by dashed rules (see ItemDetailScreen). */
+.app-world .item-record-part { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px dashed var(--stowaway-border); }

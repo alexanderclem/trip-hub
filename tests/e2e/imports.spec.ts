@@ -22,6 +22,8 @@ test('a plan comes in from a spreadsheet, offline, as tentative items in the tri
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'Trip ideas', level: 1 })).toBeVisible()
   await page.evaluate(async ({ trip, ana }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
     const tx = db.transaction(['trips', 'members'], 'readwrite')
@@ -42,6 +44,8 @@ test('a plan comes in from a spreadsheet, offline, as tentative items in the tri
   await page.getByRole('button', { name: 'Add 2 to the plan' }).click()
   await page.waitForURL(`**/t/${trip}/plan`)
   const items = await page.evaluate(async (trip) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })
     const all = await new Promise<{ trip_id: string; title: string; start_local: string; start_at: string; status: string }[]>((resolve) => { const r = db.transaction('itinerary_items').objectStore('itinerary_items').getAll(); r.onsuccess = () => resolve(r.result) })

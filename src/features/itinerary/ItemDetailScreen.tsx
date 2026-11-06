@@ -91,7 +91,9 @@ export function ItemDetailScreen() {
           </div>
         </div>
 
-        <Card framed>
+        {/* One record for the item: when, its code, where, how you get there, who, tickets. Dashed rules
+            separate the parts so it reads as a single entry, not a stack of boxes. */}
+        <Card framed className="item-record">
           <p className="ui-eyebrow">{DateTime.fromISO(day).toFormat('cccc, d LLLL yyyy')}</p>
           {item.all_day ? (
             <p className="mt-1 text-muted">All day{item.end_local && item.end_local.slice(0, 10) !== item.start_local.slice(0, 10) ? ` until ${DateTime.fromISO(item.end_local.slice(0, 10)).toFormat('cccc d LLLL')}` : ''}</p>
@@ -111,12 +113,8 @@ export function ItemDetailScreen() {
               )}
             </>
           )}
-        </Card>
-
-        {journeyDirection(item) && <Card><h2 className="ui-section-title">{journeyDirection(item) === 'arrival' ? 'Arrival details' : 'Departure details'}</h2>{item.details.journey_location && <p className="mt-2 text-sm break-words">{item.details.journey_location}</p>}{item.details.journey_stay && <p className="mt-2 text-sm break-words">Staying at: {item.details.journey_stay}</p>}{item.details.journey_transfer && <p className="mt-2 whitespace-pre-wrap break-words text-sm">Transfer / meeting point: {item.details.journey_transfer}</p>}<Link to={`/t/${tripId}/more/arrivals`} className="ui-link mt-3">Arrivals & departures board</Link></Card>}
-        {item.details?.decision_poll_id && <Link to={`/t/${tripId}/more/vote/${item.details.decision_poll_id}`} className="ui-link">View the group’s decision & booking steps</Link>}
         {item.confirmation_code && (
-          <Card>
+          <div className="item-record-part">
             <p className="ui-label">Confirmation</p>
             <div className="mt-1 flex items-center justify-between gap-2">
               <p className="font-mono text-3xl font-semibold tracking-wider break-all select-all">{item.confirmation_code}</p>
@@ -128,13 +126,11 @@ export function ItemDetailScreen() {
                 {copied ? <Check aria-hidden="true" className="size-5 text-action" /> : <Copy aria-hidden="true" className="size-5" />}
               </button>
             </div>
-          </Card>
+          </div>
         )}
 
-        {item.kind === 'flight' && <FlightStatus key={item.id} item={item} />}
-
         {(place || to) && (
-          <Card className="space-y-2">
+          <div className="item-record-part space-y-2">
             {[place, to].filter((p): p is Place => !!p).map((p, i) => (
               <Link key={p.id} to={`/t/${tripId}/more/places/${p.id}`} className="flex items-center gap-3 rounded-control p-1 hover:bg-brand-50">
                 <PlaceCategoryIcon category={p.category} />
@@ -146,24 +142,23 @@ export function ItemDetailScreen() {
                 <MapPin aria-hidden="true" className="size-4 text-muted" />
               </Link>
             ))}
-          </Card>
+          </div>
         )}
 
         {prev && prevPlace && options.length > 0 && (
-          <Card>
+          <div className="item-record-part">
             <h3 className="text-sm font-semibold">Getting here from {prev.title}</h3>
             <p className="mb-2 text-xs text-muted">Previous stop, ends {prev.end_at ? formatInZone(prev.end_at, zone) : formatInZone(prev.start_at, zone)}</p>
             <TravelOptionsList options={options} />
-          </Card>
+          </div>
         )}
 
-        <Card>
+        <div className="item-record-part">
           <div className="flex flex-wrap items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-muted" />{!going && <span>Everyone</span>}{(going ?? members).map((m) => <TravelerLink key={m.id} member={m} />)}{going?.length === 0 && <span>Nobody yet</span>}</div>
           {item.est_cost_minor != null && item.est_cost_currency && <p className="mt-2 text-sm text-muted">Estimated cost: {formatMoney(item.est_cost_minor, item.est_cost_currency)}</p>}
           {item.notes && <p className="itinerary-notes mt-2 text-sm whitespace-pre-wrap text-ink">{item.notes}</p>}
-        </Card>
-
-        <Card>
+        </div>
+        <div className="item-record-part">
           <SectionTitle className="mb-1">Tickets</SectionTitle>
           {tickets.length > 0 && (
             <ul className="mb-2 space-y-1">
@@ -181,7 +176,13 @@ export function ItemDetailScreen() {
           <Link to={`/t/${tripId}/tickets/new?item=${item.id}`} className="ui-link">
             <Plus aria-hidden="true" className="size-4" /> Add a ticket or confirmation
           </Link>
+        </div>
         </Card>
+
+        {item.kind === 'flight' && <FlightStatus key={item.id} item={item} />}
+
+        {journeyDirection(item) && <Card><h2 className="ui-section-title">{journeyDirection(item) === 'arrival' ? 'Arrival details' : 'Departure details'}</h2>{item.details.journey_location && <p className="mt-2 text-sm break-words">{item.details.journey_location}</p>}{item.details.journey_stay && <p className="mt-2 text-sm break-words">Staying at: {item.details.journey_stay}</p>}{item.details.journey_transfer && <p className="mt-2 whitespace-pre-wrap break-words text-sm">Transfer / meeting point: {item.details.journey_transfer}</p>}<Link to={`/t/${tripId}/more/arrivals`} className="ui-link mt-3">Arrivals & departures board</Link></Card>}
+        {item.details?.decision_poll_id && <Link to={`/t/${tripId}/more/vote/${item.details.decision_poll_id}`} className="ui-link">View the group’s decision & booking steps</Link>}
 
         {/* Everyday actions on this item, printed as one quiet row instead of four outlined buttons. */}
         <div className="item-actions flex flex-wrap gap-x-5 px-1" aria-label="Item actions" role="group">

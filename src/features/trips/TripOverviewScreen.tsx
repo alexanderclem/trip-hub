@@ -1,4 +1,4 @@
-import { coverPhoto } from './covers'
+import { autoPhoto, coverPhoto } from './covers'
 import { use, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
@@ -130,7 +130,7 @@ export function TripOverviewScreen() {
           {destinations && <p className="mt-2 flex items-start gap-2 text-sm text-muted"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="wrap-anywhere">{destinations}</span></p>}
         {loadedMembers && members.length > 0 && <div className="overview-travelers"><Link to={`${root}/travelers`} className="overview-traveler-link"><span className="traveler-stack" aria-hidden="true">{members.slice(0, 5).map((member) => <Avatar key={member.id} name={member.display_name} color={member.color} photo={member.avatar_url} size="sm" />)}</span><span>{members.length === 1 ? '1 traveler' : members.length <= 3 ? members.map((member) => member.id === me ? 'You' : member.display_name).join(' + ') : `${members.length} travelers`}</span><ArrowRight aria-hidden="true" className="size-3.5" /></Link></div>}
         </div>
-        {cover !== 'none' && <figure key={cover} className="overview-postcard"><div className="overview-art"><TripArtwork cover={cover} photo={coverPhoto(trip)} /></div>{destinations && <figcaption>{destinations}</figcaption>}</figure>}
+        {cover !== 'none' && <figure key={cover} className="overview-postcard"><div className="overview-art"><TripArtwork cover={cover} photo={coverPhoto(trip)} destination={autoPhoto(trip)} /></div>{destinations && <figcaption>{destinations}</figcaption>}</figure>}
       </div>
     </header>
 

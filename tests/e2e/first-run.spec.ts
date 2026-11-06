@@ -39,7 +39,7 @@ test('a stalled identity request returns an error and preserves the name for ret
   await addMe(page)
   await expect(page.getByText('Connecting you to the group…', { exact: true })).toBeVisible()
   await page.clock.fastForward(16_000)
-  await expect(page.getByRole('alert')).toContainText(/timed out|abort/i)
+  await expect(page.getByRole('alert')).toHaveText('Stopped waiting for the connection. Nothing changed on this phone; try again.')
   await expect(page.getByPlaceholder('Your name')).toHaveValue('Sam')
   await expect(page.getByRole('button', { name: 'Add me', exact: true })).toBeEnabled()
 })

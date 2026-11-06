@@ -16,6 +16,8 @@ async function seed(page: Page) {
   await page.goto('/inspire/manual') // opens the local database, so the stores below exist
   await expect(page.getByRole('heading', { name: 'Trip ideas', level: 1 })).toBeVisible()
   await page.evaluate(async ({ trip, alex, sam, cafe, tour }) => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
     const stores = ['trips', 'members', 'places', 'itinerary_items', 'leg_overrides', 'attachments', 'files']
@@ -43,7 +45,11 @@ test('up next and travel warnings render offline, link to tickets, and update wi
   await page.goto(`${base}/plan`)
   await expect(page.getByRole('heading', { name: 'Up next for you' })).toBeVisible()
   await expect(page.getByText('Leave by 09:45')).toBeVisible()
-  await expect(page.getByText('From Garden café · Shuttle 20–30 min (reported by the group).')).toBeVisible()
+  // The mode and range print on the card; where the estimate comes from sits behind "About this travel estimate".
+  const upNext = page.getByRole('region', { name: 'Up next for you' })
+  await expect(upNext.getByText('Shuttle · 20–30 min', { exact: true })).toBeVisible()
+  await upNext.getByText('About this travel estimate').click()
+  await expect(upNext.getByText('From Garden café · reported by the group.')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Allow more travel time' })).toBeVisible()
   await expect(page.getByText('15 min between plans; allow 20–30 min by shuttle.')).toBeVisible()
   await expect(page.getByRole('link', { name: 'View on map' })).toHaveAttribute('href', `${base}/map?place=${tour}`)
@@ -76,7 +82,7 @@ test('up next and travel warnings render offline, link to tickets, and update wi
   await page.getByRole('button', { name: 'Add to calendar' }).click()
   expect(readFileSync(await (await single).path(), 'utf8').match(/BEGIN:VEVENT/g)).toHaveLength(1)
   await page.goto(`${base}/plan`)
-  await page.getByRole('link', { name: 'Open ticket' }).click()
+  await page.getByRole('region', { name: 'Up next for you' }).getByRole('link', { name: 'Open ticket' }).click()
   await page.waitForURL(`${base}/tickets/ticket`)
   await expect(page.getByRole('heading', { name: 'Coffee tour ticket' })).toBeVisible()
   await page.goto(`${base}/plan`)
@@ -149,6 +155,8 @@ test('shared tasks create, assign, edit, filter, complete, reopen and remove whi
   await page.waitForURL(`${base}/more/tasks`)
   await expect(page.getByRole('heading', { name: 'Tasks', exact: true })).toBeVisible()
   const queued = await page.evaluate(async () => {
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve) => { request.onsuccess = () => resolve(request.result) })
     const get = db.transaction('_outbox').objectStore('_outbox').getAll()

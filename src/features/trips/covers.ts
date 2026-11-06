@@ -1,4 +1,5 @@
 import type { Trip } from '@/data/types'
+import { destinationPhoto, type DestinationPhoto } from './destinationPhotos'
 
 export const TRIP_COVERS = [
   { id: 'coast', label: 'By the water' },
@@ -88,6 +89,11 @@ export function coverChoice(trip: CoverTrip): CoverChoice {
   if (saved === 'custom' && coverPhoto(trip)) return 'custom'
   if (TRIP_COVERS.some((cover) => cover.id === saved)) return saved as TripCover
   return 'auto'
+}
+
+/** With an automatic cover, a photo of the trip's destination when one ships with the app. */
+export function autoPhoto(trip: CoverTrip): DestinationPhoto | undefined {
+  return coverChoice(trip) === 'auto' ? destinationPhoto(trip.settings) : undefined
 }
 
 export function tripCover(trip: CoverTrip): TripCover {

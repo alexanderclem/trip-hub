@@ -21,6 +21,8 @@ async function seed(page: Page, baseURL: string) {
   await expect(page.getByRole('heading', { level: 1, name: 'Trip ideas' })).toBeVisible()
   await page.evaluate(async (ids) => {
     const { tripId, me, friend, pollId, dinner, cafe, expense, ticket } = ids
+    // Wait for the app to create its database; opening it first would make an empty one.
+    while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const req = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
     const stores = ['trips', 'members', 'places', 'polls', 'poll_options', 'itinerary_items', 'expenses', 'attachments', 'trip_tasks', 'day_notes']

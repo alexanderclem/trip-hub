@@ -8,6 +8,7 @@ import { Dialog } from '@/ui/Dialog'
 import { TripArtwork } from './TripArtwork'
 import { PhotoUpload } from './PhotoUpload'
 import { TRIP_COVERS, coverChoice, coverPhoto, destinationCovers, type CoverChoice } from './covers'
+import { destinationPhoto } from './destinationPhotos'
 
 export function TripCoverPicker({ trip, memberId }: { trip: Trip; memberId: string | null }) {
   const [open, setOpen] = useState(false)
@@ -21,6 +22,7 @@ export function TripCoverPicker({ trip, memberId }: { trip: Trip; memberId: stri
   const inspiration = destinationCovers(trip)
   const recommended = inspiration.covers
   const automatic = recommended[0]!
+  const placePhoto = destinationPhoto(trip.settings)
   const isRecommended = (id: string) => inspiration.destinations.length > 0 && recommended.some((cover) => cover === id)
   const covers = [...TRIP_COVERS].sort((a, b) => Number(isRecommended(b.id)) - Number(isRecommended(a.id)))
   const pending = busy || uploading
@@ -47,10 +49,10 @@ export function TripCoverPicker({ trip, memberId }: { trip: Trip; memberId: stri
     <Dialog open={open} onClose={() => setOpen(false)} dismissible={!pending} title="Trip cover">
       {open && <>
         <p className="mb-4 text-sm leading-relaxed text-muted">A postcard for your destination, or a photo of your own. Everyone in the trip sees the saved cover.</p>
-        <div className="cover-preview" aria-label="Trip cover preview">{draft === 'custom' && !photo ? <span className="p-4 text-center text-sm text-muted">Choose a photo to preview it.</span> : <TripArtwork cover={draft === 'auto' ? automatic : draft} photo={photo} />}{draft === 'none' && <span className="travel-heading text-2xl">Your trip.</span>}</div>
+        <div className="cover-preview" aria-label="Trip cover preview">{draft === 'custom' && !photo ? <span className="p-4 text-center text-sm text-muted">Choose a photo to preview it.</span> : <TripArtwork cover={draft === 'auto' ? automatic : draft} photo={photo} destination={draft === 'auto' ? placePhoto : undefined} />}{draft === 'none' && <span className="travel-heading text-2xl">Your trip.</span>}</div>
         <fieldset disabled={pending} className="mt-4">
           <legend className="sr-only">Trip cover</legend>
-          <label className="cover-mode"><input type="radio" name="trip-cover" value="auto" checked={draft === 'auto'} onChange={() => setDraft('auto')} /><span><strong>Automatic · match my destination</strong><span className="mt-1 block text-sm text-muted">{inspiration.destinations.length ? `Inspired by ${inspiration.destinations.join(' · ')}. Updates when destinations change.` : 'Starts by the water. Add a destination to match your trip.'}</span></span></label>
+          <label className="cover-mode"><input type="radio" name="trip-cover" value="auto" checked={draft === 'auto'} onChange={() => setDraft('auto')} /><span><strong>Automatic · match my destination</strong><span className="mt-1 block text-sm text-muted">{placePhoto ? `A photo of ${placePhoto.name}. Updates when destinations change.` : inspiration.destinations.length ? `Inspired by ${inspiration.destinations.join(' · ')}. Updates when destinations change.` : 'Starts by the water. Add a destination to match your trip.'}</span></span></label>
           <label className="cover-mode"><input type="radio" name="trip-cover" value="custom" checked={draft === 'custom'} onChange={() => setDraft('custom')} /><span><strong>Use my own photo</strong><span className="mt-1 block text-sm text-muted">Upload a favorite and frame it your way.</span></span></label>
           {draft === 'custom' && <div className="mb-5 mt-2">
             <PhotoUpload label="Trip cover photo" kind="cover" disabled={busy} onChange={(value) => { setPhoto(value); setError(null) }} onBusy={setUploading} />
