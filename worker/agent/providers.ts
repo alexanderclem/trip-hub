@@ -109,9 +109,14 @@ export async function findAirport(query: string, countryCode: string, env: Provi
   const key = need(env.LITEAPI_KEY, 'LITEAPI_KEY')
   let country: string | undefined
   try { country = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode)?.toLowerCase() } catch { return null }
-  const parsed = liteAirportSearch.parse(await call(doFetch, `https://api.liteapi.travel/v3.0/data/flights/airports?${new URLSearchParams({ q: query })}`, { method: 'GET', headers: liteHeaders(key) }))
-  const match = parsed.data.flatMap((d) => d.airports).find((a) => /^[A-Z]{3}$/.test(a.iata) && a.country?.toLowerCase() === country)
-  if (!match) return null
+  const raw = await call(doFetch, `https://api.liteapi.travel/v3.0/data/flights/airports?${new URLSearchParams({ q: query })}`, { method: 'GET', headers: liteHeaders(key) })
+  const parsed = liteAirportSearch.safeParse(raw)
+  const airports = parsed.success ? parsed.data.data.flatMap((d) => d.airports) : []
+  const match = airports.find((a) => /^[A-Z]{3}$/.test(a.iata) && a.country?.toLowerCase() === country)
+  if (!match) {
+    console.warn('[agent-airport]', { query, country, parsed: parsed.success, sample: JSON.stringify(raw).slice(0, 400) })
+    return null
+  }
   if (match.tz && IANAZone.isValidZone(match.tz)) AIRPORT_ZONES.set(match.iata, match.tz)
   return match.iata
 }
