@@ -6,14 +6,13 @@ import { DAYS, IDEAS, NEIGHBORHOODS, SCORES, TRAVELERS, total, type Code } from 
 export type Winner = (typeof NEIGHBORHOODS)[number] | null
 
 /** One stop on the routing strip. */
-function Stop({ id, title, intro, children, wide = false }: { id: string; title: string; intro: string; children: React.ReactNode; wide?: boolean }) {
+function Stop({ id, title, children, wide = false }: { id: string; title: string; children: React.ReactNode; wide?: boolean }) {
   const { ref, printed } = usePrintIn<HTMLElement>()
   return (
     <section ref={ref} id={id} className={`tag-stop ${printed ? 'is-printed' : ''}`} aria-labelledby={`${id}-title`} data-stop={id}>
       <div className={`tag-shell tag-stop-grid ${wide ? 'is-wide' : ''}`}>
         <header className="tag-stop-head">
           <h2 id={`${id}-title`}>{title}</h2>
-          <p className="tag-lede">{intro}</p>
         </header>
         <div className="tag-stop-body">{children}</div>
       </div>
@@ -28,7 +27,7 @@ export function SaveStop() {
   const shown = IDEAS.slice(0, saved)
   const ghosts = Math.max(0, 6 - saved)
   return (
-    <Stop id="save" intro="Everyone drops the places they find into one shared pool: restaurants, hikes, neighborhoods, day trips. Nobody has to scroll back through the group chat for that one link." title="Saved places">
+    <Stop id="save" title="Save places to one pool">
       <div className="tag-ring" role="list" aria-label="Saved places in Paris (example trip)">
         {shown.map((idea, index) => (
           <article key={idea.name} role="listitem" className="tag-mini" style={{ '--i': index } as React.CSSProperties}>
@@ -54,7 +53,7 @@ export function SaveStop() {
 export function VoteStop({ mine, setMine, winner }: { mine: Partial<Record<Code, number>>; setMine: (next: Partial<Record<Code, number>>) => void; winner: Winner }) {
   const level = !winner
   return (
-    <Stop id="vote" intro="Score each option from No way to Must-do. Stowaway ranks the options by the group’s average, shows who voted what, and flags the ones that still need votes. Try it: your vote breaks the tie." title="Group votes" wide>
+    <Stop id="vote" title="Vote to decide" wide>
       <div className="tag-vote">
         <p className="tag-vote-question">Where should we spend the afternoon?</p>
         <ul className="tag-vote-list">
@@ -98,7 +97,7 @@ export function VoteStop({ mine, setMine, winner }: { mine: Partial<Record<Code,
 /** 03 Plan: the routing, day by day. Confirmed prints solid, tentative half-toned, open as a ghost. */
 export function PlanStop({ winner }: { winner: Winner }) {
   return (
-    <Stop id="plan" intro="Turn the winners into a day-by-day plan with times, where you’re staying and the travel time between stops. Times stay in the destination’s time zone, so a clock change at home never shifts the plan." title="Itinerary" wide>
+    <Stop id="plan" title="Build the day-by-day plan" wide>
       <ol className="tag-days">
         {DAYS.map((day) => (
           <li key={day.day} className="tag-day">
@@ -137,7 +136,7 @@ export function PlanStop({ winner }: { winner: Winner }) {
 export function OfflineStop() {
   const [offline, setOffline] = useState(true)
   return (
-    <Stop id="offline" intro="Before you leave, choose Ready for offline. The plan, your tickets and a map of the area are saved on each phone, so they still open in airplane mode or with no signal at all." title="Offline access">
+    <Stop id="offline" title="Works with no signal">
       <article className={`tag-keep ${offline ? 'is-offline' : ''}`} aria-labelledby="keep-title">
         <div className="tag-keep-head">
           <h3 id="keep-title"><span aria-hidden="true">PAR → VRS</span><span className="sr-only">Day 3, Paris to Versailles</span></h3>
@@ -165,7 +164,7 @@ export function OfflineStop() {
 /** 05 Stubs: tickets and shared costs ride along as tear-off stubs. */
 export function StubsStop() {
   return (
-    <Stop id="stubs" intro="Keep tickets and confirmations with the plan item they belong to. Log shared costs as they happen; Stowaway keeps everyone’s balance and works out the fewest payments to settle up." title="Tickets and expenses">
+    <Stop id="stubs" title="Tickets and costs, together">
       <div className="tag-stubs">
         <article className="tag-stub-card" aria-labelledby="stub-ticket">
           <h3 id="stub-ticket">Train <span aria-hidden="true">PAR → VRS</span><span className="sr-only">from Paris to Versailles</span></h3>
@@ -193,7 +192,7 @@ export function StubsStop() {
 export function JoinStop() {
   const [me, setMe] = useState<string | null>(null)
   return (
-    <Stop id="join" intro="Send one link. Friends open it in their browser and pick their name: no app store, no password. An account is optional, for bringing your trips to another phone." title="Invite friends" wide>
+    <Stop id="join" title="Invite with one link" wide>
       <div className="tag-join">
         <p className="tag-join-q" id="who-q">Who are you?</p>
         <div className="tag-names" role="group" aria-labelledby="who-q">

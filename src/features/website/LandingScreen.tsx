@@ -35,7 +35,7 @@ export function LandingScreen() {
   return (
     <WebsiteFrame>
       <div className="tag-journey">
-        <RouteStrip choice={winner?.code ?? null} />
+        <RouteStrip />
         <div className="tag-journey-stops">
           <section id="trip" data-stop="trip" className={printing ? 'tag-hero is-printing' : 'tag-hero'} aria-labelledby="hero-title">
             <div className="tag-shell">
@@ -48,7 +48,7 @@ export function LandingScreen() {
               <div className="tag-hero-grid">
                 <div className="tag-hero-copy">
                   <h1 id="hero-title">Plan a trip<br />with friends.</h1>
-                  <p className="tag-lede">Stowaway is a free group trip planner. Friends join from one link, with nothing to download, then save places, vote, build the day-by-day plan, split costs and keep tickets that work offline.</p>
+                  <p className="tag-lede">Free. Friends join from one link, nothing to download, and the plan works offline.</p>
                 </div>
                 <div className="tag-hero-stubs">
                   <Link to="/new" className="tag-tear is-primary">
@@ -84,9 +84,8 @@ export function LandingScreen() {
             <h2 id="why-title">Why Stowaway exists</h2>
           </div>
           <div className="tag-story">
-            <p className="tag-lede">A group trip usually lives in four places: ideas in the group chat, a planning app only one person uses, costs in a spreadsheet or a split-the-bill app, and tickets in everyone’s inbox. Stowaway puts all of it behind one link the whole group can open.</p>
-            <p className="tag-lede">It started as the planner for our own spring break: a group of friends heading to Antigua and Lake Atitlán in Guatemala in March 2027. Much of that trip runs on boats and mountain roads with patchy signal, so the plan, the tickets and the map had to keep working offline.</p>
-            <p className="tag-lede">Stowaway is built and run by {MAINTAINER.name}. Planning a trip with your group is free and stays free; only tools for people who sell trips are paid. Questions or ideas: <a href={`mailto:${MAINTAINER.email}`}>{MAINTAINER.email}</a>.</p>
+            <p className="tag-lede">Group trips end up split across the chat, a spreadsheet and everyone’s inbox. Stowaway puts it all behind one link.</p>
+            <p className="tag-lede">Built by {MAINTAINER.name} for a spring break in Guatemala, where signal is patchy. Planning with your group stays free. Questions: <a href={`mailto:${MAINTAINER.email}`}>{MAINTAINER.email}</a>.</p>
             <p className="tag-story-links"><Link to="/group-expenses" className="tag-link">How splitting costs works</Link><Link to="/compare/best-group-trip-planner-apps" className="tag-link">Compare group trip apps</Link></p>
           </div>
         </div>

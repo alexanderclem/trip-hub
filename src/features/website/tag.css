@@ -173,8 +173,6 @@
 .tag-strip a { display: flex; align-items: baseline; gap: .375rem; min-height: 48px; min-width: 44px; padding-inline: .5rem; padding-top: .625rem; white-space: nowrap; color: var(--tag-print); text-decoration: none; }
 .tag-strip-code { font-family: var(--tag-display); font-size: 1.375rem; font-weight: 700; line-height: 1; color: var(--tag-ink); }
 .tag-strip-label { font-family: var(--tag-cond); font-size: .8125rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
-.tag-strip a.is-ghost .tag-strip-code { color: transparent; -webkit-text-stroke: 1px var(--tag-rule); }
-.tag-strip a.is-picked .tag-strip-code { padding: .125rem .25rem; background: var(--tag-coral); color: var(--tag-on-coral); animation: tag-stamp 420ms var(--tag-ease) both; }
 .tag-strip a[aria-current='step'] { color: var(--tag-ink); box-shadow: inset 0 -4px 0 var(--tag-ink); }
 .tag-stop { scroll-margin-top: 64px; }
 .tag-stop-grid { display: grid; gap: 1.75rem; padding-block: clamp(2.5rem, 6vw, 5rem); }
