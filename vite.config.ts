@@ -54,7 +54,9 @@ export default defineConfig({
         // and each trip's own photo is cached the first time it is shown (runtimeCaching below).
         globIgnores: ['**/tesseract-core-lstm*', 'images/destinations/!(*-placeholder).jpg'],
         navigateFallback: '/app.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/mcp$/, /^\/\.well-known\//, /^\/oauth\//, /^\/auth\//],
+        // A visit to a file (sitemap.xml, robots.txt, llms.txt, a PDF) must reach the real file, not the
+        // app shell's not-found screen. App and website routes never have an extension.
+        navigateFallbackDenylist: [/^\/api\//, /^\/mcp$/, /^\/\.well-known\//, /^\/oauth\//, /^\/auth\//, /\.[a-z0-9]+(\?.*)?$/i],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         importScripts: ['push-sw.js'], // push + notification taps (public/push-sw.js)
         runtimeCaching: [
