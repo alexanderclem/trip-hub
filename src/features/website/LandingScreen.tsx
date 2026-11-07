@@ -1,42 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router'
 import { WebsiteFrame } from './WebsiteFrame'
-import { Barcode, Perforation } from './tag/parts'
-import { RouteStrip } from './tag/RouteStrip'
-import { JoinStop, OfflineStop, PlanStop, SaveStop, StubsStop, VoteStop, type Winner } from './tag/stops'
-import { NEIGHBORHOODS, TRAVELERS, TRIP, total, type Code } from './tag/trip'
+import { Perforation } from './tag/parts'
 import { Stowie } from '@/features/stowie/Stowie'
 import { MAINTAINER } from './metadata'
-
-/** The neighborhood with the most points, or null while tied. */
-function pickWinner(mine: Partial<Record<Code, number>>): Winner {
-  const ranked = NEIGHBORHOODS.map((option) => ({ option, points: total(option.votes) + (mine[option.code] ?? 0) })).sort((a, b) => b.points - a.points)
-  const [first, second] = ranked
-  return first && second && first.points > second.points ? first.option : null
-}
-
-/**
- * The hero prints itself once per page load. The class is in the prerendered markup, so the print
- * starts with the first paint and hydration keeps it running; coming back to home later in the
- * same visit shows the tag already printed.
- */
-let heroPrinted = false
+import { HeroDemo } from './stage/HeroDemo'
+import { Features } from './stage/Features'
 
 export function LandingScreen() {
-  const [printing] = useState(() => !heroPrinted)
-  useEffect(() => { heroPrinted = true }, [])
-  const [mine, setMine] = useState<Partial<Record<Code, number>>>({})
-  const winner = useMemo(() => pickWinner(mine), [mine])
-
   if (typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone === true))) {
     return <Navigate to="/app" replace />
   }
 
   return (
     <WebsiteFrame>
-      {/* The hero leads with the message; the example trip hangs beside it as one tag. The routing
-          strip starts below the hero, so the first screen is only the header and this. */}
-      <section id="trip" data-stop="trip" className={printing ? 'tag-hero is-printing' : 'tag-hero'} aria-labelledby="hero-title">
+      {/* The hero leads with the message; beside it the app plays one story: a vote decides, the plan fills in. */}
+      <section id="trip" className="tag-hero" aria-labelledby="hero-title">
         <div className="tag-shell tag-hero-grid">
           <div className="tag-hero-copy">
             <h1 id="hero-title">Plan a trip<br />with friends.</h1>
@@ -50,37 +28,12 @@ export function LandingScreen() {
               </Link>
             </div>
           </div>
-          <figure className="tag-sample">
-            <figcaption className="tag-print-row">
-              <span>Example trip · {TRIP.destination}</span><span className="tag-print-id">{TRIP.season}</span>
-            </figcaption>
-            <p className="tag-route" aria-hidden="true">
-              {TRIP.route.map((code, index) => <span key={code}>{index > 0 && <span className="tag-arrow">→</span>}{code}</span>)}
-            </p>
-            <p className="tag-print tag-route-names">Charles de Gaulle · Paris · Versailles</p>
-            <div className="tag-pax">
-              <p className="tag-print">Travelers · {TRAVELERS.length}</p>
-              <ol aria-label="Travelers (example names)">
-                {TRAVELERS.map((name, index) => <li key={name} style={{ '--i': index } as React.CSSProperties}>{name}</li>)}
-              </ol>
-            </div>
-            <div className="tag-hero-code" aria-hidden="true"><Barcode value="STOWAWAY-PARIS" /></div>
-          </figure>
+          <HeroDemo />
         </div>
         <Perforation />
       </section>
 
-      <div className="tag-journey">
-        <RouteStrip winner={winner} />
-        <div className="tag-journey-stops">
-          <SaveStop />
-          <VoteStop mine={mine} setMine={setMine} winner={winner} />
-          <PlanStop winner={winner} />
-          <OfflineStop />
-          <StubsStop />
-          <JoinStop />
-        </div>
-      </div>
+      <Features />
 
       <section className="tag-faq-wrap" aria-labelledby="why-title">
         <div className="tag-shell tag-faq-grid">

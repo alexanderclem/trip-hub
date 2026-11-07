@@ -1,0 +1,65 @@
+/* Homepage hero demo. Everything is scoped under .sw-hero and drawn in the app's own tokens
+   (the --tag-* palette the app shares), so light and dark follow the site's appearance setting. */
+
+.sw-hero { width: 100%; }
+.sw-hero .ss-stage {
+  --ss-font: var(--tag-text);
+  --ss-accent: var(--tag-ink);
+  background: transparent;
+  overflow: hidden;
+  color: var(--tag-ink);
+}
+
+/* Phone, pinned top-left and cropped by the stage's bottom edge */
+/* A shadow that stays inside the 40px gutters, so the stage edge never cuts it into a visible box */
+.sw-hero .sw-phone { position: absolute; left: 40px; top: 32px; box-shadow: 0 0 0 1px rgba(23, 52, 63, 0.06), 0 22px 36px -18px rgba(23, 52, 63, 0.4); border-radius: 60px; }
+.sw-hero .ss-stage[data-layout='compact'] .sw-phone { left: 22px; top: 22px; }
+.sw-hero .sw-phone .ss-phone__screen { background: var(--tag-stock); }
+
+/* The vote screen, in iOS points (the phone scales it) */
+.sw-screen { padding: 0 20px; font-family: var(--tag-text); color: var(--tag-ink); }
+.sw-head { display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px; align-items: start; gap: 8px; padding: 6px 0 16px; border-bottom: 2px dashed var(--tag-rule); }
+.sw-head__back { margin-top: 6px; color: var(--tag-ink); }
+.sw-head__share { margin-top: 8px; justify-self: end; color: var(--tag-ink); }
+.sw-head__title { font-size: 27px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+.sw-head__trip { margin-top: 6px; color: var(--tag-print); font-size: 17px; line-height: 1.3; }
+
+.sw-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 2px 14px; font-size: 16px; line-height: 1.3; }
+.sw-status__count { color: var(--tag-print); font-variant-numeric: tabular-nums; }
+.sw-status__state { will-change: transform; padding: 5px 12px; border: 2px solid var(--tag-ink); border-radius: 999px; font-weight: 600; transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease; }
+.sw-status__state[data-won] { border-color: var(--tag-coral); background: var(--tag-coral); color: var(--tag-on-coral); }
+
+.sw-options { overflow: hidden; border: 2px solid var(--tag-ink); border-radius: 12px; background: var(--tag-card); }
+.sw-option { padding: 16px 18px 14px; border-top: 2px dashed var(--tag-rule); transition: opacity 260ms ease; }
+.sw-option:first-child { border-top: 0; }
+.sw-option__name { font-size: 20px; font-weight: 600; line-height: 1.3; }
+.sw-option[data-trailing] .sw-option__name, .sw-option[data-trailing] .sw-tally__pts { color: var(--tag-print); }
+.sw-scores { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.sw-score { will-change: transform; display: grid; place-items: center; height: 46px; border: 2px solid var(--tag-ink); border-radius: 9px; font-size: 16px; font-weight: 600; transition: background-color 160ms ease, color 160ms ease; }
+.sw-score[data-pressed] { transform: scale(0.97); transition: transform 90ms ease; }
+.sw-score[data-on] { background: var(--tag-ink); color: var(--tag-stock); }
+.sw-tally { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.sw-tally__track { flex: 1; height: 6px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--tag-ink) 12%, transparent); }
+.sw-tally__fill { display: block; height: 100%; border-radius: inherit; background: var(--tag-ink); transition: width 700ms cubic-bezier(0.45, 0, 0.1, 1); }
+.sw-option[data-trailing] .sw-tally__fill { background: var(--tag-print); }
+.sw-tally__pts { display: inline-flex; justify-content: flex-end; gap: 4px; min-width: 58px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* The satellite: the day's plan, straddling the phone's right edge over its lower, filler options */
+.sw-plan { position: absolute; left: 270px; bottom: 32px; width: 250px; padding: 14px 16px 4px; border: 2px solid var(--tag-ink); border-radius: 12px; background: var(--tag-card); box-shadow: var(--ss-shadow-satellite); font-family: var(--tag-text); color: var(--tag-ink); }
+.sw-hero .ss-stage[data-layout='compact'] .sw-plan { left: auto; right: 22px; top: auto; bottom: 22px; width: 262px; }
+.sw-plan__day { padding-bottom: 8px; font-size: 15px; font-weight: 600; line-height: 1.3; }
+.sw-plan__row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-inline: -12px; padding: 8px 12px; border-top: 1px dashed var(--tag-rule); }
+.sw-plan__icon { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--tag-ink) 8%, transparent); color: var(--tag-ink); }
+.sw-plan__icon.is-open { background: transparent; box-shadow: inset 0 0 0 1.5px var(--tag-rule); color: var(--tag-print); }
+.sw-plan__icon.is-pick { background: color-mix(in srgb, var(--tag-coral) 22%, transparent); color: var(--tag-ink); }
+.sw-plan__icon-slot { width: 32px; height: 32px; }
+.sw-plan__what { display: grid; min-width: 0; }
+.sw-plan__title { overflow: hidden; font-size: 14px; font-weight: 600; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.sw-plan__sub { margin-top: 2px; color: var(--tag-print); font-size: 13px; line-height: 1.3; }
+.sw-plan__time { font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sw-plan__row--slot { border-radius: 8px; background: var(--tag-halftone); transition: background-color 300ms ease; }
+.sw-plan__row--slot[data-planned] { background: transparent; }
+.sw-plan__row--slot[data-planned] .sw-plan__title { font-weight: 700; }
+
+:root[data-theme='stowaway-dark'] .sw-hero .sw-phone { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 22px 36px -18px rgba(0, 0, 0, 0.7); }
+:root[data-theme='stowaway-dark'] .sw-plan { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 14px 32px -8px rgba(0, 0, 0, 0.6); }

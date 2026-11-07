@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 /**
  * A tag's barcode, drawn from its own text so every tag gets a stable, different one.
@@ -25,26 +25,6 @@ export function Barcode({ value, className = '' }: { value: string; className?: 
 /** A perforated tear line: the only divider the tag world uses. */
 export function Perforation({ className = '' }: { className?: string }) {
   return <div className={`tag-perf ${className}`} aria-hidden="true" />
-}
-
-/** The coral priority label the group's choice gets. `pressed` replays the stamp. */
-export function PriorityStamp({ children = 'Priority', stamped = true }: { children?: ReactNode; stamped?: boolean }) {
-  return <span className="tag-stamp" data-stamped={stamped || undefined}>{children}</span>
-}
-
-/** Adds `is-printed` once an element first scrolls into view, so its lines print in once. */
-export function usePrintIn<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
-  const [printed, setPrinted] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || printed) return
-    if (typeof IntersectionObserver === 'undefined') { setPrinted(true); return }
-    const io = new IntersectionObserver(([entry]) => { if (entry?.isIntersecting) { setPrinted(true); io.disconnect() } }, { rootMargin: '0px 0px -15% 0px' })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [printed])
-  return { ref, printed }
 }
 
 /**

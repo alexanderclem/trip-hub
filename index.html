@@ -4,6 +4,9 @@
     <noscript><style>.progressive-image-full { opacity: 1 !important; }</style></noscript>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Cascade layer order, fixed before any stylesheet loads: the website's Stageshow demos
+         (src/features/website/stage/kit) come last so Tailwind's preflight in `base` can't reset them. -->
+    <style>@layer properties, theme, base, components, utilities, stageshow;</style>
     <meta name="theme-color" content="#f1f4f5" />
     <meta name="color-scheme" content="light dark" />
     <link rel="preload" href="/fonts/Barlow-Regular.woff2" as="font" type="font/woff2" crossorigin />

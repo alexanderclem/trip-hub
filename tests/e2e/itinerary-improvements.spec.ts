@@ -125,7 +125,6 @@ test('the landing page uses labels without demo instructions', async ({ page }) 
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Plan a tripwith friends.')
   await expect(page.locator('.tag-stop-head .tag-lede')).toHaveCount(0)
-  await expect(page.locator('#vote [role=status]')).toBeEmpty()
   await expect(page.getByText(/Score the ideas|Cast your vote\.|Download before you go|Open the invite\. Pick/)).toHaveCount(0)
 })
 

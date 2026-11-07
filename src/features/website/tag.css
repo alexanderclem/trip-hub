@@ -96,25 +96,13 @@
 .tag-time { font-family: var(--tag-text); font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .tag-barcode { display: block; width: 100%; height: 44px; fill: currentColor; }
 
-/* Hero: the message on the tag face, and the example trip hanging beside it as its own tag.
-   The headline is the largest type on the screen; the route codes print inside the example. */
+/* Hero: the message on the tag face; beside it the app plays one story (stage/HeroDemo.tsx).
+   The headline is the largest type on the screen. */
 .tag-hero { scroll-margin-top: 64px; }
 .tag-hero-grid { display: grid; gap: 2.75rem; padding-block: clamp(2.25rem, 6vw, 5rem) clamp(2.25rem, 5vw, 4.5rem); }
 .tag-hero h1 { font-family: var(--tag-text); font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; line-height: 1.04; letter-spacing: -.025em; text-transform: none; max-width: 18ch; }
 .tag-hero .tag-lede { max-width: 34ch; margin-top: 1.25rem; font-size: clamp(1.0625rem, 1.5vw, 1.25rem); line-height: 1.55; }
 .tag-hero-stubs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; max-width: 34rem; margin-top: 2rem; }
-/* The example trip: a hanging tag on card stock, with its string hole. */
-.tag-sample { position: relative; display: grid; width: 100%; max-width: 32rem; padding: 2.5rem 1.5rem 1.375rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); container-type: inline-size; }
-.tag-sample::before { content: ''; position: absolute; top: .875rem; left: 50%; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--tag-stock); box-shadow: 0 0 0 2px var(--tag-ink); }
-.tag-print-row { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; padding-bottom: .625rem; border-bottom: 1px solid var(--tag-rule); font-family: var(--tag-cond); font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--tag-print); }
-.tag-print-id { margin-left: auto; font-variant-numeric: tabular-nums; }
-.tag-route { display: flex; flex-wrap: nowrap; align-items: baseline; margin-top: 1rem; font-family: var(--tag-display); font-weight: 700; font-size: min(15.5cqi, 5.5rem); white-space: nowrap; line-height: .86; letter-spacing: -.005em; color: var(--tag-ink); }
-.tag-route > span { display: inline-flex; align-items: baseline; }
-.tag-arrow { margin-inline: .06em; font-weight: 300; color: var(--tag-print); }
-.tag-route-names { margin-top: .5rem; }
-.tag-pax { margin-top: 1.25rem; padding-top: .875rem; border-top: 2px solid var(--tag-ink); }
-.tag-pax ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .125rem .75rem; margin-top: .375rem; list-style: none; }
-.tag-pax li { font-family: var(--tag-text); font-size: 1rem; font-weight: 500; text-transform: none; letter-spacing: 0; line-height: 1.5; overflow-wrap: anywhere; }
 .tag-tear { position: relative; display: grid; align-content: center; gap: .25rem; min-height: 88px; padding: .875rem 1rem .875rem 1.75rem; border: 2px solid var(--tag-ink); border-radius: 0; color: var(--tag-ink); text-decoration: none; -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); transition: transform 160ms var(--tag-ease), background-color 160ms var(--tag-ease); }
 .tag-tear::after { /* the rim of the punched hole on the tear side */
   content: ''; position: absolute; top: 50%; left: -11px; width: 22px; height: 22px; margin-top: -11px; border: 2px solid var(--tag-ink); border-radius: 50%; }
@@ -127,180 +115,8 @@
 .tag-tear.is-primary:hover { background: color-mix(in srgb, var(--tag-coral) 86%, var(--tag-ink)); border-color: color-mix(in srgb, var(--tag-coral) 86%, var(--tag-ink)); }
 .tag-tear:active { transform: translateY(1px); }
 .tag-tear.is-compact { min-height: 64px; padding-inline: 1.5rem; }
-.tag-hero-code { margin-top: 1rem; color: var(--tag-ink); }
-.tag-hero-code .tag-barcode { height: 34px; }
 
-/* The hero prints itself on the first load: a thermal head runs down the tag face, and the print
-   behind it develops from half-tone to solid ink (the Print Density Rule, in time). The travelers
-   then print one name at a time, and coral lands last, on Create a trip. Plays once per page load
-   (`is-printing` is only rendered on the first mount); nothing loops. */
-@media (prefers-reduced-motion: no-preference) {
-  .tag-hero.is-printing {
-    --tag-head-time: 1000ms;
-    --tag-head-ease: cubic-bezier(.42, .06, .3, 1);
-    position: relative;
-    animation: tag-head-reveal var(--tag-head-time) var(--tag-head-ease) backwards;
-  }
-  .tag-hero.is-printing::after { /* the head, with the still-developing band of print just behind it */
-    content: ''; position: absolute; inset-inline: 0; top: -100%; height: 100%; z-index: 2; pointer-events: none; opacity: 0;
-    background:
-      linear-gradient(var(--tag-ink), var(--tag-ink)) bottom / 100% 3px no-repeat,
-      linear-gradient(color-mix(in srgb, var(--tag-ink) 18%, transparent), transparent) bottom 3px left 0 / 100% 10px no-repeat,
-      radial-gradient(circle, transparent 1.1px, var(--tag-stock) 1.55px) 0 0 / 4px 4px;
-    -webkit-mask: linear-gradient(to top, #000 0 13px, rgb(0 0 0 / .9) 13px, transparent 8rem);
-    mask: linear-gradient(to top, #000 0 13px, rgb(0 0 0 / .9) 13px, transparent 8rem);
-    animation: tag-head var(--tag-head-time) var(--tag-head-ease) backwards;
-  }
-  .tag-hero.is-printing .tag-pax li { animation: tag-print-in 300ms var(--tag-ease) backwards; animation-delay: calc(640ms + var(--i) * 70ms); }
-  .tag-hero.is-printing .tag-tear.is-primary { animation: tag-coral-stamp 520ms var(--tag-ease) 1040ms backwards; }
-}
-@media (prefers-reduced-motion: no-preference) and (max-width: 959px) {
-  /* Stacked, the stubs print well before the head reaches the barcode. */
-  .tag-hero.is-printing .tag-tear.is-primary { animation-delay: 820ms; }
-}
-@keyframes tag-head-reveal { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes tag-head { from { opacity: 1; transform: translateY(0); } 97% { opacity: 1; } to { opacity: 0; transform: translateY(100%); } }
-@keyframes tag-coral-stamp {
-  from { background-color: transparent; border-color: var(--tag-ink); transform: scale(1); }
-  32% { background-color: var(--tag-coral); border-color: var(--tag-coral); transform: scale(1.045); }
-  to { transform: scale(1); }
-}
-@keyframes tag-print-in { from { clip-path: inset(0 100% 0 0); opacity: .2; } to { clip-path: inset(0 0 0 0); opacity: 1; } }
-@keyframes tag-stamp { 0% { transform: rotate(-14deg) scale(1.6); opacity: 0; } 60% { transform: rotate(-3deg) scale(.94); opacity: 1; } 100% { transform: rotate(-5deg) scale(1); } }
-
-/* Journey: the routing strip and the stops pinned to it */
-.tag-journey { display: grid; grid-template-columns: minmax(0, 1fr); }
-.tag-journey > * { min-width: 0; }
-.tag-strip { position: sticky; top: 0; z-index: 5; background: var(--tag-stock); border-bottom: 2px solid var(--tag-ink); }
-.tag-strip ol { display: flex; overflow-x: auto; list-style: none; scrollbar-width: none; padding-inline: calc(var(--tag-pad) - .5rem); }
-.tag-strip ol::-webkit-scrollbar { display: none; }
-.tag-strip a { display: flex; align-items: baseline; gap: .375rem; min-height: 48px; min-width: 44px; padding-inline: .5rem; padding-top: .625rem; white-space: nowrap; color: var(--tag-print); text-decoration: none; }
-.tag-strip-code { font-family: var(--tag-display); font-size: 1.375rem; font-weight: 700; line-height: 1; color: var(--tag-ink); }
-.tag-strip-label { font-family: var(--tag-cond); font-size: .8125rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
-.tag-strip a[aria-current='step'] { color: var(--tag-ink); box-shadow: inset 0 -4px 0 var(--tag-ink); }
-/* The vote's code: a ghost (outline only) until the group picks, then the winner prints solid on coral. */
-.tag-strip [data-ghost] .tag-strip-code { display: inline-block; width: 2.1em; height: .86em; overflow: hidden; border: 2px dashed var(--tag-rule); border-radius: 2px; color: transparent; }
-.tag-strip [data-picked] .tag-strip-code { display: inline-block; width: fit-content; padding: .125rem .25rem; background: var(--tag-coral); color: var(--tag-on-coral); }
-@media (prefers-reduced-motion: no-preference) {
-  .tag-strip [data-picked] .tag-strip-code { animation: tag-strip-stamp 420ms var(--tag-ease) both; }
-}
-@keyframes tag-strip-stamp { 0% { transform: scale(1.6) rotate(-8deg); opacity: 0; } 60% { transform: scale(.94); opacity: 1; } 100% { transform: none; } }
-.tag-stop { scroll-margin-top: 64px; }
-.tag-stop-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.75rem; padding-block: clamp(2.5rem, 6vw, 5rem); }
-.tag-stop h2, .tag-faq-wrap h2, .tag-band h2, .tag-close h2 { font-family: var(--tag-text); font-size: clamp(1.75rem, 3.2vw, 2.75rem); font-weight: 600; line-height: 1.2; letter-spacing: -.02em; text-transform: none; max-width: 24ch; }
-.tag-stop-head { display: grid; align-content: start; }
-.tag-stop.is-printed .tag-stop-head h2 { animation: tag-print-in 560ms var(--tag-ease) both; }
-.tag-row { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-top: 1.25rem; }
-.tag-plan-next { margin-top: 2rem; }
-
-/* 01 Save: small hanging tags */
-.tag-ring { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding-top: .5rem; }
-.tag-mini { position: relative; display: grid; align-content: start; gap: .125rem; min-height: 156px; padding: 2.25rem 1rem 1rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); transform: rotate(var(--r, -1.2deg)); }
-.tag-mini:nth-child(even) { --r: 1.4deg; }
-.tag-mini:nth-child(3n) { --r: -.4deg; }
-.tag-mini::before { content: ''; position: absolute; top: .75rem; left: 50%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--tag-stock); box-shadow: 0 0 0 2px var(--tag-ink); }
-.tag-mini-code { font-family: var(--tag-display); font-size: 2rem; font-weight: 700; line-height: 1; }
-.tag-mini h3 { margin-top: .375rem; font-size: 1.0625rem; font-weight: 600; line-height: 1.3; }
-.tag-mini-meta, .tag-mini-by { font-size: .875rem; color: var(--tag-print); line-height: 1.5; }
-.tag-mini-by { margin-top: auto; padding-top: .5rem; font-family: var(--tag-text); font-weight: 400; letter-spacing: 0; text-transform: none; font-size: .875rem; line-height: 1.5; }
-.tag-mini:not(.is-ghost) { animation: tag-print-in 420ms var(--tag-ease) both; }
-.tag-mini.is-ghost { display: grid; place-items: center; border-style: dashed; border-color: var(--tag-rule); background: transparent; color: var(--tag-print); font-family: var(--tag-text); font-weight: 500; letter-spacing: 0; text-transform: none; font-size: .875rem; line-height: 1.4; }
-.tag-mini.is-ghost::before { background: transparent; box-shadow: 0 0 0 2px var(--tag-rule); }
-/* The next empty slot is the save button: the dashed tag you'd fill in, labelled once. */
-.tag-mini.is-next { display: flex; gap: .375rem; align-items: center; justify-content: center; padding-top: 2rem; border-color: var(--tag-ink); color: var(--tag-ink); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 140ms ease; }
-.tag-mini.is-next::before { box-shadow: 0 0 0 2px var(--tag-ink); }
-.tag-mini.is-next:hover { background: color-mix(in srgb, var(--tag-ink) 6%, transparent); }
-.tag-ring:focus { outline: none; }
-
-/* 02 Vote: the signature interaction */
-.tag-vote-question { font-family: var(--tag-text); font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 600; text-transform: none; letter-spacing: -.02em; line-height: 1.3; max-width: 36ch; }
-.tag-vote-list { display: grid; gap: .875rem; margin-top: 1rem; list-style: none; }
-.tag-option { position: relative; display: grid; gap: .75rem; padding: 1rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); transition: box-shadow 220ms var(--tag-ease); }
-.tag-option.is-winner { box-shadow: 0 0 0 4px var(--tag-coral); }
-/* Behind the leaders: a lighter outline, faded code and ticks. Names, points and buttons stay full ink. */
-.tag-option.is-trailing { border-color: var(--tag-rule); }
-.tag-option.is-trailing .tag-option-code { color: var(--tag-print); }
-.tag-option.is-trailing .tag-tick:not(.is-yours) { background: var(--tag-print); }
-.tag-option-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .875rem; }
-.tag-option-code { font-family: var(--tag-display); font-size: 2.25rem; font-weight: 700; line-height: 1; }
-.tag-option-name h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.3; }
-.tag-option-name p { font-size: .875rem; color: var(--tag-print); line-height: 1.5; }
-.tag-option-points { font-family: var(--tag-text); font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1.2; }
-.tag-option-points > span[aria-hidden] { font-size: .875rem; color: var(--tag-print); }
-.tag-option .tag-stamp { position: absolute; top: -.875rem; right: 1rem; }
-.tag-ticks { display: flex; flex-wrap: nowrap; gap: 4px; height: 12px; }
-.tag-tick { flex: 0 1 calc(var(--w) * 14px + 4px); min-width: 4px; height: 12px; border-radius: 2px; background: var(--tag-ink); }
-.tag-tick.is-yours { background: var(--tag-coral); animation: tag-print-in 300ms var(--tag-ease) both; }
-.tag-score { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .375rem; }
-.tag-score button, .tag-names button { min-height: 44px; padding: .375rem .25rem; border: 2px solid var(--tag-ink); border-radius: 8px; background: transparent; color: var(--tag-ink); font-family: var(--tag-text); font-size: .875rem; font-weight: 600; letter-spacing: 0; text-transform: none; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; line-height: 1.4; }
-.tag-score button:hover, .tag-names button:hover { background: color-mix(in srgb, var(--tag-ink) 8%, transparent); }
-.tag-score button[aria-pressed='true'], .tag-names button[aria-pressed='true'] { background: var(--tag-ink); color: var(--tag-stock); }
-.tag-vote-result { min-height: 3em; margin-block: .5rem 1.25rem; font-size: 1.0625rem; font-weight: 500; line-height: 1.5; color: var(--tag-ink); max-width: 46ch; }
-.tag-vote-result strong { font-weight: 700; box-shadow: inset 0 -.4em 0 color-mix(in srgb, var(--tag-coral) 55%, transparent); }
-.tag-stamp { display: inline-block; padding: .25rem .625rem; border: 2px solid var(--tag-ink); border-radius: 4px; background: var(--tag-coral); color: var(--tag-on-coral); font-family: var(--tag-cond); font-size: .9375rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; transform: rotate(-5deg); }
-.tag-stamp[data-stamped] { animation: tag-stamp 420ms var(--tag-ease) both; }
-
-/* 03 Plan: the routing, day by day */
-.tag-days { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; list-style: none; }
-.tag-day { display: grid; align-content: start; gap: .5rem;padding: 1.125rem 1.125rem 1rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
-.tag-day-route { display: flex; align-items: baseline; gap: .25rem; font-family: var(--tag-display); font-size: clamp(2.25rem, 4vw, 3.25rem); font-weight: 700; line-height: .9; }
-.tag-day h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.35; }
-.tag-day-num { margin-right: .375rem; font-family: var(--tag-cond); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tag-print); font-size: .8125rem; }
-.tag-day ul { list-style: none; border-top: 2px solid var(--tag-ink); }
-.tag-item { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr) auto; align-items: center; gap: .75rem; min-height: 52px; padding-block: .75rem; border-bottom: 1px dashed var(--tag-rule); }
-.tag-item:last-child { border-bottom: 0; }
-.tag-what { min-width: 0; overflow-wrap: anywhere; font-weight: 500; line-height: 1.45; }
-.tag-what small { display: block; font-size: .875rem; font-weight: 400; color: var(--tag-print); line-height: 1.5; margin-top: .125rem; }
-.tag-state { font-family: var(--tag-text); font-size: .8125rem; font-weight: 500; letter-spacing: 0; text-transform: none; line-height: 1.4; }
-.tag-item.is-tentative { background: var(--tag-halftone); }
-.tag-item.is-tentative .tag-what { font-weight: 500; }
-.tag-item.is-tentative .tag-state { color: var(--tag-print); }
-.tag-item.is-open { margin-top: .375rem; padding-inline: .5rem; border-bottom: 0; border-radius: 6px; background: var(--tag-signal); color: #17343f; }
-.tag-item.is-open .tag-what small { color: #17343f; }
-.tag-item.is-picked { animation: tag-print-in 480ms var(--tag-ease) both; }
-
-/* 04 Offline */
-.tag-signal { display: inline-flex; align-items: center; gap: .375rem; text-transform: uppercase; font-size: .875rem; }
-.tag-keep { display: grid; gap: .5rem; max-width: 30rem; padding: 1.25rem 1.25rem 1rem 1.75rem; border: 2px solid var(--tag-ink); border-left-style: dashed; background: var(--tag-card); color: var(--tag-ink); transition: background-color 260ms var(--tag-ease), color 260ms var(--tag-ease); }
-.tag-keep-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; }
-.tag-keep h3 { font-family: var(--tag-display); font-size: clamp(2.25rem, 4vw, 3rem); font-weight: 700; line-height: .9; }
-.tag-signal { display: inline-flex; align-items: center; gap: .375rem; font-family: var(--tag-cond); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.tag-keep ul { list-style: none; border-top: 2px solid currentColor; }
-.tag-keep li { display: flex; align-items: center; gap: .625rem; min-height: 48px; border-bottom: 1px dashed var(--tag-rule); font-weight: 500; line-height: 1.5; padding-block: .5rem; }
-.tag-keep li svg:last-child { margin-left: auto; }
-.tag-keep-note { font-weight: 500; font-size: .875rem; }
-.tag-keep .tag-barcode { height: 34px; }
-.tag-keep .tag-print { color: inherit; }
-.tag-keep.is-offline { background: var(--tag-ink); color: var(--tag-stock); }
-.tag-keep.is-offline li { border-bottom-color: color-mix(in srgb, var(--tag-stock) 35%, transparent); }
-.tag-switch { display: inline-flex; align-items: center; gap: .625rem; min-height: 48px; padding: .5rem 1.125rem; border: 2px solid var(--tag-ink); border-radius: 999px; background: transparent; color: var(--tag-ink); font-family: var(--tag-text); font-size: 1rem; font-weight: 600; letter-spacing: 0; text-transform: none; cursor: pointer; line-height: 1.4; }
-.tag-switch[aria-pressed='true'] { background: var(--tag-ink); color: var(--tag-stock); }
-
-/* 05 Stubs */
-/* The ticket leads; the cost receipt is a smaller second kind of paper clipped over its barcode corner. */
-.tag-stubs { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 34rem; }
-.tag-stubs > .tag-stub-card:first-child { margin-right: clamp(1.5rem, 14%, 5rem); }
-.tag-stub-card.is-receipt { position: relative; justify-self: end; width: min(calc(100% - 1.5rem), 19rem); margin-top: -2.25rem; border-radius: 4px; box-shadow: 0 0 0 6px var(--tag-stock); transform: rotate(1.2deg); }
-.tag-stub-card.is-receipt h3 { font-size: 1.25rem; }
-.tag-share { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: .5rem; padding-top: .625rem; border-top: 2px solid var(--tag-ink); }
-.tag-share span { font-weight: 500; }
-.tag-share strong { font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1.1; }
-.tag-stub-card { display: grid; gap: .375rem; padding: 1.125rem 1.25rem 1rem 1.75rem; border: 2px solid var(--tag-ink); border-left: 2px dashed var(--tag-ink); border-radius: 4px 10px 10px 4px; background: var(--tag-card); }
-.tag-stub-card h3 { font-family: var(--tag-text); font-size: 1.5rem; font-weight: 600; line-height: 1.25; text-transform: none; letter-spacing: -.02em; }
-.tag-code-line { font-size: 1rem; }
-.tag-code-line strong { font-family: var(--tag-text); font-size: 1.125rem; letter-spacing: .04em; font-weight: 600; }
-.tag-stub-card .tag-barcode { margin-top: .5rem; height: 38px; }
-
-/* 06 Join: the friend's view of the link, printed as one card */
-.tag-join { display: grid; grid-template-columns: minmax(0, 1fr); gap: .375rem; max-width: 34rem; padding: 1.25rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
-.tag-join-link { display: inline-flex; align-items: center; gap: .5rem; justify-self: start; margin-bottom: .75rem; padding: .375rem .75rem; border: 1px solid var(--tag-rule); border-radius: 999px; color: var(--tag-print); font-size: .875rem; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
-.tag-join-q { font-family: var(--tag-text); font-size: clamp(1.375rem, 2.5vw, 1.75rem); font-weight: 600; text-transform: none; letter-spacing: -.02em; line-height: 1.2; }
-.tag-names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: 1rem; }
-.tag-names button { min-height: 52px; font-size: 1rem; }
-.tag-join-result { min-height: 1.6em; margin-top: .75rem; font-size: 1rem; line-height: 1.5; }
-.tag-join-hint { color: var(--tag-print); font-size: .875rem; }
-.tag-join-result strong { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
-
+.tag-faq-wrap h2, .tag-band h2, .tag-close h2 { font-family: var(--tag-text); font-size: clamp(1.75rem, 3.2vw, 2.75rem); font-weight: 600; line-height: 1.2; letter-spacing: -.02em; text-transform: none; max-width: 24ch; }
 /* Organizer band, questions, close */
 .tag-band-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding-block: 2.5rem; }
 .tag-band h2 { font-size: clamp(1.5rem, 2.5vw, 2rem); font-family: var(--tag-text); font-weight: 600; text-transform: none; letter-spacing: -.02em; line-height: 1.2; }
@@ -382,35 +198,15 @@
 .tag-legal a { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 639px) {
-  .tag-sample { padding-inline: 1.125rem; }
   .tag-tear { min-height: 64px; padding-inline: 1.5rem .5rem; }
   .tag-tear-label { font-size: 1rem; }
-  /* One empty tag says "add yours"; more would only fill the phone screen. */
-  .tag-mini.is-ghost ~ .tag-mini.is-ghost { display: none; }
 }
 @media (min-width: 640px) {
-  .tag-ring { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .tag-names { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .tag-foot-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-@media (max-width: 1099px) {
-  .tag-strip ol { justify-content: space-between; }
-  .tag-strip-code { display: none; }
-  .tag-strip-label { font-size: .9375rem; letter-spacing: .04em; }
-  /* Labels only: the vote's empty slot is a desktop rail detail, and alone in a tab bar it reads as broken. */
-  .tag-strip [data-ghost] .tag-strip-code { display: none; }
-  /* Phones keep one code: the group's pick, so the vote's payoff lands on the main device too. */
-  .tag-strip [data-picked] .tag-strip-code { display: inline-block; font-size: 1.0625rem; line-height: 1.15; }
-}
 @media (min-width: 960px) {
-  .tag-hero-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; column-gap: clamp(3rem, 6vw, 6rem); }
-  .tag-sample { justify-self: end; }
+  .tag-hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 560px); align-items: center; column-gap: clamp(2rem, 5vw, 5rem); }
   .tag-head-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); column-gap: 4rem; }
-  .tag-stop-grid.is-wide { grid-template-columns: minmax(0, 1fr); }
-  .tag-stop-grid:not(.is-wide) { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 3rem; }
-  .tag-stop-grid.is-wide .tag-stop-head { max-width: 52rem; }
-  .tag-vote-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .tag-offline-grid { grid-template-columns: auto 1fr; }
   .tag-faq-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 3rem; }
   .tag-close-inner { grid-template-columns: auto minmax(0, 1fr); align-items: end; column-gap: 2.5rem; }
   .tag-foot-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: start; }
@@ -419,18 +215,6 @@
 @media (min-width: 1100px) {
   .tag-nav-link { display: inline-flex; }
   .tag-menu, .tag-mobile-nav { display: none !important; }
-  .tag-journey { grid-template-columns: 12rem minmax(0, 1fr); }
-  .tag-strip { align-self: start; top: 1.5rem; margin-block: 3rem; padding-left: var(--tag-pad); border-bottom: 0; background: transparent; }
-  .tag-strip ol { display: grid; gap: 0; padding: 0; border-left: 1px solid var(--tag-ink); }
-  .tag-strip a { display: grid; gap: .125rem; min-height: 60px; padding: .5rem 0 .5rem 1rem; box-shadow: none; }
-  .tag-strip-code { font-size: 1.875rem; }
-  .tag-strip a[aria-current='step'] { box-shadow: none; background: color-mix(in srgb, var(--tag-ink) 9%, transparent); }
-  .tag-journey-stops .tag-shell { padding-left: 2.5rem; }
-  /* Beside the rail a stop's tear line starts at the stop column; only the sheet's own edge is notched. */
-  .tag-world main .tag-journey-stops .tag-perf::before { left: 2.5rem; }
-  .tag-world main .tag-journey-stops .tag-perf::after { background: radial-gradient(circle at 100% 50%, var(--tag-ground) 11px, var(--tag-rule) 11.5px, var(--tag-rule) 12.5px, transparent 13px); }
-  /* The post-journey sections share the stops' reading edge. */
-  .tag-world main > :is(.tag-faq-wrap, .tag-band, .tag-close) .tag-shell { padding-left: calc(12rem + 2.5rem); }
 }
 @media (max-width: 359px) {
   .tag-nav-link.is-app { display: none; }
@@ -452,8 +236,6 @@
 .tag-story .tag-lede { max-width: 60ch; }
 .tag-lede a { color: var(--tag-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
 .tag-story-links { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin-top: 1rem; }
-/* Section tabs never shrink under the 44px touch target; the strip scrolls instead. */
-.tag-strip li { flex-shrink: 0; }
 .tag-world .splitter-cost, .tag-world .compare-wrap { border: 2px solid var(--tag-ink); border-radius: 8px; background: var(--tag-card); }
 .tag-world .splitter-icon { border: 2px solid var(--tag-ink); border-radius: 8px; background: var(--tag-card); color: var(--tag-ink); }
 .tag-world .splitter-add { border: 2px dashed var(--tag-ink); border-radius: 8px; color: var(--tag-ink); }
@@ -501,3 +283,7 @@
 @media (min-width: 960px) {
   .operator-showcase { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 3rem; align-items: start; }
 }
+
+/* The hero demo sits on the hero's bottom edge, so the phone is cropped by the tear line itself. */
+.tag-hero-grid > .sw-hero { align-self: end; margin-bottom: calc(-1 * clamp(2.25rem, 5vw, 4.5rem)); }
+.sw-features { position: relative; }

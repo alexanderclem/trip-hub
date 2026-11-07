@@ -32,26 +32,22 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
 })
 
-test('the trip on the homepage saves, votes, plans, goes offline and joins without saving anything', async ({ page }) => {
+test('the hero demo plays the vote deciding the plan, and shows that result as its still', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
   await page.goto('/')
-  await page.getByRole('button', { name: 'Save a place' }).click()
-  await expect(page.getByRole('heading', { name: 'Musée d’Orsay', exact: true })).toBeVisible()
-  // Seven example votes leave two neighborhoods tied until the visitor scores them.
-  const plan = page.locator('#plan')
-  await expect(plan.getByText('Still deciding: vote above')).toBeVisible()
-  await page.getByRole('group', { name: 'Your vote for Le Marais' }).getByRole('button', { name: 'Must-do', exact: true }).click()
-  await expect(page.locator('#vote').getByRole('status')).toContainText('Le Marais')
-  await expect(plan.getByText('Explore Le Marais')).toBeVisible()
-  await expect(plan.getByText('Priority', { exact: true })).toBeVisible()
-  const airplane = page.getByRole('button', { name: /^Airplane mode/ })
-  await expect(airplane).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByText('Available offline')).toBeVisible()
-  await airplane.click()
-  await expect(page.getByText('Connected')).toBeVisible()
-  await page.getByRole('group', { name: 'Who are you?' }).getByRole('button', { name: 'Sam', exact: true }).click()
-  await expect(page.locator('#join').getByRole('status')).toContainText("You're in as Sam")
+  const hero = page.getByRole('img', { name: /the group votes on where to spend the afternoon/ })
+  await expect(hero).toBeVisible()
+  // It plays once as it comes into view: the tie, the tap, the win, then the plan's 15:00 slot fills.
+  await expect(hero.getByText('Group pick', { exact: true })).toBeVisible({ timeout: 10_000 })
+  await expect(hero.getByText('Le Marais wins', { exact: true })).toBeVisible()
+  // The feature grid: five tiles, copy as page text beside each picture.
+  await expect(page.getByRole('heading', { level: 3 }).filter({ hasText: /^(The day-by-day plan|Works with no signal|Split costs as you go|Tickets ride along|One link, no app)\./ })).toHaveCount(5)
+  // Reduced motion shows the finished story as one still.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.reload()
-  await expect(plan.getByText('Still deciding: vote above')).toBeVisible()
+  await expect(hero.getByText('Group pick', { exact: true })).toBeVisible()
+  expect(errors).toEqual([])
 })
 
 test('joining from the website focuses the invite field and retains validation', async ({ page }) => {
@@ -84,8 +80,7 @@ test('the homepage reflows and its FAQ works at narrow and wide widths', async (
       return result
     })
     expect(overflow).toBe(false)
-    // The routing rail stacks each code over its label on purpose, so it isn't checked for wrapping.
-    const wrappedLabels = await page.locator('.tag-nav a, .tag-tear-label, .tag-link, .tag-strip-label, .website-button, .website-text-link').evaluateAll((links) => links.filter((link) => {
+    const wrappedLabels = await page.locator('.tag-nav a, .tag-tear-label, .tag-link, .website-button, .website-text-link').evaluateAll((links) => links.filter((link) => {
       if (!link.getClientRects().length) return false
       const range = document.createRange()
       range.selectNodeContents(link)
@@ -184,14 +179,22 @@ test('website text and the outlined app action meet contrast thresholds', async 
   await page.goto('/')
   await page.locator('details').evaluateAll((details) => details.forEach((detail) => { detail.open = true }))
   const contrast = await page.evaluate(() => {
-    const rgb = (value: string) => (value.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number)
-    const luminance = (value: string) => rgb(value).map((channel) => {
+    // Computed colors come as rgb()/rgba(), or as color(srgb r g b / a) with 0–1 channels when the CSS
+    // uses color-mix(). Translucent text is blended over its background before measuring.
+    const parse = (value: string) => {
+      const n = (value.match(/[\d.]+/g) ?? []).map(Number)
+      const srgb = value.startsWith('color(')
+      return { c: n.slice(0, 3).map((x) => (srgb ? x * 255 : x)), a: srgb || value.startsWith('rgba') ? (n[3] ?? 1) : 1 }
+    }
+    const luminance = (channels: number[]) => channels.map((channel) => {
       const v = channel / 255
       return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4
-    }).reduce((total, channel, index) => total + channel * [.2126, .7152, .0722][index], 0)
-    const ratio = (a: string, b: string) => {
-      const [low, high] = [luminance(a), luminance(b)].sort((x, y) => x - y)
-      return (high + .05) / (low + .05)
+    }).reduce((total, channel, index) => total + channel * [.2126, .7152, .0722][index]!, 0)
+    const ratio = (fg: string, bg: string) => {
+      const f = parse(fg), b = parse(bg)
+      const blended = f.c.map((x, i) => x * f.a + b.c[i]! * (1 - f.a))
+      const [low, high] = [luminance(blended), luminance(b.c)].sort((x, y) => x - y)
+      return (high! + .05) / (low! + .05)
     }
     const background = (element: Element): string => {
       const color = getComputedStyle(element).backgroundColor

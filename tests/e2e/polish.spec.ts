@@ -249,42 +249,33 @@ test('a failed day-note save retains its text across day changes and can retry',
   await expect(page.getByRole('textbox', { name: 'Notes for this day' })).toHaveValue('Keep this note even if storage fails')
 })
 
-test('the homepage vote updates the plan without requests, layout shifts or lost focus', async ({ page }) => {
+test('the homepage demos run without requests or errors', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', e => errors.push(e.message))
-  await page.goto('/')
-  const vote = page.locator('#vote')
-  await vote.scrollIntoViewIfNeeded()
-  const before = await vote.boundingBox()
   const requests: string[] = []
+  await page.goto('/')
+  await page.getByRole('heading', { level: 1 }).waitFor()
   page.on('request', r => requests.push(r.url()))
-  const mustDo = page.getByRole('group', { name: 'Your vote for Montmartre' }).getByRole('button', { name: 'Must-do', exact: true })
-  await mustDo.focus()
-  await page.keyboard.press('Enter')
-  await expect(mustDo).toBeFocused()
-  await expect(mustDo).toHaveAttribute('aria-pressed', 'true')
-  await expect(vote.getByRole('status')).toContainText('Montmartre')
-  await expect(page.locator('#plan').getByText('Explore Montmartre')).toBeVisible()
-  expect((await vote.boundingBox())!.height).toBeCloseTo(before!.height, -1)
-  expect(requests).toEqual([])
+  await expect(page.locator('.sw-hero').getByText('Group pick', { exact: true })).toBeVisible({ timeout: 10_000 })
+  // Each tile plays once when its picture is in view: bring the plan's agenda itself into view.
+  await page.locator('.sw-agenda').scrollIntoViewIfNeeded()
+  // The plan tile's one beat: dinner goes from Tentative to Booked.
+  await expect(page.locator('.sw-agenda__row[data-tentative]')).toHaveCount(0)
+  expect(requests.filter(u => !/\.(woff2|png|jpe?g|svg|webp)(\?|$)/.test(u))).toEqual([])
   expect(errors).toEqual([])
 })
 
-test('the homepage trip reflows with long text, keyboard focus and live reduced-motion changes', async ({ page }) => {
+test('the homepage reflows at 320px with 200% text, keyboard focus and reduced motion', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 900 })
   await page.goto('/')
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  const save = page.getByRole('button', { name: 'Save a place' })
-  await save.focus()
-  await expect(save).toHaveCSS('outline-style', 'solid')
-  await expect(save).toHaveCSS('transition-duration', '0s')
-  await page.locator('#plan .tag-what').first().evaluate(e => { e.firstChild!.textContent = 'Averylongunbrokenitinerarynamethatmustremainreadable' })
+  const create = page.getByRole('link', { name: 'Create a trip', exact: true }).first()
+  await create.focus()
+  await expect(create).toHaveCSS('outline-style', 'solid')
+  await expect(create).toHaveCSS('transition-duration', '0s')
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await expect(page.getByText('Averylongunbrokenitinerarynamethatmustremainreadable')).toBeVisible()
-  await page.emulateMedia({ reducedMotion: 'no-preference' })
-  await page.getByRole('group', { name: 'Who are you?' }).getByRole('button', { name: 'Leo', exact: true }).click()
-  await expect(page.locator('#join').getByRole('status')).toContainText("You're in as Leo")
+  await expect(page.getByRole('heading', { name: 'Everything the trip needs, behind one link' })).toBeVisible()
 })
 
 test('public visits defer offline downloads; entering the app installs it for offline navigation', async ({ page, context }) => {
@@ -298,8 +289,7 @@ test('public visits defer offline downloads; entering the app installs it for of
   await page.goto('/app')
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
   await page.goto('/')
-  await page.getByRole('button', { name: 'Save a place' }).click()
-  await expect(page.getByRole('heading', { name: 'Musée d’Orsay', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Everything the trip needs, behind one link' })).toBeVisible()
 })
 
 test('invite copying locks duplicate actions, reports failure, and permits retry', async ({ page, baseURL }) => {

@@ -1,0 +1,94 @@
+/* The homepage feature grid. Tiles share one ground, radius, gap and padding; copy sits at the top of
+   each tile as page text, and each picture is its own Stage pinned under it. */
+
+.sw-features { padding-block: clamp(3rem, 7vw, 5.5rem); }
+.sw-features__title { max-width: 22ch; font-family: var(--tag-text); font-size: clamp(1.75rem, 3.2vw, 2.75rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.2; }
+.sw-bento { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; margin-top: 2rem; }
+.sw-tile { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; overflow: hidden; padding: 1.5rem 1.5rem 0; border-radius: 16px; background: color-mix(in srgb, var(--tag-ink) 5%, var(--tag-stock)); }
+.sw-tile__copy { max-width: 32ch; font-family: var(--tag-text); font-size: 1.1875rem; font-weight: 400; line-height: 1.4; letter-spacing: -.01em; color: var(--tag-print); }
+.sw-tile__copy strong { font-weight: 600; color: var(--tag-ink); }
+.sw-tile__picture { margin-top: auto; }
+.sw-tile--money, .sw-tile--offline, .sw-tile--invite, .sw-tile--tickets { padding-bottom: 1.5rem; }
+.sw-tile[data-dark] { background: var(--tag-ink); }
+.sw-tile[data-dark] .sw-tile__copy { color: color-mix(in srgb, var(--tag-stock) 72%, transparent); }
+.sw-tile[data-dark] .sw-tile__copy strong { color: var(--tag-stock); }
+
+@media (min-width: 640px) {
+  .sw-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: 'plan plan' 'offline money' 'tickets invite'; }
+}
+@media (min-width: 960px) {
+  .sw-bento { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: 'plan plan offline' 'money tickets invite'; }
+}
+@media (min-width: 640px) {
+  .sw-tile--plan { grid-area: plan; } .sw-tile--offline { grid-area: offline; } .sw-tile--money { grid-area: money; }
+  .sw-tile--tickets { grid-area: tickets; } .sw-tile--invite { grid-area: invite; }
+}
+
+.sw-feature .ss-stage { --ss-font: var(--tag-text); background: transparent; overflow: hidden; color: var(--tag-ink); font-family: var(--tag-text); }
+
+/* Plan: the agenda card, full width of the picture slot, running off the tile's bottom */
+.sw-agenda { position: absolute; inset: 0 0 auto 0; padding: 18px 20px 0; border: 2px solid var(--tag-ink); border-bottom: 0; border-radius: 14px 14px 0 0; background: var(--tag-card); }
+.sw-agenda__days { display: flex; gap: 8px; }
+.sw-agenda__day { display: grid; place-items: center; align-content: center; gap: 4px; width: 58px; height: 58px; border: 2px solid var(--tag-rule); border-radius: 10px; font-size: 14px; line-height: 1.15; }
+.sw-agenda__day span { line-height: 1.1; }
+.sw-agenda__day b { line-height: 1.1; font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sw-agenda__day[data-on] { border-color: var(--tag-ink); background: var(--tag-ink); color: var(--tag-stock); }
+.sw-agenda__title { margin: 18px 0 6px; padding-bottom: 12px; border-bottom: 2px solid var(--tag-ink); font-size: 24px; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+.sw-agenda__row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 14px; margin-inline: -10px; padding: 10px; border-radius: 8px; border-bottom: 1px dashed var(--tag-rule); transition: background-color 400ms ease; }
+.sw-agenda__row[data-tentative] { background: var(--tag-halftone); }
+.sw-agenda__icon { display: grid; width: 40px; height: 40px; place-items: center; border: 2px solid var(--tag-ink); border-radius: 10px; background: color-mix(in srgb, var(--tag-ink) 6%, var(--tag-card)); }
+.sw-agenda__icon.is-food { border-color: color-mix(in srgb, var(--tag-coral) 70%, var(--tag-ink)); background: color-mix(in srgb, var(--tag-coral) 18%, var(--tag-card)); }
+.sw-agenda__what { display: grid; gap: 2px; min-width: 0; }
+.sw-agenda__name { overflow: hidden; font-size: 17px; font-weight: 600; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.sw-agenda__sub { color: var(--tag-print); font-size: 14px; line-height: 1.3; }
+.sw-agenda__time { font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sw-agenda__bar { display: block; height: 9px; border-radius: 5px; background: color-mix(in srgb, var(--tag-ink) 12%, transparent); }
+.sw-agenda__bar.is-sub { height: 7px; margin-top: 6px; background: color-mix(in srgb, var(--tag-ink) 8%, transparent); }
+.sw-agenda[data-compact] { padding-inline: 16px; }
+.sw-agenda[data-compact] .sw-agenda__day { width: 52px; height: 52px; }
+.sw-agenda[data-compact] .sw-agenda__title { font-size: 21px; }
+.sw-agenda[data-compact] .sw-agenda__name { font-size: 16px; }
+.sw-agenda[data-compact] .sw-agenda__row { gap: 12px; }
+
+/* Offline: the banner exactly as the app shows it, over what this phone has saved */
+.sw-offline { display: grid; gap: 12px; }
+.sw-offline__banner { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; background: color-mix(in srgb, var(--tag-ink) 8%, var(--tag-card)); font-size: 16px; line-height: 1.35; }
+.sw-offline__banner b { font-weight: 700; }
+.sw-offline__icon { flex: none; width: 20px; height: 20px; }
+.sw-offline__text { flex: 1; min-width: 0; }
+.sw-offline__list { border: 2px solid var(--tag-ink); border-radius: 12px; background: var(--tag-card); }
+.sw-offline__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; padding: 0 16px; border-top: 1px dashed var(--tag-rule); font-size: 16px; font-weight: 500; }
+.sw-offline__row:first-child { border-top: 0; }
+.sw-offline__check { flex: none; color: var(--tag-ink); }
+
+/* Money: one number on the dark tile */
+.sw-stat { display: grid; gap: 6px; color: var(--tag-stock); }
+.sw-stat__lead { color: color-mix(in srgb, var(--tag-stock) 72%, transparent); font-size: 16px; line-height: 1.3; }
+.sw-stat__number { font-size: 64px; font-weight: 700; letter-spacing: -.03em; line-height: 1; white-space: nowrap; }
+.sw-stat__number .ss-count { color: var(--tag-coral); }
+.sw-stat__label { font-size: 18px; font-weight: 500; line-height: 1.3; }
+
+/* Tickets: a loose pile, straightest on top */
+.sw-tickets { position: absolute; inset: 0; }
+/* centred on the pile, not the top card: the back cards sit 14px left and 16px right of it */
+.sw-ticket { position: absolute; left: calc(50% - 123px); top: 34px; width: 244px; height: 180px; padding: 16px 18px; border: 2px solid var(--tag-ink); border-left-style: dashed; border-radius: 12px; background: var(--tag-card); }
+.sw-ticket.is-back { background: color-mix(in srgb, var(--tag-ink) 4%, var(--tag-card)); border-color: var(--tag-rule); }
+.sw-ticket__head { display: flex; align-items: center; gap: 12px; }
+.sw-ticket__icon { display: grid; width: 40px; height: 40px; flex: none; place-items: center; border-radius: 10px; background: color-mix(in srgb, var(--tag-ink) 7%, var(--tag-card)); }
+.sw-ticket__what { display: grid; gap: 2px; }
+.sw-ticket__meta { color: var(--tag-print); font-size: 14px; line-height: 1.3; }
+.sw-ticket__name { font-size: 18px; font-weight: 600; line-height: 1.3; }
+.sw-ticket__code { margin-top: 14px; font-size: 32px; font-weight: 700; letter-spacing: .04em; line-height: 1.1; }
+.sw-ticket__foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--tag-rule); color: var(--tag-print); font-size: 14px; }
+
+/* Invite: the "Who are you?" names, two rows running off the right edge */
+.sw-invite__q { font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 1.25; }
+.sw-invite__names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+.sw-invite__name { display: inline-flex; align-items: center; gap: 10px; padding: 5px 13px 5px 5px; border: 2px solid var(--tag-ink); border-radius: 999px; background: var(--tag-card); font-size: 15px; font-weight: 600; line-height: 1.3; transition: background-color 200ms ease, color 200ms ease; }
+.sw-invite__name[data-on] { background: var(--tag-ink); color: var(--tag-stock); }
+.sw-invite__avatar { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; font-size: 13px; font-weight: 600; }
+
+/* Pictures start on the copy's left edge, never centred in a wider slot */
+.sw-feature .ss-fit { margin-inline: 0; }
+/* The stat sits close under its copy */
+.sw-tile--money .sw-tile__picture { margin-top: .25rem; }
