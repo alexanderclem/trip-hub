@@ -231,3 +231,15 @@ test('entry follows create or join intent in both reading and visual order', asy
     }
   }
 })
+
+test('the homepage offers Create a trip after the hero, the steps and the close, each answering what it costs', async ({ page }) => {
+  await page.goto('/')
+  const creates = page.locator('main').getByRole('link', { name: 'Create a trip', exact: true })
+  await expect(creates).toHaveCount(3)
+  for (const link of await creates.all()) await expect(link).toHaveAttribute('href', '/new')
+  await expect(page.getByRole('heading', { name: 'From group chat to plan in three steps' })).toBeVisible()
+  await expect(page.locator('.tag-steps > li')).toHaveCount(3)
+  await expect(page.getByRole('list', { name: 'What Stowaway replaces' }).getByRole('listitem')).toHaveCount(4)
+  // The reassurance sits under the hero's stubs and the closing action.
+  await expect(page.getByText('No app or sign-up to join', { exact: true })).toHaveCount(2)
+})

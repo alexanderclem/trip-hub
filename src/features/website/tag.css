@@ -287,3 +287,40 @@
 /* The hero demo sits on the hero's bottom edge, so the phone is cropped by the tear line itself. */
 .tag-hero-grid > .sw-hero { align-self: end; margin-bottom: calc(-1 * clamp(2.25rem, 5vw, 4.5rem)); }
 .sw-features { position: relative; }
+
+/* Homepage conversion pieces. Reassurance sits under every Create a trip so "what's the catch?" is
+   answered at the moment of the click; ink checks, never coral (coral stays with the action). */
+.tag-assure { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-top: 1.25rem; padding: 0; list-style: none; }
+.tag-assure li { display: inline-flex; align-items: center; gap: .375rem; color: var(--tag-ink); font-size: .9375rem; font-weight: 600; line-height: 1.4; }
+.tag-assure svg { flex: none; }
+.tag-assure.is-quiet li { color: var(--tag-print); font-weight: 500; }
+
+/* Three steps: numbered stubs on ink rules, then the mid-page Create a trip. */
+.tag-steps-inner { padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+.tag-steps-wrap h2 { max-width: 24ch; font-family: var(--tag-text); font-size: clamp(1.75rem, 3.2vw, 2.75rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.2; }
+.tag-steps { display: grid; gap: 1.5rem; margin-top: 2rem; padding: 0; list-style: none; }
+.tag-steps li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); column-gap: 1rem; row-gap: .25rem; align-content: start; padding-top: 1rem; border-top: 2px solid var(--tag-ink); }
+.tag-step-no { grid-row: span 2; font-family: var(--tag-display); font-size: 2.5rem; font-weight: 700; line-height: 1; font-variant-numeric: lining-nums; }
+.tag-steps h3 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em; line-height: 1.3; }
+.tag-steps p { max-width: 36ch; color: var(--tag-print); line-height: 1.55; }
+.tag-steps-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: 2.25rem; }
+@media (min-width: 768px) {
+  .tag-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 2rem; }
+}
+
+/* "Instead of": what each scattered tool becomes. Struck-through print on the left, ink on the right. */
+.tag-instead { display: grid; padding: 0; border-top: 2px solid var(--tag-ink); list-style: none; }
+.tag-instead li { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .375rem 1rem; padding-block: .875rem; border-bottom: 1px dashed var(--tag-rule); line-height: 1.4; }
+.tag-instead-before { color: var(--tag-print); text-decoration: line-through; text-decoration-thickness: 1.5px; text-decoration-color: color-mix(in srgb, var(--tag-print) 50%, transparent); }
+.tag-instead-after { color: var(--tag-ink); font-weight: 600; }
+.tag-instead-arrow { color: var(--tag-ink); }
+.tag-story-note { max-width: 60ch; margin-top: 1.5rem; }
+@media (max-width: 479px) {
+  .tag-instead li { grid-template-columns: auto minmax(0, 1fr); }
+  .tag-instead-before { grid-column: 1 / -1; }
+}
+
+/* Organizer band and closing invitation */
+.tag-band-sub { max-width: 52ch; margin-top: .5rem; color: var(--tag-print); font-size: 1rem; line-height: 1.55; }
+.tag-close-lede { max-width: 40ch; margin-top: .75rem; }
+.tag-close .tag-close-actions { margin-top: 1.5rem; }
