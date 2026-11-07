@@ -51,8 +51,9 @@ test('joining opens a quiet trip home with direct access to places', async ({ pa
 
   await page.waitForURL(/\/overview/)
   await expect(page.getByRole('heading', { name: 'What kind of traveler are you?' })).toHaveCount(0)
-  const welcome = page.getByRole('status').filter({ hasText: 'Joined trip' })
-  await expect(welcome).toContainText('Joined trip')
+  // A joiner gets a short "where to start" card that stays until they close it.
+  const welcome = page.getByRole('region', { name: 'You’re in' })
+  await expect(welcome.getByRole('link', { name: /See the plan so far/ })).toBeVisible()
   await expect(page.locator('.overview-focus')).toHaveCount(1)
   await expect(page.locator('.overview-setup')).toHaveCount(0)
   await expect(page.getByRole('link', { name: 'Places 0', exact: true })).toHaveAttribute('href', `/t/${tripId}/more/places`)
@@ -61,6 +62,8 @@ test('joining opens a quiet trip home with direct access to places', async ({ pa
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Stubbed trip' })).toBeVisible()
   await expect(page).toHaveURL(/\/overview$/)
+  await expect(welcome).toBeVisible()
+  await welcome.getByRole('button', { name: 'Got it' }).click()
   await expect(welcome).toHaveCount(0)
   await page.getByRole('link', { name: 'Places 0', exact: true }).click()
   await page.getByRole('link', { name: 'Add place', exact: true }).click()

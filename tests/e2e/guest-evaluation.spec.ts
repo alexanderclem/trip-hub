@@ -119,8 +119,10 @@ test('background refresh does not pretend uploads are pending and resolves to Up
     if (route.request().url().includes('/trips?') && !held) { held = true; await gate }
     await route.fulfill(json([]))
   })
+  // Phones only print sync status when it's offline or in trouble; wider screens keep the tool.
+  await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto(`${root}/overview`)
-  const button = page.getByRole('button', { name: /Checking for updates.*View sync details/ }).first()
+  const button = page.getByRole('button', { name: /^Sync: Checking for updates/ }).first()
   await button.click()
   const details = page.getByRole('dialog', { name: 'Sync & saved changes' })
   await expect(details).toContainText('There are no waiting uploads. Checking for changes from your group.')

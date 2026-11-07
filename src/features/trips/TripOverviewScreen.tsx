@@ -23,6 +23,7 @@ import { useNow } from '@/lib/useNow'
 import { OfflineReadyCard } from '@/features/offline/OfflineReadyCard'
 import { tripAreas } from '@/features/destinations/destinations'
 import { InviteTripCard } from './InviteTripCard'
+import { JoinerWelcome } from './JoinerWelcome'
 import { TripArtwork } from './TripArtwork'
 import { tripCover, tripStatus } from './presentation'
 import { voteStatus } from './decisions'
@@ -104,7 +105,8 @@ export function TripOverviewScreen() {
     </header>
 
     <div className="overview-main space-y-5">
-      {arrival && <p role="status" className="text-sm text-muted">{arrival === 'created' ? 'Trip created' : 'Joined trip'}</p>}
+      {arrival === 'created' && <p role="status" className="text-sm text-muted">Trip created</p>}
+      {phase !== 'complete' && <JoinerWelcome tripId={tripId} justJoined={arrival === 'joined'} />}
       {showFocus ? <section className="overview-focus" aria-labelledby="trip-focus-title"><div className="min-w-0"><h2 id="trip-focus-title" className="travel-heading wrap-anywhere">{focus.title}</h2>{focus.detail && <p className="mt-2 text-sm text-muted">{focus.detail}</p>}<LinkButton to={focus.to} className="mt-3">{focus.action}<ArrowRight aria-hidden="true" className="size-4" /></LinkButton></div></section>
         : ready && phase === 'planning' && <section className="overview-focus" aria-labelledby="trip-focus-title"><div className="min-w-0"><h2 id="trip-focus-title" className="travel-heading">{members.length < 2 ? 'Who’s coming?' : savedPlaces.length ? 'Put a place in the plan' : 'Where should we go?'}</h2>{members.length < 2 ? <Button className="mt-3" onClick={() => setInviting(true)} aria-haspopup="dialog">Invite friends<Users aria-hidden="true" className="size-4" /></Button> : <LinkButton to={`${root}/more/places${savedPlaces.length ? '' : '/new'}`} className="mt-3">{savedPlaces.length ? 'Choose a saved place' : 'Save a place'}<ArrowRight aria-hidden="true" className="size-4" /></LinkButton>}</div></section>}
 

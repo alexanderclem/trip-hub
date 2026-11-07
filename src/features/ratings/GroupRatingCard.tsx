@@ -45,7 +45,7 @@ export function GroupRatingCard({ place, memberId }: { place: Place; memberId: s
         }}
         maxLength={500}
         rows={2}
-        placeholder="Add a note (optional), e.g. get the pepián"
+        placeholder="Add a note (optional), e.g. ask for a table outside"
         aria-label="Your note"
         className="mt-2"
       />

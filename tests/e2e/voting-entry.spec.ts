@@ -68,7 +68,7 @@ test('voting leads navigation, persists offline and appears in the overview', as
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.screenshot({ path: `/tmp/stowaway-overview-${width}.png` })
   }
-  const sync = page.getByRole('button', { name: /View sync details/ }).filter({ visible: true })
+  const sync = page.getByRole('button', { name: /^Sync: / }).filter({ visible: true }).first()
   await sync.click()
   await expect(page.getByRole('dialog', { name: 'Sync & saved changes' })).toBeVisible()
   await page.keyboard.press('Escape')

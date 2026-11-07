@@ -105,6 +105,25 @@ test('overview shows one priority and compact task counts with the correct filte
   await expect.poll(() => page.locator('#trip-content').evaluate(el => el.scrollTop)).toBeCloseTo(scroll, 0)
 })
 
+test('someone who joins by link sees where to start until they close it; creators never do', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await page.goto(`${root}/overview`)
+  await expect(page.getByRole('heading', { name: 'A day by the water?' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'You’re in' })).toHaveCount(0)
+  await page.goto(`${root}/overview?joined=1`)
+  const welcome = page.getByRole('region', { name: 'You’re in' })
+  await expect(welcome.getByRole('link', { name: /See the plan so far/ })).toBeVisible()
+  // Offline: the quiz needs signal, so it isn't offered.
+  await expect(welcome.getByRole('link', { name: /How do you like to travel/ })).toHaveCount(0)
+  await page.reload()
+  await expect(welcome).toBeVisible()
+  await welcome.getByRole('button', { name: 'Got it' }).click()
+  await expect(welcome).toHaveCount(0)
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'A day by the water?' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'You’re in' })).toHaveCount(0)
+})
+
 test('quick add works by keyboard, restores focus, and reaches every creation flow', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await page.goto(`${root}/overview`)
