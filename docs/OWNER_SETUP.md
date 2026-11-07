@@ -318,7 +318,7 @@ update private.app_settings set value = 'false' where key = 'pro_free_beta';   -
 
 ## Still open from before this work
 
-- **The real-iPhone check:** airplane mode with the offline map, and push notifications on a Home Screen install.
+- ~~**The real-iPhone check:** airplane mode with the offline map, and push notifications on a Home Screen install.~~ Passed on 6 Nov 2026.
 - **Routing provider verification:** `ORS_API_KEY` and `GOOGLE_ROUTES_API_KEY` are present in production's secret-name inventory as of 3 Nov; their current provider authorization was not exercised during operator setup.
 - **Phase 0 of the plan:** the 10 organizer interviews and the concierge trip. These decide whether payments are worth pushing hard (`docs/PLAN_THE_SWITCH.md` section 8).
 - **Staging payment and email verification:** the separate free project is now initialized; payment credentials, sender authorization and the full external integration checks remain.
