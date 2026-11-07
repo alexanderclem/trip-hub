@@ -170,13 +170,13 @@ export function Features() {
           <Tile area="plan" lead="The day-by-day plan." rest="Times, bookings and confirmations for every day.">
             <PlanPicture />
           </Tile>
-          <Tile area="offline" lead="Works with no signal." rest="Each phone keeps the plan and tickets.">
+          <Tile area="offline" lead="Works with no signal." rest="Save the trip before you go, and the plan and tickets keep working.">
             <OfflinePicture />
           </Tile>
-          <Tile area="money" lead="Split costs as you go." rest="Stowaway works out who pays whom." dark>
+          <Tile area="money" lead="Split costs as you go." rest="Log who paid, and Stowaway finds the fewest payments to settle up." dark>
             <MoneyPicture />
           </Tile>
-          <Tile area="tickets" lead="Tickets ride along." rest="Every phone downloads the group’s tickets.">
+          <Tile area="tickets" lead="Tickets on every phone." rest="Add a ticket once and the whole group has it.">
             <TicketsPicture />
           </Tile>
           <Tile area="invite" lead="One link, no app." rest="Friends open it in the browser and pick their name.">

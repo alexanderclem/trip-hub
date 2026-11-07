@@ -42,7 +42,7 @@ test('the hero demo plays the vote deciding the plan, and shows that result as i
   await expect(hero.getByText('Group pick', { exact: true })).toBeVisible({ timeout: 10_000 })
   await expect(hero.getByText('Le Marais wins', { exact: true })).toBeVisible()
   // The feature grid: five tiles, copy as page text beside each picture.
-  await expect(page.getByRole('heading', { level: 3 }).filter({ hasText: /^(The day-by-day plan|Works with no signal|Split costs as you go|Tickets ride along|One link, no app)\./ })).toHaveCount(5)
+  await expect(page.getByRole('heading', { level: 3 }).filter({ hasText: /^(The day-by-day plan|Works with no signal|Split costs as you go|Tickets on every phone|One link, no app)\./ })).toHaveCount(5)
   // Reduced motion shows the finished story as one still.
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.reload()
@@ -242,4 +242,17 @@ test('the homepage offers Create a trip after the hero, the steps and the close,
   await expect(page.getByRole('list', { name: 'What Stowaway replaces' }).getByRole('listitem')).toHaveCount(4)
   // The reassurance sits under the hero's stubs and the closing action.
   await expect(page.getByText('No app or sign-up to join', { exact: true })).toHaveCount(2)
+})
+
+test('the hero demo is labelled an example and Replay runs the vote again', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.sw-hero').getByText('Example trip · Paris', { exact: true })).toBeVisible()
+  const hero = page.getByRole('img', { name: /the group votes on where to spend the afternoon/ })
+  await expect(hero.getByText('Group pick', { exact: true })).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: 'Replay', exact: true }).click()
+  await expect(hero.getByText('Tied', { exact: true })).toBeVisible()
+  await expect(hero.getByText('Le Marais wins', { exact: true })).toBeVisible({ timeout: 10_000 })
+  // Reduced motion shows the finished still, so there is nothing to replay.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(page.getByRole('button', { name: 'Replay', exact: true })).toBeHidden()
 })

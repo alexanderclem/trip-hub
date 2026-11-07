@@ -1,4 +1,5 @@
-import { ChevronLeft, Landmark, MapPin, Share2, Vote } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronLeft, Landmark, MapPin, RotateCcw, Share2, Vote } from 'lucide-react'
 import { Count, Phone, Roll, Stage, States, type Act } from './kit'
 import './hero.css'
 
@@ -89,9 +90,20 @@ function PlanCard({ s, compact }: { s: S; compact: boolean }) {
 }
 
 export function HeroDemo() {
+  // Each take remounts the stage, so Replay runs the story again from the tie.
+  const [take, setTake] = useState(0)
   return (
-    <div className="sw-hero" role="img" aria-label="Stowaway on a phone: the group votes on where to spend the afternoon, Le Marais wins, and it is added to Sunday's plan at 15:00.">
+    <div className="sw-hero">
+      {/* The demo is labelled an example (docs/BRAND.md); Replay is for anyone who scrolled past the vote. */}
+      <div className="sw-hero__caption">
+        <span className="tag-print">Example trip · Paris</span>
+        <button type="button" className="sw-hero__replay" onClick={() => setTake((t) => t + 1)}>
+          <RotateCcw size={16} strokeWidth={2.25} aria-hidden="true" />Replay
+        </button>
+      </div>
+      <div role="img" aria-label="Stowaway on a phone: the group votes on where to spend the afternoon, Le Marais wins, and it is added to Sunday's plan at 15:00.">
       <Stage<S>
+        key={take}
         width={560}
         height={640}
         compact={{ below: 540, width: 358, height: 600 }}
@@ -130,6 +142,7 @@ export function HeroDemo() {
           )
         }}
       </Stage>
+      </div>
     </div>
   )
 }

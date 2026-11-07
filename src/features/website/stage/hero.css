@@ -63,3 +63,18 @@
 
 :root[data-theme='stowaway-dark'] .sw-hero .sw-phone { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 22px 36px -18px rgba(0, 0, 0, 0.7); }
 :root[data-theme='stowaway-dark'] .sw-plan { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 14px 32px -8px rgba(0, 0, 0, 0.6); }
+
+/* Caption above the stage: the example label on the phone's left edge, Replay on the right. It tucks into
+   the stage's top gutter so it reads as part of the picture, not a separate row. */
+.sw-hero { container-type: inline-size; }
+.sw-hero__caption { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 1rem; max-width: 560px; margin: 0 auto -20px; padding-inline: 40px; }
+.sw-hero__replay { display: inline-flex; align-items: center; gap: .375rem; min-height: 44px; margin-right: -.625rem; padding-inline: .625rem; border: 0; border-radius: 6px; background: transparent; color: var(--tag-ink); font: 600 .9375rem/1.4 var(--tag-text); cursor: pointer; }
+.sw-hero__replay:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.sw-hero__replay:active svg { transform: rotate(-60deg); transition: transform 160ms ease; }
+@container (max-width: 539px) {
+  .sw-hero__caption { max-width: 358px; margin-bottom: -10px; padding-inline: 22px; }
+}
+/* Under reduced motion the stage shows the finished still, so there is nothing to replay. */
+@media (prefers-reduced-motion: reduce) {
+  .sw-hero__replay { display: none; }
+}
