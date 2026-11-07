@@ -34,7 +34,7 @@ test('the website introduces Stowaway, then opens the app and create flow', asyn
 
 test('the trip on the homepage saves, votes, plans, goes offline and joins without saving anything', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Save another place' }).click()
+  await page.getByRole('button', { name: 'Save a place' }).click()
   await expect(page.getByRole('heading', { name: 'Musée d’Orsay', exact: true })).toBeVisible()
   // Seven example votes leave two neighborhoods tied until the visitor scores them.
   const plan = page.locator('#plan')

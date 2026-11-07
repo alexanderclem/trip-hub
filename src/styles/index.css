@@ -269,7 +269,7 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
 @keyframes stowaway-morph-arrive { 0%, 35% { opacity: 0; } 100% { opacity: 1; } }
 @supports (corner-shape: superellipse(1.25)) {
   /* Keep native scrolling dialogs on standard radii: hit testing must follow scrolled content. */
-  .ui-card, .operator-preview, .marketing-plan, .website-preview { corner-shape: superellipse(1.25); }
+  .ui-card, .operator-preview-frame, .marketing-plan, .website-preview { corner-shape: superellipse(1.25); }
 }
 @media (max-width: 639px) {
   .ui-dialog-sheet { margin: auto auto 0; width: 100%; max-width: 100%; max-height: calc(90dvh - env(safe-area-inset-top)); border-radius: 1.5rem 1.5rem 0 0; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)); }

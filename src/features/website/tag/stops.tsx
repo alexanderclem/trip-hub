@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { Check, Plane, Plus, Ticket, Wifi, WifiOff } from 'lucide-react'
+import { Check, Link2, Plane, Plus, Ticket, Wifi, WifiOff } from 'lucide-react'
 import { Barcode, Perforation, PriorityStamp, usePrintIn } from './parts'
-import { DAYS, IDEAS, NEIGHBORHOODS, SCORES, TRAVELERS, total, type Code } from './trip'
+import { DAYS, IDEAS, NEIGHBORHOODS, SCORES, TRAVELERS, TRIP, total, type Code } from './trip'
 
 export type Winner = (typeof NEIGHBORHOODS)[number] | null
 
@@ -25,27 +25,34 @@ function Stop({ id, title, children, wide = false }: { id: string; title: string
 /** 01 Save: everyone drops places into one pool. */
 export function SaveStop() {
   const [saved, setSaved] = useState(3)
+  const ring = useRef<HTMLDivElement>(null)
   const shown = IDEAS.slice(0, saved)
-  const ghosts = Math.max(0, 6 - saved)
+  const full = saved >= IDEAS.length
+  // The next empty slot is the action; the slots after it stay blank, so "add yours" is said once.
+  const blanks = Math.max(0, IDEAS.length - saved - 1)
   return (
     <Stop id="save" title="Save places to one pool">
-      <div className="tag-ring" role="list" aria-label="Saved places in Paris (example trip)">
+      <div ref={ring} tabIndex={-1} className="tag-ring" role="group" aria-label="Saved places in Paris (example trip)">
         {shown.map((idea, index) => (
-          <article key={idea.name} role="listitem" className="tag-mini" style={{ '--i': index } as React.CSSProperties}>
+          <article key={idea.name} className="tag-mini" style={{ '--i': index } as React.CSSProperties}>
             <p className="tag-mini-code">{idea.code}</p>
             <h3>{idea.name}</h3>
             <p className="tag-mini-meta">{idea.kind} · {idea.town}</p>
             <p className="tag-mini-by">Saved by {idea.by}</p>
           </article>
         ))}
-        {Array.from({ length: ghosts }, (_, index) => <div key={index} role="listitem" className="tag-mini is-ghost" aria-label="Empty slot"><span aria-hidden="true">Your idea</span></div>)}
+        {!full && (
+          <button type="button" className="tag-mini is-ghost is-next" onClick={() => {
+            setSaved((n) => Math.min(IDEAS.length, n + 1))
+            // The last save removes this button; keep focus in the pool instead of dropping it to the page.
+            if (saved + 1 >= IDEAS.length) requestAnimationFrame(() => ring.current?.focus())
+          }}>
+            <Plus size={18} aria-hidden="true" /> Save a place
+          </button>
+        )}
+        {Array.from({ length: blanks }, (_, index) => <div key={index} className="tag-mini is-ghost" aria-hidden="true" />)}
       </div>
-      <div className="tag-row">
-        <button type="button" className="tag-button is-quiet" onClick={() => setSaved((n) => Math.min(IDEAS.length, n + 1))} disabled={saved >= IDEAS.length}>
-          <Plus size={18} aria-hidden="true" /> {saved >= IDEAS.length ? 'All six saved' : 'Save another place'}
-        </button>
-        <p className="tag-fine" aria-live="polite">{saved} places saved</p>
-      </div>
+      <p className="sr-only" aria-live="polite">{saved} places saved</p>
     </Stop>
   )
 }
@@ -71,8 +78,10 @@ export function VoteStop({ mine, setMine, winner }: { mine: Partial<Record<Code,
             const yours = mine[option.code]
             const points = theirs + (yours ?? 0)
             const isWinner = winner?.code === option.code
+            // Options behind the leaders print quieter, so the tie (and then the winner) is where the eye lands.
+            const trailing = points < top
             return (
-              <li key={option.code} className={`tag-option ${isWinner ? 'is-winner' : ''}`}>
+              <li key={option.code} className={`tag-option ${isWinner ? 'is-winner' : ''} ${trailing ? 'is-trailing' : ''}`}>
                 <div className="tag-option-head">
                   <span className="tag-option-code" aria-hidden="true">{option.code}</span>
                   <div className="tag-option-name">
@@ -183,15 +192,12 @@ export function StubsStop() {
           <p className="tag-fine">Saved on this phone</p>
           <Barcode value="QX7R2M-PAR-VRS" />
         </article>
-        <article className="tag-stub-card" aria-labelledby="stub-cost">
+        {/* A second kind of paper, smaller, clipped over the ticket's barcode: one number is big. */}
+        <article className="tag-stub-card is-receipt" aria-labelledby="stub-cost">
           <h3 id="stub-cost">Airport transfer</h3>
           <p className="tag-print">Shared cost · day 1</p>
-          <dl className="tag-cost">
-            <div><dt>Paid by</dt><dd>Maya</dd></div>
-            <div><dt>Total</dt><dd>€96.00</dd></div>
-            <div><dt>Split</dt><dd>8 ways</dd></div>
-            <div><dt>Your share</dt><dd>€12.00</dd></div>
-          </dl>
+          <p className="tag-share"><span>Your share</span> <strong>€12.00</strong></p>
+          <p className="tag-fine">Maya paid €96.00, split 8 ways</p>
         </article>
       </div>
     </Stop>
@@ -202,13 +208,16 @@ export function StubsStop() {
 export function JoinStop() {
   const [me, setMe] = useState<string | null>(null)
   return (
-    <Stop id="join" title="Invite with one link" wide>
+    <Stop id="join" title="Invite with one link">
+      {/* What the friend's phone shows after tapping the link: the trip, then "Who are you?". */}
       <div className="tag-join">
+        <p className="tag-join-link"><Link2 size={16} aria-hidden="true" /> joinstowaway.app/join</p>
+        <p className="tag-print">{TRIP.name} · {TRAVELERS.length} travelers</p>
         <p className="tag-join-q" id="who-q">Who are you?</p>
         <div className="tag-names" role="group" aria-labelledby="who-q">
           {TRAVELERS.map((name) => <button key={name} type="button" aria-pressed={me === name} onClick={() => setMe(me === name ? null : name)}>{name}</button>)}
         </div>
-        <p className="tag-join-result" role="status">{me ? <>You're in as <strong>{me}</strong>.</> : ''}</p>
+        <p className="tag-join-result" role="status">{me ? <>You're in as <strong>{me}</strong>.</> : <span className="tag-join-hint">Pick your name. No account, no download.</span>}</p>
       </div>
     </Stop>
   )

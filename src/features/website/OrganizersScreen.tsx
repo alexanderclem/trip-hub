@@ -18,9 +18,9 @@ export function OrganizersScreen() {
         </div>
         <p className="calc-note">Status, November 2026: the planning and organizer tools below work today. Collecting payments opens through early access, starting with US organizers charging in USD.</p>
       </TagHead>
-      <section className="marketing-section website-container" aria-labelledby="organizer-preview-title"><h2 id="organizer-preview-title">What you see as the organizer</h2><OrganizerPreview /></section>
+      <section className="marketing-section website-container operator-showcase" aria-labelledby="organizer-preview-title"><div><h2 id="organizer-preview-title">What you see as the organizer</h2><p className="marketing-body">The money collected so far, and where each traveler’s booking stands.</p></div><OrganizerPreview /></section>
 
-      <section className="marketing-section website-container" aria-labelledby="traveler-booking-title"><div className="marketing-section-intro"><h2 id="traveler-booking-title">What your travelers see</h2><p className="marketing-body">Your public page introduces the trip. The booking summary explains the price and the payment plan before anyone commits.</p></div><OrganizerBookingPreview /></section>
+      <section className="marketing-section website-container operator-showcase" aria-labelledby="traveler-booking-title"><div><h2 id="traveler-booking-title">What your travelers see</h2><p className="marketing-body">Your public page introduces the trip. The booking summary explains the price and the payment plan before anyone commits.</p></div><OrganizerBookingPreview /></section>
 
       <section className="marketing-section website-container" aria-labelledby="why-title">
         <h2 id="why-title">Organizer features</h2>

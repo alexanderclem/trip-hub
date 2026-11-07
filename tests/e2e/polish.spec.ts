@@ -274,7 +274,7 @@ test('the homepage trip reflows with long text, keyboard focus and live reduced-
   await page.setViewportSize({ width: 320, height: 900 })
   await page.goto('/')
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  const save = page.getByRole('button', { name: 'Save another place' })
+  const save = page.getByRole('button', { name: 'Save a place' })
   await save.focus()
   await expect(save).toHaveCSS('outline-style', 'solid')
   await expect(save).toHaveCSS('transition-duration', '0s')
@@ -298,7 +298,7 @@ test('public visits defer offline downloads; entering the app installs it for of
   await page.goto('/app')
   await expect(page.getByRole('heading', { name: 'Have an invite?' })).toBeVisible()
   await page.goto('/')
-  await page.getByRole('button', { name: 'Save another place' }).click()
+  await page.getByRole('button', { name: 'Save a place' }).click()
   await expect(page.getByRole('heading', { name: 'Musée d’Orsay', exact: true })).toBeVisible()
 })
 

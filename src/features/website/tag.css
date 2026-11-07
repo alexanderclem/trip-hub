@@ -192,10 +192,6 @@
 .tag-stop.is-printed .tag-stop-head h2 { animation: tag-print-in 560ms var(--tag-ease) both; }
 .tag-row { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-top: 1.25rem; }
 .tag-plan-next { margin-top: 2rem; }
-.tag-button { display: inline-flex; align-items: center; gap: .5rem; min-height: 48px; padding: .625rem 1rem; border: 2px solid var(--tag-ink); border-radius: 8px; background: var(--tag-ink); color: var(--tag-stock); font-family: var(--tag-text); font-size: 1rem; font-weight: 600; letter-spacing: 0; text-transform: none; cursor: pointer; line-height: 1.4; }
-.tag-button.is-quiet { background: transparent; color: var(--tag-ink); }
-.tag-button:hover:not(:disabled) { background: var(--tag-ink); color: var(--tag-stock); }
-.tag-button:disabled { opacity: .55; cursor: default; }
 
 /* 01 Save: small hanging tags */
 .tag-ring { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding-top: .5rem; }
@@ -210,12 +206,21 @@
 .tag-mini:not(.is-ghost) { animation: tag-print-in 420ms var(--tag-ease) both; }
 .tag-mini.is-ghost { display: grid; place-items: center; border-style: dashed; border-color: var(--tag-rule); background: transparent; color: var(--tag-print); font-family: var(--tag-text); font-weight: 500; letter-spacing: 0; text-transform: none; font-size: .875rem; line-height: 1.4; }
 .tag-mini.is-ghost::before { background: transparent; box-shadow: 0 0 0 2px var(--tag-rule); }
+/* The next empty slot is the save button: the dashed tag you'd fill in, labelled once. */
+.tag-mini.is-next { display: flex; gap: .375rem; align-items: center; justify-content: center; padding-top: 2rem; border-color: var(--tag-ink); color: var(--tag-ink); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 140ms ease; }
+.tag-mini.is-next::before { box-shadow: 0 0 0 2px var(--tag-ink); }
+.tag-mini.is-next:hover { background: color-mix(in srgb, var(--tag-ink) 6%, transparent); }
+.tag-ring:focus { outline: none; }
 
 /* 02 Vote: the signature interaction */
 .tag-vote-question { font-family: var(--tag-text); font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 600; text-transform: none; letter-spacing: -.02em; line-height: 1.3; max-width: 36ch; }
 .tag-vote-list { display: grid; gap: .875rem; margin-top: 1rem; list-style: none; }
 .tag-option { position: relative; display: grid; gap: .75rem; padding: 1rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); transition: box-shadow 220ms var(--tag-ease); }
 .tag-option.is-winner { box-shadow: 0 0 0 4px var(--tag-coral); }
+/* Behind the leaders: a lighter outline, faded code and ticks. Names, points and buttons stay full ink. */
+.tag-option.is-trailing { border-color: var(--tag-rule); }
+.tag-option.is-trailing .tag-option-code { color: var(--tag-print); }
+.tag-option.is-trailing .tag-tick:not(.is-yours) { background: var(--tag-print); }
 .tag-option-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .875rem; }
 .tag-option-code { font-family: var(--tag-display); font-size: 2.25rem; font-weight: 700; line-height: 1; }
 .tag-option-name h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.3; }
@@ -237,7 +242,7 @@
 
 /* 03 Plan: the routing, day by day */
 .tag-days { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; list-style: none; }
-.tag-day { display: grid; gap: .5rem; padding: 1.125rem 1.125rem 1rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
+.tag-day { display: grid; align-content: start; gap: .5rem;padding: 1.125rem 1.125rem 1rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
 .tag-day-route { display: flex; align-items: baseline; gap: .25rem; font-family: var(--tag-display); font-size: clamp(2.25rem, 4vw, 3.25rem); font-weight: 700; line-height: .9; }
 .tag-day h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.35; }
 .tag-day-num { margin-right: .375rem; font-family: var(--tag-cond); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tag-print); font-size: .8125rem; }
@@ -272,21 +277,28 @@
 .tag-switch[aria-pressed='true'] { background: var(--tag-ink); color: var(--tag-stock); }
 
 /* 05 Stubs */
-.tag-stubs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
+/* The ticket leads; the cost receipt is a smaller second kind of paper clipped over its barcode corner. */
+.tag-stubs { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 34rem; }
+.tag-stubs > .tag-stub-card:first-child { margin-right: clamp(1.5rem, 14%, 5rem); }
+.tag-stub-card.is-receipt { position: relative; justify-self: end; width: min(calc(100% - 1.5rem), 19rem); margin-top: -2.25rem; border-radius: 4px; box-shadow: 0 0 0 6px var(--tag-stock); transform: rotate(1.2deg); }
+.tag-stub-card.is-receipt h3 { font-size: 1.25rem; }
+.tag-share { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: .5rem; padding-top: .625rem; border-top: 2px solid var(--tag-ink); }
+.tag-share span { font-weight: 500; }
+.tag-share strong { font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1.1; }
 .tag-stub-card { display: grid; gap: .375rem; padding: 1.125rem 1.25rem 1rem 1.75rem; border: 2px solid var(--tag-ink); border-left: 2px dashed var(--tag-ink); border-radius: 4px 10px 10px 4px; background: var(--tag-card); }
 .tag-stub-card h3 { font-family: var(--tag-text); font-size: 1.5rem; font-weight: 600; line-height: 1.25; text-transform: none; letter-spacing: -.02em; }
 .tag-code-line { font-size: 1rem; }
 .tag-code-line strong { font-family: var(--tag-text); font-size: 1.125rem; letter-spacing: .04em; font-weight: 600; }
 .tag-stub-card .tag-barcode { margin-top: .5rem; height: 38px; }
-.tag-cost { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem 1rem; margin-block: .25rem .375rem; }
-.tag-cost dt { font-family: var(--tag-cond); font-size: .8125rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--tag-print); }
-.tag-cost dd { font-family: var(--tag-text); font-size: 1.375rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.3; letter-spacing: -.01em; }
 
-/* 06 Join */
+/* 06 Join: the friend's view of the link, printed as one card */
+.tag-join { display: grid; grid-template-columns: minmax(0, 1fr); gap: .375rem; max-width: 34rem; padding: 1.25rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
+.tag-join-link { display: inline-flex; align-items: center; gap: .5rem; justify-self: start; margin-bottom: .75rem; padding: .375rem .75rem; border: 1px solid var(--tag-rule); border-radius: 999px; color: var(--tag-print); font-size: .875rem; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
 .tag-join-q { font-family: var(--tag-text); font-size: clamp(1.375rem, 2.5vw, 1.75rem); font-weight: 600; text-transform: none; letter-spacing: -.02em; line-height: 1.2; }
 .tag-names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: 1rem; }
 .tag-names button { min-height: 52px; font-size: 1rem; }
-.tag-join-result { min-height: 1.6em; margin-top: 1rem; font-size: 1rem; line-height: 1.5; }
+.tag-join-result { min-height: 1.6em; margin-top: .75rem; font-size: 1rem; line-height: 1.5; }
+.tag-join-hint { color: var(--tag-print); font-size: .875rem; }
 .tag-join-result strong { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
 
 /* Organizer band, questions, close */
@@ -342,7 +354,7 @@
 .tag-world .marketing-walkthrough li { border-top: 2px solid var(--tag-ink); }
 .tag-world .marketing-walkthrough h3, .tag-world .marketing-points h3, .tag-world .marketing-editorial-columns h3, .tag-world .marketing-subtitle { font-size: 1.25rem; font-weight: 600; line-height: 1.35; letter-spacing: -.01em; }
 .tag-world .marketing-step-index { width: 2.75rem; height: 2.75rem; border: 0; border-radius: 0; font-family: var(--tag-display); font-size: 2.25rem; font-weight: 700; color: var(--tag-ink); }
-.tag-world .marketing-plan, .tag-world .marketing-price-callout, .tag-world .operator-preview, .tag-world .operator-booking-examples figure { border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
+.tag-world .marketing-plan, .tag-world .marketing-price-callout { border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
 .tag-world .marketing-plan h3 { font-family: var(--tag-text); font-size: 1.375rem; font-weight: 600; text-transform: none; letter-spacing: -.02em; line-height: 1.2; }
 .tag-world .marketing-price { font-family: var(--tag-text); font-size: 2.5rem; font-weight: 600; line-height: 1.2; letter-spacing: -.02em; font-variant-numeric: lining-nums tabular-nums; }
 .tag-world .marketing-price span { font-family: var(--tag-text); font-size: 1rem; }
@@ -363,11 +375,6 @@
 .tag-world .calc input, .tag-world .calc select, .tag-world .calc-choice label, .tag-world .marketing-form input { border: 2px solid var(--tag-ink); border-radius: 8px; background: var(--tag-card); color: var(--tag-ink); }
 .tag-world .calc-choice label:has(input:checked) { background: var(--tag-ink); color: var(--tag-stock); box-shadow: none; }
 .tag-world .calc-table th, .tag-world .calc-table td { border-bottom: 1px dashed var(--tag-rule); }
-.tag-world .operator-preview-caption, .tag-world .operator-booking-examples figcaption { background: transparent; border-bottom: 2px dashed var(--tag-rule); color: var(--tag-print); font-family: var(--tag-cond); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
-.tag-world .operator-example-totals { border-block: 2px solid var(--tag-ink); }
-.tag-world .operator-example-totals dd { font-family: var(--tag-text); font-size: 1.5rem; font-weight: 600; line-height: 1.3; font-variant-numeric: tabular-nums; }
-.tag-world .operator-example-avatar { background: var(--tag-stock); color: var(--tag-ink); border: 2px solid var(--tag-ink); }
-.tag-world .operator-example-row, .tag-world .operator-booking-content dl > div { border-top: 1px dashed var(--tag-rule); }
 .tag-world .website-notfound-main h1 { font-family: var(--tag-text); font-weight: 700; }
 .tag-legal { max-width: 46rem; padding-block: 1rem 3rem; }
 .tag-legal h2 { margin-top: 2rem; font-family: var(--tag-text); font-size: 1.5rem; font-weight: 600; text-transform: none; letter-spacing: -.02em; line-height: 1.2; }
@@ -452,3 +459,45 @@
 .tag-world .splitter-add { border: 2px dashed var(--tag-ink); border-radius: 8px; color: var(--tag-ink); }
 .tag-world .compare-table thead th { background: var(--tag-stock); border-bottom: 2px solid var(--tag-ink); }
 .tag-world .compare-table th, .tag-world .compare-table td { border-color: var(--tag-rule); }
+
+/* Organizer previews: product shots printed on the tag. Flat like the rest of the sheet: card stock, ink
+   strokes, a solid stock ring where one surface overlaps another, never a blurred shadow. */
+.operator-showcase { display: grid; gap: 2rem; }
+.operator-showcase h2 + .marketing-body { max-width: 40ch; margin-top: .75rem; }
+.operator-preview, .operator-booking-examples { min-width: 0; margin: 0; }
+.operator-preview-frame { max-width: 36rem; overflow: hidden; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
+.operator-preview-caption { max-width: 36rem; margin-top: 1rem; color: var(--tag-print); font-size: .875rem; line-height: 1.55; }
+.operator-preview-heading { padding: 1.25rem 1.25rem 1rem; }
+.operator-preview-title, .operator-booking-title { font-size: 1.375rem; font-weight: 600; letter-spacing: -.02em; line-height: 1.25; }
+.operator-preview-heading p { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; margin-top: .375rem; color: var(--tag-print); font-size: .875rem; line-height: 1.5; }
+.operator-collected { padding: 1rem 1.25rem 1.25rem; border-block: 2px solid var(--tag-ink); }
+.operator-collected-label { color: var(--tag-print); font-size: .875rem; font-weight: 500; line-height: 1.4; }
+.operator-collected-amount { margin-top: .125rem; font-size: 2.5rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1.1; }
+.operator-collected-amount span { color: var(--tag-print); font-size: 1rem; font-weight: 500; letter-spacing: 0; }
+.operator-meter { height: 8px; margin-top: .75rem; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--tag-ink) 12%, transparent); }
+.operator-meter span { display: block; height: 100%; border-radius: inherit; background: var(--tag-ink); }
+.operator-example-list { padding: .25rem 1.25rem; list-style: none; }
+.operator-example-row { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto 4rem; align-items: center; gap: .75rem; min-height: 56px; padding-block: .625rem; border-top: 1px dashed var(--tag-rule); }
+.operator-example-row:first-child { border-top: 0; }
+.operator-example-avatar { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; font-size: .8125rem; font-weight: 600; line-height: 1; }
+.operator-example-name { overflow-wrap: anywhere; font-weight: 600; line-height: 1.4; }
+.operator-example-status { padding: .125rem .5rem; border: 1px solid var(--tag-rule); border-radius: 999px; color: var(--tag-print); font-size: .8125rem; font-weight: 500; line-height: 1.5; white-space: nowrap; }
+.operator-example-status.is-paid { border-color: var(--tag-ink); background: var(--tag-ink); color: var(--tag-stock); }
+.operator-example-amount { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+/* The public page leads; the booking summary is clipped over its foot, offset to the right. */
+.operator-booking-stage { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 36rem; }
+.operator-booking-page { margin-right: clamp(1.5rem, 14%, 5rem); overflow: hidden; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); }
+.operator-booking-image { display: block; width: 100%; aspect-ratio: 5 / 2; }
+.operator-booking-content { padding: 1.25rem 1.25rem 2rem; }
+.operator-booking-title { margin-top: .25rem; }
+.operator-booking-content .marketing-body { margin-top: .375rem; }
+.operator-booking-stage dl { margin-top: .75rem; }
+.operator-booking-stage dl > div { display: flex; justify-content: space-between; gap: .75rem; padding-block: .75rem; border-top: 1px dashed var(--tag-rule); font-size: .9375rem; line-height: 1.4; }
+.operator-booking-stage dd { font-weight: 600; font-variant-numeric: tabular-nums; }
+.operator-booking-summary { position: relative; justify-self: end; width: min(calc(100% - 1.5rem), 21rem); margin-top: -1.25rem; padding: 1rem 1.25rem .25rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); box-shadow: 0 0 0 6px var(--tag-stock); }
+.operator-booking-summary .booking-deposit { align-items: baseline; border-top: 2px solid var(--tag-ink); font-weight: 600; }
+.operator-booking-summary .booking-deposit dd { font-size: 1.25rem; }
+.operator-booking-examples .operator-preview-caption { margin-top: 1.25rem; }
+@media (min-width: 960px) {
+  .operator-showcase { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 3rem; align-items: start; }
+}
