@@ -40,8 +40,6 @@
     // Use a LiteAPI sandbox key (sand_...) for Previews; production access is separate.
     "vars": {
       "DEEPSEEK_MODEL": "deepseek-flash",
-      "IDEAS_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
-      "CHAT_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
       "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       "SUPABASE_URL": "https://knufofvmqopuvijvtzow.supabase.co",
       "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_RMYHjsWiavcHOLDMGKdJDA_R-NBD4Ge"
@@ -50,12 +48,9 @@
   "vars": {
     "MCP_RESOURCE_URL": "https://trip-hub.alexanderclem12.workers.dev/mcp",
     // Official API alias for DeepSeek-V4.1-Flash-1017; confirm account access with GET /models.
+    // Used by the trip agent and by every Stowie turn (worker/deepseek.ts).
     "DEEPSEEK_MODEL": "deepseek-flash",
-    // Stowie's intent step: 3x faster than 70B and as accurate on our checks (6 Nov 2026).
-    "CHAT_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
-    // Trip ideas: about 220 tokens/s against 40-65 for 70B on Workers AI. A 3-day idea took 19-26 s on
-    // 70B and 6 s here (5 days: 30 s vs 7 s), passing the same server checks with comparable picks (6 Nov 2026).
-    "IDEAS_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
+    // Workers AI is used only for receipt and ticket scans (worker/scan.ts).
     "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "SUPABASE_URL": "https://croqjdvzbpcscdcshnet.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_FpJvcMvfUFtCO49tcx0tGA_fZUqNroP"

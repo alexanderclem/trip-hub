@@ -14,7 +14,7 @@ import { Button, ErrorNote, Field, Input, PageHeader, Segmented, Textarea } from
 import { finalizeAgentPlan, requestAgentPlan, warmAgentPlan, type AgentRequest, type FinalPlan } from './client'
 import { addPlanToTrip, removePlanFromTrip } from './addToPlan'
 
-interface Saved { id: string; plan: FinalPlan; at: string; finalized?: string; added?: { ids: string[]; skipped: number } }
+interface Saved { id: string; plan: FinalPlan; at: string; finalized?: string; added?: { ids: string[]; skipped: number; placeIds?: string[] } }
 const storeKey = (tripId: string) => `live-plan:${tripId}`
 function load(tripId: string): Saved | null {
   try { const raw = localStorage.getItem(storeKey(tripId)); return raw ? JSON.parse(raw) as Saved : null } catch { return null }
@@ -210,15 +210,15 @@ function PlanView({ tripId, saved, onChange, onEdit, onClear, onDone }: {
     if (!trip || !memberId) return setError('Choose who you are on this trip first, then try again.')
     setError(null); setNote(null); setBusy('add')
     try {
-      const result = await addPlanToTrip(plan, trip, saved.id, memberId)
-      onChange({ ...saved, added: { ids: result.ids, skipped: result.skipped } })
+      const result = await addPlanToTrip(plan, trip, saved.id, memberId, destination || null)
+      onChange({ ...saved, added: { ids: result.ids, skipped: result.skipped, placeIds: result.placeIds } })
       if (!result.added) setNote('Everything in this plan clashes with things already in your trip, so nothing was added.')
     } catch (err) { setError(err instanceof Error ? err.message : 'Couldn’t add this to your plan. Try again.') } finally { setBusy(null) }
   }
   async function undo() {
     if (!saved.added || !memberId) return
     setError(null); setBusy('undo')
-    try { await removePlanFromTrip(saved.added.ids, memberId); onChange({ ...saved, added: undefined }); setNote('Removed from your plan.') }
+    try { await removePlanFromTrip(saved.added.ids, memberId, saved.added.placeIds); onChange({ ...saved, added: undefined }); setNote('Removed from your plan.') }
     catch { setError('Couldn’t undo that. Try again.') } finally { setBusy(null) }
   }
   async function email() {

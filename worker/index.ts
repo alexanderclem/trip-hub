@@ -4,19 +4,18 @@ import { handleConnector, type ConnectorEnv } from './connector'
 import { handleScan } from './scan'
 import { handleInvite, isInvitePath } from './invite'
 import { handleAgent, handleAgentWarm, type AgentHandlerEnv } from './agent/handler'
+import { DeepSeekReplyError, DeepSeekSetupError, deepseekJson, deepseekReady, withSchema, type DeepSeekEnv } from './deepseek'
 import { classifyPath } from '../src/features/website/routes'
 import { AXES, assistReplySchema, chatReplySchema, combine, ideasSchema, inferredProfileSchema, requestSchema, tidyIdea } from '../src/features/discovery/model'
 
-export interface Env extends ConnectorEnv, TravelEnv, AgentHandlerEnv {
+export interface Env extends ConnectorEnv, TravelEnv, AgentHandlerEnv, DeepSeekEnv {
   ASSETS: { fetch(request: Request): Promise<Response> }
+  /** Workers AI: receipt and ticket scans only. Stowie runs on DeepSeek (worker/deepseek.ts). */
   AI: { run(model: string, input: Record<string, unknown>): Promise<{ response?: unknown }> }
   AI_RATE_LIMITER: { limit(input: { key: string }): Promise<{ success: boolean }> }
   SUPABASE_URL: string
   SUPABASE_PUBLISHABLE_KEY: string
   AI_MODEL?: string
-  IDEAS_MODEL?: string
-  /** Stowie's quick "what do they mean" step: a small model, since it only classifies a line. */
-  CHAT_MODEL?: string
 }
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } })
 const SYSTEM = `You are Stowaway's travel planner. Return only JSON matching the supplied schema.
@@ -131,7 +130,7 @@ export default {
     if (path.startsWith('/api/') && path !== '/api/travel-ai') return json({ error: 'Not found' }, 404)
     if (path !== '/api/travel-ai') return servePage(request, env)
     if (request.method !== 'POST') return json({ error: 'Use POST for AI planning.' }, 405)
-    if (!env.AI || !env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY || !env.AI_RATE_LIMITER) return json({ error: 'AI planning is not connected on this server yet. You can still set preferences manually.' }, 503)
+    if (!deepseekReady(env) || !env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY || !env.AI_RATE_LIMITER) return json({ error: 'AI planning is not connected on this server yet. You can still set preferences manually.' }, 503)
     const origin = request.headers.get('origin')
     if (origin && origin !== new URL(request.url).origin) return json({ error: 'This request must come from Stowaway.' }, 403)
     const authorization = request.headers.get('authorization') ?? ''
@@ -184,18 +183,17 @@ export default {
       const schema = input.action === 'profile' ? inferredProfileSchema : input.action === 'chat' ? chatReplySchema : input.action === 'assist' ? assistReplySchema : ideasSchema
       const instruction = input.action === 'chat' || input.action === 'assist' ? '' : input.action === 'profile'
         ? 'Infer only explicitly supported interests from this description. Use 50 for unknown preferences. Explain the inference and uncertainties in one short paragraph. Do not infer demographics or sensitive traits.'
-        : `Generate exactly one realistic trip idea, with exactly ${input.brief.days} days and two concise activities per day. Within a day, list activities in time order and never let them overlap: each starts at or after the time the one before it ends. An activity title names the thing to do ("Walk the High Line"), never "Day 1". A day title is a short theme for that day, never "Day 1". A note adds one practical tip and never repeats the title; use an empty string when there is nothing to add. Keep summaries and activity notes short. Score each idea's travel experience on the same axes. Explain why it fits and the group compromises. ${input.mode === 'everyone' ? 'Prioritize the weakest individual fit as well as the group average.' : 'Prioritize the group average.'} Required axes must score at least 65. Use the requested currency for all integer minor-unit costs (JPY has no decimal places; USD has two). Stay within the per-person trip budget when supplied; state what is excluded. If a destination is given, stay there. If refining a previous idea, preserve its destination unless explicitly asked to change it. Preserve all existing plan items; suggest additions only in free time. For known places, reuse supplied existingPlaceId; otherwise use null. Use local 24-hour times and a real destination IANA timezone. Tasks are unassigned planning reminders, not completed reservations.`
+        : `Generate exactly one realistic trip idea, with exactly ${input.brief.days} days and two concise activities per day. Within a day, list activities in time order and never let them overlap: each starts at or after the time the one before it ends. An activity title names the thing to do ("Walk the High Line"), never "Day 1". A day title is a short theme for that day, never "Day 1". A note adds one practical tip and never repeats the title; use an empty string when there is nothing to add. Keep summaries and activity notes short. Score each idea's travel experience on the same axes. Explain why it fits and the group compromises. ${input.mode === 'everyone' ? 'Prioritize the weakest individual fit as well as the group average.' : 'Prioritize the group average.'} Required axes must score at least 65. Use the requested currency for all integer minor-unit costs (JPY has no decimal places; USD has two). Stay within the per-person trip budget when supplied; state what is excluded. If a destination is given, stay there. If refining a previous idea, preserve its destination unless explicitly asked to change it. Preserve all existing plan items; suggest additions only in free time. For known places, reuse supplied existingPlaceId; otherwise use null. placeName is the real, specific name of the venue, landmark or business as it appears on a map ("Mercado Central", not "a local market"), or null for free time and anything without one place. Use local 24-hour times and a real destination IANA timezone. Tasks are unassigned planning reminders, not completed reservations.`
       stage = 'inference'
-      const model = input.action === 'ideas' ? env.IDEAS_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
-        : input.action === 'chat' ? env.CHAT_MODEL ?? '@cf/meta/llama-3.1-8b-instruct-fast'
-        : env.AI_MODEL ?? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
-      const result = await env.AI.run(model, {
-        messages: [{ role: 'system', content: input.action === 'chat' ? STOWIE : input.action === 'assist' ? ASSIST : `${SYSTEM}\n${instruction}` }, { role: 'user', content: JSON.stringify({ request: input, group: input.action === 'ideas' ? combine(input.profiles) : null }) }],
-        response_format: { type: 'json_schema', json_schema: z.toJSONSchema(schema) },
-        max_tokens: input.action === 'profile' ? 600 : input.action === 'chat' ? 300 : input.action === 'assist' ? 600 : 6500,
+      // Every Stowie turn (chat, trip questions, travel style, trip ideas) runs on DeepSeek.
+      const value = await deepseekJson(env, {
+        system: withSchema(input.action === 'chat' ? STOWIE : input.action === 'assist' ? ASSIST : `${SYSTEM}\n${instruction}`, schema),
+        user: JSON.stringify({ request: input, group: input.action === 'ideas' ? combine(input.profiles) : null }),
+        maxTokens: input.action === 'profile' ? 600 : input.action === 'chat' ? 300 : input.action === 'assist' ? 600 : 6500,
+        temperature: input.action === 'ideas' || input.action === 'chat' ? 0.7 : 0.3,
+        timeoutMs: input.action === 'ideas' ? 90000 : 30000,
       })
       stage = 'response'
-      const value = typeof result.response === 'string' ? JSON.parse(result.response) as unknown : result.response
       const validated = schema.safeParse(value)
       if (!validated.success) return json({ error: 'The planner returned an incomplete draft. Your current plan is safe; try again with a shorter brief.' }, 502)
       if (input.action === 'ideas') {
@@ -212,8 +210,8 @@ export default {
     } catch (error) {
       console.error('[travel-ai] request failed', { stage, name: error instanceof Error ? error.name : 'UnknownError', message: error instanceof Error ? error.message.slice(0, 1200) : 'Unknown provider error' })
       if (error instanceof SyntaxError) return json({ error: 'The planner could not read this draft. Try again.' }, 400)
-      if (error instanceof Error && /deprecated|5028/.test(error.message)) return json({ error: 'This app’s AI service needs an update. Your saved preferences and drafts are safe.' }, 503)
-      if (error instanceof Error && /quota|neurons|daily allowance|limit exceeded/i.test(error.message)) return json({ error: 'The AI service’s allowance has been reached. Try again later; your saved drafts remain available.' }, 503)
+      if (error instanceof DeepSeekSetupError) return json({ error: 'Stowie’s AI service needs attention on the server. Your saved preferences and drafts are safe.' }, 503)
+      if (error instanceof DeepSeekReplyError) return json({ error: 'Stowie got a garbled answer back. Try again; your current plan is safe.' }, 502)
       return json({ error: 'AI planning is temporarily unavailable. Try again; your saved preferences and drafts are safe.' }, 503)
     }
   },

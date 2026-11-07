@@ -5,6 +5,7 @@ import { save, saveMany, softDelete } from '@/data/repo'
 import type { ItineraryItem, Place, Trip, TripTask } from '@/data/types'
 import { stableId } from '@/lib/ids'
 import { findConflicts, formatInZone, isValidZone, normalizeLocal, toInstant } from '@/lib/time'
+import { findKnownPlace, normalizeName } from '@/features/places/locate'
 import { briefSchema, ideasSchema, profileSchema, type Draft, type Profile } from './model'
 
 export const useProfiles = (tripId: string | undefined) => useLiveQuery(async () => tripId
@@ -63,6 +64,7 @@ export async function applyIdea(draftId: string, ideaIndex: number, trip: Trip, 
     const existing = await database.itinerary_items.where('trip_id').equals(trip.id).filter((r) => !r.deleted_at && r.status !== 'cancelled').toArray()
     const places: Place[] = [], items: ItineraryItem[] = []
     const createdPlaces = new Map<string, string>()
+    let tripPlaces: Place[] | undefined
     for (const [dayIndex, day] of idea.days.entries()) {
       const date = start.plus({ days: dayIndex }).toISODate()!
       for (const [activityIndex, activity] of day.activities.entries()) {
@@ -90,20 +92,24 @@ export async function applyIdea(draftId: string, ideaIndex: number, trip: Trip, 
           if (known && known.trip_id === trip.id && !known.deleted_at) placeId = known.id
         }
         if (!placeId && activity.placeName) {
-          const key = activity.placeName.trim().toLocaleLowerCase()
+          const key = normalizeName(activity.placeName) || activity.placeName.trim().toLocaleLowerCase()
           placeId = createdPlaces.get(key) ?? stableId(trip.id, 'ai-place', draft.id, String(ideaIndex), key)
           if (!createdPlaces.has(key)) {
-            const known = await database.places.where('trip_id').equals(trip.id).filter((p) => !p.deleted_at && p.name.trim().toLocaleLowerCase() === key).first()
+            // Tie it to a place the trip already has (often an OSM place from the idea pool, with its
+            // pin); a new place gets its location from useAutoLocate once the phone is online.
+            tripPlaces ??= await database.places.where('trip_id').equals(trip.id).filter((p) => !p.deleted_at).toArray()
+            const known = findKnownPlace(activity.placeName, tripPlaces)
             if (known) placeId = known.id
-            else places.push({ id: placeId, trip_id: trip.id, name: activity.placeName, category: activity.kind === 'meal' ? 'food' : activity.kind === 'free' ? 'other' : activity.kind, tags: ['ai-suggested'], lat: null, lng: null, address: null, area: idea.destination, status: 'planned', notes: 'AI suggestion. Verify the place and add its location before relying on the map.', phone: null, website: null, opening_hours: null, external_ids: {}, source: 'suggestion' })
+            else places.push({ id: placeId, trip_id: trip.id, name: activity.placeName, category: activity.kind === 'meal' ? 'food' : activity.kind === 'free' ? 'other' : activity.kind, tags: ['ai-suggested'], lat: null, lng: null, address: null, area: idea.destination, status: 'planned', notes: null, phone: null, website: null, opening_hours: null, external_ids: {}, source: 'suggestion' })
             createdPlaces.set(key, placeId)
           }
         }
         items.push({ id: itemId, trip_id: trip.id,
           title: activity.title, kind: activity.kind, place_id: placeId, to_place_id: null, all_day: false,
           start_local: local, start_tz: trip.timezone, end_local: endLocal, end_tz: trip.timezone, start_at: startAt, end_at: endAt,
+          // The plan shows an "AI" flag for details.ai_draft_id; the caveat lives in that flag, not the notes.
           status: 'tentative', confirmation_code: null, attendee_ids: null, details: { ai_draft_id: draft.id },
-          notes: `${day.title}\n${activity.notes}\nAI draft; costs and availability need checking.`, est_cost_minor: activity.costMinor, est_cost_currency: activity.costMinor === null ? null : idea.currency,
+          notes: [day.title, activity.notes].filter((x) => x.trim()).join('\n') || null, est_cost_minor: activity.costMinor, est_cost_currency: activity.costMinor === null ? null : idea.currency,
         })
       }
     }

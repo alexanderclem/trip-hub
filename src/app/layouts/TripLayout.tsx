@@ -9,6 +9,7 @@ import { useTrip } from '@/data/hooks'
 import { adoptProfile, useMyTripProfile, useSeedMyProfile } from '@/features/onboarding/profile'
 import { startSync } from '@/data/sync/controller'
 import { useAutoLegs } from '@/features/routing/requestLegs'
+import { useAutoLocate } from '@/features/places/locate'
 import { useAttachmentSync } from '@/features/tickets/files'
 import { SyncStatusButton, SyncStrip } from '@/features/sync/SyncStatus'
 import { useUnseenActivity } from '@/features/activity/data'
@@ -86,6 +87,7 @@ export function TripLayout() {
   }, [savedProfile])
   useSeedMyProfile(tripId, memberId)
   useAutoLegs(tripId)
+  useAutoLocate(tripId)
   useAttachmentSync(tripId, memberId)
 
   if (!joined) return <Navigate to="/app" replace />

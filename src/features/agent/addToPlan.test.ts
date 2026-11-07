@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { planItems } from './addToPlan'
+import { planItems, planPlaces } from './addToPlan'
 import type { FinalPlan } from './client'
 
 const trip = { id: '11111111-1111-4111-8111-111111111111', timezone: 'Europe/Rome' }
@@ -36,5 +36,31 @@ describe('planItems', () => {
   it('uses stable ids so adding twice cannot duplicate', () => {
     expect(planItems(plan, trip, 'plan-1').map((i) => i.id)).toEqual(items.map((i) => i.id))
     expect(new Set(items.map((i) => i.id)).size).toBe(items.length)
+  })
+})
+
+describe('planPlaces', () => {
+  const located = { ...stay, hotelId: 'lp1', lat: 41.89, lng: 12.47 }
+  const withPins: FinalPlan = { ...plan, days: [
+    { date: '2027-02-24', stay: located, items: [] },
+    { date: '2027-02-25', stay: located, items: [
+      { node: 3, kind: 'activity', title: 'Colosseum tour', start: '09:00', end: '11:00', ref: 'S1', routed: true, product: 'P9', lat: 41.89, lng: 12.49 },
+      { node: 4, kind: 'activity', title: 'Food walk', start: '18:00', end: '20:00', ref: 'S2', routed: true, product: 'P10', lat: null, lng: null },
+    ] },
+  ] }
+  it('creates one pinned place per hotel and per located tour, and links the plan items', () => {
+    const { links, places } = planPlaces(withPins, trip, [], 'Rome')
+    expect(places.map((p) => [p.name, p.category, p.lat, p.status, p.source])).toEqual([['Club House Roma', 'lodging', 41.89, 'planned', 'suggestion'], ['Colosseum tour', 'activity', 41.89, 'planned', 'suggestion']])
+    const items = planItems(withPins, trip, 'plan-3', links)
+    expect(items.find((i) => i.kind === 'lodging')!.place_id).toBe(places[0]!.id)
+    expect(items.find((i) => i.title === 'Colosseum tour')!.place_id).toBe(places[1]!.id)
+    expect(items.find((i) => i.title === 'Food walk')!.place_id).toBeNull()
+    expect(items.every((i) => i.notes === null && i.details.live_plan_id === 'plan-3')).toBe(true)
+  })
+  it('reuses a place the trip already has with that name', () => {
+    const known = { id: 'mine', trip_id: trip.id, name: 'Hotel Club House Roma', category: 'lodging' as const, tags: [], lat: 41.9, lng: 12.5, address: null, area: null, status: 'shortlist' as const, notes: null, phone: null, website: null, opening_hours: null, external_ids: {}, source: 'manual' as const }
+    const { links, places } = planPlaces(withPins, trip, [known])
+    expect(links.get('stay:H1')).toBe('mine')
+    expect(places.map((p) => p.name)).toEqual(['Colosseum tour'])
   })
 })

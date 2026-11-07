@@ -25,6 +25,7 @@ import { BudgetImpact } from '@/features/money/BudgetImpact'
 import { parseMinor } from '@/features/money/build'
 import { arrivalBuffers } from './buffers'
 import { cue } from '@/ui/feedback'
+import { itemNotes } from './AiFlag'
 
 const ZONES = [
   'America/Guatemala', 'America/Mexico_City', 'America/El_Salvador', 'America/Costa_Rica', 'America/Panama',
@@ -127,7 +128,7 @@ export function ItemFormScreen() {
         title: source.title, kind: source.kind, placeId: source.place_id, toPlaceId: source.to_place_id,
         allDay: source.all_day, startDate: s.slice(0, 10), startTime: s.slice(11), endDate: e?.slice(0, 10) ?? s.slice(0, 10), endTime: e?.slice(11) ?? '',
         startTz: source.start_tz, endTz: source.end_tz ?? source.start_tz, status: copyId ? 'tentative' : source.status, code: copyId ? '' : source.confirmation_code ?? '',
-        everyone: !source.attendee_ids, attendees: source.attendee_ids ?? [], notes: source.notes ?? '',
+        everyone: !source.attendee_ids, attendees: source.attendee_ids ?? [], notes: itemNotes(source) ?? '',
         cost: source.est_cost_minor != null ? String(source.est_cost_minor / 10 ** minorUnits(source.est_cost_currency ?? 'USD')) : '',
         costCurrency: source.est_cost_currency ?? trip.local_currency ?? trip.base_currency,
         checkIn: String(arrivalBuffers(source).checkIn), waiting: String(arrivalBuffers(source).waiting),

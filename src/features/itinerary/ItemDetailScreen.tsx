@@ -26,6 +26,7 @@ import { rowLoader, useFirstRow } from '@/data/firstRow'
 import { journeyDirection } from '@/features/arrivals/model'
 import { RescheduleDialog } from './RescheduleDialog'
 import { arrivalBuffers } from './buffers'
+import { AiFlag, isAiPlanned, itemNotes } from './AiFlag'
 
 const city = (zone: string) => zone.split('/').pop()!.replace(/_/g, ' ')
 
@@ -90,6 +91,7 @@ export function ItemDetailScreen() {
           <div className="min-w-0">
             <p className="ui-eyebrow">{k.label}</p>
             <p className="mt-0.5"><Status tone={item.status === 'confirmed' ? undefined : item.status === 'cancelled' ? 'danger' : 'quiet'}>{STATUS_TEXT[item.status]}</Status></p>
+            {isAiPlanned(item) && <p className="mt-1.5"><AiFlag full /></p>}
           </div>
         </div>
 
@@ -159,7 +161,7 @@ export function ItemDetailScreen() {
           <div className="flex flex-wrap items-center gap-2 text-sm font-medium"><Users aria-hidden="true" className="size-4 text-muted" />{!going && <span>Everyone</span>}{(going ?? members).map((m) => <TravelerLink key={m.id} member={m} />)}{going?.length === 0 && <span>Nobody yet</span>}</div>
           {item.est_cost_minor != null && item.est_cost_currency && <p className="mt-2 text-sm text-muted">Estimated cost: {formatMoney(item.est_cost_minor, item.est_cost_currency)}</p>}
           {arrivalBuffers(item).totalS > 0 && <p className="mt-2 text-sm text-muted">Arrival buffers: {arrivalBuffers(item).checkIn} min check-in / preparation + {arrivalBuffers(item).waiting} min waiting.</p>}
-          {item.notes && <p className="itinerary-notes mt-2 text-sm whitespace-pre-wrap text-ink">{item.notes}</p>}
+          {itemNotes(item) && <p className="itinerary-notes mt-2 text-sm whitespace-pre-wrap text-ink">{itemNotes(item)}</p>}
           {author && <p className="mt-3 text-sm text-muted">Added by <TravelerLink member={author} /></p>}
         </div>
         <div className="item-record-part">

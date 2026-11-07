@@ -11,7 +11,7 @@ of it. It is the fallback direction in `docs/PLAN_THE_SWITCH.md` if operator val
 |---|---|---|
 | `/mcp` | Read-only MCP connector: `list_trips`, `get_itinerary` (`worker/connector.ts`) | Returns 503 until Supabase's OAuth 2.1 server is enabled and `MCP_CLIENT_ID` is set (`docs/CHATGPT_CONNECTOR.md`) |
 | `/.well-known/oauth-protected-resource`, `/.well-known/oauth-protected-resource/mcp` | OAuth discovery for the connector | Live |
-| `/api/travel-ai` | Stowie and trip ideas (Workers AI), for the app only (same-origin, signed-in) | Live |
+| `/api/travel-ai` | Stowie and trip ideas (DeepSeek), for the app only (same-origin, signed-in) | Live |
 | `/api/scan` | Ticket and receipt detail extraction, for the app only | Live |
 | `/llms.txt`, `/llms-full.txt`, `/robots.txt`, `/sitemap.xml` | Not published. These now return a real 404 instead of the app page with a 200 (`assetOrNotFound` in `worker/index.ts`) | 404 by design |
 

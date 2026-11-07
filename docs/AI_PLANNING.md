@@ -24,7 +24,7 @@ The group radar shows equal-weight average scores, individual scores and min/max
 
 ## AI and drafts
 
-`POST /api/travel-ai` runs in the existing Cloudflare Worker, using its native Workers AI binding and `@cf/meta/llama-3.3-70b-instruct-fp8-fast` JSON mode. The model is configurable through `AI_MODEL` in `wrangler.jsonc`. No browser secret or paid provider dependency. This uses the Workers AI free daily allocation when the account is on Workers Free; exhausted allocation returns an error, never a fabricated fallback. Native binding avoids an additional AI SDK dependency.
+`POST /api/travel-ai` runs in the existing Cloudflare Worker and calls DeepSeek (`worker/deepseek.ts`): the `DEEPSEEK_MODEL` from `wrangler.jsonc` (`deepseek-flash`, V4.1 Flash) in JSON mode, thinking off, with the reply's JSON Schema appended to the system prompt. Approved by the owner on 6 Nov 2026 (it was Workers AI Llama before). `DEEPSEEK_API_KEY` is a Worker secret; without it the endpoint answers 503. An empty balance returns an error, never a fabricated fallback.
 
 The endpoint checks the Supabase session, trip access when applicable, same-origin requests, body size, rate limits and input/output schemas. Profiles, brief, selected travelers, existing places and existing plan are sent to the model. One or up to three ideas are generated, with at most 14 days; longer drafts request one idea to keep responses within output limits. Prices and availability are estimates; no live search or bookings occur.
 
@@ -51,18 +51,19 @@ Workers AI references: [pricing](https://developers.cloudflare.com/workers-ai/pl
 
 ## Ideas model
 
-Ideas use `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, the same model as profile inference and
-Stowie's chat, configured independently with `IDEAS_MODEL`. The smaller
-`@cf/meta/llama-3.1-8b-instruct-fp8-fast` was tried to save allowance and dropped on 8 Oct 2026:
-its drafts overlapped times, titled activities "Day 1" and repeated titles as notes. Each request
+Ideas, profile inference and Stowie's chat all use DeepSeek since 6 Nov 2026. On Workers AI the
+smaller `@cf/meta/llama-3.1-8b-instruct-fp8-fast` overlapped times, titled activities "Day 1" and
+repeated titles as notes. Each request
 still asks for one draft with two concise activities per day, and `tidyIdea` repairs overlaps and
 echoed text before a draft reaches the phone. No automatic retry consumes additional allowance.
 
-Workers AI includes 10,000 neurons daily shared across the account. Workers Free
-stops serving AI when the allocation is exhausted; Workers Paid bills overage.
-Keeping the account on Workers Free is required for a provider-enforced zero-cost
-limit; the app's per-minute rate limiter alone cannot guarantee zero spending on a
-paid account. See https://developers.cloudflare.com/workers-ai/platform/pricing/.
+DeepSeek is prepaid: spending stops when the balance runs out, and `AI_RATE_LIMITER` (6 a minute per
+person and per IP) caps how fast it can go. Workers AI is now used only by receipt and ticket scans.
+
+**Places and pins.** An activity's `placeName` must be a real venue name. Applying a draft links it to
+the trip's same-named place (accents, case and a "Hotel" prefix ignored; `findKnownPlace`), else
+creates a planned place that `useAutoLocate` pins from OpenStreetMap once online. Items carry
+`details.ai_draft_id`, which the plan shows as a small "AI" flag; the notes no longer repeat the caveat.
 
 Ideas generation does not call Google Routes. Traffic-aware driving remains an
 explicit user action in Place detail, with no background or all-pairs requests.

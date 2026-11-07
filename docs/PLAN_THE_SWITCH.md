@@ -90,7 +90,7 @@ Ground truth that changes the brief's assumptions:
 
 ## 1. Codebase map, from what I read
 
-**Hosting.** One Cloudflare Worker (`wrangler.jsonc`, `worker/index.ts`) serves the Vite SPA from `dist/` with SPA fallback. It handles `/api/travel-ai` (Workers AI), `/api/scan` and the MCP connector. The Worker holds no service-role key. Supabase (free tier, project `croqjdvzbpcscdcshnet`) provides Postgres, RLS, Auth (anonymous + optional Google/email), Storage (`attachments` bucket), Realtime (only a hint to pull), and Edge Functions (`route-legs`, `traffic-route`, `push-dispatch`, `ticket-cleanup`). The `push-dispatch` and `ticket-cleanup` functions run with the service role and are triggered by pg_cron through pg_net with an `x-cron-token` stored in Vault.
+**Hosting.** One Cloudflare Worker (`wrangler.jsonc`, `worker/index.ts`) serves the Vite SPA from `dist/` with SPA fallback. It handles `/api/travel-ai` (DeepSeek), `/api/scan` and the MCP connector. The Worker holds no service-role key. Supabase (free tier, project `croqjdvzbpcscdcshnet`) provides Postgres, RLS, Auth (anonymous + optional Google/email), Storage (`attachments` bucket), Realtime (only a hint to pull), and Edge Functions (`route-legs`, `traffic-route`, `push-dispatch`, `ticket-cleanup`). The `push-dispatch` and `ticket-cleanup` functions run with the service role and are triggered by pg_cron through pg_net with an `x-cron-token` stored in Vault.
 
 **Routes** (`src/router.tsx`):
 - Public: `/`, `/privacy`, `/terms`, `/app`, `/new`, `/join`, `/signin`, `/auth/callback`, `/oauth/consent`, `/connections`, `/quiz`, `/inspire`.

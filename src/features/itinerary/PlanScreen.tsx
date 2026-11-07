@@ -258,12 +258,13 @@ function BlockCard({ block, top, height, zone, tripId, place, to }: { block: Blo
     >
       <Link
         to={`/t/${tripId}/plan/${item.id}`}
-        aria-label={`${item.title}, ${time}${where ? `, ${where}` : ''}${conflict ? ', overlaps another item' : ''}`}
+        aria-label={`${item.title}, ${time}${where ? `, ${where}` : ''}${isAiPlanned(item) ? ', planned by Stowie' : ''}${conflict ? ', overlaps another item' : ''}`}
         className={`flex h-full flex-col overflow-hidden rounded-control border px-2 py-1 text-left ${k.bg} ${k.border} ${k.text} ${dashed ? 'border-dashed opacity-80' : ''} ${conflict ? 'ring-2 ring-danger-ink' : ''}`}
       >
         <span className="flex items-center gap-1 text-xs font-medium opacity-80">
           <k.Icon aria-hidden="true" className="size-3.5 shrink-0" />
           <span className="tabular-nums">{block.continuesBefore ? '…' : ''}{time}{block.continuesAfter ? '…' : ''}</span>
+          {isAiPlanned(item) && <AiFlag className="ml-auto" />}
         </span>
         <span className="truncate text-sm font-semibold">{item.title}</span>
         {where && height > 54 && <span className="truncate text-xs opacity-80">{where}</span>}
@@ -331,3 +332,4 @@ function DayNoteEditor({ tripId, day }: { tripId: string; day: string }) {
   </div>
 }
 import { HolidayNotice } from '@/features/travel/HolidayNotice'
+import { AiFlag, isAiPlanned } from './AiFlag'

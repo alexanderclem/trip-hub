@@ -21,8 +21,10 @@ It is becoming an operating system for people who run group trips; the plan is `
   paid DeepSeek (V4.1 Flash), LiteAPI (hotels and flights; replaces Duffel because signup is closed),
   LiteAPI Experiences (replaces Viator), and Google Routes waypoint optimisation when
   someone asks for a plan (capped per plan, never in the background). This feature does live search and
-  returns bookable offers; booking still needs each item confirmed by the person. Stowie, trip ideas and
-  everything else stay on Workers AI and stay free.
+  returns bookable offers; booking still needs each item confirmed by the person.
+  **Approved 6 Nov 2026:** Stowie (chat, trip questions, travel style and trip ideas, `/api/travel-ai`)
+  also runs on DeepSeek (`worker/deepseek.ts`, JSON mode, same `DEEPSEEK_MODEL`). Receipt and ticket
+  scans stay on Workers AI; everything else stays free.
 - **The free planner stays free.** Never paywall creating trips, inviting, voting, planning,
   expenses, tickets or offline. Only organizer tools (collecting payments, templates, reminders,
   CRM) are paid, and they are offered only at the moment someone needs them, never as banners.
@@ -282,6 +284,12 @@ The full plan is in `C:\Users\alexa\.claude\plans\plan-out-a-travel-giggly-falco
 
 Possible next steps: setting the `ORS_API_KEY` secret and offering the day's ideas from Stowie's chat (a `suggest` effect over `features/suggest/rank.ts`).
 
+- **Pins for every pick** (`src/features/places/locate.ts`, `useAutoLocate` in `TripLayout`): online, a pick
+  without coordinates is tied to the trip's own same-named place (copying its pin and OSM id), else found
+  by a Photon search inside the trip's area whose result name must match; `external_ids.located` records
+  `trip`, `osm` or `none` (never retried). Stowie drafts and live-price plans link to known places by
+  name, and live plans create pinned places for hotels and located tours. AI-made plan items show an "AI"
+  flag (`itinerary/AiFlag.tsx`, from `details.ai_draft_id` / `live_plan_id`) instead of a caveat in notes.
 - **Map style switches:** effects that touch pin or line layers must check `layersLive` in
   `MapScreen.tsx`. Between `setStyle` and the next `style.load` those sources don't exist, and
   touching them crashes the route.

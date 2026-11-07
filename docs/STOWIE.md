@@ -19,7 +19,7 @@ companion on every trip tab. Decisions below were made with the owner on 8 Oct 2
 
 ## Phases
 
-1. **Character, chat, ideas and quiz** on Workers AI. Built.
+1. **Character, chat, ideas and quiz.** Built. On DeepSeek since 6 Nov 2026 (`worker/deepseek.ts`); Workers AI before.
 2. **Companion and assistant.** Floating launcher, context starters, trip Q&A, confirmed actions. Built.
 3. **ChatGPT connection** and Luna.
 
@@ -196,14 +196,14 @@ OpenAI's Sign in with ChatGPT gained an optional plan-usage grant on 29 Sep 2026
 a weekly cap per app set by the user, and requests charged to their plan. This is the opposite
 direction from `docs/CHATGPT_CONNECTOR.md`, where ChatGPT reads Stowaway.
 
-- **Seam.** The Worker picks a provider per request: Workers AI by default, OpenAI when the
+- **Seam.** The Worker picks a provider per request: DeepSeek by default, OpenAI when the
   caller has a valid grant. Schemas and validation are identical for both, so the phone does not
   care which answered.
 - **What changes for a connected person.** Every free-text turn goes to Luna, so the
   conversation can be fully free-form, and drafts are better and faster. Nobody else is affected.
 - **Tokens.** Held server-side against the Supabase user, never in the browser or a `VITE_`
   variable. Disconnecting is in Settings beside the existing connections.
-- **Fallback.** Cap reached, grant revoked or OpenAI down: that turn falls back to Workers AI
+- **Fallback.** Cap reached, grant revoked or OpenAI down: that turn falls back to DeepSeek
   and Stowie says so once.
 
 **Open risk.** Launch coverage of the usage grant is reported as open-source projects, locally

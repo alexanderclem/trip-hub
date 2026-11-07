@@ -4,8 +4,8 @@
 flights, hotels and tours from **LiteAPI**, with each day's free stops put
 in order by the **Google Routes API**. The model is **DeepSeek V4.1 Flash**, using OpenAI-format tool
 calls. The owner approved this on 5 Nov 2026, which lifts the $0 rule and the "no live search or
-bookings" rule for this feature only (see CLAUDE.md). Stowie, trip ideas and the free planner keep
-using Workers AI and stay free.
+bookings" rule for this feature only (see CLAUDE.md). Since 6 Nov 2026 Stowie and trip ideas use
+DeepSeek too (`worker/deepseek.ts`, JSON mode, no tools); the free planner's other features stay free.
 
 | Piece | File |
 |---|---|

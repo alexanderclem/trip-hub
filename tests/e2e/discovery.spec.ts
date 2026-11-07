@@ -47,6 +47,8 @@ async function mockNetwork(page: Page, calls: AIRequest[]) {
       rows.set('members', [{ id: t.p_member_id, trip_id: t.p_trip_id, display_name: t.p_member_name, color: '#295361', avatar_emoji: null, home_timezone: null, updated_at: new Date().toISOString() }])
       await route.fulfill({ json: t.p_trip_id }); return
     }
+    // Other RPCs (my_trip_access and friends) aren't on this server, so the app treats access as unknown.
+    if (url.pathname.includes('/rpc/') && table !== 'create_trip') { await route.fulfill({ status: 404, json: { code: 'PGRST202', message: 'Not stubbed' } }); return }
     if (req.method() === 'POST') {
       const payload = req.postDataJSON() as Record<string, unknown>[]
       const saved = rows.get(table) ?? []
@@ -72,7 +74,7 @@ async function mockNetwork(page: Page, calls: AIRequest[]) {
   }, { user: USER })
 }
 
-async function seedTrip(page: Page, ideas: IdeaResult) {
+async function seedTrip(page: Page, ideas: IdeaResult, settings: Record<string, unknown> = {}) {
   // Wait for the app's Dexie schema before opening it with the native API.
   await expect.poll(() => page.evaluate(async () => {
     if (!(await indexedDB.databases()).some((entry) => entry.name === 'trip-hub')) return []
@@ -81,21 +83,21 @@ async function seedTrip(page: Page, ideas: IdeaResult) {
     database.close()
     return stores
   })).toEqual(expect.arrayContaining(['trips', 'members', 'member_preferences', 'ai_drafts']))
-  await page.evaluate(async ({ tripId, alex, sam, profile: p, ideas }) => {
+  await page.evaluate(async ({ tripId, alex, sam, profile: p, ideas, settings }) => {
     localStorage.setItem('trip-hub-device', JSON.stringify({ version: 1, state: { trips: { [tripId]: { tripId, memberId: alex, joinedAt: new Date().toISOString() } }, travelProfile: p } }))
     // Wait for the app to create its database; opening it first would make an empty one.
     while (!(await indexedDB.databases()).some((d) => d.name === 'trip-hub')) { /* not created yet */ }
     const database = await new Promise<IDBDatabase>((resolve, reject) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
     const tables = ['trips', 'members', 'member_preferences', 'ai_drafts']
     const tx = database.transaction(tables, 'readwrite')
-    tx.objectStore('trips').put({ id: tripId, name: 'E2E TEST local AI planning', timezone: 'America/Los_Angeles', start_date: '2027-03-14', end_date: '2027-03-15', base_currency: 'USD', local_currency: null, route_factor_low: 1.4, route_factor_high: 2, bbox: null, offline_pack: null, share_token: 'test', settings: {} })
+    tx.objectStore('trips').put({ id: tripId, name: 'E2E TEST local AI planning', timezone: 'America/Los_Angeles', start_date: '2027-03-14', end_date: '2027-03-15', base_currency: 'USD', local_currency: null, route_factor_low: 1.4, route_factor_high: 2, bbox: null, offline_pack: null, share_token: 'test', settings })
     for (const [id, name] of [[alex, 'Alex'], [sam, 'Sam'], ['00000000-0000-4000-8000-000000000015', 'Lee']]) tx.objectStore('members').put({ id, trip_id: tripId, display_name: name, color: '#295361', avatar_emoji: null, home_timezone: null })
     tx.objectStore('member_preferences').put({ id: crypto.randomUUID(), trip_id: tripId, member_id: alex, ...p })
     tx.objectStore('member_preferences').put({ id: crypto.randomUUID(), trip_id: tripId, member_id: sam, ...p, scores: { ...p.scores, nature: 20, nightlife: 90 }, constraints: 'No long walks' })
     tx.objectStore('ai_drafts').put({ id: '00000000-0000-4000-8000-000000000016', scope: tripId, createdAt: new Date().toISOString(), brief: { prompt: 'A relaxed day', destination: 'California', days: 1, startDate: '2027-03-14', budgetMinor: null, currency: 'USD' }, result: ideas })
     await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error) })
     database.close()
-  }, { tripId: TRIP, alex: ALEX, sam: SAM, profile, ideas })
+  }, { tripId: TRIP, alex: ALEX, sam: SAM, profile, ideas, settings })
 }
 
 test('preferences become a radar profile, generate ideas, filter, refine and survive reload', async ({ page }) => {
@@ -313,6 +315,59 @@ test('Stowie adds a saved draft to the trip offline, and says so when it cannot 
   await openIdeas(page)
   await page.getByRole('button', { name: 'Undo that' }).click()
   await expect(log.getByText(/Removed 3 generated entries/)).toBeVisible()
+})
+
+test('a place from a Stowie draft gets a pin from OpenStreetMap once online, and the plan flags it as AI', async ({ page, context }) => {
+  await mockNetwork(page, [])
+  const searches: string[] = []
+  await page.route('https://photon.komoot.io/**', async (route) => {
+    searches.push(new URL(route.request().url()).searchParams.get('q') ?? '')
+    await route.fulfill({ json: { features: [{ geometry: { coordinates: [-121.9, 36.6] }, properties: { name: 'Seaside Market', osm_type: 'N', osm_id: 77, street: 'Ocean Ave', city: 'Monterey' } }] } })
+  })
+  await page.goto('/inspire')
+  await seedTrip(page, result, { areas: [{ name: 'Monterey', bbox: [36.55, -121.95, 36.65, -121.85], lat: 36.6, lng: -121.9 }] })
+  await page.goto(`/t/${TRIP}/plan`)
+  await openIdeas(page)
+  const log = page.getByRole('log', { name: 'Conversation with Stowie' })
+  await expect(log.getByText(/I have travel styles for 2 of you/)).toBeVisible()
+  // Applied offline, the new place has no pin; coming back online finds it.
+  await context.setOffline(true)
+  await say(page, 'Somewhere with a beach')
+  await page.getByRole('button', { name: 'Show my last draft' }).click()
+  await page.getByRole('button', { name: 'Add it to the plan' }).click()
+  await expect(log.getByText(/1 tentative item is in the plan/)).toBeVisible()
+  expect(searches).toEqual([])
+  await context.setOffline(false)
+  const pinned = () => page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error) })
+    const rows = await new Promise<Record<string, unknown>[]>((resolve) => { const req = database.transaction('places').objectStore('places').getAll(); req.onsuccess = () => resolve(req.result) })
+    database.close()
+    return rows.filter((r) => r.name === 'Seaside market').map((r) => ({ lat: r.lat, lng: r.lng, address: r.address, ids: r.external_ids }))
+  })
+  await expect.poll(pinned, { timeout: 15000 }).toEqual([{ lat: 36.6, lng: -121.9, address: 'Ocean Ave, Monterey', ids: { osm: 'node/77', located: 'osm' } }])
+  expect(searches).toEqual(['Seaside market'])
+  await page.getByRole('button', { name: 'Open the plan' }).click()
+  await page.waitForURL(/\/plan$/)
+  const item = page.getByRole('link', { name: /^Visit the food market, .*planned by Stowie/ })
+  await expect(item).toBeVisible()
+  await expect(item.getByText('AI', { exact: true })).toBeVisible()
+  await expect(page.getByText('AI draft; costs and availability need checking.')).toHaveCount(0)
+  await page.waitForTimeout(800) // let the page transition finish for the screenshot
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-ai-flag.png` })
+  await item.click()
+  await expect(page.getByText('Planned by Stowie · check costs and availability before booking')).toBeVisible()
+  await expect(page.getByText('Verify opening hours and vegetarian options.')).toBeVisible()
+  await page.waitForTimeout(800)
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-ai-item.png` })
+  await page.goto(`/t/${TRIP}/map?place=${await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result) })
+    const rows = await new Promise<Record<string, unknown>[]>((resolve) => { const req = database.transaction('places').objectStore('places').getAll(); req.onsuccess = () => resolve(req.result) })
+    database.close()
+    return String(rows.find((r) => r.name === 'Seaside market')!.id)
+  })}`)
+  await expect(page.getByRole('dialog').getByText('Seaside market')).toBeVisible()
+  await page.waitForTimeout(2500) // let the tiles and pin draw for the screenshot
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/stowie-ai-map.png` })
 })
 
 test('Stowie hosts the quiz and picks the conversation back up with the result', async ({ page }) => {

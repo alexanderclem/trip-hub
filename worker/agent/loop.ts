@@ -30,8 +30,12 @@ interface Completion { choices: { message: { content: string | null; tool_calls?
 
 export interface FinalPlan {
   summary: string; assumptions: string[]; currency: string; totalMinor: number
-  days: { date: string; stay: { name: string; rateId: string; refundable: boolean; photo?: string | null; address?: string | null; checkin?: string; checkout?: string } | null
+  days: { date: string; stay: { name: string; rateId: string; refundable: boolean; photo?: string | null; address?: string | null; checkin?: string; checkout?: string
+      /** Where the hotel is, so adding the plan puts it on the map (older saved plans lack these). */
+      hotelId?: string; lat?: number | null; lng?: number | null } | null
     items: { node: number; kind: string; title: string; start: string; end: string; ref: string | null; routed: boolean; photo?: string | null; url?: string | null; placeId?: string | null
+      /** Tours: the provider's product and meeting point, when it gave one. */
+      product?: string | null; lat?: number | null; lng?: number | null
       /** Flights only: each end's local wall-clock time ('yyyy-MM-ddTHH:mm') and zone, as on the ticket. start/end are these times too. */
       depart?: { local: string; zone: string; airport: string }; arrive?: { local: string; zone: string; airport: string } }[] }[]
   /** What a "Book" step must act on, in order. Offers expire, so the client shows expiresAt. */
@@ -256,7 +260,7 @@ function finalPlan(a: { summary: string; assumptions: string[] }, r: Resolved, r
     const day = local.toISODate()!
     const t = retimed.get(b.node)
     const slot = b.kind === 'activity' && b.ref ? ledger.get(b.ref) : undefined
-    const extra = slot?.kind === 'slot' ? { photo: slot.photo ?? null, url: slot.url ?? null, placeId: null } : { photo: null, url: null, placeId: b.kind === 'free' ? b.ref : null }
+    const extra = slot?.kind === 'slot' ? { photo: slot.photo ?? null, url: slot.url ?? null, placeId: null, product: slot.productCode, lat: slot.lat, lng: slot.lng } : { photo: null, url: null, placeId: b.kind === 'free' ? b.ref : null }
     const end = b.kind === 'flight' ? b.end : b.end.setZone(c.zone)
     const [from, to] = b.kind === 'flight' ? (b.title.split(' ')[1] ?? '').split('→') : []
     const ends = b.kind === 'flight' ? { depart: { local: b.start.toFormat("yyyy-MM-dd'T'HH:mm"), zone: b.start.zoneName!, airport: from ?? '' }, arrive: { local: b.end.toFormat("yyyy-MM-dd'T'HH:mm"), zone: b.end.zoneName!, airport: to ?? '' } } : {}
@@ -275,7 +279,7 @@ function finalPlan(a: { summary: string; assumptions: string[] }, r: Resolved, r
     summary: a.summary, assumptions: a.assumptions, currency: c.currency, totalMinor: r.totalMinor,
     days: [...days.entries()].sort(([x], [y]) => x.localeCompare(y)).map(([date, items]) => {
       const stay = stayFor(date, r.stays)
-      return { date, stay: stay ? { name: stay.name, rateId: stay.id, refundable: stay.refundable, photo: stay.photo ?? null, address: stay.address ?? null, checkin: stay.checkin, checkout: stay.checkout } : null, items: items.sort((x, y) => x.start.localeCompare(y.start)) }
+      return { date, stay: stay ? { name: stay.name, rateId: stay.id, refundable: stay.refundable, photo: stay.photo ?? null, address: stay.address ?? null, checkin: stay.checkin, checkout: stay.checkout, hotelId: stay.hotelId, lat: stay.lat, lng: stay.lng } : null, items: items.sort((x, y) => x.start.localeCompare(y.start)) }
     }),
     bookable, unrouted: [...notRouted], usage,
   }
