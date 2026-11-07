@@ -22,7 +22,7 @@ colors:
 typography:
   display:
     fontFamily: "Antonio, 'Barlow Condensed', sans-serif"
-    fontSize: "min(12.6cqi, 10.25rem)"
+    fontSize: "min(15.5cqi, 5.5rem)"
     fontWeight: 700
     lineHeight: 0.86
     letterSpacing: "-0.005em"
@@ -48,10 +48,10 @@ typography:
     lineHeight: 1
   headline:
     fontFamily: "Barlow, system-ui, sans-serif"
-    fontSize: "clamp(2.25rem, 4.6vw, 4rem)"
+    fontSize: "clamp(2.5rem, 6vw, 4.5rem)"
     fontWeight: 700
-    lineHeight: 1.08
-    letterSpacing: "-0.02em"
+    lineHeight: 1.04
+    letterSpacing: "-0.025em"
   headline-page:
     fontFamily: "Barlow, system-ui, sans-serif"
     fontSize: "clamp(2rem, 4vw, 3.5rem)"
@@ -309,10 +309,10 @@ body copy, names, controls, navigation and financial information. Barlow Condens
 reserved for small uppercase travel metadata. Antonio gives route codes their identity.
 
 ### Hierarchy
-- **Route display:** Antonio 700, container-sized up to 10.25rem. Keep readable place names nearby.
+- **Route display:** Antonio 700, sized to the example tag it prints on (up to 5.5rem), always below the headline in size. The readable place names print directly under it.
 - **Printed codes:** Antonio 700 at fixed steps below the display: day-card routes 2.25–3.25rem, the offline stub 2.25–3rem, saved-place and vote codes 2.25rem, the desktop strip 1.875rem.
 - **Lede and question:** Barlow 400 at 1.0625–1.25rem for intros; Barlow 600 at 1.25–1.5rem for the vote question. Prices print at 2.5rem Barlow 600.
-- **Headline:** Barlow 700, 2.25–4rem, line-height 1.08. Subpage titles use 2–3.5rem at 1.1.
+- **Headline:** Barlow 700, 2.5–4.5rem, line-height 1.04; the home h1 is the largest type on the page. Subpage titles use 2–3.5rem at 1.1.
 - **Section title:** Barlow 600, 1.75–2.75rem, line-height 1.2 and -0.02em tracking. Sentence case.
 - **Card title:** Barlow 600, 1.0625–1.5rem, line-height 1.3. App section titles use 1.125rem.
 - **Body:** Barlow 400, 1rem in the app and 1.0625rem publicly, line-height 1.6–1.65.
@@ -343,7 +343,7 @@ Use actual supplied weights, preserve user text scaling and let containers grow.
 
 The tag sheet is centred with a maximum width of 1320px and a minimum 8px of ground showing on each side; content inside uses a fluid shell padding (clamp 1.25rem to 4rem). Stops are separated by perforations (28px tall) and have fluid vertical padding (clamp 2.5rem to 5rem).
 
-On the landing page one routing axis pins every stop. From 1100px it is a 12rem rail down the left edge, sticky, with an ink rule along its left side; below 1100px it becomes a sticky route bar under the header that scrolls sideways. The hero is one tag face: a print row, the route at display scale, then a two-column grid from 960px (copy and tear stubs on the left, the traveler list and barcode on the right). Stops are a 5:7 head and body split from 960px, or full width with a 52rem head for wide stops (vote, plan, join).
+The landing page's first screen is only the header and the hero, message first. The hero is full width: the h1, one line and the two tear stubs on the left; on the right (below on phones) the example trip hangs as one tag on card stock (string hole, print row, route codes with their names, travelers in four columns, a 34px barcode), max 32rem wide. Two columns at 1.2:1 from 960px, vertically centred. After the hero's perforation one routing axis pins every stop: from 1100px a 12rem rail down the left edge, sticky, with an ink rule along its left side; below 1100px a sticky label bar that scrolls sideways. Stops are a 5:7 head and body split from 960px, or full width with a 52rem head for wide stops (vote, plan, join).
 
 Secondary pages open with a tag head: title and intro on the left, a printed field list (label and value rows on dashed rules, under a 3px ink rule) on the right from 960px. Sections below are divided by 2px dashed rules.
 
@@ -414,7 +414,7 @@ Drawn from its own text so each tag has a stable, different code. Ink bars, 34px
 The opening of every secondary page: h1 and intro, an optional action row, and a printed field list stating facts about the page (Groups / Free, Status / Not found, Updated / October 30, 2026). Then a perforation.
 
 ### Motion
-The hero prints itself on the first load of the page: a 3px ink print head runs down the tag face (1000ms with no delay, cubic-bezier(.42, .06, .3, 1), so the headline and both stubs are printed within the first half-second on a phone), and the print just behind it develops from a 4px half-tone to solid ink over about 8rem, the Print Density Rule played in time. The travelers then print one name at a time, and coral lands last, stamped onto Create a trip (520ms, a 1.045 press). Later visits to home in the same session show the tag already printed. Elsewhere, print-in is a left-to-right clip reveal (300ms to 620ms on cubic-bezier(.16, 1, .3, 1)), triggered once per stop as it scrolls into view. The stamp is the only other motion. Nothing loops. Reduced motion removes all animation and transition and shows the printed state.
+The hero prints itself on the first load of the page: a 3px ink print head runs down the hero (1000ms with no delay, cubic-bezier(.42, .06, .3, 1), so the headline and both stubs are printed within the first half-second), and the print just behind it develops from a 4px half-tone to solid ink over about 8rem, the Print Density Rule played in time. The travelers then print one name at a time, and coral lands last, stamped onto Create a trip (520ms, a 1.045 press). Later visits to home in the same session show the tag already printed. Elsewhere, print-in is a left-to-right clip reveal (300ms to 620ms on cubic-bezier(.16, 1, .3, 1)), triggered once per stop as it scrolls into view. The stamp is the only other motion. Nothing loops. Reduced motion removes all animation and transition and shows the printed state.
 
 ## Do's and Don'ts
 

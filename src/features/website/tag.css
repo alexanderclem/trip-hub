@@ -96,21 +96,25 @@
 .tag-time { font-family: var(--tag-text); font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .tag-barcode { display: block; width: 100%; height: 44px; fill: currentColor; }
 
-/* Hero: the tag face */
-.tag-hero { padding-top: 1.25rem; container-type: inline-size; scroll-margin-top: 64px; }
+/* Hero: the message on the tag face, and the example trip hanging beside it as its own tag.
+   The headline is the largest type on the screen; the route codes print inside the example. */
+.tag-hero { scroll-margin-top: 64px; }
+.tag-hero-grid { display: grid; gap: 2.75rem; padding-block: clamp(2.25rem, 6vw, 5rem) clamp(2.25rem, 5vw, 4.5rem); }
+.tag-hero h1 { font-family: var(--tag-text); font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; line-height: 1.04; letter-spacing: -.025em; text-transform: none; max-width: 18ch; }
+.tag-hero .tag-lede { max-width: 34ch; margin-top: 1.25rem; font-size: clamp(1.0625rem, 1.5vw, 1.25rem); line-height: 1.55; }
+.tag-hero-stubs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; max-width: 34rem; margin-top: 2rem; }
+/* The example trip: a hanging tag on card stock, with its string hole. */
+.tag-sample { position: relative; display: grid; width: 100%; max-width: 32rem; padding: 2.5rem 1.5rem 1.375rem; border: 2px solid var(--tag-ink); border-radius: 10px; background: var(--tag-card); container-type: inline-size; }
+.tag-sample::before { content: ''; position: absolute; top: .875rem; left: 50%; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--tag-stock); box-shadow: 0 0 0 2px var(--tag-ink); }
 .tag-print-row { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; padding-bottom: .625rem; border-bottom: 1px solid var(--tag-rule); font-family: var(--tag-cond); font-size: .8125rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--tag-print); }
 .tag-print-id { margin-left: auto; font-variant-numeric: tabular-nums; }
-.tag-route { display: flex; flex-wrap: nowrap; align-items: baseline; margin-block: .5rem 0; font-family: var(--tag-display); font-weight: 700; font-size: min(12.6cqi, 10.25rem); white-space: nowrap; line-height: .86; letter-spacing: -.005em; color: var(--tag-ink); }
+.tag-route { display: flex; flex-wrap: nowrap; align-items: baseline; margin-top: 1rem; font-family: var(--tag-display); font-weight: 700; font-size: min(15.5cqi, 5.5rem); white-space: nowrap; line-height: .86; letter-spacing: -.005em; color: var(--tag-ink); }
 .tag-route > span { display: inline-flex; align-items: baseline; }
 .tag-arrow { margin-inline: .06em; font-weight: 300; color: var(--tag-print); }
-.tag-hero-grid { display: grid; grid-template-areas: 'copy' 'stubs' 'pax'; gap: 1.5rem; margin-top: 1.25rem; padding-bottom: 1.75rem; }
-.tag-hero-copy { grid-area: copy; }
-.tag-hero h1 { font-family: var(--tag-text); font-size: clamp(2.25rem, 4.6vw, 4rem); font-weight: 700; line-height: 1.08; letter-spacing: -.02em; text-transform: none; max-width: 18ch; }
-.tag-pax { grid-area: pax; align-self: end; padding-top: 1rem; border-top: 2px solid var(--tag-ink); }
-.tag-pax ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .125rem 1rem; margin-block: .5rem .75rem; list-style: none; }
-.tag-pax li { display: flex; align-items: baseline; gap: .5rem; font-family: var(--tag-text); font-size: 1.125rem; font-weight: 500; text-transform: none; letter-spacing: 0; line-height: 1.4; }
-.tag-pax-seq { font-size: .8125rem; color: var(--tag-print); font-variant-numeric: tabular-nums; }
-.tag-hero-stubs { grid-area: stubs; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; padding-top: 1.25rem; border-top: 2px dashed var(--tag-rule); }
+.tag-route-names { margin-top: .5rem; }
+.tag-pax { margin-top: 1.25rem; padding-top: .875rem; border-top: 2px solid var(--tag-ink); }
+.tag-pax ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .125rem .75rem; margin-top: .375rem; list-style: none; }
+.tag-pax li { font-family: var(--tag-text); font-size: 1rem; font-weight: 500; text-transform: none; letter-spacing: 0; line-height: 1.5; overflow-wrap: anywhere; }
 .tag-tear { position: relative; display: grid; align-content: center; gap: .25rem; min-height: 88px; padding: .875rem 1rem .875rem 1.75rem; border: 2px solid var(--tag-ink); border-radius: 0; color: var(--tag-ink); text-decoration: none; -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); mask: radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); transition: transform 160ms var(--tag-ease), background-color 160ms var(--tag-ease); }
 .tag-tear::after { /* the rim of the punched hole on the tear side */
   content: ''; position: absolute; top: 50%; left: -11px; width: 22px; height: 22px; margin-top: -11px; border: 2px solid var(--tag-ink); border-radius: 50%; }
@@ -123,7 +127,8 @@
 .tag-tear.is-primary:hover { background: color-mix(in srgb, var(--tag-coral) 86%, var(--tag-ink)); border-color: color-mix(in srgb, var(--tag-coral) 86%, var(--tag-ink)); }
 .tag-tear:active { transform: translateY(1px); }
 .tag-tear.is-compact { min-height: 64px; padding-inline: 1.5rem; }
-.tag-hero-code { margin-top: .75rem; color: var(--tag-ink); }
+.tag-hero-code { margin-top: 1rem; color: var(--tag-ink); }
+.tag-hero-code .tag-barcode { height: 34px; }
 
 /* The hero prints itself on the first load: a thermal head runs down the tag face, and the print
    behind it develops from half-tone to solid ink (the Print Density Rule, in time). The travelers
@@ -370,9 +375,7 @@
 .tag-legal a { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 639px) {
-  .tag-pax ol { display: flex; flex-wrap: wrap; gap: .125rem .875rem; }
-  .tag-pax li { font-size: 1rem; }
-  .tag-pax-seq { display: none; }
+  .tag-sample { padding-inline: 1.125rem; }
   .tag-tear { min-height: 64px; padding-inline: 1.5rem .5rem; }
   .tag-tear-label { font-size: 1rem; }
   /* One empty tag says "add yours"; more would only fill the phone screen. */
@@ -387,11 +390,14 @@
   .tag-strip ol { justify-content: space-between; }
   .tag-strip-code { display: none; }
   .tag-strip-label { font-size: .9375rem; letter-spacing: .04em; }
+  /* Labels only: the vote's empty slot is a desktop rail detail, and alone in a tab bar it reads as broken. */
+  .tag-strip [data-ghost] .tag-strip-code { display: none; }
   /* Phones keep one code: the group's pick, so the vote's payoff lands on the main device too. */
   .tag-strip [data-picked] .tag-strip-code { display: inline-block; font-size: 1.0625rem; line-height: 1.15; }
 }
 @media (min-width: 960px) {
-  .tag-hero-grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); grid-template-areas: 'copy pax' 'stubs pax'; column-gap: 4rem; }
+  .tag-hero-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; column-gap: clamp(3rem, 6vw, 6rem); }
+  .tag-sample { justify-self: end; }
   .tag-head-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); column-gap: 4rem; }
   .tag-stop-grid.is-wide { grid-template-columns: minmax(0, 1fr); }
   .tag-stop-grid:not(.is-wide) { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 3rem; }
