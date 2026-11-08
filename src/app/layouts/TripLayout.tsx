@@ -181,7 +181,7 @@ function TripShell({ tripId }: { tripId: string }) {
   const status = useMemo(() => <SyncStrip tripId={tripId} />, [tripId])
   const tools = useMemo(() => <div className="trip-header-tools"><QuickAdd tripId={tripId} /><StowieCompanion tripId={tripId} /><span className="trip-header-sync lg:hidden"><SyncStatusButton tripId={tripId} /></span></div>, [tripId])
   return (
-    <div className="trip-shell flex h-full min-w-0 flex-col lg:flex-row">
+    <div className="trip-shell relative flex h-full min-w-0 flex-col lg:flex-row">
       <a href="#trip-content" className="trip-skip">Skip to trip content</a>
       <aside className="hidden min-h-0 w-64 shrink-0 flex-col overflow-y-auto overscroll-contain border-r border-line bg-surface p-5 lg:flex" aria-label="Trip workspace">
         <Link to="/app" aria-label="Stowaway — your trips" className="mb-5 shrink-0"><Brand /></Link>

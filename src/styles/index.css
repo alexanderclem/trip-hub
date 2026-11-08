@@ -23,7 +23,8 @@
   --color-stay: var(--stowaway-stay-bg);
   --color-stay-ink: var(--stowaway-stay-ink);
   --color-coral: var(--stowaway-coral);
-  --color-line: var(--stowaway-border);
+  /* Rules are hairlines mixed from ink (they follow dark mode); edges people must find use control. */
+  --color-line: color-mix(in srgb, var(--stowaway-ink) 14%, transparent);
   --color-control: var(--stowaway-control-border);
   --color-on-action: var(--stowaway-on-action);
   --color-warning: var(--stowaway-warning-bg);
@@ -329,6 +330,8 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
   outline: 2px solid var(--color-brand-700);
   outline-offset: 3px;
 }
+/* …and the browser's own ring must not draw a box around them either: the heading moves, nothing to press. */
+:is(h1, h2, h3, main, section, [role='region'], [role='dialog'])[tabindex='-1']:focus { outline: none; }
 /* Fields already have a border, so the indicator sits on it instead of floating around it. */
 .ui-field:focus-visible { outline-offset: 0; }
 

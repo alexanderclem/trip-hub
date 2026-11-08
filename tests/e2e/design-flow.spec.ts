@@ -55,22 +55,32 @@ async function noOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
 }
 
+/** Trip dates are a range calendar (DateRangePicker): page forward to the day, then tap it. */
+async function pickDay(page: Page, label: string) {
+  const day = page.getByRole('button', { name: label, exact: true }).filter({ visible: true })
+  for (let i = 0; i < 24 && !(await day.count()); i++) await page.getByRole('button', { name: 'Next month', exact: true }).click()
+  await day.click()
+}
+
 test('new trip starts with two fields and optional details keep their values', async ({ page }) => {
   await page.goto('/new')
   await expect(page.getByRole('heading', { name: 'New trip' })).toBeVisible()
   await expect(page.getByLabel('Trip name', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Your name')).toBeVisible()
-  await expect(page.getByLabel('Starts', { exact: true })).not.toBeVisible()
+  const dates = page.getByRole('group', { name: 'Trip dates' })
+  await expect(dates).not.toBeVisible()
   await expect(page.getByLabel('Destination time zone')).not.toBeVisible()
   await screenshot(page, 'create-390')
   const optional = page.getByText('Add dates and destination (optional)', { exact: true })
   await optional.click()
-  await page.getByLabel('Starts', { exact: true }).fill('2027-03-13')
+  await pickDay(page, 'Saturday 13 March 2027')
+  await pickDay(page, 'Saturday 20 March 2027')
+  await expect(dates.getByText('Sat 13 Mar → Sat 20 Mar', { exact: true })).toBeVisible()
   await page.getByLabel('Destination time zone').selectOption('Asia/Tokyo')
   await optional.click()
   await expect(page.getByText('Tokyo · USD', { exact: true })).toBeVisible()
   await optional.click()
-  await expect(page.getByLabel('Starts', { exact: true })).toHaveValue('2027-03-13')
+  await expect(dates.getByText('Sat 13 Mar → Sat 20 Mar', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Destination time zone')).toHaveValue('Asia/Tokyo')
   await page.setViewportSize({ width: 320, height: 740 })
   await noOverflow(page)
@@ -123,8 +133,9 @@ test('trip dates can be added later offline without resetting a draft during syn
     db.close()
   }, tripId)
   await expect(name).toHaveValue('E2E TEST Edited trip')
-  await page.getByLabel('Starts', { exact: true }).fill('2027-04-10')
-  await page.getByLabel('Ends', { exact: true }).fill('2027-04-17')
+  // The trip already has dates, so the first tap starts a new range and the second ends it.
+  await pickDay(page, 'Saturday 10 April 2027')
+  await pickDay(page, 'Saturday 17 April 2027')
   await page.getByLabel('Destination time zone').fill('Asia/Tokyo')
   await context.setOffline(true)
   await page.getByRole('button', { name: 'Save trip details', exact: true }).click()
@@ -133,7 +144,7 @@ test('trip dates can be added later offline without resetting a draft during syn
   await page.reload()
   await page.getByText('Trip details', { exact: true }).click()
   await expect(name).toHaveValue('E2E TEST Edited trip')
-  await expect(page.getByLabel('Starts', { exact: true })).toHaveValue('2027-04-10')
+  await expect(page.getByRole('group', { name: 'Trip dates' }).getByText('Sat 10 Apr → Sat 17 Apr', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Destination time zone')).toHaveValue('Asia/Tokyo')
 })
 
@@ -160,3 +171,28 @@ for (const [phase, date] of [['planning', '2027-03-01'], ['preparing', '2027-03-
     await screenshot(page, `home-${phase}-1440`)
   })
 }
+
+test('the trip shell owns scrolling: the page never scrolls behind it, on a phone or a desktop', async ({ page }) => {
+  await localTrip(page, '2027-03-01T12:00:00Z')
+  for (const size of [{ width: 390, height: 664 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(size)
+    for (const screen of ['overview', 'plan', 'more', 'money']) {
+      await page.goto(`${root}/${screen}`)
+      await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+      // Screen-reader-only labels deep in the scrolled content once stretched the document by ~180px.
+      expect(await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight)).toBeLessThanOrEqual(0)
+    }
+  }
+})
+
+test('headings focused after navigation show no ring, while keyboard focus on controls still does', async ({ page }) => {
+  await localTrip(page, '2027-03-01T12:00:00Z')
+  await page.goto(`${root}/more`)
+  await page.getByRole('link', { name: 'Tasks', exact: true }).click()
+  await page.waitForURL(`**${root}/more/tasks`)
+  const heading = page.getByRole('heading', { level: 1 }).first()
+  await expect(heading).toBeFocused()
+  await expect(heading).toHaveCSS('outline-style', 'none')
+  await page.keyboard.press('Tab')
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle)).toBe('solid')
+})

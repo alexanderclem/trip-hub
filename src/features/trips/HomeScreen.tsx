@@ -36,7 +36,7 @@ function TripCard({ trip, members, now }: { trip: Trip; members: Member[]; now: 
         <p className="mt-1 flex items-start gap-2 text-sm leading-relaxed text-muted"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span className="wrap-anywhere">{destinations || 'Destination to be decided'}</span></p>
         <div className="saved-trip-foot">
           <span className="flex min-w-0 items-center gap-2 text-xs text-muted">
-            <span aria-hidden="true" className="traveler-stack">{members.slice(0, 3).map((member) => <Avatar key={member.id} name={member.display_name} color={member.color ?? '#295361'} photo={member.avatar_url} size="sm" />)}</span>
+            <span aria-hidden="true" className="traveler-stack">{members.slice(0, 3).map((member) => <Avatar key={member.id} name={member.display_name} color={member.color} photo={member.avatar_url} size="sm" />)}</span>
             {!members.length && <Users aria-hidden="true" className="size-4" />}
             <span>{members.length} {members.length === 1 ? 'traveler' : 'travelers'}<span className="sr-only">{members.length ? `: ${members.map((member) => member.display_name).join(', ')}` : ''}</span></span>
           </span>

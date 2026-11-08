@@ -324,3 +324,15 @@
 .tag-band-sub { max-width: 52ch; margin-top: .5rem; color: var(--tag-print); font-size: 1rem; line-height: 1.55; }
 .tag-close-lede { max-width: 40ch; margin-top: .75rem; }
 .tag-close .tag-close-actions { margin-top: 1.5rem; }
+
+/* Native feel: crisp text, and questions that glide open instead of snapping (where the browser can
+   animate to auto height; elsewhere they open at once, as before). */
+.tag-world { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+@supports (interpolate-size: allow-keywords) {
+  .tag-world { interpolate-size: allow-keywords; }
+  .tag-faq details::details-content, .tag-world .website-faq details::details-content { block-size: 0; overflow: clip; transition: block-size 280ms var(--tag-ease), content-visibility 280ms allow-discrete; }
+  .tag-faq details[open]::details-content, .tag-world .website-faq details[open]::details-content { block-size: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tag-faq details::details-content, .tag-world .website-faq details::details-content { transition: none; }
+}

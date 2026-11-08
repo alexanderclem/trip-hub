@@ -1,96 +1,141 @@
-/* The working side of the luggage tag. Keep body content readable; use condensed print
-   only for small travel labels, perforations for grouping, coral for the next action. */
-.app-world { background: var(--stowaway-canvas); color: var(--stowaway-ink); }
+/* The app's material (Nov 2026 refinement). Same brand as the luggage tag (ocean ink, coral for the
+   next action, Barlow), printed the way a native iPhone app is built: grouped white surfaces on a
+   cool canvas, hairline separators instead of ink strokes, tinted fills for secondary controls, soft
+   elevation for things that float, and a translucent header and tab bar. Ink is kept for what is
+   selected; coral for the one action that moves the trip forward. */
+.app-world, .ui-dialog, .ui-toast {
+  /* Hairlines and fills are mixed from ink, so they follow light and dark mode on their own. */
+  --app-hairline: color-mix(in srgb, var(--stowaway-ink) 13%, transparent);
+  --app-hairline-strong: color-mix(in srgb, var(--stowaway-ink) 22%, transparent);
+  --app-fill: color-mix(in srgb, var(--stowaway-ink) 6%, transparent);
+  --app-fill-strong: color-mix(in srgb, var(--stowaway-ink) 10%, transparent);
+  --app-material: color-mix(in srgb, var(--stowaway-canvas) 80%, transparent);
+  --app-elevation-1: 0 0 0 1px var(--app-hairline), 0 1px 2px rgb(23 52 63 / .05);
+  --app-elevation-2: 0 0 0 1px var(--app-hairline), 0 12px 32px -12px rgb(23 52 63 / .28), 0 2px 6px rgb(23 52 63 / .06);
+  --app-radius-group: 14px;
+  /* The app's corners are rounder than the printed website's (8/10px there). Tailwind's aliases resolve at
+     :root, so they are re-pointed here too. */
+  --stowaway-radius-control: 12px;
+  --stowaway-radius-surface: 14px;
+  --radius-control: 12px;
+  --radius-surface: 14px;
+}
+:root[data-theme='stowaway-dark'] :is(.app-world, .ui-dialog, .ui-toast) {
+  --app-hairline: color-mix(in srgb, var(--stowaway-ink) 14%, transparent);
+  --app-fill: color-mix(in srgb, var(--stowaway-ink) 8%, transparent);
+  --app-fill-strong: color-mix(in srgb, var(--stowaway-ink) 13%, transparent);
+  --app-elevation-1: 0 0 0 1px var(--app-hairline);
+  --app-elevation-2: 0 0 0 1px var(--app-hairline), 0 16px 40px -12px rgb(0 0 0 / .6);
+}
+.app-world { background: var(--stowaway-canvas); color: var(--stowaway-ink); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-tap-highlight-color: transparent; }
 .app-world :is(h1, h2, h3) { overflow-wrap: anywhere; text-wrap: balance; }
 .app-world ::selection { background: var(--stowaway-coral); color: var(--stowaway-on-primary); }
 /* Coral alone is 2.4:1 on light stock, so an ink ring sits inside it: the pair reads on any paper. */
 .app-world :is(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid var(--stowaway-coral); outline-offset: 3px; box-shadow: 0 0 0 3px var(--stowaway-ink); }
-/* Fields already carry a 2px ink edge, so their coral ring sits directly on it. */
 .app-world .ui-field:focus-visible { outline-offset: 0; box-shadow: none; }
 
-/* Barlow carries hierarchy and controls. Condensed print is reserved for small metadata. */
-.app-world .ui-page-title { font-size: clamp(1.5rem, 2vw, 2rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: var(--stowaway-leading-heading); }
+/* Type: large titles are bold and tight; body stays Barlow; condensed print only for small labels. */
+.app-world .ui-page-title { font-size: clamp(1.625rem, 2.2vw, 2.125rem); font-weight: 700; letter-spacing: -.025em; line-height: 1.15; }
+.app-world .ui-header-context { color: var(--stowaway-muted); }
 .app-world .ui-display { font-family: var(--stowaway-font-display); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.15; font-variant-numeric: lining-nums tabular-nums; }
-.app-world .ui-section-title { font-family: var(--stowaway-font-display); font-size: 1.125rem; font-weight: 600; letter-spacing: -.01em; line-height: 1.35; }
+.app-world .ui-section-title { font-family: var(--stowaway-font-display); font-size: 1.1875rem; font-weight: 650; letter-spacing: -.015em; line-height: 1.3; }
 .app-world .ui-label { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-small); font-weight: 500; letter-spacing: 0; line-height: var(--stowaway-leading-ui); }
 .app-world :is(.ui-eyebrow, .app-kicker, .notebook-label, .agenda-period) { font-family: var(--stowaway-font-label); font-size: var(--stowaway-text-caption); font-weight: 600; letter-spacing: var(--stowaway-tracking-label); line-height: 1.5; text-transform: uppercase; }
-.app-world .travel-heading { font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
+.app-world .travel-heading { font-weight: 700; letter-spacing: -.025em; }
 .app-world .ui-link { font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; letter-spacing: 0; }
 .app-world :is([data-slot='card-description'], [data-slot='empty-description'], .place-identity-note, .itinerary-notes) { max-width: var(--stowaway-measure); line-height: 1.65; }
 
-/* Flat stock, an ink stroke, and dashed internal rules. */
-/* Weight follows use: lists of things to tap keep the 2px ink stroke; containers that only hold a
-   section print on a 1px rule so a stack of them reads as one page, not a pile of boxes. */
-.app-world .ui-row-group { border: 2px solid var(--stowaway-ink); border-radius: var(--stowaway-radius-surface); box-shadow: none; }
-.app-world :is(.ui-card, [data-slot='empty']) { border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); box-shadow: none; }
+/* Surfaces: white groups on the canvas, edged by a hairline and the faintest shadow. */
+.app-world :is(.ui-card, [data-slot='empty'], .ui-row-group) { border: 0; border-radius: var(--app-radius-group); background: var(--stowaway-surface); box-shadow: var(--app-elevation-1); }
 /* A group label then its cards: the label sits close to what it names, far from the group above. */
-.app-world .settings-group { display: grid; gap: .75rem; }
+.app-world .settings-group { display: grid; gap: .5rem; }
 .app-world .settings-group + .settings-group { margin-top: 1.75rem; }
-.app-world .ui-card-foot { border-top-style: dashed; }
-.app-world .ui-row-group > li + li { border-top: 1px dashed var(--stowaway-border); }
-.app-world .ui-frame { padding: 0; border-radius: var(--stowaway-radius-surface); background: transparent; }
-.app-world .ui-frame > .ui-card { border-color: var(--stowaway-ink); }
+.app-world .ui-card-foot { border-top: 1px solid var(--app-hairline); }
+/* iOS list separators: a hairline that starts where the text starts, not at the group's edge. */
+.app-world .ui-row-group > li { position: relative; }
+.app-world .ui-row-group > li + li { border-top: 0; }
+.app-world .ui-row-group > li + li::before { content: ''; position: absolute; top: 0; right: 0; left: 1rem; border-top: 1px solid var(--app-hairline); pointer-events: none; }
+.app-world .ui-row-group > li + li:has(.ui-row > .text-action:first-child, .ui-row > .ui-time:first-child)::before { left: 3.25rem; }
+.app-world :is(a.ui-row, button.ui-row):is(:hover, :active) { background: var(--app-fill); }
+.app-world :is(a.ui-row, button.ui-row):active { background: var(--app-fill-strong); transition-duration: 0s; }
+.app-world .ui-frame { padding: 0; border-radius: var(--app-radius-group); background: transparent; }
+.app-world .ui-frame > .ui-card { box-shadow: 0 0 0 1px var(--app-hairline-strong); }
 .app-world .ui-status { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); font-weight: 500; letter-spacing: 0; line-height: 1.5; }
 .app-world .ui-status-quiet { font-weight: 500; }
-.app-world .ui-chip { border-width: 2px; border-radius: var(--stowaway-radius-control); font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; }
+.app-world .ui-chip { border: 1px solid var(--app-hairline-strong); border-radius: 999px; background: var(--stowaway-surface); font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; }
+.app-world .ui-chip:hover { border-color: var(--app-hairline-strong); background: var(--app-fill); }
+.app-world .ui-chip:is([aria-pressed='true'], [aria-current]) { border-color: var(--stowaway-ink); background: var(--stowaway-ink); color: var(--stowaway-on-action); }
 .app-world .ui-time { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-small); font-weight: 500; font-variant-numeric: tabular-nums; }
 
-/* Coral belongs to a primary action. Ink selections stay distinct from actions. */
-.app-world .ui-button.btn, .ui-dialog .ui-button.btn { position: relative; border-width: 2px; font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; letter-spacing: 0; line-height: var(--stowaway-leading-ui); }
+/* Buttons: coral is filled; secondary is a tinted fill, not an outline; ghost is text. */
+.app-world .ui-button.btn, .ui-dialog .ui-button.btn { position: relative; border-width: 1px; border-radius: 12px; font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; letter-spacing: 0; line-height: var(--stowaway-leading-ui); box-shadow: none; }
 .app-world .ui-button-primary, .ui-dialog .ui-button-primary { border-color: var(--stowaway-coral); background: var(--stowaway-coral); color: var(--stowaway-on-primary); }
-.app-world .ui-button-primary:not(:disabled):hover, .ui-dialog .ui-button-primary:not(:disabled):hover { border-color: color-mix(in srgb, var(--stowaway-coral) 86%, #17343f); background: color-mix(in srgb, var(--stowaway-coral) 86%, #17343f); color: var(--stowaway-on-primary); }
-.app-world .ui-button-secondary, .ui-dialog .ui-button-secondary { border-color: var(--stowaway-ink); }
+.app-world .ui-button-primary:not(:disabled):hover, .ui-dialog .ui-button-primary:not(:disabled):hover { border-color: color-mix(in srgb, var(--stowaway-coral) 88%, #17343f); background: color-mix(in srgb, var(--stowaway-coral) 88%, #17343f); color: var(--stowaway-on-primary); }
+.app-world .ui-button-secondary, .ui-dialog .ui-button-secondary { border-color: transparent; background: var(--app-fill-strong); color: var(--stowaway-ink); }
+.app-world .ui-button-secondary:not(:disabled):hover, .ui-dialog .ui-button-secondary:not(:disabled):hover { border-color: transparent; background: color-mix(in srgb, var(--stowaway-ink) 15%, transparent); color: var(--stowaway-ink); }
 .app-world .ui-button-ghost, .ui-dialog .ui-button-ghost { border-color: transparent; }
+.app-world .ui-button-ghost:not(:disabled):hover, .ui-dialog .ui-button-ghost:not(:disabled):hover { background: var(--app-fill); }
 .app-world .ui-button.btn:focus-visible { outline-color: var(--stowaway-coral); }
-.app-world .ui-field, .ui-dialog .ui-field { border-width: 2px; border-color: var(--stowaway-ink); background: var(--stowaway-surface); }
+.app-world .ui-icon-button { border-radius: 12px; }
+.app-world .ui-icon-button:hover { background: var(--app-fill); }
+/* Fields keep a 1px edge at control contrast (WCAG 1.4.11) and gain the ink edge while typing. */
+.app-world .ui-field, .ui-dialog .ui-field { border-width: 1px; border-color: var(--stowaway-control-border); border-radius: 12px; background: var(--stowaway-surface); }
+.app-world .ui-field:focus, .ui-dialog .ui-field:focus { border-color: var(--stowaway-ink); }
 .app-world .ui-field[aria-invalid='true'], .ui-dialog .ui-field[aria-invalid='true'] { border-color: var(--stowaway-danger-ink); }
 .app-world .ui-field:disabled, .ui-dialog .ui-field:disabled { background: var(--stowaway-mist); }
-.app-world .ui-segmented { border: 2px solid var(--stowaway-ink); border-radius: var(--stowaway-radius-control); font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; }
-.app-world .ui-fab { border: 2px solid var(--stowaway-coral); border-radius: 8px; background: var(--stowaway-coral); color: var(--stowaway-on-primary); box-shadow: none; }
-.app-world .ui-fab:hover { background: color-mix(in srgb, var(--stowaway-coral) 86%, #17343f); }
-.app-world .ui-form-actions { border-top: 2px dashed var(--stowaway-border); }
-.ui-dialog { border: 2px solid var(--stowaway-ink); box-shadow: none; }
-.ui-dialog h2 { font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.3; }
-.ui-toast { border: 2px solid var(--stowaway-ink); box-shadow: none; }
+/* Segmented controls: a tinted track with the choice as a solid ink pill riding on it. */
+.app-world .ui-segmented, .ui-dialog .ui-segmented { gap: 2px; padding: 3px; border: 0; border-radius: 12px; background: var(--app-fill-strong); font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; }
+.app-world .ui-segmented > :is(button, label), .ui-dialog .ui-segmented > :is(button, label) { min-height: 40px; border-radius: 9px; color: var(--stowaway-ink); }
+.app-world .ui-segmented > :is(button, label):not([aria-checked='true'], [aria-pressed='true'], [aria-selected='true'], :has(:checked)):hover { background: var(--app-fill); }
+.app-world .ui-segmented > :is([aria-checked='true'], [aria-pressed='true'], [aria-selected='true'], label:has(:checked)),
+.ui-dialog .ui-segmented > :is([aria-checked='true'], [aria-pressed='true'], [aria-selected='true'], label:has(:checked)) { background: var(--stowaway-ink); color: var(--stowaway-on-action); box-shadow: 0 1px 3px rgb(23 52 63 / .2); }
+/* The add button floats: a coral squircle with a soft lift. */
+.app-world .ui-fab { border: 0; border-radius: 18px; background: var(--stowaway-coral); color: var(--stowaway-on-primary); box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--stowaway-coral) 75%, transparent), 0 2px 6px rgb(23 52 63 / .12); }
+.app-world .ui-fab:hover { background: color-mix(in srgb, var(--stowaway-coral) 88%, #17343f); }
+.app-world .ui-form-actions { border-top: 1px solid var(--app-hairline); }
+.ui-dialog { border: 0; border-radius: 20px; box-shadow: var(--app-elevation-2); }
+.ui-dialog h2 { font-weight: 700; letter-spacing: -.02em; line-height: 1.3; }
+.ui-toast { border: 0; border-radius: 14px; box-shadow: var(--app-elevation-2); }
 
-/* The screen header and navigation read like the tag's routing strip. */
-.app-world .app-page-header { border-bottom: 2px solid var(--stowaway-ink); background: var(--stowaway-canvas); }
-.app-world .trip-tabs { border-top: 2px solid var(--stowaway-ink); background: var(--stowaway-canvas); }
-.app-world .trip-tab { font-family: var(--stowaway-font-body); font-size: .8125rem; font-weight: 600; letter-spacing: 0; line-height: 1.35; }
-.app-world .trip-tab[aria-current='page'] { background: var(--stowaway-mist); }
-.app-world .trip-tab-bar::before { width: 2.25rem; border-radius: 0; }
+/* Header and tab bar are translucent material over the content, edged by a hairline. */
+.app-world .app-page-header { border-bottom: 1px solid var(--app-hairline); background: var(--app-material); -webkit-backdrop-filter: saturate(1.8) blur(20px); backdrop-filter: saturate(1.8) blur(20px); }
+.app-world .trip-tabs { border-top: 1px solid var(--app-hairline); background: var(--app-material); -webkit-backdrop-filter: saturate(1.8) blur(20px); backdrop-filter: saturate(1.8) blur(20px); }
+.app-world .trip-tab { font-family: var(--stowaway-font-body); font-size: .75rem; font-weight: 600; letter-spacing: .01em; line-height: 1.35; }
+.app-world .trip-tab[aria-current='page'] { background: transparent; color: var(--stowaway-ink); }
+.app-world .trip-tab:active { background: transparent; }
+.app-world .trip-tab-bar::before { width: 1.75rem; border-radius: 0 0 3px 3px; }
 
-/* The trip face: keep the destination artwork, framed as a printed travel label. */
-.app-world .trip-overview .overview-journal { position: relative; border-bottom: 2px dashed var(--stowaway-border); padding-bottom: 1.5rem; }
-.app-world .trip-overview .overview-journal h1 { max-width: 22ch; font-family: var(--stowaway-font-display); font-size: clamp(2rem, 3.8vw, 3.5rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.15; }
-.app-world .overview-postcard { padding: .5rem; border: 2px solid var(--stowaway-ink); border-radius: 10px; background: var(--stowaway-surface); }
-.app-world .overview-postcard .overview-art { border-radius: 4px; }
+/* Home: the trip's face, then one priority, then the plan. */
+.app-world .trip-overview .overview-journal { position: relative; border-bottom: 1px solid var(--app-hairline); padding-bottom: 1.5rem; }
+.app-world .trip-overview .overview-journal h1 { max-width: 22ch; font-family: var(--stowaway-font-display); font-size: clamp(2rem, 3.8vw, 3.5rem); font-weight: 700; letter-spacing: -.025em; line-height: 1.12; }
+.app-world .overview-postcard { padding: .375rem; border: 0; border-radius: 14px; background: var(--stowaway-surface); box-shadow: var(--app-elevation-1); }
+.app-world .overview-postcard .overview-art { border-radius: 9px; }
 .app-world .overview-postcard figcaption { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); letter-spacing: 0; line-height: 1.5; }
 .app-world .overview-postcard figcaption > span:last-child { font-style: normal; }
-.app-world .trip-phase { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); font-weight: 500; letter-spacing: 0; }
-.app-world .trip-overview .overview-focus { border: 2px solid var(--stowaway-ink); border-radius: 10px; }
-.app-world .trip-overview .overview-focus h2 { font-size: clamp(1.625rem, 2.5vw, 2.125rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
+.app-world .trip-phase { border-radius: 999px; font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); font-weight: 600; letter-spacing: 0; }
+.app-world .trip-overview .overview-focus { border: 0; border-radius: var(--app-radius-group); background: var(--stowaway-surface); box-shadow: var(--app-elevation-1); }
+.app-world .trip-overview .overview-focus h2 { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; letter-spacing: -.02em; }
 .app-world .overview-focus .ui-button { border-color: var(--stowaway-coral); background: var(--stowaway-coral); color: var(--stowaway-on-primary); font-size: 1.0625rem; }
-.app-world .overview-sidebar > .ui-card { border: 0; border-top: 2px dashed var(--stowaway-border); border-radius: 0; }
-.app-world .trip-overview .overview-planning-nav { border-bottom-style: dashed; }
+.app-world .overview-sidebar > .ui-card { border: 0; border-top: 1px solid var(--app-hairline); border-radius: 0; background: transparent; box-shadow: none; }
+.app-world .trip-overview .overview-planning-nav { border-bottom: 1px solid var(--app-hairline); }
 .app-world .overview-planning-nav a { font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; }
-.app-world .shared-places-heading h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
-.app-world .trip-day-preview { border: 2px solid var(--stowaway-ink); }
+.app-world .shared-places-heading h2 { font-size: 1.375rem; font-weight: 700; letter-spacing: -.02em; }
+.app-world .trip-day-preview { border: 0; border-radius: var(--app-radius-group); background: var(--stowaway-surface); box-shadow: var(--app-elevation-1); }
 .app-world .trip-day-preview .shared-places-heading h2 { font-size: 1.125rem; letter-spacing: -.01em; }
-.app-world :is(.shared-place, .preview-stops li + li) { border-top-style: dashed; }
-.app-world .preview-stop-time { font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; }
+.app-world :is(.shared-place, .preview-stops li + li) { border-top: 1px solid var(--app-hairline); }
+.app-world .preview-stop-time { font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-/* The itinerary is the same solid/idea print language as the landing example. */
-.app-world .plan-notebook .plan-day { min-width: 3.5rem; border: 2px solid var(--stowaway-border); border-radius: 6px; background: var(--stowaway-surface); font-family: var(--stowaway-font-display); }
-.app-world .plan-notebook .plan-day[aria-current] { border-color: var(--stowaway-ink); background: var(--stowaway-ink); color: var(--stowaway-on-action); }
+/* Plan: a day strip of soft tiles, the selected day in ink. */
+.app-world .plan-notebook .plan-day { min-width: 3.5rem; border: 0; border-radius: 12px; background: var(--stowaway-surface); box-shadow: var(--app-elevation-1); font-family: var(--stowaway-font-display); }
+.app-world .plan-notebook .plan-day[aria-current] { background: var(--stowaway-ink); color: var(--stowaway-on-action); box-shadow: 0 4px 12px -4px rgb(23 52 63 / .45); }
 .app-world .plan-notebook .plan-days { padding-bottom: .75rem; }
-.app-world .plan-date-heading h2 { font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
-.app-world .plan-toolbar { border-bottom: 2px solid var(--stowaway-ink); }
-.app-world .plan-view.ui-segmented { border: 2px solid var(--stowaway-ink); background: var(--stowaway-surface); font-size: 1rem; }
-.app-world .travel-agenda > li { border-bottom: 1px dashed var(--stowaway-border); }
-.app-world .agenda-category { border: 1px solid currentColor; border-radius: 6px; }
-.app-world .agenda-stop h3 { letter-spacing: 0; }
-.app-world .agenda-time { font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; }
+.app-world .plan-date-heading h2 { font-size: clamp(1.625rem, 3vw, 2.125rem); font-weight: 700; letter-spacing: -.025em; }
+.app-world .plan-toolbar { border-bottom: 1px solid var(--app-hairline); }
+.app-world .plan-view.ui-segmented { background: var(--app-fill-strong); font-size: .9375rem; }
+.app-world .travel-agenda > li { border-bottom: 1px solid var(--app-hairline); }
+.app-world .agenda-category { border: 0; border-radius: 10px; background: var(--app-fill); }
+.app-world .agenda-stop h3 { letter-spacing: -.005em; }
+.app-world .agenda-time { font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .app-world .agenda-status { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); letter-spacing: 0; }
 
 /* A short home screen: trip identity, one priority, then the plan. */
@@ -99,62 +144,68 @@
 .overview-simple .overview-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1.5rem; }
 .overview-simple .overview-footer .ui-link { min-height: 44px; }
 .overview-simple .overview-empty-plan { display: flex; min-height: 60px; padding-block: .75rem; }
-.app-world .overview-simple .overview-journal { max-width: 48rem; margin: .5rem auto 1.25rem; padding-bottom: .5rem; border-bottom: 1px solid var(--stowaway-border); }
+.app-world .overview-simple .overview-journal { max-width: 48rem; margin: .5rem auto 1.25rem; padding-bottom: .75rem; border-bottom: 1px solid var(--app-hairline); }
 .app-world .overview-simple .overview-journal-top { margin-bottom: .75rem; }
 .app-world .overview-simple .overview-journal-content { grid-template-columns: minmax(0, 1fr) 4rem; align-items: center; gap: 1rem; }
 .app-world .overview-simple .overview-journal-plain .overview-journal-content { grid-template-columns: minmax(0, 1fr); }
-.app-world .trip-overview.overview-simple .overview-journal h1 { font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1.2; text-wrap: pretty; }
+.app-world .trip-overview.overview-simple .overview-journal h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); line-height: 1.15; text-wrap: pretty; }
 .app-world .overview-simple .overview-meta { margin-top: .5rem; }
 .app-world .overview-simple .overview-postcard .overview-art { height: 4rem; }
-.app-world .overview-simple .overview-focus { padding: 1.125rem; }
+.app-world .overview-simple .overview-focus { padding: 1.25rem; }
 .app-world .overview-simple .overview-focus h2 { font-size: 1.375rem; line-height: 1.3; }
 .app-world .overview-simple .overview-focus .ui-button { font-size: 1rem; }
 .overview-simple .shared-places-heading h2 { margin: 0; font-size: 1.125rem; }
-.overview-simple .trip-day-preview { padding: 1rem; }
+.overview-simple .trip-day-preview { padding: 1.125rem; }
 .overview-simple .preview-stops > li > a { padding-block: .75rem; }
 .offline-summary > .ui-disclosure > summary { min-height: 44px; }
-.app-world .plan-day-details { border-top-style: dashed; }
-.app-world .poll-score button { border: 2px solid var(--stowaway-ink); font-family: var(--stowaway-font-body); font-size: .875rem; font-weight: 600; line-height: 1.4; }
+.app-world .plan-day-details { border-top: 1px solid var(--app-hairline); }
+/* Vote buttons: tinted keys; the chosen score fills with ink. */
+.app-world .poll-score button { border: 0; border-radius: 10px; background: var(--app-fill-strong); font-family: var(--stowaway-font-body); font-size: .875rem; font-weight: 600; line-height: 1.4; color: var(--stowaway-ink); }
+.app-world .poll-score button:not([aria-pressed='true']):hover { background: color-mix(in srgb, var(--stowaway-ink) 15%, transparent); }
 .app-world .poll-score button[aria-pressed='true'] { background: var(--stowaway-ink); color: var(--stowaway-on-action); }
 
-/* Real documents become tear-off stubs; confirmation codes and download states stay real. */
-.app-world .travel-ticket { position: relative; border: 2px solid var(--stowaway-ink); border-inline-start-style: dashed; padding-inline-start: 1.5rem; }
+/* Real documents keep their tear-off stub; confirmation codes and download states stay real. */
+.app-world .travel-ticket { position: relative; border: 0; border-radius: var(--app-radius-group); background: var(--stowaway-surface); box-shadow: var(--app-elevation-1); padding-inline-start: 1.5rem; }
+.app-world .travel-ticket::before { content: ''; position: absolute; top: 12px; bottom: 12px; left: .625rem; border-left: 1.5px dashed var(--app-hairline-strong); }
 .app-world .travel-ticket-code { font-family: var(--stowaway-font-body); font-size: 1.5rem; font-weight: 600; letter-spacing: .04em; font-variant-numeric: lining-nums tabular-nums; }
-.app-world .travel-ticket-stub { margin-top: 1rem; border-top: 1px dashed var(--stowaway-border); }
-.app-world .balance-stub { border-block: 2px dashed var(--stowaway-border); padding-block: 1rem; }
-.schedule-preview { border-block: 1px dashed var(--stowaway-border); padding-block: 1rem; }
+.app-world .travel-ticket-stub { margin-top: 1rem; border-top: 1px solid var(--app-hairline); }
+.app-world .balance-stub { border-top: 0; border-bottom: 1px solid var(--app-hairline); padding-block: .5rem 1.25rem; }
+.schedule-preview { border-block: 1px solid var(--app-hairline, var(--stowaway-border)); padding-block: 1rem; }
 .schedule-preview li { display: grid; min-width: 0; gap: .25rem; padding-block: .75rem; overflow-wrap: anywhere; }
-.schedule-preview li + li { border-top: 1px dashed var(--stowaway-border); }
+.schedule-preview li + li { border-top: 1px solid var(--app-hairline, var(--stowaway-border)); }
 .schedule-preview li > span { overflow-wrap: anywhere; font-size: .875rem; color: var(--stowaway-muted); }
 .schedule-preview del { text-decoration-thickness: 1px; }
 .plan-source-place > .ui-link { display: block; max-width: 100%; padding-block: .5rem; overflow-wrap: anywhere; }
 
-/* Entry, saved trips and forms use the same stock as the trip workspace. */
-.app-world :is(.app-entry-header, .home-header) { border-bottom: 2px solid var(--stowaway-ink); }
-.app-world .app-entry-intro h1 { max-width: 20ch; font-family: var(--stowaway-font-display); font-size: clamp(2.25rem, 4.5vw, 3.5rem); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.15; }
-.app-world .app-entry-routes .app-start-trip { border: 2px solid var(--stowaway-ink); }
-.app-world .app-entry-routes :is(.app-start-trip h2, #join h2) { font-family: var(--stowaway-font-display); font-size: 1.375rem; font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.3; }
-.app-world .app-entry-routes:not(.is-joining) #join .ui-button-primary { border: 2px solid var(--stowaway-ink); color: var(--stowaway-ink); }
-.app-world .app-entry-footer { border-top: 2px dashed var(--stowaway-border); }
-.app-world .app-home h1 { font-family: var(--stowaway-font-display); font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); line-height: 1.2; }
-.app-world .saved-trip-card { border: 2px solid var(--stowaway-ink); }
-.app-world .saved-trip-card h3 { font-size: 1.5rem; font-weight: 600; letter-spacing: var(--stowaway-tracking-heading); }
-.app-world .saved-trip-foot { border-top: 1px dashed var(--stowaway-border); }
-.app-world .saved-trip-arrow { border-radius: 4px; }
+/* Entry, saved trips and forms use the same material as the trip workspace. */
+.app-world :is(.app-entry-header, .home-header) { border-bottom: 1px solid var(--app-hairline); }
+.app-world .app-entry-intro h1 { max-width: 20ch; font-family: var(--stowaway-font-display); font-size: clamp(2.25rem, 4.5vw, 3.5rem); font-weight: 700; letter-spacing: -.025em; line-height: 1.1; }
+.app-world .app-entry-routes .app-start-trip { border: 0; border-radius: var(--app-radius-group); background: var(--stowaway-surface); box-shadow: var(--app-elevation-1); }
+.app-world .app-entry-routes :is(.app-start-trip h2, #join h2) { font-family: var(--stowaway-font-display); font-size: 1.375rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.3; }
+.app-world .app-entry-routes:not(.is-joining) #join .ui-button-primary { border-color: transparent; background: var(--app-fill-strong); color: var(--stowaway-ink); }
+.app-world .app-entry-footer { border-top: 1px solid var(--app-hairline); }
+.app-world .app-home h1 { font-family: var(--stowaway-font-display); font-weight: 700; letter-spacing: -.025em; line-height: 1.15; }
+.app-world .saved-trip-card { border: 0; border-radius: var(--app-radius-group); background: var(--stowaway-surface); box-shadow: var(--app-elevation-1); transition: box-shadow var(--stowaway-motion-change) var(--stowaway-feedback-ease), transform var(--stowaway-motion-change) var(--stowaway-feedback-ease); }
+.app-world .saved-trip-card:hover { box-shadow: var(--app-elevation-2); }
+.app-world .saved-trip-card h3 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; }
+.app-world .saved-trip-foot { border-top: 1px solid var(--app-hairline); }
+.app-world .saved-trip-arrow { border-radius: 10px; }
 
 @media (min-width: 1024px) {
   .app-world:has(.trip-shell) { padding: 12px; background: var(--stowaway-ground); }
-  .app-world .trip-shell { border: 1px solid var(--stowaway-border); border-radius: 18px; overflow: hidden; }
-  .app-world .trip-shell > aside { border-inline-end: 2px dashed var(--stowaway-border); background: var(--stowaway-canvas); }
-  .app-world .trip-shell > aside > a { margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 2px solid var(--stowaway-ink); }
+  .app-world .trip-shell { border: 0; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 60px -24px rgb(0 0 0 / .45); }
+  .app-world .trip-shell > aside { border-inline-end: 1px solid var(--app-hairline); background: var(--stowaway-canvas); }
+  .app-world .trip-shell > aside > a { margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--app-hairline); }
   .app-world .trip-shell > aside > label, .app-world .trip-shell > aside nav > div > p { font-family: var(--stowaway-font-label); font-size: .8125rem; letter-spacing: var(--stowaway-tracking-label); text-transform: uppercase; }
-  .app-world .trip-shell > aside nav { border-top-style: dashed; }
-  .app-world .trip-shell > aside nav a { border-inline-start: 3px solid transparent; border-radius: 0; font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; letter-spacing: 0; }
-  .app-world .trip-shell > aside nav a[aria-current='page'] { border-inline-start-color: var(--stowaway-ink); background: var(--stowaway-mist); }
+  .app-world .trip-shell > aside nav { border-top: 1px solid var(--app-hairline); }
+  /* The sidebar selection is a rounded fill, as in macOS and iPadOS sidebars. */
+  .app-world .trip-shell > aside nav a { border-inline-start: 0; border-radius: 10px; font-family: var(--stowaway-font-display); font-size: 1rem; font-weight: 600; letter-spacing: 0; }
+  .app-world .trip-shell > aside nav a:hover { background: var(--app-fill); }
+  .app-world .trip-shell > aside nav a[aria-current='page'] { background: var(--app-fill-strong); color: var(--stowaway-ink); }
   .app-world .trip-shell > aside select { font-size: 1rem; }
 }
 @media (max-width: 639px) {
-  .app-world .trip-overview .overview-journal h1 { font-size: 2rem; letter-spacing: var(--stowaway-tracking-heading); }
+  .app-world .trip-overview .overview-journal h1 { font-size: 2rem; }
   .app-world .trip-overview .overview-journal-content { grid-template-columns: minmax(0, 1fr) 4.5rem; }
   .app-world .trip-overview .overview-journal-plain .overview-journal-content,
   .app-world .trip-overview:is([data-phase='traveling'], [data-phase='preparing']) .overview-journal-content { grid-template-columns: minmax(0, 1fr); }
@@ -164,7 +215,7 @@
 
 /* Home, decluttered (Nov 2026): the trip title and today's plan lead; the group photo is a small
    postcard, not a hero; group, essentials, decisions and activity share one quiet sticky column. */
-.trip-overview .overview-secondary { display: grid; gap: 1.25rem; padding-top: 1.5rem; border-top: 2px dashed var(--stowaway-border); }
+.trip-overview .overview-secondary { display: grid; gap: 1.25rem; padding-top: 1.5rem; border-top: 1px solid var(--app-hairline, var(--stowaway-border)); }
 .trip-overview .overview-secondary .overview-planning-nav { margin-top: 0; border-bottom: 0; }
 @media (min-width: 1024px) {
   .trip-overview .overview-journal-content { grid-template-columns: minmax(0, 1fr) 14rem; gap: 2rem; }
@@ -176,5 +227,20 @@
   .trip-overview .overview-columns { grid-template-columns: minmax(0, 1fr) 19rem; gap: 4rem; }
   .trip-overview .overview-sidebar { position: sticky; top: 1.5rem; gap: 2rem; }
 }
-/* Plan item: one record, parts divided by dashed rules (see ItemDetailScreen). */
-.app-world .item-record-part { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px dashed var(--stowaway-border); }
+/* Plan item: one record, parts divided by hairlines (see ItemDetailScreen). */
+.app-world .item-record-part { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--app-hairline); }
+
+/* Press feedback: things you tap give a little under the finger, like UIKit's highlighted state. */
+@media (prefers-reduced-motion: no-preference) {
+  .app-world :is(.saved-trip-card, .trip-day-preview a, .up-next-title, .plan-day):active { transform: scale(.98); transition-duration: 80ms; }
+}
+
+/* Disclosures glide open where the browser can animate to auto height; elsewhere they open at once. */
+@supports (interpolate-size: allow-keywords) {
+  .app-world { interpolate-size: allow-keywords; }
+  .app-world .ui-disclosure::details-content { block-size: 0; overflow: clip; transition: block-size var(--stowaway-motion-enter) var(--stowaway-feedback-ease), content-visibility var(--stowaway-motion-enter) allow-discrete; }
+  .app-world .ui-disclosure[open]::details-content { block-size: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-world .ui-disclosure::details-content { transition: none; }
+}

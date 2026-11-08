@@ -95,7 +95,7 @@ export function WhoScreen() {
             key={m.id}
             disabled={busy}
             onClick={() => run(m.id, (signal) => claimMember(tripId, m.id, signal))}
-            className="flex min-h-13 items-center gap-2 rounded-control border-2 border-ink bg-surface p-3 text-left hover:bg-mist active:bg-brand-50 disabled:opacity-50"
+            className="flex min-h-13 items-center gap-2 rounded-surface border border-ink/15 bg-surface p-3 text-left shadow-sm hover:bg-mist active:bg-brand-50 disabled:opacity-50"
           >
             <Avatar name={m.display_name} color={m.color} photo={m.avatar_url} size="sm" />
             <span className="min-w-0 break-words font-medium">{m.display_name}</span>

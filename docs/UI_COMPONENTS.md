@@ -13,14 +13,14 @@ Use these before writing new class strings (`src/styles/index.css`, `src/ui`):
 - Header: `PageHeader`, one per screen. It carries the back link, the title, the screen's own `action`, then the shell's tools (Stowie and sync status, supplied through the `HeaderTools` context by `TripLayout`). `below` holds a control for the whole screen (the Plan day strip, the Tickets search). Home and Map have no `PageHeader`; they render `use(HeaderTools)` themselves.
 - Actions: `Button` and `LinkButton`. A link that looks like a button is a `LinkButton`, never a hand-styled `Link`. A quiet inline action is `.ui-link` (text weight, 44 px tall). Icon-only actions are `.ui-icon-button`.
 - One add button: `Fab`, at most one per screen, hidden while an empty state already offers the same action.
-- Surfaces: `Card` / `.ui-card` for a distinct object. Give it `title` (and `eyebrow`, `action`) for a compact sans-serif heading, `footer` for a ruled caption strip, and `framed` for the one hero object on a screen (a mist frame, at most one per screen). Lists of destinations or records go in one `RowGroup` of `Row`s (`.ui-row-group`, `.ui-row`), divided by rules, not a card per row. An agenda passes `time` for the tabular time column (`.ui-time`). Surfaces are `bg-surface` with a border; shadows are only for things that float (dialogs, sheets, map chips, the `Fab`, the selected segment of a toggle).
+- Surfaces: `Card` / `.ui-card` for a distinct object. Give it `title` (and `eyebrow`, `action`) for a compact sans-serif heading, `footer` for a ruled caption strip, and `framed` for the one hero object on a screen (a mist frame, at most one per screen). Lists of destinations or records go in one `RowGroup` of `Row`s (`.ui-row-group`, `.ui-row`), divided by rules, not a card per row. An agenda passes `time` for the tabular time column (`.ui-time`). Surfaces are white groups on the canvas edged by a hairline and the faintest shadow (`--app-elevation-1`); things that float (dialogs, sheets, map chips, the `Fab`, the selected segment) lift with `--app-elevation-2`. See "App material" below.
 - Choices: `Segmented` for a two-to-four way switch; `Chip` / `.ui-chip` for filters and toggles. A hand-built switch uses `.ui-segmented` with `useSlidingHighlight` and a `.ui-highlight` span (Plan view, Vote/Results).
 - State: `Status` (`.ui-status`) for a short label beside a record, such as Confirmed, Winner or Overlaps another item. Tones are `warning`, `danger`, `success` and `quiet`, and the label is always words.
 - Rare or advanced content: `Disclosure`, one level down, with a summary that says what is inside. Never nest a second one.
 - Text: `.ui-page-title` is a compact sans-serif screen title, `SectionTitle` / `.ui-section-title` identifies a record or section, `.ui-eyebrow` / `.ui-label` supplies context, and `.ui-display` / `.travel-heading` identifies a trip or public headline. Keep a consistent left reading edge for headings, descriptions, and actions, including empty states. Reserve centered labels for compact controls and icons. Nothing is smaller than `text-xs`.
 - Dates: `formatDate` and `dateRange` in `src/lib/time.ts`; never show a stored `yyyy-MM-dd`.
 - Loading: `ListSkeleton` (from `collection.tsx`) inside a screen, `LoadingState` for a whole screen.
-- Colour: semantic tokens only (`src/styles/index.css` `@theme`). Words are `text-ink` or `text-muted`, actions `text-action`, rules `border-line`, control edges `border-control`, surfaces `bg-surface` / `bg-canvas` / `bg-mist`, and states `warning`, `danger` or `success` (with `-ink` for text). Don't add raw `stone-*`, `bg-white` or Tailwind hues; `stone` is remapped to the warm neutrals only as a safety net. Radii are `rounded-control` (6px) and `rounded-surface` (10px).
+- Colour: semantic tokens only (`src/styles/index.css` `@theme`). Words are `text-ink` or `text-muted`, actions `text-action`, rules `border-line`, control edges `border-control`, surfaces `bg-surface` / `bg-canvas` / `bg-mist`, and states `warning`, `danger` or `success` (with `-ink` for text). Don't add raw `stone-*`, `bg-white` or Tailwind hues; `stone` is remapped to the warm neutrals only as a safety net. Radii are `rounded-control` and `rounded-surface`: 12px and 14px inside the app, 8px and 10px on the printed website.
 - Stowie in an empty state: Tickets, Money and Tasks only. Other empties keep a plain icon.
 
 ## Keeping screens uncluttered
@@ -69,6 +69,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 `PageHeader` reads the current trip from `HeaderTripName` unless a screen supplies its own eyebrow. `Segmented` supports a single tab stop, arrow-key selection, wraparound, and Home/End.
+
+## App material (November 2026)
+
+The app is the luggage tag's brand built like a native iPhone app (`src/styles/app-theme.css`); the public
+website keeps the printed tag world (`DESIGN.md`).
+
+- **Rules are hairlines**, never ink strokes or dashes: `border-line` and `--app-hairline` are ink mixed to about
+  13%, so they follow dark mode. Row separators start where the text starts (iOS inset), not at the group's edge.
+- **Control edges** keep `border-control` (1px, 3:1 against the canvas) so fields stay findable; the ink edge appears
+  while typing.
+- **Secondary buttons are tinted fills** (`--app-fill-strong`), not outlines. Coral stays for the one primary action.
+- **Segmented controls** are a tinted track with the choice as a solid ink pill.
+- **Header and tab bar** are translucent material (`--app-material` plus backdrop blur) over a hairline.
+- **Press feedback**: rows darken to `--app-fill-strong`, cards and day tiles give to 98%, and disclosures glide open
+  where the browser can animate to auto height. All of it stops under reduced motion.
+- **Focus**: headings focused after navigation (`tabindex="-1"`) draw no ring; keyboard focus on controls keeps the
+  coral-and-ink ring.
+- **Travelers without a colour** get a stable default from `AVATAR_DEFAULTS` (`src/ui/avatarPalette.ts`), chosen by name.
+- **The trip shell owns scrolling**: `.trip-shell` is `relative`, so absolutely positioned screen-reader text can't
+  stretch the page behind it.
 
 ## Shared primitives and themes (November 2026)
 

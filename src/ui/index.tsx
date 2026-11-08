@@ -327,7 +327,7 @@ export function Avatar({ name, color, photo, size = 'md' }: { name: string; colo
   const [failed, setFailed] = useState(false)
   useEffect(() => setFailed(false), [photo])
   const initials = travelerInitials(name)
-  const palette = avatarPalette(color)
+  const palette = avatarPalette(color, name)
   return (
     <span
       className={cx(
