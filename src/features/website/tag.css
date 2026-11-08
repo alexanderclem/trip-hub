@@ -336,3 +336,36 @@
 @media (prefers-reduced-motion: reduce) {
   .tag-faq details::details-content, .tag-world .website-faq details::details-content { transition: none; }
 }
+
+/* Chrome refinement (Nov 2026): the tag keeps its signature pieces (eyelet, perforations, tear stubs,
+   route print) while the generic chrome around them goes lighter, as in the app: hairline rules
+   instead of 2–3px ink and dashes, pill-shaped header actions, rounder secondary buttons. */
+.tag-world {
+  --tag-hairline: color-mix(in srgb, var(--tag-ink) 14%, transparent);
+  --tag-fill: color-mix(in srgb, var(--tag-ink) 8%, transparent);
+}
+.tag-header { border-bottom: 1px solid var(--tag-hairline); }
+/* Open app keeps an ink edge (3:1, tested) as a pill; the menu is an icon button that tints on press. */
+.tag-nav-link.is-app { border-width: 1.5px; border-radius: 999px; padding-inline: 1.125rem; }
+.tag-nav-link.is-app:hover { background: var(--tag-fill); text-decoration: none; }
+.tag-menu { border: 0; border-radius: 999px; }
+.tag-menu:hover, .tag-menu[aria-expanded='true'] { background: var(--tag-fill); }
+.tag-mobile-nav:not([hidden]) { border-bottom: 1px solid var(--tag-hairline); }
+.tag-mobile-nav a { border-bottom: 1px solid var(--tag-hairline); }
+/* Lists and field rows: one hairline, no dashes. */
+.tag-fields { border-top: 1px solid var(--tag-hairline); }
+.tag-fields > div, .tag-faq details, .tag-world .website-faq details, .tag-instead li { border-bottom: 1px solid var(--tag-hairline); }
+.tag-faq details:first-child, .tag-world .website-faq details:first-child, .tag-instead { border-top: 1px solid var(--tag-hairline); }
+.tag-steps li { border-top: 1px solid var(--tag-hairline); }
+.tag-world .marketing-walkthrough li { border-top: 1px solid var(--tag-hairline); }
+.tag-world .marketing-section, .tag-world .website-closing { border-top: 1px solid var(--tag-hairline); }
+.tag-foot-inner { border-top: 1px solid var(--tag-hairline); }
+.tag-foot-meta { border-top: 1px solid var(--tag-hairline); }
+.tag-world :is(.calc-table th, .calc-table td) { border-bottom: 1px solid var(--tag-hairline); }
+/* Buttons on secondary pages: rounder; the outline action becomes a tinted fill with the same ink label. */
+.tag-world .website-button { border-radius: 12px; }
+.tag-world .website-button-outline { border-color: transparent; background: var(--tag-fill); }
+.tag-world .website-button-outline:hover { background: color-mix(in srgb, var(--tag-ink) 13%, transparent); }
+/* Cards printed on the page (plans, calculators, comparisons): hairline edge and a faint lift, not a 2px stroke. */
+.tag-world :is(.marketing-plan, .marketing-price-callout, .calc-result, .splitter-cost, .compare-wrap, .operator-preview-frame, .operator-booking-page, .operator-booking-summary) { border: 0; border-radius: 16px; box-shadow: 0 0 0 1px var(--tag-hairline), 0 1px 2px rgb(23 52 63 / .05); }
+.tag-world .operator-booking-summary { box-shadow: 0 0 0 6px var(--tag-stock), 0 0 0 7px var(--tag-hairline), 0 12px 28px -12px rgb(23 52 63 / .3); }

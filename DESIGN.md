@@ -265,13 +265,15 @@ components:
 
 Every public page is one long luggage tag hung on an ocean-ink ground. The header carries the eyelet the tag hangs from, the footer closes the sheet, and everything between is printed on cool thermal stock in ink: route codes at display scale, travelers in condensed print, the plan as a routing, tickets as tear-off stubs, barcodes as the closing mark. Sections are separated by perforated tear lines with notches cut from both edges. The page reads like a trip printing itself, line by line.
 
+Chrome refinement (Nov 2026): the signature pieces (eyelet, perforations, tear stubs, route print, the reversed offline stub) keep their ink; generic chrome (header rule, field lists, FAQ rows, steps, cards on secondary pages, outline buttons) uses 1px hairlines, a faint lift and tinted fills, matching the app material in docs/UI_COMPONENTS.md. Where the text below says 2px or dashed for those, the hairline wins.
+
 The density is a printed document's: hard 2px ink strokes, dashed rules, small condensed travel labels, and generous blocks of air between stops. Colour is almost entirely ink on stock. Coral is the one loud colour and belongs to the group's choice and the primary action; signal yellow marks what is still open. State is shown as print density (solid, half-toned, ghost), never as a new colour. Dark mode is the same tag printed in reverse.
 
 **Scope.** The public website uses the luggage-tag composition. The working app shares its palette, fonts and printed details through `src/styles/app-theme.css`, while retaining its task-focused layouts. Shared typography roles live in `src/styles/tokens.css` and the component guidance in `docs/UI_COMPONENTS.md`.
 
 **Key Characteristics:**
 - One sheet of tag stock on an ink ground, with an eyelet at the top and 22px sheet corners top and bottom.
-- Perforated tear lines are the section dividers; dashed rules divide inside a section.
+- Perforated tear lines are the section dividers; inside a section, rows are divided by 1px hairlines (ink at 14%), not dashes (chrome refinement, Nov 2026).
 - Antonio route codes (CDG, PAR, VRS, MON) are the display voice; Barlow carries headings, body and controls; Barlow Condensed is reserved for small travel labels.
 - Coral appears only on the group's choice and the primary action.
 - Print density shows state: confirmed solid, tentative half-toned, empty as a dashed ghost tag.
@@ -397,7 +399,7 @@ Tactile print: sentence-case Barlow controls, small condensed travel labels, 2px
 - **Focus:** the world's 3px coral outline.
 
 ### Navigation
-- **Header:** the drawn wordmark at left, sentence-case Barlow links (0.9375rem, normal tracking) at right from 1100px. Hover underlines 2px; the current page underlines 3px in ink. Open app is boxed with a 2px ink stroke. Below 1100px a 44px boxed menu button opens a full-width list of 52px rows on dashed rules; Escape closes it and returns focus.
+- **Header:** the drawn wordmark at left, sentence-case Barlow links (0.9375rem, normal tracking) at right from 1100px. Hover underlines 2px; the current page underlines 3px in ink. Open app is a pill with a 1.5px ink edge (3:1, tested). Below 1100px a 44px round menu icon (tinted on press) opens a full-width list of 52px rows on hairlines; Escape closes it and returns focus.
 - **Routing strip:** on desktop, route codes with small labels (CDG Trip, PAR Save, ··· Vote, VRS Plan, OFF Offline, TIX Tickets, YOU Join). The vote stop is a ghost (an empty dashed slot) until the vote; then the winning neighborhood code (MON, MAR, LAT) prints solid on coral with the stamp animation. Below 1100px, show only the readable labels so visitors can scan the sections, with one exception: once the group picks, the winner's code prints beside "Vote" on phones too. The stop being read is lit in ink. There are no stop numerals.
 - **Footer:** the tag's bottom edge: wordmark and signature line, a two- to four-column link grid, the appearance picker printed flat, and a barcode for joinstowaway.app.
 

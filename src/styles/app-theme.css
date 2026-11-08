@@ -130,7 +130,8 @@
 .app-world .plan-notebook .plan-day[aria-current] { background: var(--stowaway-ink); color: var(--stowaway-on-action); box-shadow: 0 4px 12px -4px rgb(23 52 63 / .45); }
 .app-world .plan-notebook .plan-days { padding-bottom: .75rem; }
 .app-world .plan-date-heading h2 { font-size: clamp(1.625rem, 3vw, 2.125rem); font-weight: 700; letter-spacing: -.025em; }
-.app-world .plan-toolbar { border-bottom: 1px solid var(--app-hairline); }
+/* Controls sit together on the left, so the floating add button (bottom right) never covers On map. */
+.app-world .plan-toolbar { justify-content: flex-start; column-gap: 1.25rem; border-bottom: 1px solid var(--app-hairline); }
 .app-world .plan-view.ui-segmented { background: var(--app-fill-strong); font-size: .9375rem; }
 .app-world .travel-agenda > li { border-bottom: 1px solid var(--app-hairline); }
 .app-world .agenda-category { border: 0; border-radius: 10px; background: var(--app-fill); }

@@ -196,3 +196,26 @@ test('headings focused after navigation show no ring, while keyboard focus on co
   await page.keyboard.press('Tab')
   await expect.poll(() => page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle)).toBe('solid')
 })
+
+test('the floating add button never covers the Plan toolbar, whatever the scroll', async ({ page }) => {
+  await localTrip(page, '2027-03-01T12:00:00Z')
+  // Pin the flight to a place so the day offers "On map".
+  await page.evaluate(async ({ tripId, flightId }) => {
+    const db = await new Promise<IDBDatabase>((resolve) => { const req = indexedDB.open('trip-hub'); req.onsuccess = () => resolve(req.result) })
+    const tx = db.transaction(['places', 'itinerary_items'], 'readwrite')
+    const placeId = '00000000-0000-4000-8000-000000000985'
+    tx.objectStore('places').put({ id: placeId, trip_id: tripId, created_at: '2027-03-01T12:00:00Z', updated_at: '2027-03-01T12:00:00Z', created_by: null, updated_by: null, deleted_at: null, name: 'La Aurora airport', category: 'flight', tags: [], lat: 14.5833, lng: -90.5275, address: null, area: null, status: 'booked', notes: null, phone: null, website: null, opening_hours: null, external_ids: {}, source: 'manual' })
+    const items = tx.objectStore('itinerary_items')
+    const req = items.get(flightId)
+    req.onsuccess = () => items.put({ ...req.result, place_id: placeId })
+    await new Promise<void>((resolve) => { tx.oncomplete = () => resolve() })
+    db.close()
+  }, { tripId, flightId })
+  await page.goto(`${root}/plan?day=2027-03-13`)
+  const onMap = page.getByRole('link', { name: 'On map', exact: true })
+  await expect(onMap).toBeVisible()
+  const link = (await onMap.boundingBox())!
+  const fab = (await page.locator('.ui-fab').boundingBox())!
+  // The Fab is fixed to the bottom right; the toolbar's controls must end before its column starts.
+  expect(link.x + link.width).toBeLessThan(fab.x)
+})
