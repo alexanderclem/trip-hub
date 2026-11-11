@@ -4,6 +4,7 @@ import { useDevice, useQuizPending } from '@/data/device'
 import { useOnline } from '@/lib/useOnline'
 import { mobilePlatform, isStandalone } from '@/features/install/installPrompt'
 import { Button, Card, Row } from '@/ui'
+import { useAttachments } from '@/features/tickets/files'
 
 /**
  * Someone who just tapped the trip link from a group chat lands here knowing nothing about the app.
@@ -15,6 +16,7 @@ export function JoinerWelcome({ tripId, justJoined }: { tripId: string; justJoin
   const setDismissed = useDevice((s) => s.setSetupDismissed)
   const quizPending = useQuizPending()
   const online = useOnline()
+  const tickets = useAttachments(tripId)
   useEffect(() => {
     if (justJoined && useDevice.getState().setupDismissed[tripId] === undefined) setDismissed(tripId, false)
   }, [justJoined, tripId, setDismissed])
@@ -29,9 +31,8 @@ export function JoinerWelcome({ tripId, justJoined }: { tripId: string; justJoin
       <p className="mt-1 text-sm text-muted">Everyone on the trip sees the same plan, votes and expenses. Start here:</p>
       <ul className="ui-row-group mt-3">
         <Row to={`${root}/plan`} icon={icon(CalendarDays)} title="See the plan so far" detail="Day by day, in the trip’s time zone" />
-        {canInstall
-          ? <Row to="?install=1" icon={icon(Smartphone)} title="Add Stowaway to your Home Screen" detail="Then the plan, map and tickets work with no signal" />
-          : <Row to={`${root}/more/settings`} icon={icon(CloudOff)} title="Get ready for no signal" detail="Save the plan, map and tickets on this phone" />}
+        <Row to={`${root}/more/settings#offline-ready`} icon={icon(CloudOff)} title="Prepare this phone for no signal" detail={tickets === undefined ? 'Checking ticket files on this phone…' : tickets.length ? `${tickets.filter((ticket) => ticket.onPhone).length} of ${tickets.length} ticket files on this phone. Check plan and map downloads in Trip settings.` : 'Download and check the plan, tickets and maps in Trip settings.'} />
+        {canInstall && <Row to="?install=1" icon={icon(Smartphone)} title="Add Stowaway to your Home Screen" detail="An optional shortcut. Downloads are a separate step." />}
         {quizPending && online && <Row to={`/quiz?next=${encodeURIComponent(`${root}/overview`)}`} icon={icon(Compass)} title="How do you like to travel?" detail="10 quick questions, so trip ideas fit you" />}
       </ul>
     </Card>

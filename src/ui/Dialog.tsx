@@ -53,10 +53,13 @@ export function Dialog({ open, onClose, title, children, dismissible = true, she
     if (reducedMotion) { closeDialog(dialog, opener.current); return }
     dialog.dataset.closing = ''
     const animation = animate(dialog, { opacity: 0, y: 6 }, motionTiming.exit)
-    void animation.then(() => {
+    const finish = () => {
       if (!cancelled && !requestedOpen.current && dialog.open) closeDialog(dialog, opener.current)
-    })
-    return () => { cancelled = true; animation.stop() }
+    }
+    // A cancelled/interrupted animation must never leave a closed modal trapping focus.
+    const deadline = window.setTimeout(finish, motionTiming.exit.duration * 1000 + 100)
+    void animation.then(() => { window.clearTimeout(deadline); finish() })
+    return () => { cancelled = true; window.clearTimeout(deadline); animation.stop() }
   }, [open, reducedMotion, animate, scope])
   useEffect(() => {
     const dialog = scope.current

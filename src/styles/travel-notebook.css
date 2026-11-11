@@ -17,15 +17,11 @@
 .overview-traveler-link > svg { flex-shrink: 0; }
 .overview-traveler-link:hover { color: var(--stowaway-action); }
 .overview-traveler-link .traveler-stack { flex-shrink: 0; }
-.trip-overview .overview-focus { position: relative; gap: 0; border: 0; border-radius: var(--stowaway-radius-surface); background: var(--stowaway-ink); color: var(--stowaway-on-action); padding: clamp(1.25rem, 2.5vw, 2rem); }
+.trip-overview .overview-focus { position: relative; gap: 0; border: 0; border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); color: var(--stowaway-ink); padding: clamp(1.25rem, 2.5vw, 2rem); }
 .overview-focus .overview-focus-icon { display: none; }
-.overview-focus p, .overview-focus .app-kicker { color: var(--stowaway-on-action); }
-.overview-focus p:not(.app-kicker) { opacity: .85; }
+.overview-focus p, .overview-focus .app-kicker { color: var(--stowaway-muted); }
 .overview-focus .app-kicker { font-size: var(--stowaway-text-caption); letter-spacing: .09em; text-transform: uppercase; }
 .trip-overview .overview-focus h2 { font-family: var(--stowaway-font-display); font-size: clamp(1.5rem, 2.5vw, 1.875rem); font-weight: 600; line-height: 1.2; letter-spacing: -.025em; }
-.overview-focus .ui-button { border-color: var(--stowaway-on-action); background: var(--stowaway-on-action); color: var(--stowaway-ink); font-size: .8125rem; }
-.overview-focus .ui-button:hover { opacity: .9; }
-.overview-focus .ui-button:focus-visible { outline-color: var(--stowaway-on-action); }
 .trip-overview .overview-planning-nav { display: flex; flex-wrap: wrap; gap: .375rem 1.25rem; margin-top: -1rem; margin-bottom: 0; padding-block: .25rem; border-bottom: 1px solid var(--stowaway-border); }
 .overview-planning-nav a { min-height: 44px; padding: .375rem 0; gap: .375rem; border: 0; border-radius: 0; background: transparent; font-size: var(--stowaway-text-caption); color: var(--stowaway-muted); }
 .overview-planning-nav a:hover { border-color: transparent; background: transparent; color: var(--stowaway-ink); text-decoration: underline; text-underline-offset: 4px; }
@@ -70,7 +66,7 @@
 /* Print density: a tentative or idea stop prints on the half-tone with lighter type; confirmed prints solid. */
 .agenda-stop:is([data-status='tentative'], [data-status='idea']) { background: radial-gradient(circle, color-mix(in srgb, var(--stowaway-ink) 16%, transparent) 1px, transparent 1.4px) 0 0 / 5px 5px; }
 .agenda-stop:is([data-status='tentative'], [data-status='idea']) h3 { font-weight: 500; }
-[data-theme='stowaway-dark'] .agenda-stop:is([data-status='tentative'], [data-status='idea']) { background-image: radial-gradient(circle, color-mix(in srgb, var(--stowaway-ink) 22%, transparent) 1px, transparent 1.4px); }
+[data-theme='dark'] .agenda-stop:is([data-status='tentative'], [data-status='idea']) { background-image: radial-gradient(circle, color-mix(in srgb, var(--stowaway-ink) 22%, transparent) 1px, transparent 1.4px); }
 .agenda-code { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; margin-top: .375rem; }
 .agenda-code-label { font-family: var(--stowaway-font-label); font-size: var(--stowaway-text-caption); font-weight: 600; letter-spacing: var(--stowaway-tracking-label); text-transform: uppercase; color: var(--stowaway-muted); }
 .agenda-code-value { font-size: .9375rem; font-weight: 600; letter-spacing: .06em; font-variant-numeric: tabular-nums; color: var(--stowaway-ink); }

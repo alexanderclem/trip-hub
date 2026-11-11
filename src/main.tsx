@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router'
 import { router, routes } from './router'
 import { installIntentPreload } from './app/preload'
 import { MotionProvider } from './ui/MotionProvider'
+import { StowawayTheme } from './ui/StowawayTheme'
 import { initializeInstallPrompt } from './features/install/installPrompt'
 import { clearPreResetTrips } from './data/reset'
 import { setWriteGuard } from './data/repo'
@@ -33,7 +34,7 @@ function start() {
   const element = document.getElementById('root')!
   const application = (
     <StrictMode>
-      <MotionProvider><RouterProvider router={router!} /></MotionProvider>
+      <StowawayTheme><MotionProvider><RouterProvider router={router!} /></MotionProvider></StowawayTheme>
     </StrictMode>
   )
   const renderedPath = element.dataset.prerender

@@ -31,9 +31,9 @@ export function QuickAdd({ tripId }: { tripId: string }) {
   const today = DateTime.now().setZone(trip?.timezone ?? 'UTC').toISODate()!
   const day = selectedDay && /^\d{4}-\d{2}-\d{2}$/.test(selectedDay) && DateTime.fromISO(selectedDay).isValid
     ? selectedDay : trip?.start_date && today < trip.start_date ? trip.start_date : today
-  if (!allowed.length || editing) return null
+  if (!allowed.length || editing || contextualAdd) return null
   return <>
-    <Button variant="secondary" className={`quick-add-trigger${contextualAdd ? ' quick-add-contextual' : ''}`} aria-haspopup="dialog" onClick={() => setOpen(true)}><Plus aria-hidden="true" className="size-4" /><span>Add</span></Button>
+    <Button variant="secondary" className="quick-add-trigger" aria-haspopup="dialog" onClick={() => setOpen(true)}><Plus aria-hidden="true" className="size-4" /><span className="quick-add-label">Add</span></Button>
     <Dialog open={open} onClose={() => setOpen(false)} title="Add to your trip" sheet>
       <nav aria-label="Add to your trip" className="quick-add-list">{allowed.map(({ path, label, detail, Icon }) => <Link key={path} to={`/t/${tripId}/${path}${path === 'plan/new' ? `?day=${day}` : ''}`} onClick={() => setOpen(false)}>
         <span className="quick-add-icon"><Icon aria-hidden="true" className="size-5" /></span>

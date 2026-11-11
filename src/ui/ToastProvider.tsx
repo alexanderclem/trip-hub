@@ -27,7 +27,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       setToasts((previous) => previous.map((item) => item.id === toast.id ? { ...item, busy: false, error: error instanceof Error ? error.message : 'Could not undo. Try again.' } : item))
     } finally { locks.current.delete(toast.id) }
   }
-  return <ToastContext value={notify}>{children}<section className="ui-toast-region" aria-label="Recent changes" aria-relevant="additions text" aria-live="polite">{toasts.map((toast) => <div key={toast.id} className="ui-toast"><div className="min-w-0 flex-1"><p>{toast.message}</p>{toast.error && <p className="mt-1 text-danger-ink">{toast.error}</p>}</div>{toast.undo && <button type="button" className="ui-button ui-button-ghost" aria-label={toast.undoLabel ?? `Undo: ${toast.message}`} disabled={toast.busy} onClick={() => void undo(toast)}>{toast.busy ? 'Undoing…' : 'Undo'}</button>}<button type="button" className="ui-icon-button shrink-0" aria-label={`Dismiss: ${toast.message}`} disabled={toast.busy} onClick={() => setToasts((previous) => previous.filter((item) => item.id !== toast.id))}><X aria-hidden="true" className="size-4" /></button></div>)}</section></ToastContext>
+  const latest = toasts.at(-1)
+  const earlier = toasts.filter((toast) => toast !== latest && !toast.error && !toast.busy)
+  const visible = toasts.filter((toast) => toast === latest || toast.error || toast.busy)
+  const renderToast = (toast: Toast) => <div key={toast.id} className="ui-toast">
+    <div className="min-w-0 flex-1"><p>{toast.message}</p>{toast.error && <p className="mt-1 text-danger-ink">{toast.error}</p>}</div>
+    {toast.undo && <button type="button" className="ui-button ui-button-ghost" aria-label={toast.undoLabel ?? `Undo: ${toast.message}`} disabled={toast.busy} onClick={() => void undo(toast)}>{toast.busy ? 'Undoing…' : 'Undo'}</button>}
+    <button type="button" className="ui-icon-button shrink-0" aria-label={`Dismiss: ${toast.message}`} disabled={toast.busy} onClick={() => setToasts((previous) => previous.filter((item) => item.id !== toast.id))}><X aria-hidden="true" className="size-4" /></button>
+  </div>
+  return <ToastContext value={notify}>{children}<section className="ui-toast-region" aria-label="Recent changes" aria-relevant="additions text" aria-live="polite">
+    {!!earlier.length && <details className="ui-toast-history"><summary>Earlier changes ({earlier.length})</summary><div className="grid gap-2 pt-2">{earlier.map(renderToast)}</div></details>}
+    {visible.map(renderToast)}
+  </section></ToastContext>
 }
 
 export function useToast() {

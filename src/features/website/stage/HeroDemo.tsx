@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { ChevronLeft, Landmark, MapPin, RotateCcw, Share2, Vote } from 'lucide-react'
 import { Count, Phone, Roll, Stage, States, type Act } from './kit'
 import './hero.css'
+import { PlanningExample } from './PlanningExample'
 
-// The homepage hero: the group's vote decides, and the plan fills itself in.
+// Noninteractive illustration. The separate PlanningExample requires an explicit plan action.
 //
 // Plan, written before the build (references/framing.md, motion.md):
 //   Medium:  plays once as it scrolls in, beside the headline; poster is the payoff.
@@ -101,6 +102,7 @@ export function HeroDemo() {
           <RotateCcw size={16} strokeWidth={2.25} aria-hidden="true" />Replay
         </button>
       </div>
+      <p className="text-sm text-muted">Animated illustration. Try the real controls below.</p>
       <div role="img" aria-label="Stowaway on a phone: the group votes on where to spend the afternoon, Le Marais wins, and it is added to Sunday's plan at 15:00.">
       <Stage<S>
         key={take}
@@ -143,6 +145,7 @@ export function HeroDemo() {
         }}
       </Stage>
       </div>
+      <PlanningExample />
     </div>
   )
 }

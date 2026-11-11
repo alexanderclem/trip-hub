@@ -20,7 +20,7 @@
   --radius-control: 12px;
   --radius-surface: 14px;
 }
-:root[data-theme='stowaway-dark'] :is(.app-world, .ui-dialog, .ui-toast) {
+:root[data-theme='dark'] :is(.app-world, .ui-dialog, .ui-toast) {
   --app-hairline: color-mix(in srgb, var(--stowaway-ink) 14%, transparent);
   --app-fill: color-mix(in srgb, var(--stowaway-ink) 8%, transparent);
   --app-fill-strong: color-mix(in srgb, var(--stowaway-ink) 13%, transparent);
@@ -85,7 +85,7 @@
 .app-world .ui-field:disabled, .ui-dialog .ui-field:disabled { background: var(--stowaway-mist); }
 /* Segmented controls: a tinted track with the choice as a solid ink pill riding on it. */
 .app-world .ui-segmented, .ui-dialog .ui-segmented { gap: 2px; padding: 3px; border: 0; border-radius: 12px; background: var(--app-fill-strong); font-family: var(--stowaway-font-display); font-size: .9375rem; font-weight: 600; }
-.app-world .ui-segmented > :is(button, label), .ui-dialog .ui-segmented > :is(button, label) { min-height: 40px; border-radius: 9px; color: var(--stowaway-ink); }
+.app-world .ui-segmented > :is(button, label), .ui-dialog .ui-segmented > :is(button, label) { min-height: 44px; border-radius: 9px; color: var(--stowaway-ink); }
 .app-world .ui-segmented > :is(button, label):not([aria-checked='true'], [aria-pressed='true'], [aria-selected='true'], :has(:checked)):hover { background: var(--app-fill); }
 .app-world .ui-segmented > :is([aria-checked='true'], [aria-pressed='true'], [aria-selected='true'], label:has(:checked)),
 .ui-dialog .ui-segmented > :is([aria-checked='true'], [aria-pressed='true'], [aria-selected='true'], label:has(:checked)) { background: var(--stowaway-ink); color: var(--stowaway-on-action); box-shadow: 0 1px 3px rgb(23 52 63 / .2); }
@@ -100,7 +100,7 @@
 /* Header and tab bar are translucent material over the content, edged by a hairline. */
 .app-world .app-page-header { border-bottom: 1px solid var(--app-hairline); background: var(--app-material); -webkit-backdrop-filter: saturate(1.8) blur(20px); backdrop-filter: saturate(1.8) blur(20px); }
 .app-world .trip-tabs { border-top: 1px solid var(--app-hairline); background: var(--app-material); -webkit-backdrop-filter: saturate(1.8) blur(20px); backdrop-filter: saturate(1.8) blur(20px); }
-.app-world .trip-tab { font-family: var(--stowaway-font-body); font-size: .75rem; font-weight: 600; letter-spacing: .01em; line-height: 1.35; }
+.app-world .trip-tab { font-family: var(--stowaway-font-body); font-size: var(--stowaway-text-caption); font-weight: 600; letter-spacing: .01em; line-height: 1.35; }
 .app-world .trip-tab[aria-current='page'] { background: transparent; color: var(--stowaway-ink); }
 .app-world .trip-tab:active { background: transparent; }
 .app-world .trip-tab-bar::before { width: 1.75rem; border-radius: 0 0 3px 3px; }

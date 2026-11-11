@@ -53,6 +53,7 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <Navigate to="overview" replace /> },
           { path: 'overview', lazy: () => import('./features/trips/TripOverviewScreen').then((m) => ({ Component: m.TripOverviewScreen })) },
+          { path: 'travelers', lazy: () => import('./features/trips/TravelersScreen').then((m) => ({ Component: m.TravelersScreen })) },
           { path: 'travelers/:memberId', lazy: () => import('./features/trips/TravelerScreen').then((m) => ({ Component: m.TravelerScreen })) },
           { path: 'activity', lazy: () => import('./features/activity/ActivityScreen').then((m) => ({ Component: m.ActivityScreen })) },
           { path: 'map', lazy: () => import('./features/map/MapScreen').then((m) => ({ Component: m.default })) },

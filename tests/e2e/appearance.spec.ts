@@ -8,26 +8,42 @@ test.beforeEach(async ({ page }) => {
 
 const theme = (page: Page) => page.locator('html')
 
+for (const saved of ['light', 'dark'] as const) test(`prerendered public HTML honors saved ${saved} appearance before hydration`, async ({ page }) => {
+  await page.emulateMedia({ colorScheme: saved === 'dark' ? 'light' : 'dark' })
+  await page.addInitScript(saved => localStorage.setItem('stowaway-appearance', saved), saved)
+  // Keep the actual pre-paint script and stylesheet, but prevent the application from hydrating.
+  await page.route('**/assets/*.js', route => route.abort())
+  await page.goto('/')
+  await expect(theme(page)).toHaveAttribute('data-theme', saved)
+  await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+  const appearance = await page.locator('#root > [data-astryx-theme="stowaway"]').evaluate(el => ({
+    mode: getComputedStyle(el).colorScheme,
+    ink: getComputedStyle(el).getPropertyValue('--stowaway-ink').trim(),
+  }))
+  expect(appearance.mode).toBe(saved)
+  expect(appearance.ink).toBe(saved === 'dark' ? '#eaf1ef' : '#17343f')
+})
+
 test('appearance follows live system changes, respects an override and survives navigation and reload', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' })
   await page.goto('/app')
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-dark')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'dark')
   await expect(page.getByRole('radio', { name: 'System', exact: true })).toBeChecked()
   await page.emulateMedia({ colorScheme: 'light' })
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-light')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'light')
   await page.getByRole('radio', { name: 'Dark', exact: true }).check()
   await page.reload()
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-dark')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'dark')
   await expect(page.getByRole('radio', { name: 'Dark', exact: true })).toBeChecked()
   await page.getByRole('link', { name: 'Create a trip', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'New trip', level: 1 })).toBeVisible()
   await expect(page.getByLabel('Your name')).toBeVisible()
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-dark')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'dark')
   await page.goto('/pricing')
   await page.getByRole('radio', { name: 'System', exact: true }).check()
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-light')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'light')
   await page.emulateMedia({ colorScheme: 'dark' })
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-dark')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'dark')
 })
 
 test('appearance changes propagate across tabs, including clearing the saved choice', async ({ page, context }) => {
@@ -37,10 +53,10 @@ test('appearance changes propagate across tabs, including clearing the saved cho
   await other.emulateMedia({ colorScheme: 'light' })
   await other.goto('/pricing')
   await page.getByRole('radio', { name: 'Dark', exact: true }).check()
-  await expect(theme(other)).toHaveAttribute('data-theme', 'stowaway-dark')
+  await expect(theme(other)).toHaveAttribute('data-theme', 'dark')
   await expect(other.getByRole('radio', { name: 'Dark', exact: true })).toBeChecked()
   await other.evaluate(() => localStorage.removeItem('stowaway-appearance'))
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-light')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'light')
   await expect(page.getByRole('radio', { name: 'System', exact: true })).toBeChecked()
 })
 
@@ -59,9 +75,9 @@ test('appearance remains usable when saving preferences is blocked', async ({ pa
   })
   await page.goto('/app')
   await page.getByRole('radio', { name: 'Dark', exact: true }).check()
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-dark')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'dark')
   await page.getByRole('radio', { name: 'Light', exact: true }).check()
-  await expect(theme(page)).toHaveAttribute('data-theme', 'stowaway-light')
+  await expect(theme(page)).toHaveAttribute('data-theme', 'light')
 })
 
 test('appearance radios work by keyboard with a visible focus target', async ({ page }) => {
@@ -109,7 +125,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
         await page.setViewportSize({ width, height: 900 })
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `${path} at ${width}px`).toBe(true)
       }
-      await expect(theme(page)).toHaveAttribute('data-theme', `stowaway-${colorScheme}`)
+      await expect(theme(page)).toHaveAttribute('data-theme', colorScheme)
       const contrasts = await page.evaluate(() => {
         const style = getComputedStyle(document.body)
         const luminance = (hex: string) => {

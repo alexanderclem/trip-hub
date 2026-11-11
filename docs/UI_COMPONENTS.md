@@ -92,13 +92,23 @@ website keeps the printed tag world (`DESIGN.md`).
 
 ## Shared primitives and themes (November 2026)
 
-The existing public component API now composes DaisyUI 5 semantic primitives with
-Stowaway's Tailwind utilities. `Button`/`LinkButton` use `btn` variants; `Card`,
-`Input`, `Select`, `Textarea`, and `Skeleton` use the corresponding semantic classes.
-Existing call sites keep their behavior. Native dialogs remain native dialogs.
+The public component API incrementally adopts pinned Astryx 0.7.13. `Button`, `Card`
+and `Segmented` render the actual upstream components with a compiled Stowaway theme.
+`TextField` composes Astryx TextInput/Field in the two-field create flow; it preserves
+native required/maxlength behavior and a 44px editable target. TravelerLink uses Astryx
+Link through React Router integration. Money's group details and the real public Paris
+example use Astryx Collapsible. See [the migration architecture](../.design/astryx-migration/ARCHITECTURE.md)
+for exact APIs, exceptions, evidence and the component map.
 
-`AppearancePicker` uses native radios, DaisyUI's theme controller and a shared
-`useSyncExternalStore` preference. Use `showLabel={false}` when the parent already
+`LinkButton` retains its Router/Motion anchor and DaisyUI button classes. Existing
+Input/Select/Textarea/date/file contracts remain native. Native dialogs preserve their
+modality, sheet gestures and focus restoration, with a bounded exit fallback so an
+interrupted animation cannot keep a dismissed modal trapping focus. Earlier ordinary
+undo notices remain under Earlier changes; the latest notice and errors stay visible.
+
+`AppearancePicker` uses native radios and the shared `useSyncExternalStore` preference.
+The Astryx Theme is the sole runtime owner of light/dark HTML attributes; the existing
+pre-paint script handles saved/system preference before hydration. Use `showLabel={false}` when the parent already
 provides an Appearance heading. `Field` associates its hint with its controls and
 preserves any explicit `aria-describedby` IDs passed by a form.
 

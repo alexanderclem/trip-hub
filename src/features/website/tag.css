@@ -29,7 +29,7 @@
   padding-block: 12px 24px;
   min-height: 100%;
 }
-:root[data-theme='stowaway-dark'] .tag-world {
+:root[data-theme='dark'] .tag-world {
   --tag-ground: #08171c;
   --tag-stock: #10262e;
   --tag-card: #163039;

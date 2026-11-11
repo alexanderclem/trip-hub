@@ -16,16 +16,20 @@ function readAppearance(): Appearance {
 let appearance = readAppearance()
 
 function applyAppearance() {
-  const dark = appearance === 'dark' || (appearance === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
-  document.documentElement.dataset.theme = dark ? 'stowaway-dark' : 'stowaway-light'
+  const dark = appearanceMode() === 'dark'
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#10262e' : '#f1f4f5')
+}
+
+function appearanceMode(): 'light' | 'dark' {
+  return appearance === 'dark' || (appearance === 'system' && typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'
 }
 
 /** One app-wide listener keeps system changes and other tabs in sync. */
 export function initializeAppearance() {
   applyAppearance()
   const media = matchMedia('(prefers-color-scheme: dark)')
-  media.addEventListener('change', applyAppearance)
+  const onSystemChange = () => { applyAppearance(); listeners.forEach((listener) => listener()) }
+  media.addEventListener('change', onSystemChange)
   const onStorage = (event: StorageEvent) => {
     if (event.key !== storageKey && event.key !== null) return
     appearance = readAppearance()
@@ -34,7 +38,7 @@ export function initializeAppearance() {
   }
   window.addEventListener('storage', onStorage)
   return () => {
-    media.removeEventListener('change', applyAppearance)
+    media.removeEventListener('change', onSystemChange)
     window.removeEventListener('storage', onStorage)
   }
 }
@@ -53,4 +57,9 @@ export function setAppearance(next: Appearance) {
 
 export function useAppearance() {
   return useSyncExternalStore(subscribe, () => appearance, () => 'system' as const)
+}
+
+/** Theme is the only runtime writer of html[data-theme]; first paint uses appearance.js. */
+export function useAppearanceMode() {
+  return useSyncExternalStore<'light' | 'dark' | 'system'>(subscribe, appearanceMode, () => 'system')
 }

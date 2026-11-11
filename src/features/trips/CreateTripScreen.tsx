@@ -14,6 +14,7 @@ import { DateRangePicker } from '@/ui/DateRangePicker'
 import { createTrip } from './actions'
 import { afterEntry } from '@/features/onboarding/profile'
 import { LoadingState } from '@/ui/LoadingState'
+import { TextField } from '@/ui/TextField'
 
 const COMMON_ZONES = [
   'America/Guatemala',
@@ -122,12 +123,8 @@ export function CreateTripScreen() {
       {loadingDraft && <LoadingState title="Loading your trip idea…" />}
       <form onSubmit={submit} className="trip-create-form mx-auto max-w-xl space-y-5 p-5 sm:p-8">
         {draft && <p className="rounded-surface bg-brand-50 p-3 text-sm text-ink">Building {draft.result.ideas[ideaIndex]?.title}. Set the dates and your name. The itinerary is added as tentative items you can edit.</p>}
-        <Field label="Trip name">
-          <Input required maxLength={120} value={form.name} onChange={set('name')} placeholder="Paris with friends" />
-        </Field>
-        <Field label="Your name">
-          <Input required maxLength={40} value={form.yourName} onChange={set('yourName')} />
-        </Field>
+        <TextField label="Trip name" isRequired maxLength={120} value={form.name} onChange={(_, event) => set('name')(event)} placeholder="Paris with friends" />
+        <TextField label="Your name" isRequired maxLength={40} value={form.yourName} onChange={(_, event) => set('yourName')(event)} autoComplete="given-name" />
         <details className="ui-disclosure rounded-surface border border-line bg-surface px-4 py-1" open={draft ? true : undefined}>
           <summary><span className="min-w-0 flex-1"><span className="block">{draft ? 'Trip dates & destination' : 'Add dates and destination (optional)'}</span><span className="block text-xs font-normal text-muted">{form.timezone.split('/').at(-1)?.replaceAll('_', ' ')} · {form.baseCurrency.toUpperCase()}{form.localCurrency !== form.baseCurrency ? ` / ${form.localCurrency.toUpperCase()}` : ''}</span></span><ChevronDown aria-hidden="true" className="ui-disclosure-chevron size-5 shrink-0" /></summary>
           <div className="mt-1 space-y-5 pb-4">

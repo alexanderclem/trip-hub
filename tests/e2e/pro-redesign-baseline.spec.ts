@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
 
-// Phase 01 evidence only. All people, tokens, records and files are synthetic.
+// Reusable baseline and migration regression journeys. Every record is synthetic.
 // Browser traffic is intercepted; no hosted trip or service is changed.
 test.use({ storageState: { cookies: [], origins: [] }, serviceWorkers: 'block' })
 const shots = process.env.SHOTS_DIR
@@ -93,12 +93,12 @@ async function seed(page: Page, baseURL: string, phase: Phase = 'planning', onli
   }, { tripId, me, pollId, closedPollId, created, phase })
 }
 
-async function capture(page: Page, name: string) {
+async function capture(page: Page, name: string, animations: 'disabled' | 'allow' = 'disabled') {
   if (!shots) return
   await page.evaluate(() => document.fonts.ready)
   await expect(page.getByText('Checking the next steps…', { exact: true })).toHaveCount(0)
   await page.waitForTimeout(200) // Let local live queries and the first paint settle before evidence.
-  await page.screenshot({ path: `${shots}/${name}.png`, animations: 'disabled', scale: 'css' })
+  await page.screenshot({ path: `${shots}/${name}.png`, animations, scale: 'css' })
 }
 
 async function open(page: Page, path: string) {
@@ -303,7 +303,7 @@ test('organizer creates a trip and copies the invite through a fully stubbed bac
   await page.getByRole('button', { name: 'Invite', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Invite friends', exact: true })
   await dialog.getByRole('button', { name: 'Copy', exact: true }).click()
-  await expect(dialog.getByRole('status')).toContainText('Invite link copied.')
+  await expect(dialog.getByRole('status').filter({ hasText: 'Invite link copied.' })).toBeVisible()
   await capture(page, 'create-and-copy-invite-390')
   expect(savedTrip).not.toBeNull()
 })
@@ -369,14 +369,248 @@ test('saved places, creating a poll and all four vote scores use real local writ
   await expect(page.getByRole('heading', { name: 'Example · Sunday afternoon', exact: true })).toBeVisible()
 })
 
-test('record the group roster link destination for the baseline audit', async ({ page, baseURL }) => {
+test('Home roster opens every traveler and returns to the roster and Home', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await open(page, 'overview')
   await page.getByRole('link', { name: '8 travelers', exact: true }).click()
   await expect(page).toHaveURL(`${root}/travelers`)
-  await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Travelers', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'People (8)', exact: true })).toBeVisible()
   const result = { url: new URL(page.url()).pathname, heading: await page.getByRole('heading', { level: 1 }).first().textContent() }
   if (shots) await writeFile(`${shots}/roster-destination.json`, JSON.stringify(result, null, 2))
   await capture(page, 'group-roster-destination-390')
-  // Evidence collection deliberately records the actual outcome; this is not a roster-success assertion.
+  await page.getByRole('link', { name: 'Alex Example (you)', exact: true }).click()
+  await expect(page).toHaveURL(`${root}/travelers/${me}`)
+  await page.getByRole('link', { name: 'Back', exact: true }).click()
+  await expect(page).toHaveURL(`${root}/travelers`)
+  await page.getByRole('link', { name: 'Back', exact: true }).click()
+  await expect(page).toHaveURL(`${root}/overview`)
+})
+
+test('Home contrast, Add icon and navigation targets survive both themes and motion modes', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  const readings: unknown[] = []
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    for (const colorScheme of ['light', 'dark'] as const) for (const reducedMotion of ['reduce', 'no-preference'] as const) {
+      await page.emulateMedia({ colorScheme, reducedMotion })
+      await open(page, 'overview')
+      const result = await page.locator('.overview-focus').evaluate(el => {
+        const luminance = (color: string) => {
+          const c = color.match(/[\d.]+/g)!.slice(0, 3).map(value => { const n = Number(value) / 255; return n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4 })
+          return c[0]! * .2126 + c[1]! * .7152 + c[2]! * .0722
+        }
+        const background = luminance(getComputedStyle(el).backgroundColor)
+        return ['h2', 'p'].map(selector => {
+          const foreground = luminance(getComputedStyle(el.querySelector(selector)!).color)
+          return (Math.max(background, foreground) + .05) / (Math.min(background, foreground) + .05)
+        })
+      })
+      readings.push({ width, colorScheme, reducedMotion, contrast: result })
+      for (const ratio of result) expect(ratio).toBeGreaterThanOrEqual(4.5)
+      const add = page.getByRole('button', { name: 'Add', exact: true })
+      await expect(add.locator('svg')).toBeVisible()
+      expect((await add.locator('svg').boundingBox())!.width).toBeGreaterThanOrEqual(16)
+      await add.focus()
+      expect(await add.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none')
+      if (width < 768) for (const tab of await page.locator('.trip-tab').all()) {
+        expect((await tab.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+        expect(await tab.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(13)
+      }
+      await expect(page.locator('html')).toHaveAttribute('data-astryx-theme', 'stowaway')
+    }
+  }
+  if (shots) await writeFile(`${shots}/contrast-regression.json`, JSON.stringify(readings, null, 2))
+})
+
+test('Astryx create fields retain native validation, labels and mobile dimensions', async ({ page, baseURL }) => {
+  await isolate(page, baseURL!)
+  for (const width of [320, 390, 768, 1440]) for (const colorScheme of ['light', 'dark'] as const) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.emulateMedia({ colorScheme })
+    await page.goto('/new')
+    for (const [name, limit] of [['Trip name', 120], ['Your name', 40]] as const) {
+      const input = page.getByRole('textbox', { name, exact: true })
+      await expect(input).toHaveAttribute('required', '')
+      await expect(input).toHaveAttribute('maxlength', String(limit))
+      expect((await input.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+      expect(await input.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16)
+    }
+    await page.getByRole('button', { name: 'Create a trip', exact: true }).click()
+    await expect(page).toHaveURL('/new')
+    await expect(page.getByLabel('Trip name', { exact: true })).toBeFocused()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await capture(page, `astryx-create-${width}-${colorScheme}`)
+  }
+})
+
+test('hosted viewers can read the roster and traveler without edit controls', async ({ page, baseURL }) => {
+  await seed(page, baseURL!, 'hosted')
+  await open(page, 'travelers')
+  await expect(page.getByRole('heading', { name: 'People (8)', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Remove|Let in/ })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Alex Example (you)', exact: true }).click()
+  await expect(page.getByRole('link', { name: /Add an event|Add an expense|Assign a task|Manage packing/ })).toHaveCount(0)
+  await expect(page.getByText('Edit traveler profile', { exact: true })).toHaveCount(0)
+  await capture(page, 'astryx-viewer-traveler-390')
+})
+
+test('join welcome separates installation from real per-phone ticket preparation', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await page.evaluate(tripId => {
+    const device = JSON.parse(localStorage.getItem('trip-hub-device')!)
+    device.state.setupDismissed[tripId] = false
+    localStorage.setItem('trip-hub-device', JSON.stringify(device))
+  }, tripId)
+  await open(page, 'overview?joined=1')
+  const welcome = page.getByRole('region', { name: 'You’re in', exact: true })
+  await expect(welcome).toContainText('1 of 2 ticket files on this phone')
+  await expect(welcome).not.toContainText('Then the plan, map and tickets work with no signal')
+  await welcome.getByRole('link', { name: /Prepare this phone for no signal/ }).click()
+  await expect(page).toHaveURL(`${root}/more/settings#offline-ready`)
+  await expect(page.locator('#offline-ready')).toBeInViewport()
+  await expect(page.locator('#offline-ready')).toBeFocused()
+  await capture(page, 'astryx-preparation-anchor-390')
+})
+
+test('Money prioritizes personal payments and records an external payment locally', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await open(page, 'money')
+  await expect(page.getByRole('region', { name: 'Your balance' })).toContainText('€10.00')
+  await expect(page.getByRole('heading', { name: 'Your next payments' })).toBeVisible()
+  const group = page.getByRole('button', { name: 'Group settlement details', exact: true })
+  await expect(group).toHaveAttribute('aria-expanded', 'false')
+  const history = page.getByRole('region', { name: 'History', exact: true })
+  expect((await history.boundingBox())!.y).toBeLessThan((await group.boundingBox())!.y)
+  await expect(page.getByRole('button', { name: /^Record / })).toHaveCount(1)
+  await page.getByRole('button', { name: /^Record / }).click()
+  await expect(page.getByText('Only record money already paid outside Stowaway.', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Mark as paid', exact: true }).click()
+  await expect(page.getByRole('region', { name: 'Your balance' })).toContainText('All settled')
+  await page.reload()
+  await expect(page.getByRole('region', { name: 'Your balance' })).toContainText('All settled')
+  await group.click()
+  await expect(group).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('heading', { name: 'Everyone’s balances' })).toBeVisible()
+  await capture(page, 'astryx-money-recorded-390')
+})
+
+test('retained native confirmation keeps focus and Escape across themes and motion modes', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  for (const width of [320, 390, 768, 1440]) for (const colorScheme of ['light', 'dark'] as const) for (const reducedMotion of ['reduce', 'no-preference'] as const) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.emulateMedia({ colorScheme, reducedMotion })
+    await open(page, `money/${id(70)}`)
+    const remove = page.getByRole('button', { name: 'Delete expense', exact: true })
+    await remove.click()
+    const dialog = page.getByRole('dialog', { name: 'Confirm this change', exact: true })
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toHaveClass(/ui-dialog/)
+    await page.keyboard.press('Tab')
+    expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true)
+    await capture(page, `astryx-confirm-${width}-${colorScheme}-${reducedMotion}`, 'allow')
+    await page.keyboard.press('Escape')
+    await expect(dialog).not.toBeVisible()
+    await expect(remove).toBeFocused()
+  }
+})
+
+test('public Paris example requires an explicit plan action and resets without trip writes', async ({ page, baseURL }) => {
+  await isolate(page, baseURL!)
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Try planning with the Paris example', exact: true }).click()
+  const demo = page.getByRole('region', { name: 'Interactive Paris example', exact: true })
+  const add = demo.getByRole('button', { name: 'Add to plan', exact: true })
+  await expect(add).toBeDisabled()
+  const must = demo.getByRole('button', { name: 'Must-do', exact: true })
+  await must.focus(); await page.keyboard.press('Enter')
+  await expect(must).toHaveAttribute('aria-pressed', 'true')
+  await expect(demo.getByRole('status').filter({ hasText: 'Afternoon is still open' })).toBeVisible()
+  await demo.getByRole('button', { name: 'Clear preference', exact: true }).click()
+  await expect(must).toHaveAttribute('aria-pressed', 'false')
+  await must.click(); await add.click()
+  await expect(demo.getByRole('status').filter({ hasText: 'Added to the example itinerary' })).toContainText('Tentative · Nothing booked')
+  await demo.getByRole('button', { name: 'Reset example', exact: true }).click()
+  await expect(demo.getByRole('status').filter({ hasText: 'Your preference is not set' })).toBeVisible()
+  await expect(add).toBeDisabled()
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('trip-hub-device') ?? '{}').state?.trips ?? {})).toEqual({})
+  await capture(page, 'astryx-public-example-390')
+  for (const width of [320, 390, 768, 1440]) for (const colorScheme of ['light', 'dark'] as const) for (const reducedMotion of ['reduce', 'no-preference'] as const) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.emulateMedia({ colorScheme, reducedMotion })
+    await demo.getByRole('button', { name: 'Reset example', exact: true }).click()
+    await must.click(); await add.click()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    for (const button of await demo.getByRole('button').all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+    await capture(page, `astryx-public-example-${width}-${colorScheme}-${reducedMotion}`, 'allow')
+  }
+})
+
+test('prepared ticket opens with the browser offline while a missing ticket stays missing', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  // Prime route code within one document, then cut the browser network. SWs are blocked.
+  await open(page, 'overview')
+  await page.getByRole('link', { name: /^Tickets/ }).filter({ visible: true }).last().click()
+  await expect(page).toHaveURL(`${root}/tickets`)
+  await page.getByRole('link', { name: /Example · Musée d’Orsay ticket/ }).click()
+  await expect(page.getByRole('img', { name: 'Example · Musée d’Orsay ticket', exact: true })).toBeVisible()
+  await page.getByRole('link', { name: 'Back', exact: true }).click()
+  await page.getByRole('link', { name: /Example · Train ticket not downloaded/ }).click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  await page.getByRole('navigation', { name: 'Trip navigation' }).filter({ visible: true }).getByRole('link', { name: 'Home', exact: true }).click()
+  await page.getByRole('link', { name: /^Shared expenses/ }).filter({ visible: true }).last().click()
+  await expect(page).toHaveURL(`${root}/money`)
+  await page.getByRole('link', { name: 'Add expense', exact: true }).click()
+  await expect(page).toHaveURL(`${root}/money/new`)
+  await page.context().setOffline(true)
+  await page.getByLabel('What for?', { exact: true }).fill('Example · Airplane mode coffee')
+  await page.getByLabel('Amount', { exact: true }).fill('8.00')
+  await page.getByRole('button', { name: 'Save expense', exact: true }).click()
+  await expect(page).toHaveURL(`${root}/money`)
+  await page.getByRole('navigation', { name: 'Trip navigation' }).filter({ visible: true }).getByRole('link', { name: 'Home', exact: true }).click()
+  await page.getByRole('link', { name: /^Tickets/ }).filter({ visible: true }).last().click()
+  await page.getByRole('link', { name: /Example · Musée d’Orsay ticket/ }).click()
+  await expect(page.getByRole('status').filter({ hasText: 'Saved on this phone' })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Example · Musée d’Orsay ticket', exact: true })).toBeVisible()
+  await page.getByRole('link', { name: 'Back', exact: true }).click()
+  await page.getByRole('link', { name: /Example · Train ticket not downloaded/ }).click()
+  await expect(page.getByRole('alert')).toContainText("You're offline and this file isn't on your phone yet.")
+  await page.context().setOffline(false)
+  await open(page, 'money')
+  await expect(page.getByText('Example · Airplane mode coffee', { exact: true })).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('Example · Airplane mode coffee', { exact: true })).toBeVisible()
+})
+
+test('shared choices retain 44px targets, keyboard selection and enlarged-text reflow', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  for (const width of [320, 390, 768, 1440]) for (const colorScheme of ['light', 'dark'] as const) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.emulateMedia({ colorScheme })
+    for (const path of ['travelers', 'money']) {
+      await open(page, path)
+      expect(await page.locator('#trip-content').evaluate(el => el.scrollWidth <= el.clientWidth), `${path}-${width}-${colorScheme}`).toBe(true)
+      if (path === 'money') await expect(page.locator('.quick-add-trigger')).toHaveCount(0)
+      await capture(page, `astryx-${path}-${width}-${colorScheme}`)
+    }
+    await open(page, 'more/settings')
+    const group = page.getByRole('radiogroup', { name: 'Temperatures', exact: true })
+    await expect(group).toHaveClass(/astryx-segmented-control/)
+    for (const radio of await group.getByRole('radio').all()) expect((await radio.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+    await group.getByRole('radio', { name: '°F', exact: true }).click()
+    await page.keyboard.press('ArrowRight')
+    await expect(group.getByRole('radio', { name: '°C', exact: true })).toBeFocused()
+    await expect(group.getByRole('radio', { name: '°C', exact: true })).toHaveAttribute('aria-checked', 'true')
+    await capture(page, `astryx-segmented-${width}-${colorScheme}`)
+  }
+  await page.setViewportSize({ width: 640, height: 900 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  for (const path of ['travelers', 'money', 'more/settings']) {
+    await open(page, path)
+    await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+    expect(await page.locator('#trip-content').evaluate(el => el.scrollWidth <= el.clientWidth), path).toBe(true)
+    const title = page.getByRole('heading', { level: 1 }).first()
+    expect(await title.evaluate(el => el.getBoundingClientRect().width)).toBeGreaterThan(100)
+    await capture(page, `astryx-${path.replaceAll('/', '-')}-200-percent-text`)
+  }
 })

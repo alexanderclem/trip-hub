@@ -14,12 +14,18 @@
     "smoke": "node scripts/smoke-test.ts",
     "test:e2e": "playwright test",
     "fetch:map-assets": "node scripts/fetch-map-assets.ts",
-    "lint:design": "impeccable detect src/"
+    "lint:design": "impeccable detect src/",
+    "astryx": "node node_modules/@astryxdesign/cli/clients/cli/bin/astryx.mjs",
+    "theme:build": "astryx theme build src/themes/stowaway/stowawayTheme.ts --out src/themes/stowaway/stowaway.css",
+    "theme:check": "astryx theme build src/themes/stowaway/stowawayTheme.ts --out src/themes/stowaway/stowaway.css --check"
   },
   "dependencies": {
+    "@astryxdesign/core": "0.7.13",
+    "@astryxdesign/theme-neutral": "0.7.13",
     "@modelcontextprotocol/sdk": "^1.32.0",
     "@photostructure/tz-lookup": "^11.7.0",
     "@protomaps/basemaps": "^5.7.2",
+    "@stylexjs/stylex": "0.19.0",
     "@supabase/supabase-js": "^2.117.2",
     "dexie": "^4.4.6",
     "dexie-react-hooks": "^4.4.0",
@@ -39,6 +45,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@astryxdesign/cli": "0.7.13",
     "@electric-sql/pglite": "^0.5.8",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",

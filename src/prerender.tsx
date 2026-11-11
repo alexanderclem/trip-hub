@@ -2,6 +2,7 @@ import { renderToString } from 'react-dom/server'
 import { createMemoryRouter, createStaticHandler, RouterProvider } from 'react-router'
 import { routes } from './router'
 import { MotionProvider } from './ui/MotionProvider'
+import { StowawayTheme } from './ui/StowawayTheme'
 import { publicPages } from './features/website/metadata'
 
 /** Build-time rendering is restricted to public pages; no private trip or account is rendered. */
@@ -12,6 +13,6 @@ export async function render(path: string) {
   if (context instanceof Response) throw new Error(`Unexpected pre-render response: ${context.status}`)
   if (context.errors) throw new Error(`Pre-render failed for ${path}`)
   const router = createMemoryRouter(handler.dataRoutes, { initialEntries: [path], hydrationData: { loaderData: context.loaderData, actionData: context.actionData, errors: context.errors } })
-  try { return renderToString(<MotionProvider><RouterProvider router={router} /></MotionProvider>) }
+  try { return renderToString(<StowawayTheme><MotionProvider><RouterProvider router={router} /></MotionProvider></StowawayTheme>) }
   finally { router.dispose() }
 }

@@ -128,7 +128,7 @@
   .sync-strip-region { display: block; }
   .trip-header-sync, .command-trigger { display: none; }
   .quick-add-trigger { width: 44px; padding: .5rem; }
-  .quick-add-trigger > span { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .quick-add-trigger .quick-add-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .app-page-header > div:first-child { flex-wrap: wrap; }
   .app-page-header > div:first-child > .min-w-0 { min-width: min(7rem, 100%); }
   .app-page-header .trip-header-tools { margin-inline-start: auto; }
@@ -192,7 +192,6 @@
 
 /* Returning travelers see the next decision before the planning shortcuts. */
 @media (max-width: 639px) {
-  .quick-add-contextual { display: none; }
   .trip-overview[data-introduction='false'] .overview-journal { margin-block: .5rem 1.25rem; padding-bottom: 1rem; }
   .trip-overview[data-introduction='false'] .overview-journal-top { margin-bottom: 1rem; }
   .trip-overview[data-introduction='false'] .overview-journal-content { grid-template-columns: minmax(0, 1fr) 4.5rem; align-items: start; gap: .875rem; }

@@ -45,7 +45,7 @@ test('destination search explains its progress and distinguishes local from sett
   await page.goto('/new')
   await page.getByText('Add dates and destination (optional)', { exact: true }).click()
   await page.getByLabel('Search for a destination').fill('Paris')
-  await expect(page.getByRole('status')).toContainText('Searching destinations…')
+  await expect(page.getByRole('status').filter({ hasText: 'Searching destinations…' })).toBeVisible()
   release()
   await page.getByRole('button', { name: 'Paris, France', exact: true }).click()
   await expect(page.getByLabel('Local currency', { exact: true })).toHaveValue('EUR')
@@ -127,7 +127,7 @@ test('background refresh does not pretend uploads are pending and resolves to Up
   const details = page.getByRole('dialog', { name: 'Sync & saved changes' })
   await expect(details).toContainText('There are no waiting uploads. Checking for changes from your group.')
   release()
-  await expect(details.getByRole('status')).toContainText('Up to date')
+  await expect(details.getByRole('status').filter({ hasText: 'Up to date' })).toBeVisible()
 })
 
 for (const colorScheme of ['light', 'dark'] as const) {

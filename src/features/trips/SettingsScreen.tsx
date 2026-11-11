@@ -2,8 +2,8 @@ import { AppearancePicker } from '@/ui/AppearancePicker'
 import { autoPhoto, coverPhoto } from './covers'
 import { photoCredit } from './destinationPhotos'
 import { useConfirm } from '@/ui/ConfirmProvider'
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { RefreshCw } from 'lucide-react'
 import { useDevice, useMyMemberId, useTripAccess } from '@/data/device'
 import { isStaff } from '@/data/access'
@@ -31,6 +31,16 @@ export function SettingsScreen() {
   const { tripId } = useParams() as { tripId: string }
   const navigate = useNavigate()
   const trip = useTrip(tripId)
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (!trip || hash !== '#offline-ready') return
+    const frame = requestAnimationFrame(() => {
+      const target = document.getElementById('offline-ready')
+      target?.scrollIntoView({ block: 'start' })
+      if (target) { target.tabIndex = -1; target.focus({ preventScroll: true }) }
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [hash, trip?.id])
   const members = useMembers(tripId) ?? []
   const me = useMyMemberId(tripId)
   const forgetTrip = useDevice((s) => s.forgetTrip)
@@ -103,7 +113,7 @@ export function SettingsScreen() {
 
         <section className="settings-group" aria-labelledby="settings-phone-title">
         <h2 id="settings-phone-title" className="ui-label px-0.5">This phone</h2>
-        <OfflineReadyCard trip={trip} />
+        <div id="offline-ready" className="scroll-mt-24"><OfflineReadyCard trip={trip} /></div>
         <NotificationsCard tripId={tripId} />
         <Card>
           <SectionTitle>Display</SectionTitle>

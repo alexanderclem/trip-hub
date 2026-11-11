@@ -11,7 +11,7 @@ import { PAYMENT_METHODS, type Member, type SettlementRow } from '@/data/types'
 import { convertMinor, FX_ATTRIBUTION, rateFor } from '@/lib/fx'
 import { newId } from '@/lib/ids'
 import { balances, computeShares, formatMoney, minorUnits, settlementIsMinimal, simplifyDebts, toBaseMinor, type Transfer } from '@/lib/money'
-import { Avatar, Button, Card, Disclosure, ErrorNote, Fab, Input, LinkButton, PageHeader, SectionTitle, Segmented, Select } from '@/ui'
+import { Avatar, Button, Card, ErrorNote, Fab, Input, LinkButton, PageHeader, SectionTitle, Segmented, Select } from '@/ui'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/ui/collection'
 import { parseMinor } from './build'
 import { deleteSettlement, saveSettlement, useFxRefresh, useMoney } from './data'
@@ -22,6 +22,7 @@ import { CollectPaymentsRow } from './CollectPayments'
 import { MyBookingCard } from '@/features/payments/MyBookingCard'
 import { Stowie } from '@/features/stowie/Stowie'
 import { NumberTicker } from '@/ui/effects'
+import { Collapsible } from '@astryxdesign/core/Collapsible'
 
 export function MoneyScreen() {
   const confirm = useConfirm()
@@ -58,6 +59,21 @@ export function MoneyScreen() {
   const moment = moneyMoment({ me, createdBy: trip.created_by, people: members.length, baseCurrency: base, expenses: money.expenses, transfers })
   const empty = money.expenses.length === 0 && money.settlements.length === 0
   const scan = `/t/${tripId}/tickets/new?kind=receipt&expense=1`
+  const myTransfers = transfers.filter((transfer) => transfer.from === me || transfer.to === me)
+  const transferRows = (rows: Transfer[]) => rows.map((t) => (
+    <li key={`${t.from}-${t.to}`} className="py-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Avatar name={name(t.from)} color={memberOf(t.from)?.color ?? null} photo={memberOf(t.from)?.avatar_url} size="sm" />
+        <span className="min-w-0 flex-1 text-sm">
+          <Link to={`/t/${tripId}/travelers/${t.from}`} className="font-semibold text-action underline underline-offset-4">{t.from === me ? 'You' : name(t.from)}</Link> pay{t.from === me ? '' : 's'} <Link to={`/t/${tripId}/travelers/${t.to}`} className="font-semibold text-action underline underline-offset-4">{t.to === me ? 'you' : name(t.to)}</Link>
+        </span>
+        <span className="font-semibold tabular-nums">{fmt(t.amount_minor)}</span>
+        <Button variant="secondary" className="px-3 text-sm" onClick={() => setRecording(t)} aria-label={`Record ${name(t.from)} paying ${name(t.to)}`}>Record</Button>
+      </div>
+      {memberOf(t.to)?.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(memberOf(t.to)!.venmo_username!)}`} target="_blank" rel="noopener noreferrer" className="ui-link">Pay {name(t.to)} on Venmo<span className="sr-only"> (opens in a new tab)</span></a>}
+      {recording === t && <RecordPayment transfer={t} base={base} local={local} snapshot={money.snapshot} me={me} tripId={tripId} onDone={() => setRecording(null)} />}
+    </li>
+  ))
 
   return (
     <div className="min-h-full pb-28">
@@ -92,45 +108,17 @@ export function MoneyScreen() {
             </section>
 
             <Card>
-              <SectionTitle>Settle up</SectionTitle>
-              {transfers.length === 0 ? (
-                <p className="mt-2 flex items-center gap-2 text-sm text-success-ink"><Check aria-hidden="true" className="size-4" />{members.length < 2 ? 'Add another traveler to split costs and track who owes whom.' : 'Everyone is square.'}</p>
+              <SectionTitle>Your next payments</SectionTitle>
+              <p className="mt-1 text-sm text-muted">Record a payment after it’s made outside Stowaway. Recording does not send money.</p>
+              {myTransfers.length === 0 ? (
+                <p className="mt-2 flex items-center gap-2 text-sm text-success-ink"><Check aria-hidden="true" className="size-4" />{members.length < 2 ? 'Add another traveler to split costs and track who owes whom.' : 'You have no payments to record.'}</p>
               ) : (
                 <ul className="mt-2 divide-y divide-line">
-                  {transfers.map((t) => (
-                    <li key={`${t.from}-${t.to}`} className="py-2">
-                      <div className="flex items-center gap-2">
-                        <Avatar name={name(t.from)} color={memberOf(t.from)?.color ?? null} photo={memberOf(t.from)?.avatar_url} size="sm" />
-                        <span className="min-w-0 flex-1 text-sm">
-                          <Link to={`/t/${tripId}/travelers/${t.from}`} className="font-semibold text-action underline underline-offset-4 hover:decoration-coral">{t.from === me ? 'You' : name(t.from)}</Link> pay{t.from === me ? '' : 's'} <Link to={`/t/${tripId}/travelers/${t.to}`} className="font-semibold text-action underline underline-offset-4 hover:decoration-coral">{t.to === me ? 'you' : name(t.to)}</Link>
-                        </span>
-                        <span className="font-semibold tabular-nums">{fmt(t.amount_minor)}</span>
-                        <Button variant="secondary" className="px-3 text-sm" onClick={() => setRecording(t)} aria-label={`Record ${name(t.from)} paying ${name(t.to)}`}>Record</Button>
-                      </div>
-                      {memberOf(t.to)?.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(memberOf(t.to)!.venmo_username!)}`} target="_blank" rel="noopener noreferrer" className="ui-link">Pay {name(t.to)} on Venmo<span className="sr-only"> (opens in a new tab)</span></a>}
-                      {recording === t && trip && (
-                        <RecordPayment transfer={t} base={base} local={local} snapshot={money?.snapshot ?? null} me={me} tripId={tripId} onDone={() => setRecording(null)} />
-                      )}
-                    </li>
-                  ))}
+                  {transferRows(myTransfers)}
                 </ul>
               )}
-              <Disclosure summary="Everyone’s balances" className="mt-1 border-t border-line pt-1">
-                <ul className="space-y-2 pb-1">
-                  {members.map((m) => <BalanceRow key={m.id} member={m} value={net.get(m.id) ?? 0} max={Math.max(1, ...[...net.values()].map(Math.abs))} fmt={fmt} you={m.id === me} />)}
-                </ul>
-                <p className="mt-2 text-xs text-muted">{settlementIsMinimal(net) ? 'Settle up suggests the fewest payments that clear everyone’s balance.' : 'Settle up suggests a short list of payments that clears everyone’s balance. With this many people it may not be the very fewest.'}</p>
-              </Disclosure>
             </Card>
           </>
-        )}
-
-        <MyBookingCard tripId={tripId} />
-
-        {moment && <CollectPaymentsRow tripId={tripId} reason={moment} />}
-
-        {trip && me && money && (
-          <TripCostCard trip={trip} me={me} memberIds={members.map((m) => m.id)} expenses={money.expenses} snapshot={money.snapshot} fmt={(v) => fmt(v)} />
         )}
 
         {!empty && (
@@ -177,6 +165,19 @@ export function MoneyScreen() {
             <Link to={scan} className="ui-link px-1"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</Link>
           </section>
         )}
+
+        {!empty && <Card>
+          <Collapsible trigger="Group settlement details" defaultIsOpen={false}>
+            <p className="mb-2 text-sm text-muted">Your payments are above. These are the other group suggestions, not transfers made by Stowaway.</p>
+            <ul className="divide-y divide-line">{transferRows(transfers.filter((t) => t.from !== me && t.to !== me))}</ul>
+            <h2 className="ui-section-title my-3">Everyone’s balances</h2>
+            <ul className="space-y-2 pb-1">{members.map((m) => <BalanceRow key={m.id} member={m} value={net.get(m.id) ?? 0} max={Math.max(1, ...[...net.values()].map(Math.abs))} fmt={fmt} you={m.id === me} />)}</ul>
+            <p className="mt-2 text-xs text-muted">{settlementIsMinimal(net) ? 'Settle up suggests the fewest payments that clear everyone’s balance.' : 'Settle up suggests a short list of payments that clears everyone’s balance. With this many people it may not be the very fewest.'}</p>
+          </Collapsible>
+        </Card>}
+        <MyBookingCard tripId={tripId} />
+        {moment && <CollectPaymentsRow tripId={tripId} reason={moment} />}
+        {me && <TripCostCard trip={trip} me={me} memberIds={members.map((m) => m.id)} expenses={money.expenses} snapshot={money.snapshot} fmt={fmt} />}
 
         <p className="pt-2 text-center text-xs text-muted">
           {money?.snapshot ? `Exchange rates from ${DateTime.fromISO(money.snapshot.as_of).toFormat('d LLL yyyy')}. ` : 'Using approximate built-in exchange rates until online. '}
@@ -234,7 +235,8 @@ function RecordPayment({ transfer, base, local, snapshot, me, tripId, onDone }: 
 
   return (
     <form onSubmit={submit} className="mt-2 space-y-2 rounded-surface bg-mist/40 p-3">
-      <div className="grid grid-cols-[1fr_5.5rem_6.5rem] gap-2">
+      <p className="text-sm text-muted">Only record money already paid outside Stowaway.</p>
+      <div className="grid grid-cols-1 gap-2 min-[390px]:grid-cols-[minmax(0,1fr)_5.5rem_6.5rem]">
         <Input inputMode="decimal" aria-label="Amount paid" value={amount} onChange={(e) => setAmount(e.target.value)} />
         <Select aria-label="Currency" value={currency} onChange={(e) => {
           const c = e.target.value

@@ -1,6 +1,7 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router'
-import { useMyMemberId } from '@/data/device'
+import { Link, useLocation, useParams } from 'react-router'
+import { useMyMemberId, useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { useMembers } from '@/data/hooks'
 import { save } from '@/data/repo'
 import type { Member } from '@/data/types'
@@ -19,6 +20,9 @@ import { ListSkeleton } from '@/ui/collection'
 export function TravelerScreen() {
   const { tripId, memberId } = useParams() as { tripId: string; memberId: string }
   const me = useMyMemberId(tripId)
+  const access = useTripAccess(tripId)
+  const mayPlan = can(access, 'plan')
+  const mayParticipate = can(access, 'participate')
   const members = useMembers(tripId)
   const member = members?.find((m) => m.id === memberId)
   const items = useItems(tripId)
@@ -28,10 +32,12 @@ export function TravelerScreen() {
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const root = `/t/${tripId}`
+  const location = useLocation()
+  const fromRoster = location.state?.from === `${root}/travelers`
 
   async function assign(id: string) {
     const item = items?.find((i) => i.id === id)
-    if (!item || pending) return
+    if (!item || pending || !mayPlan) return
     setPending(true); setError(null)
     try { await save('itinerary_items', { ...item, attendee_ids: [...new Set([...(item.attendee_ids ?? []), memberId])] }, me) }
     catch (e) { setError(e instanceof Error ? e.message : 'Could not assign this event. Try again.') }
@@ -39,24 +45,24 @@ export function TravelerScreen() {
   }
 
   return <div className="pb-24">
-    <PageHeader title={member?.display_name ?? 'Traveler'} back={`${root}/overview`} />
+    <PageHeader title={member?.display_name ?? 'Traveler'} back={fromRoster ? `${root}/travelers` : `${root}/overview`} />
     <div className="mx-auto max-w-2xl space-y-4 p-4">
       {!members ? <ListSkeleton label="Loading traveler…" /> : !member ? <p>This traveler is no longer in the trip.</p> : <>
         <Card><div className="flex items-center gap-3"><Avatar name={member.display_name} color={member.color} photo={member.avatar_url} /><div className="min-w-0"><h2 className="break-words ui-section-title">{member.display_name}{memberId === me ? ' (you)' : ''}</h2><p className="text-sm text-muted">Events and responsibilities for this trip</p></div></div>
           {member.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(member.venmo_username)}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center rounded-control px-2 font-medium text-action hover:bg-brand-50">Open Venmo · @{member.venmo_username}</a>}
         </Card>
-        <ProfileEditor key={member.id} member={member} me={me} />
-        <Assignments title="Plans & events" loading={!items} empty="No events assigned yet." action={<LinkButton variant="ghost" to={`${root}/plan/new?attendee=${memberId}`}>Add an event</LinkButton>}>
+        {(mayPlan || (mayParticipate && member.id === me)) && <ProfileEditor key={member.id} member={member} me={me} />}
+        <Assignments title="Plans & events" loading={!items} empty="No events assigned yet." action={mayPlan && <LinkButton variant="ghost" to={`${root}/plan/new?attendee=${memberId}`}>Add an event</LinkButton>}>
           {items?.filter((i) => i.attendee_ids === null || i.attendee_ids.includes(memberId)).map((i) => <Assignment key={i.id} to={`${root}/plan/${i.id}`} title={i.title} detail={`${i.start_local.replace('T', ' · ')} · ${i.attendee_ids === null ? 'Everyone' : 'Assigned'} · ${i.status}`} />)}
         </Assignments>
-        {items?.some((i) => i.attendee_ids !== null && !i.attendee_ids.includes(memberId)) && <Card><Field label="Assign an existing event"><Select value="" disabled={pending} onChange={(e) => void assign(e.target.value)}><option value="">Choose an event…</option>{items.filter((i) => i.attendee_ids !== null && !i.attendee_ids.includes(memberId)).map((i) => <option key={i.id} value={i.id}>{i.title}</option>)}</Select></Field><ErrorNote error={error} /></Card>}
-        <Assignments title="Expenses" loading={!money} empty="No expenses linked yet." action={<LinkButton variant="ghost" to={`${root}/money/new`}>Add an expense</LinkButton>}>
+        {mayPlan && items?.some((i) => i.attendee_ids !== null && !i.attendee_ids.includes(memberId)) && <Card><Field label="Assign an existing event"><Select value="" disabled={pending} onChange={(e) => void assign(e.target.value)}><option value="">Choose an event…</option>{items.filter((i) => i.attendee_ids !== null && !i.attendee_ids.includes(memberId)).map((i) => <option key={i.id} value={i.id}>{i.title}</option>)}</Select></Field><ErrorNote error={error} /></Card>}
+        <Assignments title="Expenses" loading={!money} empty="No expenses linked yet." action={mayParticipate && <LinkButton variant="ghost" to={`${root}/money/new`}>Add an expense</LinkButton>}>
           {money?.expenses.filter((e) => e.payers.some((p) => p.member_id === memberId) || e.split.some((s) => s.member_id === memberId)).map((e) => <Assignment key={e.id} to={`${root}/money/${e.id}`} title={e.description} detail={`${formatMoney(e.amount_minor, e.currency)} · ${e.payers.some((p) => p.member_id === memberId) ? 'Paid' : 'Included in split'} · ${e.spent_on}`} />)}
         </Assignments>
-        <Assignments title="Tasks" loading={!tasks} empty="No tasks assigned yet." action={<LinkButton variant="ghost" to={`${root}/more/tasks/new?assignee=${memberId}`}>Assign a task</LinkButton>}>
+        <Assignments title="Tasks" loading={!tasks} empty="No tasks assigned yet." action={mayPlan && <LinkButton variant="ghost" to={`${root}/more/tasks/new?assignee=${memberId}`}>Assign a task</LinkButton>}>
           {tasks?.filter((t) => t.assignee_id === memberId).map((t) => <Assignment key={t.id} to={`${root}/more/tasks/${t.id}`} title={t.title} detail={`${t.completed ? 'Completed' : 'To do'}${t.due_date ? ` · Due ${formatDate(t.due_date)}` : ''}`} />)}
         </Assignments>
-        <Assignments title="Packing" loading={!packing} empty="No packing items assigned yet." action={<LinkButton variant="ghost" to={`${root}/more/packing`}>Manage packing</LinkButton>}>
+        <Assignments title="Packing" loading={!packing} empty="No packing items assigned yet." action={mayPlan && <LinkButton variant="ghost" to={`${root}/more/packing`}>Manage packing</LinkButton>}>
           {packing?.items.filter((i) => i.owner_id === memberId || i.kind === 'everyone').map((i) => <Assignment key={i.id} to={`${root}/more/packing/${i.id}`} title={i.title} detail={`${i.kind === 'everyone' ? 'Everyone' : 'Assigned'} · ${(i.kind === 'everyone' ? packing.checks.some((c) => !c.deleted_at && c.item_id === i.id && c.member_id === memberId && c.state === 'packed') : i.packed) ? 'Packed' : 'To pack'}`} />)}
         </Assignments>
       </>}

@@ -2,6 +2,7 @@
    (the --tag-* palette the app shares), so light and dark follow the site's appearance setting. */
 
 .sw-hero { width: 100%; }
+.planning-example { margin-top: 1rem; border-top: 1px solid var(--tag-rule); padding-top: .5rem; }
 .sw-hero .ss-stage {
   --ss-font: var(--tag-text);
   --ss-accent: var(--tag-ink);
@@ -61,8 +62,8 @@
 .sw-plan__row--slot[data-planned] { background: transparent; }
 .sw-plan__row--slot[data-planned] .sw-plan__title { font-weight: 700; }
 
-:root[data-theme='stowaway-dark'] .sw-hero .sw-phone { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 22px 36px -18px rgba(0, 0, 0, 0.7); }
-:root[data-theme='stowaway-dark'] .sw-plan { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 14px 32px -8px rgba(0, 0, 0, 0.6); }
+:root[data-theme='dark'] .sw-hero .sw-phone { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 22px 36px -18px rgba(0, 0, 0, 0.7); }
+:root[data-theme='dark'] .sw-plan { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 14px 32px -8px rgba(0, 0, 0, 0.6); }
 
 /* Caption above the stage: the example label on the phone's left edge, Replay on the right. It tucks into
    the stage's top gutter so it reads as part of the picture, not a separate row. */

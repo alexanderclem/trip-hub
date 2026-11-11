@@ -223,7 +223,7 @@ test('public pages retain content and targets in dark mode, reduced motion and e
   for (const path of ['/organizers', '/pricing', '/help', '/how-it-works']) {
     await page.setViewportSize({ width: 640, height: 900 })
     await page.goto(path)
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'stowaway-dark')
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
     await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

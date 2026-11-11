@@ -1,12 +1,15 @@
-// Shared UI primitives, styled to match the adapted shadcn collection.
-import { createContext, useContext, useEffect, useId, useRef, useState } from 'react'
+// Stowaway adapters over Astryx, with native controls retained where their contracts differ.
+import { Children, createContext, isValidElement, useContext, useEffect, useId, useRef, useState } from 'react'
 import type { ComponentProps, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router'
 import { travelerInitials } from '@/features/trips/traveler'
 import { CircleAlert, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { friendlyError } from './errors'
 import { dateOrder, formatTypedDate, parseTypedDate } from '@/lib/time'
-import { m, type HTMLMotionProps } from 'motion/react'
+import { m } from 'motion/react'
+import { Button as AstryxButton } from '@astryxdesign/core/Button'
+import { Card as AstryxCard } from '@astryxdesign/core/Card'
+import { SegmentedControl, SegmentedControlItem } from '@astryxdesign/core/SegmentedControl'
 import { useMotionPreference } from './MotionProvider'
 import { motionTiming } from './motion'
 import { avatarPalette } from './avatarPalette'
@@ -18,22 +21,35 @@ const MotionLink = m.create(Link)
 /** A press gives under the finger: down a pixel and in a touch, then springs back (motionTiming.feedback). */
 const PRESS = { y: 1, scale: 0.98 }
 
+/** Keep a label's visible words, excluding decorative icons, for Astryx's label API. */
+function labelText(node: ReactNode): string {
+  return Children.toArray(node).map((child): string => {
+    if (typeof child === 'string' || typeof child === 'number') return String(child)
+    if (!isValidElement<{ children?: ReactNode; 'aria-hidden'?: boolean | 'true' | 'false' }>(child) || child.props['aria-hidden'] === true || child.props['aria-hidden'] === 'true') return ''
+    return labelText(child.props.children)
+  }).join('')
+}
+
 export function Button({
   variant = 'primary',
   className,
+  children,
+  type = 'submit',
+  disabled,
+  isLoading,
   ...props
-}: HTMLMotionProps<'button'> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost' }) {
-  const reducedMotion = useMotionPreference()
+}: ComponentProps<'button'> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost'; isLoading?: boolean }) {
   return (
-    <m.button
-      whileTap={!reducedMotion && !props.disabled ? PRESS : undefined}
-      transition={motionTiming.feedback}
+    <AstryxButton
       {...props}
-      className={cx(
-        'btn', variant === 'primary' ? 'btn-primary' : variant === 'danger' ? 'btn-error btn-outline' : variant === 'secondary' ? 'btn-outline' : 'btn-ghost', 'ui-button', `ui-button-${variant}`,
-        className,
-      )}
-    />
+      {...{ disabled }}
+      type={type}
+      isDisabled={disabled}
+      isLoading={isLoading ?? (props['aria-busy'] === true || props['aria-busy'] === 'true')}
+      label={props['aria-label'] ?? labelText(children)}
+      variant={variant === 'danger' ? 'destructive' : variant}
+      className={cx('stowaway-button', className)}
+    ><span className="inline-flex flex-wrap items-center justify-center gap-2 whitespace-normal">{children}</span></AstryxButton>
   )
 }
 
@@ -169,7 +185,7 @@ export function Card({ children, className, eyebrow, title, action, footer, fram
   children?: ReactNode; className?: string; eyebrow?: ReactNode; title?: ReactNode; action?: ReactNode; footer?: ReactNode; framed?: boolean; labelledBy?: string
 }) {
   const card = (
-    <section className={cx('card', 'ui-card', className)} aria-labelledby={labelledBy}>
+    <AstryxCard className={cx('ui-card', className)} role={labelledBy ? 'region' : undefined} aria-labelledby={labelledBy}>
       {(title || eyebrow || action) && (
         <div className="ui-card-head">
           <div>
@@ -181,7 +197,7 @@ export function Card({ children, className, eyebrow, title, action, footer, fram
       )}
       {children}
       {footer && <div className="ui-card-foot">{footer}</div>}
-    </section>
+    </AstryxCard>
   )
   return framed ? <div className="ui-frame">{card}</div> : card
 }
@@ -209,7 +225,7 @@ export function PageHeader({ title, eyebrow, back, action, below, titleMorph }: 
   const context = eyebrow ?? tripName
   return (
     <header className="app-page-header pt-safe sticky top-0 z-10 border-b border-line bg-canvas/95 backdrop-blur-sm">
-      <div className="flex min-h-16 items-center gap-1 px-3 py-2 lg:px-8">
+      <div className="page-header-row flex min-h-16 flex-wrap items-center gap-1 px-3 py-2 lg:px-8">
         {back ? (
           <Link to={back} className="ui-icon-button shrink-0" aria-label="Back">
             <ChevronLeft aria-hidden="true" className="size-6" />
@@ -217,7 +233,7 @@ export function PageHeader({ title, eyebrow, back, action, below, titleMorph }: 
         ) : (
           <span className="w-2" />
         )}
-        <div className="min-w-0 flex-1">
+        <div className="page-header-heading min-w-0 flex-1 basis-[12ch]">
           {titleMorph ? <Morph name={titleMorph} text><h1 className="ui-page-title break-words">{title}</h1></Morph> : <h1 className="ui-page-title break-words">{title}</h1>}
           {context && <p className="ui-header-context truncate" title={context}>{context}</p>}
         </div>
@@ -240,23 +256,14 @@ export function Segmented<T extends string>({ label, value, options, onChange, c
   label: string; value: T; options: readonly { value: T; label: ReactNode; title?: string; ariaLabel?: string }[]; onChange: (value: T) => void; className?: string
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className={cx('ui-segmented', className)} onKeyDown={(event) => {
-      const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']
-      if (!keys.includes(event.key) || !options.length) return
-      const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]'))
-      const current = buttons.indexOf(document.activeElement as HTMLButtonElement)
-      if (current < 0) return
-      event.preventDefault()
-      const rtl = getComputedStyle(event.currentTarget).direction === 'rtl'
-      const forward = event.key === 'ArrowDown' || event.key === (rtl ? 'ArrowLeft' : 'ArrowRight')
-      const index = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (current + (forward ? 1 : -1) + options.length) % options.length
-      onChange(options[index]!.value)
-      buttons[index]?.focus()
+    <SegmentedControl label={label} value={value} className={cx('stowaway-segmented', className)} onChange={(next) => {
+      const option = options.find((o) => o.value === next)
+      if (option) { cue('tap'); onChange(option.value) }
     }}>
       {options.map((o) => (
-        <button key={o.value} type="button" role="radio" tabIndex={value === o.value ? 0 : -1} aria-checked={value === o.value} title={o.title} aria-label={o.ariaLabel} onClick={() => { if (value !== o.value) cue('tap'); onChange(o.value) }}>{o.label}</button>
+        <SegmentedControlItem key={o.value} value={o.value} label={o.ariaLabel ?? labelText(o.label)} icon={typeof o.label === 'string' ? undefined : o.label} isLabelHidden={typeof o.label !== 'string'} {...{ title: o.title }} />
       ))}
-    </div>
+    </SegmentedControl>
   )
 }
 

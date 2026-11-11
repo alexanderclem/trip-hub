@@ -1,9 +1,14 @@
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities, stageshow;
 @import 'tailwindcss';
+@import '@astryxdesign/core/reset.css';
+@import '@astryxdesign/core/astryx.css';
+@import '../themes/stowaway/stowaway.css';
 @import './fonts.css';
 @import './tokens.css';
 @import './themes.css';
 
-@theme {
+/* Inline aliases protect Stowaway's existing utility meanings from Astryx token names. */
+@theme inline {
   --color-brand-50: var(--stowaway-hover);
   --color-brand-100: var(--stowaway-mist);
   --color-brand-500: var(--stowaway-action);
@@ -65,6 +70,9 @@ body,
   height: 100%;
 }
 
+/* Prerendered Theme wrappers inherit the pre-paint html mode until hydration reads the saved choice. */
+#root > [data-astryx-theme='stowaway'] { color-scheme: inherit; }
+
 body {
   font-family: var(--stowaway-font-body);
   font-size: var(--stowaway-text-body);
@@ -94,6 +102,8 @@ body {
 }
 
 @layer components {
+  /* TextInput's border box surrounds a 24px input by default. The editable target must also be 44px. */
+  .stowaway-text-control input { min-height: 44px; }
   .ui-button {
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
     min-height: 44px; border-radius: var(--stowaway-radius-control); padding: .625rem 1rem;
@@ -110,13 +120,10 @@ body {
   .ui-button-primary:hover, .ui-button-primary:active { background: var(--stowaway-ink); }
   .ui-button-secondary { border: 1px solid var(--stowaway-control-border); background: var(--stowaway-surface); color: var(--stowaway-ink); }
   .ui-button-secondary:hover { background: var(--stowaway-mist); }
-  .ui-button-danger { border: 1px solid var(--stowaway-danger-ink); background: var(--stowaway-surface); color: var(--stowaway-danger-ink); }
-  .ui-button-danger:hover { background: var(--stowaway-danger-bg); }
   .ui-button-ghost { color: var(--stowaway-action); }
   .ui-button-ghost:hover { background: var(--stowaway-mist); }
   .ui-icon-button { display: inline-flex; min-height: 44px; min-width: 44px; align-items: center; justify-content: center; border-radius: var(--stowaway-radius-control); }
   .ui-icon-button:hover { background: var(--stowaway-mist); }
-  .ui-card { border: 1px solid var(--stowaway-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); padding: 1.25rem; }
   /* A record laid out like the website's sample trip: a heading, ruled sections, a caption strip. */
   .ui-card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .5rem .75rem; }
   .ui-card-head > div { min-width: 0; flex: 1; }
@@ -222,6 +229,8 @@ body {
 .stowie-drag-handle { margin-block: 0; }
 .ui-toast-region { position: fixed; z-index: 60; inset-inline: max(.75rem, env(safe-area-inset-left)) max(.75rem, env(safe-area-inset-right)); bottom: calc(env(safe-area-inset-bottom) + 5rem); display: grid; gap: .5rem; width: min(30rem, calc(100% - 1.5rem)); margin-inline: auto; pointer-events: none; }
 .ui-toast-region:empty { display: none; }
+.ui-toast-history { pointer-events: auto; }
+.ui-toast-history > summary { display: flex; min-height: 44px; align-items: center; justify-content: center; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-control); padding: .5rem 1rem; background: var(--stowaway-surface); color: var(--stowaway-ink); font-size: var(--stowaway-text-small); cursor: pointer; }
 .ui-toast { display: flex; align-items: center; gap: .5rem; min-width: 0; padding: .5rem .5rem .5rem 1rem; border: 1px solid var(--stowaway-control-border); border-radius: var(--stowaway-radius-surface); background: var(--stowaway-surface); color: var(--stowaway-ink); box-shadow: none; pointer-events: auto; font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
 .ui-toast .ui-button { flex-shrink: 0; padding-inline: .75rem; }
 .shortcut-hint { display: none; margin-inline-start: .5rem; border: 1px solid var(--stowaway-border); border-radius: 4px; padding: .125rem .375rem; color: var(--stowaway-muted); font-family: inherit; font-size: var(--stowaway-text-caption); white-space: nowrap; }
@@ -466,7 +475,6 @@ time, output, .ui-time, .marketing-price { font-variant-numeric: tabular-nums; }
 .ui-field.input, .ui-field.select, .ui-field.textarea { height: auto; min-height: 46px; font-size: 1rem; box-shadow: none; }
 .ui-field.textarea { min-height: 6rem; }
 .ui-field[aria-invalid='true']:focus-visible { outline-color: var(--stowaway-danger-ink); }
-.card.ui-card { display: block; }
 @media (prefers-reduced-motion: reduce) {
   .btn, .input, .select, .textarea, .skeleton { animation: none; transition: none; }
   .btn:active { translate: none; }
