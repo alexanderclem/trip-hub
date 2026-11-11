@@ -1,0 +1,131 @@
+[
+  {
+    "name": "home-planning",
+    "width": 1440,
+    "overflow": false,
+    "title": "Example · Paris with friends",
+    "contentScrollHeight": 1133,
+    "primaryButtons": 1
+  },
+  {
+    "name": "home-priority-color",
+    "width": 1440,
+    "headingColor": "rgb(255, 255, 255)",
+    "detailColor": "rgb(255, 255, 255)",
+    "background": "rgb(255, 255, 255)",
+    "headingTop": 274.78125,
+    "firstPlanItemTop": 501.765625
+  },
+  {
+    "name": "plan",
+    "width": 1440,
+    "overflow": false,
+    "title": "Plan",
+    "contentScrollHeight": 1112,
+    "primaryButtons": 0
+  },
+  {
+    "name": "item",
+    "width": 1440,
+    "overflow": false,
+    "title": "Musée d’Orsay visit",
+    "contentScrollHeight": 1382,
+    "primaryButtons": 0
+  },
+  {
+    "name": "places",
+    "width": 1440,
+    "overflow": false,
+    "title": "Places",
+    "contentScrollHeight": 1070,
+    "primaryButtons": 0
+  },
+  {
+    "name": "place",
+    "width": 1440,
+    "overflow": false,
+    "title": "Musée d’Orsay",
+    "contentScrollHeight": 1790,
+    "primaryButtons": 0
+  },
+  {
+    "name": "map-unprepared",
+    "width": 1440,
+    "overflow": false,
+    "title": "Trip map",
+    "contentScrollHeight": 876,
+    "primaryButtons": 0
+  },
+  {
+    "name": "votes",
+    "width": 1440,
+    "overflow": false,
+    "title": "Votes",
+    "contentScrollHeight": 876,
+    "primaryButtons": 0
+  },
+  {
+    "name": "poll-open",
+    "width": 1440,
+    "overflow": false,
+    "title": "Which neighborhood should we explore?",
+    "contentScrollHeight": 1077,
+    "primaryButtons": 0
+  },
+  {
+    "name": "poll-closed",
+    "width": 1440,
+    "overflow": false,
+    "title": "Where should we spend Friday?",
+    "contentScrollHeight": 1521,
+    "primaryButtons": 1
+  },
+  {
+    "name": "money",
+    "width": 1440,
+    "overflow": false,
+    "title": "Money",
+    "contentScrollHeight": 1513,
+    "primaryButtons": 0
+  },
+  {
+    "name": "tickets",
+    "width": 1440,
+    "overflow": false,
+    "title": "Tickets",
+    "contentScrollHeight": 876,
+    "primaryButtons": 0
+  },
+  {
+    "name": "ticket-local",
+    "width": 1440,
+    "overflow": false,
+    "title": "Example · Musée d’Orsay ticket",
+    "contentScrollHeight": 1013,
+    "primaryButtons": 0
+  },
+  {
+    "name": "ticket-missing",
+    "width": 1440,
+    "overflow": false,
+    "title": "Example · Train ticket not downloaded",
+    "contentScrollHeight": 876,
+    "primaryButtons": 1
+  },
+  {
+    "name": "more",
+    "width": 1440,
+    "overflow": false,
+    "title": "More",
+    "contentScrollHeight": 916,
+    "primaryButtons": 0
+  },
+  {
+    "name": "settings-offline",
+    "width": 1440,
+    "overflow": false,
+    "title": "Trip settings",
+    "contentScrollHeight": 3161,
+    "primaryButtons": 4
+  }
+]
