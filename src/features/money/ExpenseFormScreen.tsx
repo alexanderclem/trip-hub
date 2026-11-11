@@ -5,13 +5,14 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { DateTime } from 'luxon'
 import { Camera, Receipt, Trash2 } from 'lucide-react'
 import { db } from '@/data/db'
-import { useMyMemberId } from '@/data/device'
+import { useMyMemberId, useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { useMembers, useTrip } from '@/data/hooks'
 import { EXPENSE_CATEGORIES, type ExpenseCategory, type ExpenseRow } from '@/data/types'
 import { rateFor } from '@/lib/fx'
 import { newId } from '@/lib/ids'
 import { computeShares, formatMoney, minorUnits, type SplitMethod } from '@/lib/money'
-import { Avatar, Button, DateInput, Disclosure, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
+import { Avatar, Button, Card, DateInput, Disclosure, ErrorNote, Field, Input, PageHeader, Select, Textarea } from '@/ui'
 import { buildExpense, parseMinor, type ExpenseDraft } from './build'
 import { deleteExpense, saveExpense, useExpense, useMoney } from './data'
 import { detailsAmountMinor } from '@/features/scan/client'
@@ -38,6 +39,7 @@ export function ExpenseFormScreen() {
   const [search] = useSearchParams()
   const navigate = useNavigate()
   const me = useMyMemberId(tripId)
+  const mayParticipate = can(useTripAccess(tripId), 'participate')
   const trip = useTrip(tripId)
   const members = useMembers(tripId)
   const money = useMoney(tripId)
@@ -131,11 +133,23 @@ export function ExpenseFormScreen() {
         : 0
     : 0
 
+  if (!mayParticipate) return <div>
+    <PageHeader title="Shared expense" back={`/t/${tripId}/money`} />
+    <div className="mx-auto max-w-md space-y-4 p-4">
+      <p className="text-sm text-muted">You can view shared expenses. A traveler or organizer can record or change them.</p>
+      {existing && <Card title={existing.description}>
+        <p className="mt-2 text-xl font-semibold tabular-nums">{formatMoney(existing.amount_minor, existing.currency)}</p>
+        <p className="mt-2 text-sm text-muted">Paid by {existing.payers.map((payer) => members?.find((member) => member.id === payer.member_id)?.display_name ?? 'A traveler').join(' & ')} · {DateTime.fromISO(existing.spent_on).toFormat('d LLL yyyy')}</p>
+        {existing.notes && <p className="mt-3 whitespace-pre-wrap break-words">{existing.notes}</p>}
+      </Card>}
+    </div>
+  </div>
+
   if (!d || !members) return <PageHeader title={expenseId ? 'Edit expense' : 'Add expense'} back={`/t/${tripId}/money`} />
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!result) return
+    if (!result || !mayParticipate) return
     if ('error' in result) return setError(result.error)
     setSaving(true)
     await saveExpense(result.expense, me)

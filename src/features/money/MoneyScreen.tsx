@@ -5,7 +5,8 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { ArrowRight, Check, HandCoins, Plus, Receipt, ScanLine, Undo2 } from 'lucide-react'
-import { useDevice, useMyMemberId } from '@/data/device'
+import { useDevice, useMyMemberId, useTripAccess } from '@/data/device'
+import { can } from '@/data/access'
 import { useMembers, useTrip } from '@/data/hooks'
 import { PAYMENT_METHODS, type Member, type SettlementRow } from '@/data/types'
 import { convertMinor, FX_ATTRIBUTION, rateFor } from '@/lib/fx'
@@ -28,6 +29,9 @@ export function MoneyScreen() {
   const confirm = useConfirm()
   const { tripId } = useParams() as { tripId: string }
   const me = useMyMemberId(tripId)
+  const access = useTripAccess(tripId)
+  const mayParticipate = can(access, 'participate')
+  const mayManageMoney = can(access, 'money')
   const trip = useTrip(tripId)
   const members = useMembers(tripId) ?? []
   const money = useMoney(tripId)
@@ -68,10 +72,10 @@ export function MoneyScreen() {
           <Link to={`/t/${tripId}/travelers/${t.from}`} className="font-semibold text-action underline underline-offset-4">{t.from === me ? 'You' : name(t.from)}</Link> pay{t.from === me ? '' : 's'} <Link to={`/t/${tripId}/travelers/${t.to}`} className="font-semibold text-action underline underline-offset-4">{t.to === me ? 'you' : name(t.to)}</Link>
         </span>
         <span className="font-semibold tabular-nums">{fmt(t.amount_minor)}</span>
-        <Button variant="secondary" className="px-3 text-sm" onClick={() => setRecording(t)} aria-label={`Record ${name(t.from)} paying ${name(t.to)}`}>Record</Button>
+        {(mayManageMoney || (mayParticipate && (t.from === me || t.to === me))) && <Button variant="secondary" className="px-3 text-sm" onClick={() => setRecording(t)} aria-label={`Record ${name(t.from)} paying ${name(t.to)}`}>Record</Button>}
       </div>
       {memberOf(t.to)?.venmo_username && <a href={`https://venmo.com/u/${encodeURIComponent(memberOf(t.to)!.venmo_username!)}`} target="_blank" rel="noopener noreferrer" className="ui-link">Pay {name(t.to)} on Venmo<span className="sr-only"> (opens in a new tab)</span></a>}
-      {recording === t && <RecordPayment transfer={t} base={base} local={local} snapshot={money.snapshot} me={me} tripId={tripId} onDone={() => setRecording(null)} />}
+      {mayParticipate && recording === t && <RecordPayment transfer={t} base={base} local={local} snapshot={money.snapshot} me={me} tripId={tripId} onDone={() => setRecording(null)} />}
     </li>
   ))
 
@@ -87,10 +91,10 @@ export function MoneyScreen() {
               <EmptyTitle>See who owes what</EmptyTitle>
               <EmptyDescription>Record who paid and who’s sharing the cost. Stowaway calculates each person’s share.</EmptyDescription>
             </EmptyHeader>
-            <div className="flex flex-wrap justify-center gap-2">
+            {mayParticipate && <div className="flex flex-wrap justify-center gap-2">
               <LinkButton to="new"><Plus aria-hidden="true" className="size-4" />Add an expense</LinkButton>
               <LinkButton to={scan} variant="secondary"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</LinkButton>
-            </div>
+            </div>}
           </Empty>
         ) : (
           <>
@@ -153,16 +157,16 @@ export function MoneyScreen() {
                           <span className="text-muted"> · {r.s.method}</span>
                         </p>
                         <span className="font-semibold tabular-nums">{formatMoney(r.s.amount_minor, r.s.currency)}</span>
-                        <button type="button" onClick={async () => { if (await confirm('Undo this payment?')) await deleteSettlement(r.s.id, me) }} aria-label="Undo payment" className="ui-icon-button -mr-2 text-muted">
+                        {(mayManageMoney || (mayParticipate && (r.s.from_member_id === me || r.s.to_member_id === me))) && <button type="button" onClick={async () => { if (await confirm('Undo this payment?')) await deleteSettlement(r.s.id, me) }} aria-label="Undo payment" className="ui-icon-button -mr-2 text-muted">
                           <Undo2 aria-hidden="true" className="size-4" />
-                        </button>
+                        </button>}
                       </li>
                     ),
                   )}
                 </ul>
               </div>
             ))}
-            <Link to={scan} className="ui-link px-1"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</Link>
+            {mayParticipate && <Link to={scan} className="ui-link px-1"><ScanLine aria-hidden="true" className="size-4" />Scan a receipt</Link>}
           </section>
         )}
 
@@ -176,7 +180,7 @@ export function MoneyScreen() {
           </Collapsible>
         </Card>}
         <MyBookingCard tripId={tripId} />
-        {moment && <CollectPaymentsRow tripId={tripId} reason={moment} />}
+        {mayParticipate && moment && <CollectPaymentsRow tripId={tripId} reason={moment} />}
         {me && <TripCostCard trip={trip} me={me} memberIds={members.map((m) => m.id)} expenses={money.expenses} snapshot={money.snapshot} fmt={fmt} />}
 
         <p className="pt-2 text-center text-xs text-muted">
@@ -185,7 +189,7 @@ export function MoneyScreen() {
         </p>
       </div>
 
-      {!empty && <Fab to="new" label="Add expense" />}
+      {mayParticipate && !empty && <Fab to="new" label="Add expense" />}
     </div>
   )
 }

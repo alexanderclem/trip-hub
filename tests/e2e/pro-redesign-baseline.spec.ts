@@ -453,6 +453,17 @@ test('hosted viewers can read the roster and traveler without edit controls', as
   await expect(page.getByRole('link', { name: /Add an event|Add an expense|Assign a task|Manage packing/ })).toHaveCount(0)
   await expect(page.getByText('Edit traveler profile', { exact: true })).toHaveCount(0)
   await capture(page, 'astryx-viewer-traveler-390')
+  await open(page, 'money')
+  await expect(page.getByRole('region', { name: 'Your balance' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Record |Undo payment/ })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: /Add expense|Add an expense|Scan a receipt/ })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Group settlement details', exact: true }).click()
+  await expect(page.getByRole('button', { name: /^Record |Undo payment/ })).toHaveCount(0)
+  await open(page, `money/${id(70)}`)
+  await expect(page.getByRole('heading', { name: 'Example · Airport train', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Save expense|Delete expense/ })).toHaveCount(0)
+  await expect(page.getByRole('textbox', { name: 'What for?', exact: true })).toHaveCount(0)
+  await capture(page, 'astryx-viewer-expense-390')
 })
 
 test('join welcome separates installation from real per-phone ticket preparation', async ({ page, baseURL }) => {
