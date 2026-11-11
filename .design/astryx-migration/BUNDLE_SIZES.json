@@ -1,0 +1,91 @@
+{
+  "method": "Static transitive JS imports: entry plus one route. Gzip computed per file. Excludes dynamic dependencies, PWA precache and intentional tab preloads; not measured transfer or latency.",
+  "before": {
+    "entry": {
+      "raw": 759101,
+      "gzip": 251424,
+      "modules": 12
+    },
+    "create": {
+      "raw": 1125701,
+      "gzip": 358815,
+      "modules": 31
+    },
+    "home": {
+      "raw": 1753847,
+      "gzip": 542122,
+      "modules": 63
+    },
+    "plan": {
+      "raw": 1180477,
+      "gzip": 380630,
+      "modules": 54
+    },
+    "money": {
+      "raw": 1166886,
+      "gzip": 375125,
+      "modules": 44
+    },
+    "css": {
+      "raw": 321940,
+      "gzip": 55434
+    }
+  },
+  "after": {
+    "entry": {
+      "raw": 1261915,
+      "gzip": 407107,
+      "modules": 14
+    },
+    "create": {
+      "raw": 1648846,
+      "gzip": 522021,
+      "modules": 34
+    },
+    "home": {
+      "raw": 2256908,
+      "gzip": 697657,
+      "modules": 64
+    },
+    "plan": {
+      "raw": 1683331,
+      "gzip": 536017,
+      "modules": 54
+    },
+    "money": {
+      "raw": 1677356,
+      "gzip": 534074,
+      "modules": 48
+    },
+    "css": {
+      "raw": 626149,
+      "gzip": 103346
+    }
+  },
+  "delta": {
+    "entry": {
+      "raw": 502814,
+      "gzip": 155683
+    },
+    "create": {
+      "raw": 523145,
+      "gzip": 163206
+    },
+    "home": {
+      "raw": 503061,
+      "gzip": 155535
+    },
+    "plan": {
+      "raw": 502854,
+      "gzip": 155387
+    },
+    "money": {
+      "raw": 510470,
+      "gzip": 158949
+    },
+    "css": {
+      "raw": 304209,
+      "gzip": 47912
+    }
+  }
+}
