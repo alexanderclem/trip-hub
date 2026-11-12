@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.json && vite build",
+    "build": "tsc -p tsconfig.json && vite build && npm run check:bundle",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "test": "vitest run",
@@ -17,7 +17,9 @@
     "lint:design": "impeccable detect src/",
     "astryx": "node node_modules/@astryxdesign/cli/clients/cli/bin/astryx.mjs",
     "theme:build": "astryx theme build src/themes/stowaway/stowawayTheme.ts --out src/themes/stowaway/stowaway.css",
-    "theme:check": "astryx theme build src/themes/stowaway/stowawayTheme.ts --out src/themes/stowaway/stowaway.css --check"
+    "theme:check": "astryx theme build src/themes/stowaway/stowawayTheme.ts --out src/themes/stowaway/stowaway.css --check",
+    "check:bundle": "node scripts/check-bundle.mjs",
+    "profile:astryx": "node scripts/profile-astryx.mjs"
   },
   "dependencies": {
     "@astryxdesign/core": "0.7.13",
@@ -55,6 +57,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "daisyui": "^5.7.50",
+    "es-module-lexer": "2.3.2",
     "fake-indexeddb": "^6.2.5",
     "fast-check": "^4.10.2",
     "impeccable": "^4.8.0",

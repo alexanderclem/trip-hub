@@ -1,8 +1,8 @@
 # Implementation and verification ledger
 
-Started November 11, 2026 at `a5f9be4`. Clean initial worktree; `git fetch --all --prune` and branch/log/worktree inspection completed. Main and other worktrees were preserved. Local branch: `codex/astryx-migration`. No push, deploy or hosted-data writes.
+Started November 11, 2026 at `a5f9be4`. Clean initial worktree; `git fetch --all --prune` and branch/log/worktree inspection completed. Main and other worktrees were preserved. Local branch: `codex/astryx-migration`. The initial slice had no push/deploy; the user then authorized completing this ledger and pushing all work to main. Hosted-data writes remain excluded.
 
-Product commits: `e89f075` (Astryx foundations and consumer journeys) and `aa10ccc` (Money role controls and read-only expense details). The final production source tested is `aa10ccc`. Local Git had no configured author, so these commits use Codex through per-command identity settings; no user/global Git configuration was changed. The later handoff commit contains documentation only.
+Initial product commits: `e89f075` (Astryx foundations and consumer journeys) and `aa10ccc` (Money role controls and read-only expense details), followed by documentation commit `f093c46`. Results below describe that initial slice; the completion pass at the end supersedes its remaining-work entries. Commits use Codex through per-command identity settings because local Git had no configured author; no user/global Git configuration changed.
 
 ## Execution plan and implemented slices
 
@@ -90,6 +90,55 @@ Final visual hardening also allows PageHeader tools to wrap before squeezing its
 
 Final role review found an existing gap in the touched Money feature: hosted viewers could see Record/Add/Undo controls and reach an editable expense form. The UI now uses the existing participate/money capabilities, limits hosted travelers' recording actions to their own suggested payments, and presents an expense as a read-only summary to viewers, including direct URLs. Their private per-phone budget preference remains available. The extended viewer journey checks both roster and Money, including the expense deep link. No server access rules, repository guard or calculations changed.
 
-## Next exact slice
+## Completion pass authorized by the user
 
-Refine DecisionHandoff's unscheduled state: schedule action first; disclose existing-item linking and optional booking ownership; keep current owner/deadline and confirmation state visible. Use the installed Collapsible API, preserve both decision/poll handoff query contracts, all 0–3/clear behavior and explicit tentative scheduling. Then migrate one compatible text form at a time, and profile the measured bundle increase before further shared-library expansion.
+- UX-07 is implemented with upstream Collapsible: schedule first, optional linking and owner/deadline editing disclosed, current task/owner/deadline and booking confirmation always visible. Native dates, explicit tentative scheduling, both `decision` and `poll` URL contracts and the existing 0–3/clear behavior remain.
+- Shared Field now delegates compatible controlled text inputs to actual TextInput/Field, preserving native change events, name/ref, validation, disabled behavior, hints and keyboard traits. Explicit expense, task, itinerary and booking fields also migrate. Native composite/uncontrolled/number/date/file/select/textarea and compact custom controls remain justified compatibility exceptions. Shared Skeleton and Tasks EmptyState now use upstream components.
+- The source design scan now passes with **zero anti-pattern failures** and 201 advisory notes. DESIGN.md narrowly documents SF Pro Text/Rounded for the existing simulated iOS keyboard/status time/contact monogram only. No product font, font service or font asset changed. Regex scanning still is not a rendered accessibility certification.
+- Production builds enforce full static-graph gzip budgets via `scripts/check-bundle.mjs`, including shared imports. `scripts/profile-astryx.mjs` supplies repeatable cold-form CPU/network/gzip measurements and a 6-second median lab ceiling. The measured overhead remains visible in BUNDLE_SIZES/PERFORMANCE; this is not a speed improvement or field Web Vitals claim.
+- A fresh offline Chromium page opens the installed app's cached trip and saved PNG, distinguishes a missing ticket, and reopens after reconnection. Two independent browser databases exercise real repository/outbox/HTTP sync code against an in-memory server: an offline task reaches the second phone and survives reload. This does not certify live hosted RLS/realtime or cross-device infrastructure.
+- A real public Paris download exposed a cold-map startup/overview edge issue. Startup now waits for saved style metadata, begins at its destination, and keeps one neighboring middle-zoom tile. Annotation fonts are prepared too. The final offline map renders with no failed requests: **202 cached tiles / 60,230,270 bytes**. The old 40 KB/tile estimate understated this dense city; the estimate now uses 300 KB/tile. No map server configuration or live trip data changed.
+- Windows WebKit UI checks cover create validation/themes, roster/legacy scheduling, decision ownership/deadline, shared keyboard choices and native confirmation across width/theme/motion matrices. Its ephemeral context rejects IndexedDB Blob persistence, so those UI fixtures omit the synthetic file and the file-cache contract explicitly belongs to Chromium. No Safari/physical-device file certification is implied.
+- Keyboard confirmation tests explicitly focus/activate the trigger. When pointer/programmatic activation leaves no focused opener, Dialog now restores the screen heading rather than treating body as a usable opener. Focus containment, Escape, return-to-trigger and that fallback are exercised.
+
+The user answered **“No—keep physical-device checks explicitly unverified.”** Physical iPhone Safari/PWA installation, VoiceOver, OS storage eviction and live hosted-device reconciliation remain unverified boundaries, not silently checked boxes. Native dialogs, sheets, persistent undo toasts, custom navigation and rich travel empty compositions are retained as reviewed exceptions rather than unfinished mass substitutions.
+
+Final results and the release boundary are recorded in FINAL_REVIEW.md. Historical failed fixture/selector/platform iterations remain in local logs and are not counted as passes.
+
+### Completion measurements and commands
+
+Final constrained lab comparison: **4,108 ms before / 5,240 ms after median form use**, three fresh contexts for each build. Both real text inputs were filled; no hosted submission occurred. Chromium used a 390×844 viewport, gzip HTTP, 4× CPU slowdown, 1.6 Mbps down / 0.75 Mbps up and 150 ms latency, with service workers/external traffic blocked. The increase is **1,132 ms (27.6%)**. Current samples transferred about 745 KB and painted first content around 4.06 seconds. The 6-second median lab ceiling passes, but this does not establish good field Web Vitals. Full samples are committed in PERFORMANCE.json.
+
+Current gzip static graphs: entry **403.9 KiB**, Create **508.9**, Home **687.7**, Plan **530.3**, Money **528.2**; global CSS **100.9 KiB**. Relative to the original baseline, entry adds **158.3 KiB gzip JS**, and CSS adds **46.8 KiB**. Full shared imports are counted once; dynamic imports, tab preloads and the service worker's full precache are explicitly separate. The production build enforces caps of 410/525/700/540/540 KiB and 105 KiB CSS. No unsupported stylesheet pruning or internal imports are used.
+
+```powershell
+npm run typecheck
+npm test
+npm run build # includes check:bundle
+npm run theme:check
+npm run lint:design
+
+$env:SHOTS_DIR='output/astryx-after'
+$env:VERIFY_PUBLIC_MAP='1' # read-only public tile downloads; no hosted trip writes
+npx playwright test tests/e2e/pro-redesign-baseline.spec.ts tests/e2e/first-run.spec.ts tests/e2e/design-flow.spec.ts tests/e2e/journal.spec.ts tests/e2e/appearance.spec.ts tests/e2e/website.spec.ts tests/e2e/guest-evaluation.spec.ts tests/e2e/planning-features.spec.ts tests/e2e/ux-patterns.spec.ts --output=output/pw-astryx-final --workers=1 --reporter=list --timeout=90000
+
+# Run the profile separately from browser tests to avoid CPU contention.
+npm run profile:astryx -- output/astryx-baseline-source/dist dist
+
+$env:E2E_BROWSER='webkit'
+$env:SHOTS_DIR='output/astryx-after-webkit'
+npx playwright test tests/e2e/pro-redesign-baseline.spec.ts --grep 'cross-engine consumer|decision options|Astryx create fields|retained native confirmation|shared choices' --output=output/pw-astryx-webkit --workers=1 --reporter=list --timeout=90000
+Remove-Item Env:E2E_BROWSER
+```
+
+Completion results: **796 unit tests / 106 files; 105 Chromium consumer browser tests; 5 WebKit UI journeys; build, app/node typecheck, theme check, bundle budgets and source design scan pass.** Browser runs are sequential with independent artifact directories and a stable preview server. The real Paris map/cache result and the two-phone stubbed reconciliation are included in the 105, not added again to inflate the count. Local logs: `output/astryx-completion-{unit,browser,build,design-scan}.log`, `output/astryx-completion-webkit-final.log`, `output/astryx-performance.log`.
+
+The main-branch CI workflow additionally exercises wrapped trips and operator/booking/payment/import fixtures through these shared controls. Its report-export assertion now selects the report's actual status message rather than also matching Astryx Button's empty busy-announcement region; the queried dates and downloaded CSV assertions remain intact. The consumer migration suites are now registered in CI as well. Public map downloading stays opt-in; CI uses local/mock services.
+
+The additional CI fixtures also pass: **38/38**, giving **143 Chromium tests plus 5 WebKit journeys** in the final verification. Exact additional command (no live payments, emails or hosted data):
+
+```powershell
+npx playwright test tests/e2e/wrapped.spec.ts tests/e2e/access-roles.spec.ts tests/e2e/organizers-pricing.spec.ts tests/e2e/operator-dashboard.spec.ts tests/e2e/payments-offer.spec.ts tests/e2e/payments.spec.ts tests/e2e/repeat-business.spec.ts tests/e2e/booking-travelers.spec.ts tests/e2e/campaigns.spec.ts tests/e2e/referrals.spec.ts tests/e2e/imports.spec.ts --output=output/pw-astryx-ci --workers=1 --reporter=list --timeout=90000
+```
+
+Receipt: `output/astryx-completion-ci-browser-final.log`. Main and unrelated worktrees remain untouched; release is pushed from the isolated migration branch with a normal fast-forward push, never a force push.

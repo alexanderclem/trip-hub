@@ -40,6 +40,15 @@ describe('planTiles', () => {
     expect(planTiles([antigua, pana]).length).toBeLessThan(250)
   })
 
+  it('keeps the overview edge visible around Paris when the phone frames its saved places', () => {
+    const paris: TripArea = { name: 'Paris', bbox: [48.80, 2.25, 48.91, 2.43], lat: 48.8566, lng: 2.3522 }
+    const tiles = planTiles([paris])
+    // These edge tiles were requested by the real cold-offline phone viewport.
+    expect(tiles).toContainEqual({ z: 9, x: 258, y: 175 })
+    expect(tiles).toContainEqual({ z: 9, x: 258, y: 176 })
+    expect(tiles.length).toBeLessThan(1600)
+  })
+
   it('stops at the source\'s top zoom', () => {
     expect(Math.max(...planTiles([antigua], 6).map((t) => t.z))).toBe(6)
     expect(planTiles([])).toEqual([])

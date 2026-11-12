@@ -121,13 +121,13 @@ test('report exports keep the period that was queried when the date inputs chang
   await page.getByLabel('From', { exact: true }).fill('2026-01-01')
   await page.getByLabel('To', { exact: true }).fill('2026-01-31')
   await page.getByRole('button', { name: 'Show report' }).click()
-  await expect(page.getByRole('status')).toHaveText('Report: 2026-01-01 to 2026-01-31.')
+  await expect(page.getByRole('status').filter({ hasText: /^Report:/ })).toHaveText('Report: 2026-01-01 to 2026-01-31.')
   await page.getByLabel('From', { exact: true }).fill('2026-02-01')
   await page.getByLabel('To', { exact: true }).fill('2026-02-28')
   failed = true
   await page.getByRole('button', { name: 'Show report' }).click()
   await expect(page.getByRole('alert')).toHaveText('Report unavailable.')
-  await expect(page.getByRole('status')).toHaveText('Report: 2026-01-01 to 2026-01-31.')
+  await expect(page.getByRole('status').filter({ hasText: /^Report:/ })).toHaveText('Report: 2026-01-01 to 2026-01-31.')
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download as CSV' }).click()
   const file = await download

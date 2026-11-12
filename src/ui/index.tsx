@@ -15,6 +15,8 @@ import { motionTiming } from './motion'
 import { avatarPalette } from './avatarPalette'
 import { Morph } from './Morph'
 import { cue } from './feedback'
+import { TextField } from './TextField'
+import type { TextInputType, TextInputProps } from '@astryxdesign/core/TextInput'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 const MotionLink = m.create(Link)
@@ -62,6 +64,15 @@ const FieldDescription = createContext<string | undefined>(undefined)
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   const hintId = useId()
+  // Migrate simple controlled text fields without changing callers' native event contract.
+  // Composite, uncontrolled, numeric/date/file and tightly sized controls keep their native path.
+  if (isValidElement<InputHTMLAttributes<HTMLInputElement>>(children) && children.type === Input) {
+    const { value, type = 'text', onChange, disabled, required, readOnly, name, autoFocus, autoCapitalize, spellCheck, autoCorrect, size, defaultValue, className, ...native } = children.props
+    if (typeof value === 'string' && !className && !native.style && !size && defaultValue === undefined && (type === 'text' || type === 'email' || type === 'password' || type === 'search' || type === 'tel' || type === 'url')) {
+      const capitalization = ['off', 'on', 'none', 'characters', 'words', 'sentences'].includes(autoCapitalize ?? '') ? autoCapitalize as TextInputProps['autoCapitalize'] : undefined
+      return <TextField {...native} label={label} description={hint} type={type as TextInputType} value={value} onChange={(_, event) => onChange?.(event)} isDisabled={disabled} isRequired={required} isReadOnly={readOnly} htmlName={name} hasAutoFocus={autoFocus} autoCapitalize={capitalization} hasSpellCheck={spellCheck === undefined ? undefined : spellCheck === true || spellCheck === 'true'} hasAutoCorrect={autoCorrect === undefined ? undefined : autoCorrect === 'on'} />
+    }
+  }
   return (
     <FieldDescription value={hint ? hintId : undefined}>
       <div className="block min-w-0">

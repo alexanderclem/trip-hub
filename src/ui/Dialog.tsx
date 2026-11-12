@@ -31,7 +31,12 @@ export function Dialog({ open, onClose, title, children, dismissible = true, she
   useLayoutEffect(() => {
     requestedOpen.current = open
     swipe.panel.current = scope.current
-    if (open && !scope.current?.open) opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    if (open && !scope.current?.open) {
+      const active = document.activeElement
+      // Some pointer/programmatic activations leave focus on body. It cannot
+      // restore reading context; use the heading fallback on dismissal instead.
+      opener.current = active instanceof HTMLElement && active !== document.body && active !== document.documentElement ? active : null
+    }
   }, [open, scope, swipe.panel])
   useEffect(() => {
     const dialog = scope.current

@@ -1,5 +1,5 @@
 {
-  "method": "Static transitive JS imports: entry plus one route. Gzip computed per file. Excludes dynamic dependencies, PWA precache and intentional tab preloads; not measured transfer or latency.",
+  "method": "Static transitive JavaScript imports, entry plus one route, shared files counted once. Gzip per emitted file. Excludes dynamic imports, intentional tab preloads and service-worker precache. CSS is the global index stylesheet. These are footprint caps, not latency or Core Web Vitals.",
   "before": {
     "entry": {
       "raw": 759101,
@@ -33,29 +33,29 @@
   },
   "after": {
     "entry": {
-      "raw": 1261915,
-      "gzip": 407107,
-      "modules": 14
+      "modules": 14,
+      "raw": 1281956,
+      "gzip": 413568
     },
     "create": {
-      "raw": 1648846,
-      "gzip": 522021,
-      "modules": 34
+      "modules": 33,
+      "raw": 1649114,
+      "gzip": 521084
     },
     "home": {
-      "raw": 2256908,
-      "gzip": 697657,
-      "modules": 64
+      "modules": 64,
+      "raw": 2277146,
+      "gzip": 704189
     },
     "plan": {
-      "raw": 1683331,
-      "gzip": 536017,
-      "modules": 54
+      "modules": 54,
+      "raw": 1704729,
+      "gzip": 543073
     },
     "money": {
-      "raw": 1677356,
-      "gzip": 534074,
-      "modules": 48
+      "modules": 47,
+      "raw": 1698410,
+      "gzip": 540877
     },
     "css": {
       "raw": 626149,
@@ -64,24 +64,24 @@
   },
   "delta": {
     "entry": {
-      "raw": 502814,
-      "gzip": 155683
+      "raw": 522855,
+      "gzip": 162144
     },
     "create": {
-      "raw": 523145,
-      "gzip": 163206
+      "raw": 523413,
+      "gzip": 162269
     },
     "home": {
-      "raw": 503061,
-      "gzip": 155535
+      "raw": 523299,
+      "gzip": 162067
     },
     "plan": {
-      "raw": 502854,
-      "gzip": 155387
+      "raw": 524252,
+      "gzip": 162443
     },
     "money": {
-      "raw": 510470,
-      "gzip": 158949
+      "raw": 531524,
+      "gzip": 165752
     },
     "css": {
       "raw": 304209,

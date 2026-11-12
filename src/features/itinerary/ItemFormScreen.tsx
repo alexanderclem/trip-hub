@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { TextField } from '@/ui/TextField'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { DateTime } from 'luxon'
 import { useMyMemberId, useTripAccess } from '@/data/device'
@@ -275,7 +276,7 @@ export function ItemFormScreen() {
   const hasOptional = !!sourcePollId || !f.everyone || !!f.cost || !!f.notes || Number(f.checkIn) > 0 || Number(f.waiting) > 0
   const sourcePlace = !itemId && (search.get('place') || sourcePollId) ? places.find((place) => place.id === f.placeId) : undefined
   const back = itemId ? `/t/${tripId}/plan/${itemId}` : sourcePollId ? `/t/${tripId}/more/vote/${sourcePollId}` : ticketId ? `/t/${tripId}/tickets/${ticketId}` : copyId ? `/t/${tripId}/plan/${copyId}` : `/t/${tripId}/plan?day=${f.startDate}`
-  const nameField = <Field label="Name"><Input value={f.title} onChange={(event) => set('title', event.target.value)} maxLength={200} required placeholder={travel ? 'UA 1234 to New York' : 'Walk along the High Line'} /></Field>
+  const nameField = <TextField label="Name" value={f.title} onChange={(value) => set('title', value)} maxLength={200} isRequired placeholder={travel ? 'UA 1234 to New York' : 'Walk along the High Line'} />
   const activityFields = <div className="space-y-4">
     <div role="radiogroup" aria-label="Type" className="grid grid-cols-4 gap-1.5">
       {ITEM_KINDS.map((kind) => {

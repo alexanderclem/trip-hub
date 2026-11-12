@@ -30,6 +30,14 @@ jobs:
           tests/e2e/wrapped.spec.ts
           tests/e2e/journal.spec.ts
           --workers=1
+      - name: Check Astryx consumer journeys with local fixtures
+        run: >-
+          npx playwright test
+          tests/e2e/pro-redesign-baseline.spec.ts
+          tests/e2e/design-flow.spec.ts
+          tests/e2e/planning-features.spec.ts
+          tests/e2e/website.spec.ts
+          --workers=1 --timeout=90000
       - name: Check operator flows with local fixtures
         run: >-
           npx playwright test

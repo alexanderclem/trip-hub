@@ -16,9 +16,11 @@ import type { Bbox } from '@/features/places/osm'
 export const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
 const TILE_CACHE = 'map-tiles'
 const ASSET_CACHE = 'map-assets'
-/** Refuse downloads bigger than this; it's roughly 60 MB of street-level map. */
+/** Bound the number of requests; actual bytes vary with tile density. */
 export const MAX_TILES = 1600
-const AVERAGE_TILE_BYTES = 40_000
+// The verified Paris download used 60.2 MB for 202 tiles. Dense city tiles
+// need a more conservative estimate than the former 40 KB per tile.
+const AVERAGE_TILE_BYTES = 300_000
 // Latin, Latin extended, Greek, Cyrillic and general punctuation. Other scripts need signal.
 const GLYPH_RANGES = ['0-255', '256-511', '512-767', '768-1023', '1024-1279', '8192-8447']
 
@@ -77,7 +79,18 @@ export function planTiles(areas: TripArea[], maxZoom = 14): Tile[] {
     }
   }
   for (let z = 0; z <= Math.min(8, maxZoom); z++) add(tilesFor(pad(all, 1), z))
-  for (let z = 9; z <= Math.min(11, maxZoom); z++) add(tilesFor(pad(all, 0.1), z))
+  for (let z = 9; z <= Math.min(11, maxZoom); z++) {
+    // A phone viewport extends beyond the destination's bounds when fitting
+    // the trip. Keep one neighboring tile so that overview has no edge holes.
+    const edge = 2 ** z - 1
+    const tiles = tilesFor(pad(all, 0.1), z)
+    for (const tile of tiles) {
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+        const x = tile.x + dx, y = tile.y + dy
+        if (x >= 0 && x <= edge && y >= 0 && y <= edge) add([{ z, x, y }])
+      }
+    }
+  }
   for (let z = 12; z <= maxZoom; z++) for (const a of areas) add(tilesFor(pad(a.bbox, 0.005), z))
   return out
 }
@@ -189,7 +202,10 @@ export async function saveAreaMap(tripId: string, areas: TripArea[], onProgress:
   const assetUrls: string[] = [STYLE_URL]
   if (typeof style.sprite === 'string') for (const suffix of ['.json', '.png', '@2x.json', '@2x.png']) assetUrls.push(`${style.sprite}${suffix}`)
   if (style.glyphs) {
-    for (const stack of fontStacks(style)) for (const range of GLYPH_RANGES) assetUrls.push(style.glyphs.replace('{fontstack}', stack).replace('{range}', range))
+    // Stowaway adds stop numbers and cluster counts after style.load. Save their
+    // weights even when the server's base style doesn't use them.
+    const stacks = new Set([...fontStacks(style), 'Noto Sans Regular', 'Noto Sans Bold'])
+    for (const stack of stacks) for (const range of GLYPH_RANGES) assetUrls.push(style.glyphs.replace('{fontstack}', stack).replace('{range}', range))
   }
   await pooled(assetUrls, 6, async (url) => {
     try {

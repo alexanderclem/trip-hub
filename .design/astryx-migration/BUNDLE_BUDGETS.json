@@ -1,0 +1,5 @@
+{
+  "method": "Static transitive JavaScript imports, entry plus one route, shared files counted once. Gzip per emitted file. Excludes dynamic imports, intentional tab preloads and service-worker precache. CSS is the global index stylesheet. These are footprint caps, not latency or Core Web Vitals.",
+  "gzipKiB": { "entry": 410, "create": 525, "home": 700, "plan": 540, "money": 540, "css": 105 },
+  "lab": { "coldCreateMedianMs": 6000 }
+}

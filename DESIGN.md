@@ -20,6 +20,16 @@ colors:
   rule-dark: "#46636c"
   on-coral-dark: "#10262e"
 typography:
+  illustration-system-text:
+    fontFamily: "'SF Pro Text', -apple-system, system-ui, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 400
+    lineHeight: 1.4
+  illustration-system-monogram:
+    fontFamily: "ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 600
+    lineHeight: 1
   display:
     fontFamily: "Antonio, 'Barlow Condensed', sans-serif"
     fontSize: "min(15.5cqi, 5.5rem)"

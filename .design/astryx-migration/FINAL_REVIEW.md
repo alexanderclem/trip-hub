@@ -1,26 +1,25 @@
-# Review boundary and remaining release work
+# Completed code ledger and verification boundary
 
-**Implemented incremental Astryx migration; not a complete product redesign or release approval.** The real product uses a Stowaway-specific compiled theme and upstream Button, Card, TextInput/Field, SegmentedControl, Link and Collapsible. Existing native dialogs and specialized travel controls remain deliberate exceptions.
+The remaining implementation and local verification work is complete. The user separately authorized pushing all work to main, and explicitly answered **“No—keep physical-device checks explicitly unverified.”** This is a tested incremental Astryx migration with reviewed native exceptions; it does not claim physical-device certification or a replacement of every product-specific composition.
 
-| Area | Practical result | Remaining limit |
-| --- | --- | --- |
-| Hierarchy | Home priority readable; personal Money actions/history precede group details | DecisionHandoff still presents optional forms together. |
-| Navigation | Existing five phone tabs preserved; working roster/detail/Back; preparation anchor; day/deep links retained | Full map-sheet/lifecycle combinations still need physical-device review. |
-| Readability | Local brand fonts; 13px caption floor; measured Home text contrast; 44px migrated targets | 200% checks are CSS/root-text emulation, not browser-toolbar zoom. |
-| Theming | One runtime mode owner, compiled Stowaway theme, inline Tailwind aliases, appearance persistence/system/cross-tab coverage | Beta upgrades and Safari CSS scope/light-dark support need release review. |
-| Interaction | Real create/join/vote/manual schedule/expense/payment/demo paths; retained focus and sheet behavior; viewer Money has no recording controls and uses read-only expense details | Astryx Dialog is not approved for migration here. |
-| Accessibility | Names, native validation, radio keyboard behavior, focus, reduced motion, target sizes and contrast checked | No VoiceOver/screen-reader certification or existing axe integration. |
-| Data resilience | Synthetic IndexedDB fixtures; existing repositories and financial/voting algorithms preserved | No live cross-device sync, successful full map download or cold PWA airplane launch claimed. |
-| Visual cohesion | Ocean ink/coral/cool stock, existing master assets and Barlow roles preserved; illustration and real demo distinguished | Native field/overlay migrations remain incremental. |
+| Previous ledger item | Result |
+| --- | --- |
+| UX-07 decision hierarchy | Schedule first; upstream Collapsible for optional existing-item linking and booking owner/deadline editing. Saved task/owner/deadline and confirmation state remain visible. Both `decision` and `poll` scheduling URLs, tentative status and explicit human action are verified. |
+| Broader compatible foundations | Shared Field migrates compatible controlled text inputs to actual TextInput/Field, preserving the native event/name/ref/validation/disabled/hint/keyboard contracts. Explicit expense, task, itinerary and booking fields migrate too. Shared Skeleton and Tasks EmptyState now use upstream components. |
+| Native feature boundaries | Date/file/number/select/textarea, uncontrolled/composite and compact custom fields remain native. Tested dialogs/sheets, persistent undo toasts, rich travel empty compositions, timeline/map/day controls and five-tab navigation retain their specialized behavior. These are intentional compatibility decisions, not unfinished substitutions. |
+| Performance validation | Repeatable constrained CPU/network/gzip profile and full static-import budgets added. Every production build enforces the graph budgets. Measurements and limits are in [PERFORMANCE.json](PERFORMANCE.json), [BUNDLE_SIZES.json](BUNDLE_SIZES.json) and [BUNDLE_BUDGETS.json](BUNDLE_BUDGETS.json). The migration has a material performance cost; it is not described as a speed improvement. |
+| Cold offline app/files | Chromium service worker installs; a new offline page opens the saved trip and actual cached PNG. A missing ticket stays missing. Browser connectivity recovers. This is a cold document in an existing installed browser context, not a physical standalone-PWA launch. |
+| Successful map preparation | Real public Paris tiles downloaded, then rendered after closing the page and opening a new offline map. 202 cached tiles / 60,230,270 bytes, with no failed offline requests. Fixed destination-first startup, missing overview-edge tiles and annotation font preparation; calibrated the download estimate. Upstream shield-filter/headless GPU warnings remain recorded. |
+| Reconnect/reconciliation | Two independent browser databases exercise the real repository/outbox/HTTP sync path against an in-memory server. An offline task reaches the other phone after reconnecting and survives reload. No live hosted infrastructure or RLS/realtime certification is implied. |
+| Static design scan | **Pass: zero anti-pattern failures**, 201 advisory notes. Existing SF Pro usage is narrowly documented for the simulated iOS illustration only; product typography is unchanged. Regex scanning is not a rendered accessibility audit. |
+| Cross-engine UI | Windows Chromium and targeted WebKit journeys cover native validation, dark mode, roster/legacy scheduling, decision ownership/deadline, shared keyboard choices and native confirmation. Keyboard focus returns to its trigger; activation with no focused opener returns reading context to the screen heading. |
 
-## Release blockers / remaining issues
+Verified production build, strict app/node typecheck, compiled-theme drift check and bundle caps pass. **796 unit tests in 106 files, 143 Chromium browser tests (105 consumer + 38 additional CI fixtures) and 5 targeted WebKit UI journeys pass.** Commands and results are recorded in IMPLEMENTATION_LOG. Tests use synthetic local trip data; only the explicitly opted-in map verification reads a public tile server. No hosted trip data, SQL/RLS/schema, money arithmetic, vote scoring, payment activation or production configuration was changed.
 
-- **HIGH: performance validation.** Cold static code grows substantially. Profile a constrained phone and review budgets before shipping; do not hide shared chunks when reporting route sizes.
-- **HIGH: device/offline release verification.** Physical iPhone Safari/PWA, VoiceOver, cold offline launch, successful map preparation and real reconnect need separate authorized verification. Synthetic local tests are not evidence of these outcomes.
-- **MEDIUM: incomplete feature migration.** Native dates/selects/files, most text fields, sheets/popovers/toasts, empty/loading states and custom navigation are not all Astryx. No automatic mass substitution is proposed.
-- **LOW: UX-07.** Refine optional decision-link/booking forms in the next slice, keeping consequential state visible.
-- **LOW: static design scanner remains nonzero.** The unchanged three vendored Stage-kit font findings also occur in the baseline; five extra advisories record the existing app radii reproduced in the theme. This check is explicitly not reported as passing.
+## Explicitly unverified
 
-Final product source: `aa10ccc`, following `e89f075`, on `codex/astryx-migration`. **795 unit tests and 100 selected browser tests pass**, as do strict typecheck, production build and compiled-theme verification. The static design scan remains nonzero as explained above. No push, deployment or production writes occurred.
+- Physical iPhone Safari/PWA installation and launch, VoiceOver, OS text scaling/storage eviction and hardware performance. Retained as unverified at the user's instruction.
+- Live hosted cross-device synchronization and infrastructure behavior. The original restriction on production writes remains in force; the automated two-phone test uses a stubbed server.
+- Safari file persistence: Windows WebKit ephemeral contexts reject IndexedDB Blob writes. Its UI fixtures omit that synthetic file; actual file/cache tests run in Chromium. This platform limitation is not represented as an application workaround or a Safari pass.
 
-Measured entry graph growth is approximately **152 KiB gzip JavaScript**, plus **47 KiB gzip global CSS**. Cold route graphs and method are in [BUNDLE_SIZES.json](BUNDLE_SIZES.json) and IMPLEMENTATION_LOG. These are code-footprint measurements, not network latency or Core Web Vitals.
+The pinned beta dependency and measured footprint remain maintenance constraints. Future expansion or upgrades must preserve native travel/data contracts and rerun the theme, browser and complete-graph budget checks. The existing main push triggers Cloudflare's deployment pipeline; deployment status is separate from these local results.

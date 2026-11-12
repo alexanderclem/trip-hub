@@ -1,4 +1,5 @@
 import { TravelerLink } from '@/features/trips/TravelerLink'
+import { EmptyState } from '@astryxdesign/core/EmptyState'
 import { useTripAccess } from '@/data/device'
 import { can } from '@/data/access'
 import { useEffect, useRef, useState } from 'react'
@@ -9,7 +10,7 @@ import { useMyMemberId } from '@/data/device'
 import { useMembers, useTrip } from '@/data/hooks'
 import type { TripTask } from '@/data/types'
 import { ErrorNote, LinkButton, PageHeader } from '@/ui'
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle, ListSkeleton } from '@/ui/collection'
+import { ListSkeleton } from '@/ui/collection'
 import { setTaskCompleted, undoTaskCompleted, useTasks } from './data'
 import { useToast } from '@/ui/ToastProvider'
 import { Stowie } from '@/features/stowie/Stowie'
@@ -83,7 +84,7 @@ export function TasksScreen() {
         </div>
         <ErrorNote error={error} />
         {tasks === undefined ? <ListSkeleton label="Loading tasks…" rows={4} className="py-4" /> : visible.length === 0 ? (
-          <Empty><Stowie size={64} /><EmptyHeader><EmptyTitle>{filter === 'all' ? 'No tasks yet' : 'No tasks here'}</EmptyTitle><EmptyDescription>{filter === 'all' ? 'Assign tasks to travelers and set due dates.' : 'Try another filter or add a task.'}</EmptyDescription></EmptyHeader><LinkButton to="new">Add a task</LinkButton></Empty>
+          <EmptyState title={filter === 'all' ? 'No tasks yet' : 'No tasks here'} description={filter === 'all' ? 'Assign tasks to travelers and set due dates.' : 'Try another filter or add a task.'} icon={<Stowie size={64} />} actions={<LinkButton to="new">Add a task</LinkButton>} />
         ) : (
           <>
             <section aria-labelledby="open-tasks"><h2 id="open-tasks" className="mb-2 text-sm font-semibold text-ink">To do · {open.length}</h2>{open.length ? <ul className="rounded-surface border border-line bg-surface px-2">{open.map(row)}</ul> : <p className="rounded-surface bg-brand-50 p-4 text-sm text-ink">All caught up.</p>}</section>

@@ -1,4 +1,5 @@
 import { useConfirm } from '@/ui/ConfirmProvider'
+import { TextField } from '@/ui/TextField'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -165,13 +166,9 @@ export function ExpenseFormScreen() {
     <div className="min-h-full">
       <PageHeader title={expenseId ? 'Edit expense' : 'Add expense'} back={`/t/${tripId}/money`} />
       <form onSubmit={submit} className="mx-auto max-w-md space-y-4 p-4 pb-0">
-        <Field label="What for?">
-          <Input value={d.description} onChange={(e) => set('description', e.target.value)} maxLength={200} placeholder="Dinner in Le Marais" />
-        </Field>
+        <TextField label="What for?" value={d.description} onChange={(value) => set('description', value)} maxLength={200} placeholder="Dinner in Le Marais" />
         <div className="grid grid-cols-[1fr_6rem] gap-2">
-          <Field label="Amount">
-            <Input inputMode="decimal" value={d.amount} onChange={(e) => set('amount', e.target.value)} placeholder="0.00" className="text-lg font-semibold" />
-          </Field>
+          <TextField label="Amount" inputMode="decimal" value={d.amount} onChange={(value) => set('amount', value)} placeholder="0.00" />
           <Field label="Currency">
             <Select value={d.currency} onChange={(e) => setD((c) => c && { ...c, currency: e.target.value, rateEdited: false })}>
               {currencies.map((c) => <option key={c} value={c}>{c}</option>)}

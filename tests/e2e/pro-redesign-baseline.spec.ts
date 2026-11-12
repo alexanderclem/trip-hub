@@ -9,6 +9,9 @@ const id = (n: number) => `00000000-0000-4000-8000-00000000ee${n.toString(16).pa
 const tripId = id(1), me = id(2), pollId = id(20), closedPollId = id(21)
 const root = `/t/${tripId}`
 const created = '2026-11-01T12:00:00Z'
+// Windows WebKit's ephemeral context rejects IndexedDB Blob writes. Its UI-only
+// runs omit the synthetic file; actual cold file/cache verification uses Chromium.
+const storesFixtureFiles = !(process.platform === 'win32' && process.env.E2E_BROWSER === 'webkit')
 type Phase = 'planning' | 'preparing' | 'traveling' | 'complete' | 'empty' | 'long' | 'hosted'
 
 async function isolate(page: Page, baseURL: string) {
@@ -33,16 +36,16 @@ async function identity(page: Page) {
   await page.route('**/auth/v1/user', route => route.fulfill({ json: user }))
 }
 
-async function seed(page: Page, baseURL: string, phase: Phase = 'planning', online = false) {
+async function seed(page: Page, baseURL: string, phase: Phase = 'planning', online: boolean | null = false) {
   await isolate(page, baseURL)
   const clock = phase === 'traveling' ? '2027-03-16T08:00:00Z' : phase === 'preparing' ? '2027-03-12T10:00:00Z'
     : phase === 'complete' ? '2027-03-24T10:00:00Z' : '2027-02-15T10:00:00Z'
   await page.clock.setFixedTime(new Date(clock))
-  await page.addInitScript(online => Object.defineProperty(navigator, 'onLine', { get: () => online }), online)
+  if (online !== null) await page.addInitScript(online => Object.defineProperty(navigator, 'onLine', { get: () => online }), online)
   await page.goto('/inspire/manual')
   await expect(page.getByRole('heading', { name: 'Trip ideas', exact: true })).toBeVisible()
   await expect.poll(() => page.evaluate(async () => (await indexedDB.databases()).some(db => db.name === 'trip-hub'))).toBe(true)
-  await page.evaluate(async ({ tripId, me, pollId, closedPollId, created, phase }) => {
+  await page.evaluate(async ({ tripId, me, pollId, closedPollId, created, phase, storesFixtureFiles }) => {
     const key = (n: number) => `00000000-0000-4000-8000-00000000ee${n.toString(16).padStart(2, '0')}`
     const request = indexedDB.open('trip-hub')
     const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
@@ -81,16 +84,20 @@ async function seed(page: Page, baseURL: string, phase: Phase = 'planning', onli
       const ticket = { item_id: key(40), place_id: null, expense_id: null, kind: 'ticket', confirmation_code: 'EXAMPLE-27', storage_path: 'synthetic/orsay.png', filename: 'example-orsay.png', mime: 'image/png', bytes: blob.size, sha256: 'synthetic', uploaded_at: created, owner_member_id: me, visibility: 'trip' }
       put('attachments', { ...ticket, id: key(60), title: 'Example · Musée d’Orsay ticket' })
       put('attachments', { ...ticket, id: key(61), item_id: null, title: 'Example · Train ticket not downloaded', storage_path: 'synthetic/train.png' })
-      tx.objectStore('files').put({ name: `att:${key(60)}`, blob })
+      if (storesFixtureFiles) tx.objectStore('files').put({ name: `att:${key(60)}`, blob })
       put('expenses', { id: key(70), description: 'Example · Airport train', category: 'transport', spent_on: '2027-03-16', amount_minor: 8000, currency: 'EUR', fx_rate: 1, base_currency: 'EUR', base_amount_minor: 8000, payers: [{ member_id: key(3), amount_minor: 8000 }], split_method: 'equal', split: names.map((_, i) => ({ member_id: key(i + 2), value: 1 })), fx_source: 'same', fx_as_of: null, place_id: null, item_id: null, notes: null })
       put('fx_snapshots', { id: key(71), base: 'USD', rates: { USD: 1, EUR: .92 }, as_of: '2027-02-15', fetched_at: '2027-02-15T10:00:00Z', source: 'synthetic example' })
     }
-    await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error) })
+    await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve()
+      tx.onerror = event => reject(new Error(`Fixture write: ${(event.target as IDBRequest).error?.message ?? tx.error?.message ?? 'unknown request error'}`))
+      tx.onabort = () => reject(new Error(`Fixture transaction aborted: ${tx.error?.message ?? 'unknown error'}`))
+    })
     db.close()
     const access = { role: 'viewer', mode: 'hosted', epoch: 1, removed: false, canRemove: false, organized: true, removedMembers: [] }
     localStorage.setItem('trip-hub-device', JSON.stringify({ version: 1, state: { quizSeen: true, setupDismissed: { [tripId]: true }, trips: { [tripId]: { tripId, memberId: me, joinedAt: created } }, access: phase === 'hosted' ? { [tripId]: access } : {} } }))
     sessionStorage.setItem('stowaway-install-dismissed', '1')
-  }, { tripId, me, pollId, closedPollId, created, phase })
+  }, { tripId, me, pollId, closedPollId, created, phase, storesFixtureFiles })
 }
 
 async function capture(page: Page, name: string, animations: 'disabled' | 'allow' = 'disabled') {
@@ -203,6 +210,131 @@ test('group vote saves locally, winner requires a separate plan action', async (
   await expect(page.getByRole('region', { name: 'Finish this decision' })).toContainText('View in the plan')
 })
 
+test('decision options disclose forms and keep saved booking responsibility visible', async ({ page, baseURL }) => {
+  await seed(page, baseURL!)
+  await open(page, `more/vote/${closedPollId}`)
+  const handoff = page.getByRole('region', { name: 'Finish this decision' })
+  await expect(handoff.getByRole('combobox', { name: 'Existing plan item', exact: true })).not.toBeVisible()
+  await expect(handoff.getByRole('combobox', { name: 'Booking owner', exact: true })).not.toBeVisible()
+  const link = handoff.getByRole('button', { name: 'Already on the plan? Link it', exact: true })
+  await link.focus(); await page.keyboard.press('Enter')
+  await expect(link).toHaveAttribute('aria-expanded', 'true')
+  await handoff.getByRole('combobox', { name: 'Existing plan item', exact: true }).selectOption(id(42))
+  await handoff.getByRole('button', { name: 'Link to this decision', exact: true }).click()
+  await expect(handoff.getByRole('link', { name: /View in the plan/ })).toBeVisible()
+  await handoff.getByRole('button', { name: 'Assign a booking owner', exact: true }).click()
+  await handoff.getByRole('combobox', { name: 'Booking owner', exact: true }).selectOption(me)
+  await handoff.getByLabel('Book by (optional)', { exact: true }).fill('2027-03-01')
+  await handoff.getByRole('button', { name: 'Assign booking task', exact: true }).click()
+  await expect(handoff.getByRole('link', { name: 'View task', exact: true })).toBeVisible()
+  const edit = handoff.getByRole('button', { name: 'Change booking owner or deadline', exact: true })
+  await edit.click()
+  await expect(edit).toHaveAttribute('aria-expanded', 'false')
+  await expect(handoff).toContainText('due 2027-03-01')
+  await expect(handoff.getByRole('link', { name: 'View task', exact: true })).toBeVisible()
+  await capture(page, 'decision-optional-forms-390')
+  await page.reload()
+  await expect(handoff.getByRole('link', { name: 'View task', exact: true })).toBeVisible()
+  await expect(handoff.getByRole('combobox', { name: 'Booking owner', exact: true })).not.toBeVisible()
+  await handoff.getByRole('button', { name: 'No booking needed', exact: true }).click()
+  await expect(handoff.getByText('Confirmed · no booking needed', { exact: true })).toBeVisible()
+})
+
+test.describe('installed app cache', () => {
+  test.use({ serviceWorkers: 'allow' })
+  test('cold offline document opens cached trip and saved ticket, then reconnects', async ({ page, context, baseURL }) => {
+    test.skip(!storesFixtureFiles, 'Windows WebKit ephemeral contexts cannot persist Blob files; run this cache contract in Chromium.')
+    test.setTimeout(180_000)
+    await seed(page, baseURL!)
+    await open(page, 'overview')
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller), { timeout: 120_000 }).toBe(true)
+    const cached = await page.evaluate(async () => {
+      const keys = await caches.keys()
+      const precache = keys.find(key => key.includes('precache'))
+      return precache ? (await (await caches.open(precache)).keys()).length : 0
+    })
+    expect(cached).toBeGreaterThan(100)
+    await context.setOffline(true)
+    await page.close()
+    const cold = await context.newPage()
+    await cold.goto(`${root}/overview`)
+    await expect(cold.getByRole('heading', { level: 1 }).first()).toBeVisible()
+    await expect(cold.locator('#trip-content')).toContainText('Paris')
+    await cold.goto(`${root}/tickets/${id(60)}`)
+    await expect(cold.getByRole('heading', { name: 'Example · Musée d’Orsay ticket', exact: true })).toBeVisible()
+    await expect(cold.locator('img[src^="blob:"]').first()).toBeVisible()
+    await capture(cold, 'cold-offline-saved-ticket-390')
+    await cold.goto(`${root}/tickets/${id(61)}`)
+    await expect(cold.getByRole('alert').filter({ hasText: "You're offline and this file isn't on your phone yet." })).toBeVisible()
+    await context.setOffline(false)
+    await isolate(cold, baseURL!)
+    await cold.reload()
+    await expect(cold.locator('#trip-content')).toBeVisible()
+    await cold.close()
+  })
+})
+
+test.describe('cross-engine consumer contracts', () => {
+  test('forms, dark theme, roster and legacy poll scheduling retain their contracts', async ({ page, baseURL }) => {
+    await seed(page, baseURL!)
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.goto('/new')
+    await page.getByRole('button', { name: 'Create a trip', exact: true }).click()
+    await expect(page.getByLabel('Trip name', { exact: true })).toBeFocused()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await open(page, 'travelers')
+    await page.getByRole('link', { name: 'Maya Example', exact: true }).first().click()
+    await expect(page.getByRole('heading', { name: 'Maya Example', exact: true, level: 1 })).toBeVisible()
+    await open(page, `plan/new?poll=${closedPollId}&option=${id(24)}`)
+    await expect(page.getByRole('combobox', { name: 'Status', exact: true })).toHaveValue('tentative')
+    await page.getByLabel('Start time', { exact: true }).fill('15:00')
+    await page.getByRole('button', { name: 'Schedule this choice', exact: true }).click()
+    await expect(page).toHaveURL(/\/plan\/[0-9a-f-]+$/)
+    await expect(page.getByRole('heading', { level: 1 }).first()).toContainText('Versailles')
+    await capture(page, 'webkit-poll-scheduled-dark-390')
+  })
+})
+
+test.describe('public map download verification', () => {
+  test.use({ serviceWorkers: 'allow' })
+  test('Paris map downloads, survives a cold offline page and renders saved places', async ({ page, context, baseURL }) => {
+    test.skip(process.env.VERIFY_PUBLIC_MAP !== '1', 'Opt in to read-only public map downloads with VERIFY_PUBLIC_MAP=1.')
+    test.setTimeout(300_000)
+    await seed(page, baseURL!, 'planning', true)
+    // Only this read-only public tile server bypasses the synthetic fixture's external block.
+    await page.route('https://tiles.openfreemap.org/**', route => route.request().method() === 'GET' ? route.continue() : route.abort())
+    await open(page, 'more/settings')
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller), { timeout: 120_000 }).toBe(true)
+    await page.getByRole('button', { name: /^Save map for offline/ }).click()
+    await expect(page.getByText(/On this phone ·.*saved/)).toBeVisible({ timeout: 180_000 })
+    const cache = await page.evaluate(async () => {
+      const entries = await (await caches.open('map-tiles')).keys()
+      let bytes = 0
+      for (const request of entries) bytes += (await (await caches.match(request))!.arrayBuffer()).byteLength
+      return { tiles: entries.length, bytes }
+    })
+    expect(cache.tiles).toBeGreaterThan(10)
+    expect(cache.bytes).toBeGreaterThan(100_000)
+    await test.info().attach('downloaded-map-cache.json', { body: JSON.stringify(cache), contentType: 'application/json' })
+    if (shots) await writeFile(`${shots}/real-map-cache.json`, JSON.stringify(cache, null, 2))
+    await context.setOffline(true)
+    await page.close()
+    const cold = await context.newPage()
+    const failedRequests: string[] = []
+    cold.on('requestfailed', request => failedRequests.push(request.url()))
+    const warnings: string[] = []
+    cold.on('console', message => { if (message.type() === 'warning') warnings.push(message.text()) })
+    await cold.goto(`${root}/map`)
+    await expect(cold.locator('.maplibregl-canvas')).toBeVisible()
+    await expect(cold.getByRole('heading', { name: /Loading your trip map|Map is taking longer/ })).toHaveCount(0, { timeout: 30_000 })
+    if (shots) await writeFile(`${shots}/real-map-network.json`, JSON.stringify({ failedRequests, warnings }, null, 2))
+    await expect(cold.getByText('Some map tiles could not load. Your saved places are still available in the list.', { exact: true })).toHaveCount(0)
+    expect(failedRequests).toEqual([])
+    await capture(cold, 'real-paris-map-cold-offline-390')
+    await cold.close()
+  })
+})
+
 test('offline expense and activity persist, selected day and deep links survive', async ({ page, baseURL }) => {
   await seed(page, baseURL!)
   await open(page, 'money/new')
@@ -241,6 +373,49 @@ test('offline expense and activity persist, selected day and deep links survive'
   await page.getByRole('navigation', { name: 'Trip navigation' }).filter({ visible: true }).getByRole('link', { name: 'Home', exact: true }).click()
   await expect(page.locator('[data-phase="planning"]')).toBeVisible()
   await page.context().setOffline(false)
+})
+
+test('two isolated phones reconcile an offline task through the real sync transport with a stubbed server', async ({ page, browser, context, baseURL }) => {
+  const other = await browser.newContext({ baseURL, serviceWorkers: 'block', viewport: { width: 390, height: 844 } })
+  try {
+    const second = await other.newPage()
+    await seed(page, baseURL!, 'planning', null)
+    await seed(second, baseURL!, 'planning', null)
+    const server = new Map<string, Map<string, Record<string, unknown>>>()
+    for (const phone of [page, second]) await phone.route('**/rest/v1/**', async route => {
+      const request = route.request()
+      const url = new URL(request.url())
+      if (url.pathname.includes('/rpc/')) return route.fulfill({ json: null })
+      const table = url.pathname.split('/').at(-1)!
+      const rows = server.get(table) ?? new Map<string, Record<string, unknown>>()
+      server.set(table, rows)
+      if (request.method() === 'POST') {
+        const body = request.postDataJSON() as Record<string, unknown> | Record<string, unknown>[]
+        for (const row of Array.isArray(body) ? body : [body]) rows.set(row.id as string, row)
+        return route.fulfill({ status: 201, json: Array.isArray(body) ? body : [body] })
+      }
+      if (request.method() === 'GET') {
+        const since = url.searchParams.get('updated_at')?.replace(/^gt\./, '') ?? ''
+        return route.fulfill({ json: [...rows.values()].filter(row => String(row.updated_at) > since) })
+      }
+      return route.fulfill({ json: [] })
+    })
+    await open(page, 'more/tasks')
+    await open(second, 'more/tasks')
+    await page.getByRole('link', { name: 'Add task', exact: true }).click()
+    await expect(page.getByLabel('Task', { exact: true })).toBeVisible()
+    await context.setOffline(true)
+    await page.getByLabel('Task', { exact: true }).fill('Example · Meet at the offline rendezvous')
+    await page.getByRole('button', { name: 'Save task', exact: true }).click()
+    await expect(page.getByText('Example · Meet at the offline rendezvous', { exact: true })).toBeVisible()
+    await expect(second.getByText('Example · Meet at the offline rendezvous', { exact: true })).toHaveCount(0)
+    await context.setOffline(false)
+    await expect.poll(() => [...(server.get('trip_tasks')?.values() ?? [])].some(row => row.title === 'Example · Meet at the offline rendezvous')).toBe(true)
+    await second.evaluate(() => window.dispatchEvent(new Event('online')))
+    await expect(second.getByText('Example · Meet at the offline rendezvous', { exact: true })).toBeVisible()
+    await second.reload()
+    await expect(second.getByText('Example · Meet at the offline rendezvous', { exact: true })).toBeVisible()
+  } finally { await other.close() }
 })
 
 for (const width of [390, 1440]) {
@@ -513,7 +688,8 @@ test('retained native confirmation keeps focus and Escape across themes and moti
     await page.emulateMedia({ colorScheme, reducedMotion })
     await open(page, `money/${id(70)}`)
     const remove = page.getByRole('button', { name: 'Delete expense', exact: true })
-    await remove.click()
+    await remove.focus()
+    await page.keyboard.press('Enter')
     const dialog = page.getByRole('dialog', { name: 'Confirm this change', exact: true })
     await expect(dialog).toBeVisible()
     await expect(dialog).toHaveClass(/ui-dialog/)
@@ -524,6 +700,14 @@ test('retained native confirmation keeps focus and Escape across themes and moti
     await expect(dialog).not.toBeVisible()
     await expect(remove).toBeFocused()
   }
+  // A programmatic activation has no focused trigger. Dismissal still returns
+  // reading context instead of leaving focus on an unfocusable body element.
+  const remove = page.getByRole('button', { name: 'Delete expense', exact: true })
+  await remove.evaluate((element: HTMLButtonElement) => { element.blur(); element.click() })
+  await expect(page.getByRole('dialog', { name: 'Confirm this change', exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Confirm this change', exact: true })).not.toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 }).first()).toBeFocused()
 })
 
 test('public Paris example requires an explicit plan action and resets without trip writes', async ({ page, baseURL }) => {

@@ -1,5 +1,6 @@
-// Adapted from shadcn/ui, discovered via 21st.dev. See docs/UI_COMPONENTS.md.
+// Product empty-state composition; loading primitives use upstream Astryx.
 import type { ComponentProps } from 'react'
+import { Skeleton as AstryxSkeleton } from '@astryxdesign/core/Skeleton'
 
 export function Empty({ className = '', ...props }: ComponentProps<'div'>) {
   return <div data-slot="empty" className={`flex min-w-0 flex-col items-start justify-start gap-4 rounded-surface border border-line bg-surface px-6 py-8 text-start ${className}`} {...props} />
@@ -18,8 +19,7 @@ export function EmptyDescription(props: ComponentProps<'p'>) {
 }
 
 export function Skeleton({ className = '', ...props }: ComponentProps<'div'>) {
-  // A translated shimmer (index.css), not daisyUI's background-position sweep, which repaints every frame.
-  return <div data-slot="skeleton" className={`ui-skeleton-bar ${className}`} {...props} />
+  return <AstryxSkeleton width="auto" height="auto" data-slot="skeleton" className={className} {...props} />
 }
 
 /** Placeholder rows while a list loads from the phone, in place of a line of "Loading…" text. */

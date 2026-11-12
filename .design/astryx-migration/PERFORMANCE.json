@@ -1,0 +1,77 @@
+{
+  "method": "Chromium, fresh context per sample, 390×844 viewport, gzip local HTTP, 4× CPU slowdown, 1.6 Mbps down / 0.75 Mbps up, 150ms latency, 3 cold /new samples. Form usable = both actual inputs filled. All external traffic blocked. Lab comparison, not physical phone or field Web Vitals.",
+  "reports": [
+    {
+      "directory": "output/astryx-baseline-source/dist",
+      "medianFormUsableMs": 4108,
+      "samples": [
+        {
+          "run": 1,
+          "formUsableMs": 4143,
+          "fcpMs": 2956,
+          "encodedBytes": 534336,
+          "scriptMs": 519,
+          "taskMs": 974,
+          "longTaskCount": 4,
+          "longestTaskMs": 200
+        },
+        {
+          "run": 2,
+          "formUsableMs": 4108,
+          "fcpMs": 2972,
+          "encodedBytes": 534336,
+          "scriptMs": 495,
+          "taskMs": 930,
+          "longTaskCount": 3,
+          "longestTaskMs": 199
+        },
+        {
+          "run": 3,
+          "formUsableMs": 4079,
+          "fcpMs": 2940,
+          "encodedBytes": 534336,
+          "scriptMs": 512,
+          "taskMs": 959,
+          "longTaskCount": 2,
+          "longestTaskMs": 200
+        }
+      ]
+    },
+    {
+      "directory": "dist",
+      "medianFormUsableMs": 5240,
+      "samples": [
+        {
+          "run": 1,
+          "formUsableMs": 5240,
+          "fcpMs": 4060,
+          "encodedBytes": 744966,
+          "scriptMs": 595,
+          "taskMs": 1148,
+          "longTaskCount": 3,
+          "longestTaskMs": 237
+        },
+        {
+          "run": 2,
+          "formUsableMs": 5233,
+          "fcpMs": 4060,
+          "encodedBytes": 744966,
+          "scriptMs": 606,
+          "taskMs": 1147,
+          "longTaskCount": 3,
+          "longestTaskMs": 247
+        },
+        {
+          "run": 3,
+          "formUsableMs": 5262,
+          "fcpMs": 4072,
+          "encodedBytes": 744966,
+          "scriptMs": 587,
+          "taskMs": 1123,
+          "longTaskCount": 2,
+          "longestTaskMs": 233
+        }
+      ]
+    }
+  ]
+}

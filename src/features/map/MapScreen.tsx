@@ -81,6 +81,8 @@ export default function MapScreen() {
   // Trips without a ready-made pack can have the map around their destinations saved instead.
   const [savedMap] = useSavedMap(tripId)
   const wantSaved = !wantOffline && !online && !!savedMap
+  // A cold offline page must read its saved style before requesting an online one.
+  const canStartMap = online || savedMap !== undefined
 
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
@@ -158,6 +160,7 @@ export default function MapScreen() {
   // ── Create the map once ────────────────────────────────────────────────────
   useEffect(() => {
     let saved: { center: [number, number]; zoom: number } | null = null
+    if (!canStartMap) return
     try {
       saved = JSON.parse(sessionStorage.getItem(viewKey(tripId)) ?? 'null')
     } catch {
@@ -165,10 +168,13 @@ export default function MapScreen() {
     }
     if (saved) fitted.current = true
 
+    const initialArea = (wantSaved ? savedMap?.areas : tripAreas(trip))?.[0]
+    const initialView = initialArea ? { center: [initialArea.lng, initialArea.lat] as [number, number], zoom: 12 } : DEFAULT_VIEW
+    styleMode.current = wantOffline ? 'offline' : wantSaved ? 'saved' : 'online'
     const map = new MlMap({
       container: container.current!,
-      style: STYLE_URL,
-      ...(saved ?? DEFAULT_VIEW),
+      style: wantOffline && pack.status === 'ready' ? offlineStyle(pack.overview, pack.detail) : wantSaved && savedMap ? savedMap.style : STYLE_URL,
+      ...(saved ?? initialView),
       attributionControl: { compact: true },
       dragRotate: false,
       pitchWithRotate: false,
@@ -359,7 +365,8 @@ export default function MapScreen() {
       layersLive.current = false
       setReady(0)
     }
-  }, [tripId])
+    // Later style changes belong to the separate setStyle effect below.
+  }, [tripId, canStartMap])
 
   // ── Online map ↔ offline map (files on this device) ─────────────────────────
   useEffect(() => {

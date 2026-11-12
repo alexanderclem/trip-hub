@@ -1,6 +1,6 @@
 # UI component sources
 
-The home screen uses local adaptations of shadcn/ui's Empty, Skeleton, and Card header/title/description components, discovered in the [21st.dev shadcn collection](https://21st.dev/@shadcn/library/shadcn-ui).
+The home screen's compositional Empty and Card header/title/description helpers originated in local adaptations of shadcn/ui, discovered in the [21st.dev shadcn collection](https://21st.dev/@shadcn/library/shadcn-ui). Shared Skeleton now renders Astryx; Tasks uses Astryx EmptyState.
 
 Source registry: https://ui.shadcn.com/r/styles/new-york-v4/{empty,skeleton,card}.json
 
@@ -94,10 +94,10 @@ website keeps the printed tag world (`DESIGN.md`).
 
 The public component API incrementally adopts pinned Astryx 0.7.13. `Button`, `Card`
 and `Segmented` render the actual upstream components with a compiled Stowaway theme.
-`TextField` composes Astryx TextInput/Field in the two-field create flow; it preserves
+`TextField` composes Astryx TextInput/Field in create, expense, task, itinerary and confirmation forms. The existing `Field` adapter also migrates a single controlled text `Input` without custom sizing/styles; it translates the original change event, native name, required, disabled, autocomplete and keyboard traits. Composite, uncontrolled, date/file/number and tightly sized controls keep their native path. It preserves
 native required/maxlength behavior and a 44px editable target. TravelerLink uses Astryx
-Link through React Router integration. Money's group details and the real public Paris
-example use Astryx Collapsible. See [the migration architecture](../.design/astryx-migration/ARCHITECTURE.md)
+Link through React Router integration. Money's group details, optional decision forms and the real public Paris
+example use Astryx Collapsible. Shared Skeleton and Tasks EmptyState also use upstream components. See [the migration architecture](../.design/astryx-migration/ARCHITECTURE.md)
 for exact APIs, exceptions, evidence and the component map.
 
 `LinkButton` retains its Router/Motion anchor and DaisyUI button classes. Existing
